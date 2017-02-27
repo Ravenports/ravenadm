@@ -179,7 +179,7 @@ package body HelperText is
    --------------------------------------------------------------------------------------------
    function trailing_whitespace_present (line : String) return Boolean
    is
-      -- For now, whitespace is considered a hard tab and a space character
+      --  For now, whitespace is considered a hard tab and a space character
       last_char : constant Character := line (line'Last);
    begin
       case last_char is
@@ -199,7 +199,8 @@ package body HelperText is
       loop
          exit when back_marker + 1 >= line'Last;
          if line (back_marker) = LAT.Space and then
-           line (back_marker + 1) = LAT.HT then
+           line (back_marker + 1) = LAT.HT
+         then
             return True;
          end if;
          back_marker := back_marker + 1;

@@ -3,5 +3,9 @@ project Ravenadm is
    for Source_Dirs use ("./**");
    for Object_Dir use "build";
 
+   package Compiler is
+      for Default_Switches ("ada") use ("-gnatyaAbBcdehfiklM99nOprsStx");
+   end Compiler;
+
 end Ravenadm;
 
