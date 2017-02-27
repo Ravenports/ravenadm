@@ -1,3 +1,6 @@
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
+
 with Ada.Strings.Unbounded;
 with Ada.Containers;
 
@@ -56,11 +59,6 @@ package HelperText is
 
    --  True when tab preceded by space character is present
    function trapped_space_character_present (line : String) return Boolean;
-
-   --  True if the target character is present anywhere in the provided line
-   function contains_specific_character
-     (line : String;
-      target : Character) return Boolean;
 
 private
 

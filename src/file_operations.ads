@@ -1,3 +1,6 @@
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
+
 package File_Operations is
 
    file_handling    : exception;

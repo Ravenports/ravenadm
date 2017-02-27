@@ -1,3 +1,6 @@
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
+
 with Ada.Strings.Fixed;
 with Ada.Strings.Hash;
 with Ada.Characters.Latin_1;
