@@ -70,4 +70,7 @@ private
          last_set : spec_order;
       end record;
 
+   --  Compares given keyword against known values
+   function keyword_is_valid (keyword : String) return Boolean;
+
 end Port_Specification;

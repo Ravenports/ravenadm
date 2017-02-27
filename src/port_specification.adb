@@ -73,6 +73,9 @@ package body Port_Specification is
             then
                raise misordered with field'Img;
             end if;
+            if not keyword_is_valid (value) then
+               raise wrong_value with "Keyword '" & value & "' is not recognized";
+            end if;
             specs.keywords.Append (HT.SUS (value));
             specs.last_set := so_keywords;
          when sp_variants =>
@@ -84,7 +87,10 @@ package body Port_Specification is
             if specs.variants.Is_Empty and then
               value /= variant_standard
             then
-               raise wrong_type with "First variant must be '" & variant_standard & "'";
+               raise wrong_value with "First variant must be '" & variant_standard & "'";
+            end if;
+            if value'Length > 15 then
+               raise wrong_value with "'" & value & "' value is too long (15-char limit)";
             end if;
             specs.variants.Append (HT.SUS (value));
             specs.last_set := so_variants;
@@ -123,5 +129,78 @@ package body Port_Specification is
       end case;
    end set_natural_integer;
 
+
+   --------------------------------------------------------------------------------------------
+   --  keyword_is_valid
+   --------------------------------------------------------------------------------------------
+   function keyword_is_valid (keyword : String) return Boolean is
+   begin
+      return (keyword = "accessibility" or else
+              keyword = "archivers" or else
+              keyword = "astro" or else
+              keyword = "audio" or else
+              keyword = "benchmarks" or else
+              keyword = "biology" or else
+              keyword = "cad" or else
+              keyword = "comms" or else
+              keyword = "converters" or else
+              keyword = "databases" or else
+              keyword = "deskutils" or else
+              keyword = "devel" or else
+              keyword = "dns" or else
+              keyword = "editors" or else
+              keyword = "emulators" or else
+              keyword = "finance" or else
+              keyword = "ftp" or else
+              keyword = "games" or else
+              keyword = "graphics" or else
+              keyword = "irc" or else
+              keyword = "lang" or else
+              keyword = "mail" or else
+              keyword = "math" or else
+              keyword = "misc" or else
+              keyword = "multimedia" or else
+              keyword = "net" or else
+              keyword = "net_im" or else
+              keyword = "net_mgmt" or else
+              keyword = "net_p2p" or else
+              keyword = "news" or else
+              keyword = "print" or else
+              keyword = "raven" or else
+              keyword = "science" or else
+              keyword = "security" or else
+              keyword = "shells" or else
+              keyword = "sysutils" or else
+              keyword = "textproc" or else
+              keyword = "www" or else
+              keyword = "x11" or else
+              keyword = "x11_clocks" or else
+              keyword = "x11_drivers" or else
+              keyword = "x11_fm" or else
+              keyword = "x11_fonts" or else
+              keyword = "x11_servers" or else
+              keyword = "x11_toolkits" or else
+              keyword = "x11_wm" or else
+              keyword = "ada" or else
+              keyword = "c++" or else
+              keyword = "csharp" or else
+              keyword = "java" or else
+              keyword = "javascript" or else
+              keyword = "lisp" or else
+              keyword = "perl" or else
+              keyword = "php" or else
+              keyword = "python" or else
+              keyword = "ruby" or else
+              keyword = "scheme" or else
+              keyword = "Arabic" or else
+              keyword = "Chinese" or else
+              keyword = "French" or else
+              keyword = "German" or else
+              keyword = "Italian" or else
+              keyword = "Japanese" or else
+              keyword = "Russian" or else
+              keyword = "Spanish" or else
+              keyword = "Vietnamese");
+   end keyword_is_valid;
 
 end Port_Specification;
