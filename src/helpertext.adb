@@ -4,11 +4,13 @@
 with Ada.Strings.Fixed;
 with Ada.Strings.Hash;
 with Ada.Characters.Latin_1;
+with Ada.Characters.Handling;
 
 package body HelperText is
 
    package AS  renames Ada.Strings;
    package LAT renames Ada.Characters.Latin_1;
+   package HAN renames Ada.Characters.Handling;
 
    --------------------------------------------------------------------------------------------
    --  int2str
@@ -118,6 +120,132 @@ package body HelperText is
    begin
       return (SU.Index (Source => US, Pattern => fragment) > 0);
    end contains;
+
+
+   --------------------------------------------------------------------------------------------
+   --  uppercase #1
+   --------------------------------------------------------------------------------------------
+   function uppercase (US : Text) return Text
+   is
+      tall : String := uppercase (USS (US));
+   begin
+      return SUS (tall);
+   end uppercase;
+
+
+   --------------------------------------------------------------------------------------------
+   --  uppercase #2
+   --------------------------------------------------------------------------------------------
+   function uppercase (S : String) return String is
+   begin
+      return HAN.To_Upper (S);
+   end uppercase;
+
+
+   --------------------------------------------------------------------------------------------
+   --  lowercase #1
+   --------------------------------------------------------------------------------------------
+   function lowercase (US : Text) return Text
+   is
+      short : String := lowercase (USS (US));
+   begin
+      return SUS (short);
+   end lowercase;
+
+
+   --------------------------------------------------------------------------------------------
+   --  lowercase #2
+   --------------------------------------------------------------------------------------------
+   function lowercase (S : String) return String is
+   begin
+      return HAN.To_Lower (S);
+   end lowercase;
+
+
+   --------------------------------------------------------------------------------------------
+   --  head #1
+   --------------------------------------------------------------------------------------------
+   function head (US : Text; delimiter : Text) return Text
+   is
+      result : constant String := head (USS (US), USS (delimiter));
+   begin
+      return SUS (result);
+   end head;
+
+
+   --------------------------------------------------------------------------------------------
+   --  head #2
+   --------------------------------------------------------------------------------------------
+   function head (S  : String; delimiter : String) return String
+   is
+      dl_size      : constant Natural := delimiter'Length;
+      back_marker  : constant Natural := S'First;
+      front_marker : Natural := S'Last - dl_size + 1;
+   begin
+      loop
+         if front_marker < back_marker then
+            --  delimiter never found
+            return "";
+         end if;
+         if S (front_marker .. front_marker + dl_size - 1) = delimiter then
+            return S (back_marker .. front_marker - 1);
+         end if;
+         front_marker := front_marker - 1;
+      end loop;
+   end head;
+
+
+   --------------------------------------------------------------------------------------------
+   --  tail #1
+   --------------------------------------------------------------------------------------------
+   function tail (US : Text; delimiter : Text) return Text
+   is
+      result : constant String := tail (USS (US), USS (delimiter));
+   begin
+      return SUS (result);
+   end tail;
+
+
+   --------------------------------------------------------------------------------------------
+   --  tail #2
+   --------------------------------------------------------------------------------------------
+   function tail (S : String; delimiter : String) return String
+   is
+      dl_size      : constant Natural := delimiter'Length;
+      back_marker  : constant Natural := S'First;
+      front_marker : Natural := S'Last - dl_size + 1;
+   begin
+      loop
+         if front_marker < back_marker then
+            --  delimiter never found
+            return S;
+         end if;
+         if S (front_marker .. front_marker + dl_size - 1) = delimiter then
+            return S (front_marker + dl_size .. S'Last);
+         end if;
+         front_marker := front_marker - 1;
+      end loop;
+   end tail;
+
+
+   --------------------------------------------------------------------------------------------
+   --  replace_substring
+   --------------------------------------------------------------------------------------------
+   function replace_substring (US : Text;
+                               old_string : String;
+                               new_string : String) return Text
+   is
+      back_marker : Natural := SU.Index (Source => US, Pattern => old_string);
+      front_marker := back_marker + old_string'Length - 1;
+   begin
+      if back_marker = 0 then
+         return US;
+      end if;
+      return SU.Replace_Slice (Source => US,
+                               Low    => back_marker,
+                               High   => front_marker,
+                               By     => new_string);
+   end replace_substring;
 
 
    --------------------------------------------------------------------------------------------

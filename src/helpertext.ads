@@ -39,6 +39,27 @@ package HelperText is
    function contains (S : String; fragment : String) return Boolean;
    function contains (US : Text; fragment : String) return Boolean;
 
+   --  Convert to uppercase
+   function uppercase (US : Text)   return Text;
+   function uppercase (S  : String) return String;
+
+   --  Convert to lowercase
+   function lowercase (US : Text)   return Text;
+   function lowercase (S  : String) return String;
+
+   --  Head (keep all but last delimiter and field)
+   function head (US : Text;   delimiter : Text)   return Text;
+   function head (S  : String; delimiter : String) return String;
+
+   --  Tail (keep only last field)
+   function tail (US : Text;   delimiter : Text)   return Text;
+   function tail (S  : String; delimiter : String) return String;
+
+   --  Replace substring with another string
+   function replace_substring (US : Text;
+                               old_string : String;
+                               new_string : String) return Text;
+
    --  Iterate though block of text, LF is delimiter
    procedure initialize_markers
      (block_text : in String;
