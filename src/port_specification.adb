@@ -70,9 +70,9 @@ package body Port_Specification is
       end if;
       case field is
          when sp_keywords =>
-            if specs.last_set /= so_keywords or else
-              specs.last_set /= so_epoch or else
-              specs.last_set /= so_revision or else
+            if specs.last_set /= so_keywords and then
+              specs.last_set /= so_epoch and then
+              specs.last_set /= so_revision and then
               specs.last_set /= so_version
             then
                raise misordered with field'Img;
@@ -83,7 +83,7 @@ package body Port_Specification is
             specs.keywords.Append (HT.SUS (value));
             specs.last_set := so_keywords;
          when sp_variants =>
-            if specs.last_set /= so_variants or else
+            if specs.last_set /= so_variants and then
               specs.last_set /= so_keywords
             then
                raise misordered with field'Img;
@@ -121,7 +121,7 @@ package body Port_Specification is
             specs.revision := value;
             specs.last_set := so_revision;
          when sp_epoch =>
-            if specs.last_set /= so_revision or else
+            if specs.last_set /= so_revision and then
               specs.last_set /= so_version
             then
                raise misordered with field'Img;
@@ -227,7 +227,7 @@ package body Port_Specification is
       TIO.Put_Line ("NAMEBASE=" & LAT.HT & LAT.HT & HT.USS (specs.namebase));
       TIO.Put_Line ("VERSION="  & LAT.HT & LAT.HT & HT.USS (specs.version));
       TIO.Put_Line ("REVISION=" & LAT.HT & LAT.HT & HT.int2str (specs.revision));
-      TIO.Put_Line ("EPOCH="    & LAT.HT & LAT.HT & HT.int2str (specs.epoch));
+      TIO.Put_Line ("EPOCH="    & LAT.HT & LAT.HT & LAT.HT & HT.int2str (specs.epoch));
       TIO.Put      ("KEYWORD="  & LAT.HT & LAT.HT);
       specs.keywords.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);

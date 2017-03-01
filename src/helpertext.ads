@@ -89,6 +89,8 @@ private
       record
          back_marker  : Natural := 0;
          front_marker : Natural := 0;
+         zero_length  : Boolean := False;
+         utilized     : Boolean := False;
       end record;
 
 end HelperText;

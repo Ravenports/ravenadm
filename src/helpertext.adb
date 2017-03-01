@@ -257,6 +257,8 @@ package body HelperText is
    begin
       shuttle.back_marker  := block_text'First;
       shuttle.front_marker := block_text'First;
+      shuttle.zero_length  := block_text (shuttle.back_marker) = ASCII.LF;
+      shuttle.utilized     := False;
    end initialize_markers;
 
 
@@ -268,7 +270,8 @@ package body HelperText is
       shuttle    : in Line_Markers)
       return String is
    begin
-      if shuttle.back_marker < block_text'First or else
+      if shuttle.zero_length or else
+        shuttle.back_marker < block_text'First or else
         shuttle.front_marker < shuttle.back_marker or else
         shuttle.front_marker > block_text'Last
       then
@@ -289,12 +292,19 @@ package body HelperText is
       if shuttle.front_marker + 2 > block_text'Last then
          return False;
       end if;
-      if shuttle.front_marker > block_text'First then
-         shuttle.back_marker  := shuttle.front_marker + 2;
+      if shuttle.utilized then
+         if shuttle.zero_length then
+            shuttle.back_marker  := shuttle.front_marker + 1;
+         else
+            shuttle.back_marker  := shuttle.front_marker + 2;
+         end if;
          shuttle.front_marker := shuttle.back_marker;
+         shuttle.zero_length  := block_text (shuttle.back_marker) = ASCII.LF;
       end if;
       loop
+         shuttle.utilized := True;
          exit when shuttle.front_marker = block_text'Last;
+         exit when block_text (shuttle.back_marker) = ASCII.LF;
          exit when block_text (shuttle.front_marker + 1) = ASCII.LF;
          shuttle.front_marker := shuttle.front_marker + 1;
       end loop;

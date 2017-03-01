@@ -131,10 +131,13 @@ package body Specification_Parser is
                   last_parse_error := HT.SUS (LN & "value not aligned to column-24 (tab issue)");
                   exit;
                when F6 : missing_definition =>
-                  last_parse_error := HT.SUS (LN & "DEV ISSUE: equals/tab pattern not found.");
+                  last_parse_error := HT.SUS (LN & "Variable expansion: definition missing.");
                   exit;
                when F7 : extra_spaces =>
                   last_parse_error := HT.SUS (LN & "extra spaces detected between list items.");
+                  exit;
+               when F8 : expansion_too_long =>
+                  last_parse_error := HT.SUS (LN & "expansion exceeds 512-char maximum");
                   exit;
             end;
             <<line_done>>
@@ -434,11 +437,11 @@ package body Specification_Parser is
       is
          len : constant Natural := varname'Length;
       begin
-         return (line'Length > len + 4) and then
+         return (line'Length > len + 2) and then
            line (line'First .. line'First + len) = varname & "=";
       end known;
    begin
-      if not HT.contains (S => line, fragment => "]=" & LAT.HT) then
+      if not HT.contains (S => line, fragment => "=" & LAT.HT) then
          return not_singlet;
       end if;
       if known ("NAMEBASE") then
@@ -464,7 +467,8 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function retrieve_single_value (line : String) return String
    is
-      equals : Natural := AS.Fixed.Index (line, LAT.Equals_Sign & LAT.HT);
+      wrkstr : String (1 .. line'Length) := line;
+      equals : Natural := AS.Fixed.Index (wrkstr, LAT.Equals_Sign & LAT.HT);
       c81624 : Natural := ((equals / 8) + 1) * 8;
       --  f(4)  =  8    ( 2 ..  7)
       --  f(8)  = 16;   ( 8 .. 15)
@@ -475,10 +479,10 @@ package body Specification_Parser is
    begin
       if equals = 0 then
          --  Support triple-tab line too.
-         if line'Length > 3 and then
-           line (line'First .. line'First + 2) = LAT.HT & LAT.HT & LAT.HT
+         if wrkstr'Length > 3 and then
+           wrkstr (wrkstr'First .. wrkstr'First + 2) = LAT.HT & LAT.HT & LAT.HT
          then
-            equals := line'First + 1;
+            equals := wrkstr'First + 1;
             c81624 := 24;
          else
             raise missing_definition;
@@ -488,7 +492,7 @@ package body Specification_Parser is
          raise mistabbed;
       end if;
       declare
-         rest : constant String := line (equals + 2 .. line'Last);
+         rest : constant String := wrkstr (equals + 2 .. wrkstr'Last);
          contig_tabs : Natural := 0;
          arrow : Natural := rest'First;
       begin
@@ -504,7 +508,7 @@ package body Specification_Parser is
          then
             raise mistabbed;
          end if;
-         return rest (rest'First + contig_tabs .. rest'Last);
+         return expand_value (rest (rest'First + contig_tabs .. rest'Last));
       end;
    end retrieve_single_value;
 
