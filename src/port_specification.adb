@@ -228,7 +228,7 @@ package body Port_Specification is
       TIO.Put_Line ("VERSION="  & LAT.HT & LAT.HT & HT.USS (specs.version));
       TIO.Put_Line ("REVISION=" & LAT.HT & LAT.HT & HT.int2str (specs.revision));
       TIO.Put_Line ("EPOCH="    & LAT.HT & LAT.HT & LAT.HT & HT.int2str (specs.epoch));
-      TIO.Put      ("KEYWORD="  & LAT.HT & LAT.HT);
+      TIO.Put      ("KEYWORDS=" & LAT.HT & LAT.HT);
       specs.keywords.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
       TIO.Put      ("VARIANTS=" & LAT.HT & LAT.HT);

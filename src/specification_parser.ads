@@ -45,6 +45,7 @@ private
    mistabbed          : exception;
    integer_expected   : exception;
    extra_spaces       : exception;
+   duplicate_key      : exception;
 
    --  This looks for the pattern ${something}.  If not found, the original value is returned.
    --  Otherwise it looks up "something".  If that's not a definition, the missing_definition
@@ -69,6 +70,9 @@ private
 
    --  Calls retrieve_single_value and tries to convert to a natural number.
    function retrieve_single_integer (line : String) return Natural;
+
+   --  Returns the key for array item definition lines.
+   function retrieve_key (line : String) return HT.Text;
 
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters.

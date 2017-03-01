@@ -82,13 +82,25 @@ package body Specification_Parser is
                end case;
             end if;
 
-            if line_array = def then
-               if seen_namebase then
-                  last_parse_error := HT.SUS (LN & "DEF can't appear after NAMEBASE");
-                  exit;
-               end if;
-            end if;
             begin
+               if line_array = def then
+                  if seen_namebase then
+                     last_parse_error := HT.SUS (LN & "DEF can't appear after NAMEBASE");
+                     exit;
+                  end if;
+                  declare
+                     defkey   : HT.Text := retrieve_key (line);
+                     defvalue : HT.Text := HT.SUS (retrieve_single_value (line));
+                  begin
+                     if spec_definitions.Contains (defkey) then
+                        raise duplicate_key with HT.USS (defkey);
+                     else
+                        spec_definitions.Insert (Key      => defkey,
+                                                 New_Item => defvalue);
+                     end if;
+                  end;
+               end if;
+
                case line_singlet is
                   when namebase =>
                      seen_namebase := True;
@@ -138,6 +150,10 @@ package body Specification_Parser is
                   exit;
                when F8 : expansion_too_long =>
                   last_parse_error := HT.SUS (LN & "expansion exceeds 512-char maximum");
+                  exit;
+               when F9 : duplicate_key =>
+                  last_parse_error := HT.SUS (LN & "array key '" & EX.Exception_Message (F9) &
+                                                "' duplicated");
                   exit;
             end;
             <<line_done>>
@@ -245,6 +261,7 @@ package body Specification_Parser is
                   found := True;
                   exit;
                end if;
+               colon_next := colon_next + 1;
             end loop;
             if found then
                end_mark := colon_next - 1;
@@ -411,7 +428,7 @@ package body Specification_Parser is
          len : constant Natural := array_name'Length;
       begin
          return (line'Length > len + 6) and then
-           line (line'First .. line'First + len) = array_name & "[";
+           line (line'First .. line'First + len) = array_name & LAT.Left_Square_Bracket;
       end known;
    begin
       if not HT.contains (S => line, fragment => "]=" & LAT.HT) then
@@ -528,6 +545,24 @@ package body Specification_Parser is
       when Constraint_Error =>
          raise integer_expected;
    end retrieve_single_integer;
+
+
+   --------------------------------------------------------------------------------------------
+   --  retrieve_key
+   --------------------------------------------------------------------------------------------
+   function retrieve_key (line : String) return HT.Text
+   is
+      LB : Natural := AS.Fixed.Index (line, "[");
+      RB : Natural := AS.Fixed.Index (line, "]");
+   begin
+      if LB = 0 or else
+        RB = 0 or else
+        RB <= LB + 1
+      then
+         return HT.SUS ("BOGUS");  --  should be impossible
+      end if;
+      return HT.SUS (line (LB + 1 .. RB - 1));
+   end retrieve_key;
 
 
    --------------------------------------------------------------------------------------------
