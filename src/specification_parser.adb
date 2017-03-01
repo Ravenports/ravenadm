@@ -4,12 +4,14 @@
 with File_Operations;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
+with Ada.Exceptions;
 
 package body Specification_Parser is
 
    package FOP renames File_Operations;
    package LAT renames Ada.Characters.Latin_1;
    package AS  renames Ada.Strings;
+   package EX  renames Ada.Exceptions;
 
    --------------------------------------------------------------------------------------------
    --  parse_specification_file
@@ -21,6 +23,12 @@ package body Specification_Parser is
       contents : constant String := FOP.get_file_contents (dossier);
       markers  : HT.Line_Markers;
       linenum  : Natural := 0;
+      seen_namebase : Boolean := False;
+      line_array    : spec_array;
+      line_singlet  : spec_singlet;
+      last_array    : spec_array    := not_array;
+      last_singlet  : spec_singlet  := not_singlet;
+      last_seen     : type_category := cat_none;
    begin
       success := False;
       specification.initialize;
@@ -57,10 +65,84 @@ package body Specification_Parser is
                end if;
                goto line_done;
             end if;
+            line_array := determine_array (line);
+            if line_array = not_array then
+               line_singlet := determine_singlet (line);
+            else
+               line_singlet := not_singlet;
+            end if;
+
+            if line_singlet = not_singlet and then
+              line_array = not_array
+            then
+               case last_seen is
+                  when cat_array   => line_array   := last_array;
+                  when cat_singlet => line_singlet := last_singlet;
+                  when cat_none    => null;
+               end case;
+            end if;
+
+            if line_array = def then
+               if seen_namebase then
+                  last_parse_error := HT.SUS (LN & "DEF can't appear after NAMEBASE");
+                  exit;
+               end if;
+            end if;
+            begin
+               case line_singlet is
+                  when namebase =>
+                     seen_namebase := True;
+                     specification.set_single_string (PSP.sp_namebase,
+                                                      retrieve_single_value (line));
+                  when version =>
+                     specification.set_single_string (PSP.sp_version,
+                                                      retrieve_single_value (line));
+                  when revision =>
+                     specification.set_natural_integer (PSP.sp_revision,
+                                                       retrieve_single_integer (line));
+                  when epoch =>
+                     specification.set_natural_integer (PSP.sp_epoch,
+                                                       retrieve_single_integer (line));
+                  when keywords =>
+                     build_list (PSP.sp_keywords, line);
+                  when variants =>
+                     build_list (PSP.sp_variants, line);
+                  when not_singlet =>
+                     null;
+               end case;
+               last_singlet := line_singlet;
+               last_seen := cat_singlet;
+            exception
+               when F1 : PSP.misordered =>
+                  last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F1) &
+                                                " appears out of order");
+                  exit;
+               when F2 : PSP.contains_spaces =>
+                  last_parse_error := HT.SUS (LN & "Multiple values found");
+                  exit;
+               when F3 : PSP.wrong_type =>
+                  last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F3) &
+                                                " DEV ISSUE: matched to wrong type");
+                  exit;
+               when F4 : PSP.wrong_value =>
+                  last_parse_error := HT.SUS (LN & EX.Exception_Message (F4));
+                  exit;
+               when F5 : mistabbed =>
+                  last_parse_error := HT.SUS (LN & "value not aligned to column-24 (tab issue)");
+                  exit;
+               when F6 : missing_definition =>
+                  last_parse_error := HT.SUS (LN & "DEV ISSUE: equals/tab pattern not found.");
+                  exit;
+               when F7 : extra_spaces =>
+                  last_parse_error := HT.SUS (LN & "extra spaces detected between list items.");
+                  exit;
+            end;
+            <<line_done>>
          end;
-         <<line_done>>
       end loop;
-      success := True;
+      if HT.IsBlank (last_parse_error) then
+         success := True;
+      end if;
    exception
       when FOP.file_handling =>
          success := False;
@@ -211,7 +293,6 @@ package body Specification_Parser is
          elsif ml >= 5 and then modifier (modifier'First) = 'S' then
             declare
                separator  : Character;
-               arrow      : Natural;
                position_2 : Natural := 0;
                position_3 : Natural := 0;
                repeat     : Boolean := False;
@@ -314,5 +395,175 @@ package body Specification_Parser is
          end if;
       end loop;
    end expand_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  determine_array
+   --------------------------------------------------------------------------------------------
+   function determine_array (line : String) return spec_array
+   is
+      function known (array_name : String) return Boolean;
+      function known (array_name : String) return Boolean
+      is
+         len : constant Natural := array_name'Length;
+      begin
+         return (line'Length > len + 6) and then
+           line (line'First .. line'First + len) = array_name & "[";
+      end known;
+   begin
+      if not HT.contains (S => line, fragment => "]=" & LAT.HT) then
+         return not_array;
+      end if;
+      if known ("DEF") then
+         return def;
+      elsif known ("SDESC") then
+         return sdesc;
+      else
+         return not_array;
+      end if;
+   end determine_array;
+
+
+   --------------------------------------------------------------------------------------------
+   --  determine_singlet
+   --------------------------------------------------------------------------------------------
+   function determine_singlet (line : String) return spec_singlet
+   is
+      function known (varname : String) return Boolean;
+      function known (varname : String) return Boolean
+      is
+         len : constant Natural := varname'Length;
+      begin
+         return (line'Length > len + 4) and then
+           line (line'First .. line'First + len) = varname & "=";
+      end known;
+   begin
+      if not HT.contains (S => line, fragment => "]=" & LAT.HT) then
+         return not_singlet;
+      end if;
+      if known ("NAMEBASE") then
+         return namebase;
+      elsif known ("VERSION") then
+         return version;
+      elsif known ("REVISION") then
+         return revision;
+      elsif known ("EPOCH") then
+         return epoch;
+      elsif known ("KEYWORDS") then
+         return keywords;
+      elsif known ("VARIANTS") then
+         return variants;
+      else
+         return not_singlet;
+      end if;
+   end determine_singlet;
+
+
+   --------------------------------------------------------------------------------------------
+   --  retrieve_single_value
+   --------------------------------------------------------------------------------------------
+   function retrieve_single_value (line : String) return String
+   is
+      equals : Natural := AS.Fixed.Index (line, LAT.Equals_Sign & LAT.HT);
+      c81624 : Natural := ((equals / 8) + 1) * 8;
+      --  f(4)  =  8    ( 2 ..  7)
+      --  f(8)  = 16;   ( 8 .. 15)
+      --  f(18) = 24;   (16 .. 23)
+      --  We are looking for an exact number of tabs starting at equals + 2:
+      --  if c81624 = 8, then we need 2 tabs.  IF it's 16 then we need 1 tab,
+      --  if it's 24 then there can be no tabs, and if it's higher, that's a problem.
+   begin
+      if equals = 0 then
+         --  Support triple-tab line too.
+         if line'Length > 3 and then
+           line (line'First .. line'First + 2) = LAT.HT & LAT.HT & LAT.HT
+         then
+            equals := line'First + 1;
+            c81624 := 24;
+         else
+            raise missing_definition;
+         end if;
+      end if;
+      if c81624 > 24 then
+         raise mistabbed;
+      end if;
+      declare
+         rest : constant String := line (equals + 2 .. line'Last);
+         contig_tabs : Natural := 0;
+         arrow : Natural := rest'First;
+      begin
+         loop
+            exit when arrow > rest'Last;
+            exit when rest (arrow) /= LAT.HT;
+            contig_tabs := contig_tabs + 1;
+            arrow := arrow + 1;
+         end loop;
+         if ((c81624 = 8) and then (contig_tabs /= 2)) or else
+           ((c81624 = 16) and then (contig_tabs /= 1)) or else
+           ((c81624 = 24) and then (contig_tabs /= 0))
+         then
+            raise mistabbed;
+         end if;
+         return rest (rest'First + contig_tabs .. rest'Last);
+      end;
+   end retrieve_single_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  retrieve_single_integer
+   --------------------------------------------------------------------------------------------
+   function retrieve_single_integer (line : String) return Natural
+   is
+      result   : Natural;
+      strvalue : constant String := retrieve_single_value (line);
+      --  let any exceptions cascade
+   begin
+      result := Integer'Value (strvalue);
+      return result;
+   exception
+      when Constraint_Error =>
+         raise integer_expected;
+   end retrieve_single_integer;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_list
+   --------------------------------------------------------------------------------------------
+   procedure build_list (field : PSP.spec_field; line : String)
+   is
+      arrow      : Natural;
+      word_start : Natural;
+      strvalue   : constant String := retrieve_single_value (line);
+      --  let any exceptions cascade
+   begin
+      --  Handle single item case
+      if not HT.contains (S => strvalue, fragment => " ") then
+         specification.append_list (field, strvalue);
+         return;
+      end if;
+
+      --  Check for multiple space error or leading space error
+      if HT.contains (S => strvalue, fragment => "  ") or else
+        strvalue (strvalue'First) = ' '
+      then
+         raise extra_spaces;
+      end if;
+
+      --  Now we have multiple list items separated by single spaces
+      --  We know the original line has no trailing spaces too, btw.
+      word_start := strvalue'First;
+      arrow := word_start;
+      loop
+         exit when arrow > strvalue'Last;
+         if strvalue (arrow) = ' ' then
+            specification.append_list (field, strvalue (word_start .. arrow - 1));
+            word_start := arrow + 1;
+         end if;
+         arrow := arrow + 1;
+      end loop;
+      specification.append_list (field, strvalue (word_start .. strvalue'Last));
+
+   end build_list;
+
 
 end Specification_Parser;

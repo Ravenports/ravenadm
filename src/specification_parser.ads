@@ -32,12 +32,19 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
+   type spec_array   is (not_array, def, sdesc);
+   type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants);
+   type type_category is (cat_none, cat_array, cat_singlet);
+
    last_parse_error   : HT.Text;
    spec_definitions   : def_crate.Map;
 
    missing_definition : exception;
    bad_modifier       : exception;
    expansion_too_long : exception;
+   mistabbed          : exception;
+   integer_expected   : exception;
+   extra_spaces       : exception;
 
    --  This looks for the pattern ${something}.  If not found, the original value is returned.
    --  Otherwise it looks up "something".  If that's not a definition, the missing_definition
@@ -47,5 +54,24 @@ private
    --  final expanded value.  If the length of the expanded value exceeds 512 bytes, the
    --  expansion_too_long exception is thrown.
    function expand_value (value : String) return String;
+
+   --  If the line represents a recognized array type, indicate which one,
+   --  otherwise return "not_array"
+   function determine_array (line : String) return spec_array;
+
+   --  If the line represents a recognized singlet type, indicate which one,
+   --  otherwise return "not_singlet"
+   function determine_singlet (line : String) return spec_singlet;
+
+   --  Returns everything following the tab(s) until end of line.  If last tab doesn't align
+   --  text with column 24, the mistabbed exception is thrown.
+   function retrieve_single_value (line : String) return String;
+
+   --  Calls retrieve_single_value and tries to convert to a natural number.
+   function retrieve_single_integer (line : String) return Natural;
+
+   --  Line may contain spaces, and each space is considered a single item on a list.
+   --  This iterates through the value with space delimiters.
+   procedure build_list (field : PSP.spec_field; line : String);
 
 end Specification_Parser;

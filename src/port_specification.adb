@@ -2,9 +2,13 @@
 --  Reference: ../License.txt
 
 with Definitions; use Definitions;
+with Ada.Text_IO;
+with Ada.Characters.Latin_1;
 
 package body Port_Specification is
 
+   package TIO renames Ada.Text_IO;
+   package LAT renames Ada.Characters.Latin_1;
 
    --------------------------------------------------------------------------------------------
    --  initialize
@@ -202,5 +206,34 @@ package body Port_Specification is
               keyword = "Spanish" or else
               keyword = "Vietnamese");
    end keyword_is_valid;
+
+
+   --------------------------------------------------------------------------------------------
+   --  dump_specification
+   --------------------------------------------------------------------------------------------
+   procedure dump_specification (specs : Portspecs)
+   is
+      procedure print_item (position : string_crate.Cursor);
+      procedure print_item (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+      begin
+         if index > 1 then
+            TIO.Put (" ");
+         end if;
+         TIO.Put (HT.USS (string_crate.Element (position)));
+      end print_item;
+   begin
+      TIO.Put_Line ("NAMEBASE=" & LAT.HT & LAT.HT & HT.USS (specs.namebase));
+      TIO.Put_Line ("VERSION="  & LAT.HT & LAT.HT & HT.USS (specs.version));
+      TIO.Put_Line ("REVISION=" & LAT.HT & LAT.HT & HT.int2str (specs.revision));
+      TIO.Put_Line ("EPOCH="    & LAT.HT & LAT.HT & HT.int2str (specs.epoch));
+      TIO.Put      ("KEYWORD="  & LAT.HT & LAT.HT);
+      specs.keywords.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
+      TIO.Put      ("VARIANTS=" & LAT.HT & LAT.HT);
+      specs.variants.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
+   end dump_specification;
 
 end Port_Specification;

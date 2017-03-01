@@ -235,8 +235,8 @@ package body HelperText is
                                old_string : String;
                                new_string : String) return Text
    is
-      back_marker : Natural := SU.Index (Source => US, Pattern => old_string);
-      front_marker := back_marker + old_string'Length - 1;
+      back_marker  : Natural := SU.Index (Source => US, Pattern => old_string);
+      front_marker : Natural := back_marker + old_string'Length - 1;
    begin
       if back_marker = 0 then
          return US;

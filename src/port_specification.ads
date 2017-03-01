@@ -45,6 +45,9 @@ package Port_Specification is
       field : spec_field;
       value : Natural);
 
+   --  Developer routine which shows contents of specification
+   procedure dump_specification (specs : Portspecs);
+
 private
 
    package HT  renames HelperText;
