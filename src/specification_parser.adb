@@ -83,21 +83,70 @@ package body Specification_Parser is
             end if;
 
             begin
-               if line_array = def then
-                  if seen_namebase then
-                     last_parse_error := HT.SUS (LN & "DEF can't appear after NAMEBASE");
-                     exit;
-                  end if;
+               if line_array /= not_array then
                   declare
+                     tvalue   : String  := retrieve_single_value (line);
                      defkey   : HT.Text := retrieve_key (line);
-                     defvalue : HT.Text := HT.SUS (retrieve_single_value (line));
+                     defvalue : HT.Text := HT.SUS (tvalue);
+                     tkey     : String  := HT.USS (defkey);
                   begin
-                     if spec_definitions.Contains (defkey) then
-                        raise duplicate_key with HT.USS (defkey);
-                     else
-                        spec_definitions.Insert (Key      => defkey,
-                                                 New_Item => defvalue);
-                     end if;
+                     case line_array is
+                        when def =>
+                           if seen_namebase then
+                              last_parse_error := HT.SUS (LN & "DEF can't appear after NAMEBASE");
+                              exit;
+                           end if;
+                           if spec_definitions.Contains (defkey) then
+                              raise duplicate_key with HT.USS (defkey);
+                           else
+                              spec_definitions.Insert (Key      => defkey,
+                                                       New_Item => defvalue);
+                           end if;
+                        when sdesc =>
+                           if HT.SU.Length (defvalue) > 50 then
+                              last_parse_error := HT.SUS (LN & "SDESC longer than 50 chars");
+                              exit;
+                           end if;
+                           if HT.SU.Length (defvalue) < 12 then
+                              last_parse_error := HT.SUS (LN & "SDESC does not meet " &
+                                                            "12-character length minimum");
+                              exit;
+                           end if;
+                           declare
+                              onestr : String (1 .. 1);
+                              trestr : String (1 .. 3);
+                           begin
+                              onestr (1) := tvalue (tvalue'First);
+                              if onestr /= HT.uppercase (onestr) then
+                                 last_parse_error := HT.SUS (LN & "SDESC does not start with " &
+                                                               "a capital letter");
+                                 exit;
+                              end if;
+                              if tvalue (tvalue'Last) = LAT.Full_Stop then
+                                 last_parse_error := HT.SUS (LN & "SDESC ends in a period");
+                                 exit;
+                              end if;
+                              trestr := tvalue (tvalue'First .. tvalue'First + 2);
+                              if trestr = "An " or else
+                                trestr (1 .. 2) = "A "
+                              then
+                                 last_parse_error := HT.SUS (LN & "SDESC starts with an " &
+                                                               "indefinite article");
+                                 exit;
+                              end if;
+                              if specification.variant_exists (tkey) then
+                                 specification.append_array (field => PSP.sp_taglines,
+                                                             key   => tkey,
+                                                             value => tvalue,
+                                                             allow_spaces => True);
+                              else
+                                 last_parse_error := HT.SUS (LN & "variant '" & tkey &
+                                                               "' was not previously defined.");
+                                 exit;
+                              end if;
+                           end;
+                        when not_array => null;
+                     end case;
                   end;
                end if;
 
@@ -154,6 +203,13 @@ package body Specification_Parser is
                when F9 : duplicate_key =>
                   last_parse_error := HT.SUS (LN & "array key '" & EX.Exception_Message (F9) &
                                                 "' duplicated");
+                  exit;
+               when FA : PSP.dupe_spec_key =>
+                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FA) &
+                                                " key duplicated");
+                  exit;
+               when FB : generic_format =>
+                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FB));
                   exit;
             end;
             <<line_done>>

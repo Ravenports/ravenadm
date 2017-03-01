@@ -46,6 +46,7 @@ private
    integer_expected   : exception;
    extra_spaces       : exception;
    duplicate_key      : exception;
+   generic_format     : exception;
 
    --  This looks for the pattern ${something}.  If not found, the original value is returned.
    --  Otherwise it looks up "something".  If that's not a definition, the missing_definition

@@ -106,6 +106,44 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  append_array
+   --------------------------------------------------------------------------------------------
+   procedure append_array
+     (specs : in out Portspecs;
+      field : spec_field;
+      key   : String;
+      value : String;
+      allow_spaces : Boolean)
+   is
+      text_key   : HT.Text := HT.SUS (key);
+      text_value : HT.Text := HT.SUS (value);
+   begin
+      if not allow_spaces and then
+        HT.contains (S => value, fragment => " ")
+      then
+         raise contains_spaces;
+      end if;
+      case field is
+         when sp_taglines =>
+            if specs.last_set /= so_taglines and then
+              specs.last_set /= so_variants
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.taglines.Contains (text_key) then
+               raise dupe_spec_key with key & " (SDESC)";
+            end if;
+            --  SDESC requirements checked by caller.  Assume string is legal.
+            specs.taglines.Insert (Key      => text_key,
+                                   New_Item => text_value);
+            specs.last_set := so_taglines;
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+   end append_array;
+
+
+   --------------------------------------------------------------------------------------------
    --  set_natural_integer
    --------------------------------------------------------------------------------------------
    procedure set_natural_integer
@@ -132,6 +170,16 @@ package body Port_Specification is
             raise wrong_type with field'Img;
       end case;
    end set_natural_integer;
+
+
+   --------------------------------------------------------------------------------------------
+   --  variant_exists
+   --------------------------------------------------------------------------------------------
+   function variant_exists (specs : Portspecs; variant : String) return Boolean
+   is
+   begin
+      return specs.variants.Contains (Item => HT.SUS (variant));
+   end variant_exists;
 
 
    --------------------------------------------------------------------------------------------
@@ -214,6 +262,10 @@ package body Port_Specification is
    procedure dump_specification (specs : Portspecs)
    is
       procedure print_item (position : string_crate.Cursor);
+      procedure print_item (position : def_crate.Cursor);
+
+      array_label : Positive;
+
       procedure print_item (position : string_crate.Cursor)
       is
          index : Natural := string_crate.To_Index (position);
@@ -222,6 +274,16 @@ package body Port_Specification is
             TIO.Put (" ");
          end if;
          TIO.Put (HT.USS (string_crate.Element (position)));
+      end print_item;
+
+      procedure print_item (position : def_crate.Cursor) is
+      begin
+         case array_label is
+            when 1 => TIO.Put ("SDESC[");
+            when others => null;
+         end case;
+         TIO.Put_Line (HT.USS (def_crate.Key (position)) & LAT.Right_Square_Bracket &
+                         LAT.HT & LAT.HT & HT.USS (def_crate.Element (position)));
       end print_item;
    begin
       TIO.Put_Line ("NAMEBASE=" & LAT.HT & LAT.HT & HT.USS (specs.namebase));
@@ -234,6 +296,8 @@ package body Port_Specification is
       TIO.Put      ("VARIANTS=" & LAT.HT & LAT.HT);
       specs.variants.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
+      array_label := 1;
+      specs.taglines.Iterate (Process => print_item'Access);
    end dump_specification;
 
 end Port_Specification;
