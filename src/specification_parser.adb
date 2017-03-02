@@ -168,6 +168,8 @@ package body Specification_Parser is
                      build_list (PSP.sp_keywords, line);
                   when variants =>
                      build_list (PSP.sp_variants, line);
+                  when contacts =>
+                     build_list (PSP.sp_contacts, line);
                   when not_singlet =>
                      null;
                end case;
@@ -529,6 +531,8 @@ package body Specification_Parser is
          return keywords;
       elsif known ("VARIANTS") then
          return variants;
+      elsif known ("CONTACTS") then
+         return contacts;
       else
          return not_singlet;
       end if;

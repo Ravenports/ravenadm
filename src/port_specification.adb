@@ -63,7 +63,9 @@ package body Port_Specification is
    procedure append_list
      (specs : in out Portspecs;
       field : spec_field;
-      value : String) is
+      value : String)
+   is
+      text_value : HT.Text := HT.SUS (value);
    begin
       if HT.contains (S => value, fragment => " ") then
          raise contains_spaces;
@@ -80,7 +82,7 @@ package body Port_Specification is
             if not keyword_is_valid (value) then
                raise wrong_value with "Keyword '" & value & "' is not recognized";
             end if;
-            specs.keywords.Append (HT.SUS (value));
+            specs.keywords.Append (text_value);
             specs.last_set := so_keywords;
          when sp_variants =>
             if specs.last_set /= so_variants and then
@@ -96,8 +98,40 @@ package body Port_Specification is
             if value'Length > 15 then
                raise wrong_value with "'" & value & "' value is too long (15-char limit)";
             end if;
-            specs.variants.Append (HT.SUS (value));
+            specs.variants.Append (text_value);
             specs.last_set := so_variants;
+         when sp_contacts =>
+            if specs.last_set /= so_contacts and then
+              specs.last_set /= so_taglines
+            then
+               raise misordered with field'Img;
+            end if;
+            if not specs.all_taglines_defined then
+               raise wrong_value with "Every variant must have SDESC definition.";
+            end if;
+            if not specs.contacts.Is_Empty then
+               if specs.contacts.Contains (HT.SUS (contact_nobody)) then
+                  raise wrong_value with "contact '" & contact_nobody & "' must be solitary";
+               end if;
+                if specs.contacts.Contains (HT.SUS (contact_automaton)) then
+                  raise wrong_value with "contact '" & contact_automaton & "' must be solitary";
+               end if;
+               if value = contact_nobody or else value = contact_automaton then
+                  raise wrong_value with "contact '" & value & "' must be solitary";
+               end if;
+            end if;
+            if value /= contact_nobody and then
+              value /= contact_automaton and then
+              not (HT.contains (value, "_") and then
+                   HT.contains (value, "[") and then
+                   HT.contains (value, "@") and then
+                   HT.contains (value, "]") and then
+                  value (value'Last) = LAT.Right_Square_Bracket)
+            then
+               raise wrong_value with "incorrect contact format of '" & value & "'";
+            end if;
+            specs.contacts.Append (text_value);
+            specs.last_set := so_contacts;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -180,6 +214,29 @@ package body Port_Specification is
    begin
       return specs.variants.Contains (Item => HT.SUS (variant));
    end variant_exists;
+
+
+   --------------------------------------------------------------------------------------------
+   --  all_taglines_defined
+   --------------------------------------------------------------------------------------------
+   function all_taglines_defined (specs : Portspecs) return Boolean
+   is
+      procedure check (position : string_crate.Cursor);
+
+      all_present : Boolean := True;
+
+      procedure check (position : string_crate.Cursor)
+      is
+         variant : HT.Text := string_crate.Element (position);
+      begin
+         if not specs.taglines.Contains (variant) then
+            all_present := False;
+         end if;
+      end check;
+   begin
+      specs.variants.Iterate (Process => check'Access);
+      return all_present;
+   end all_taglines_defined;
 
 
    --------------------------------------------------------------------------------------------
@@ -298,6 +355,9 @@ package body Port_Specification is
       TIO.Put      (LAT.LF);
       array_label := 1;
       specs.taglines.Iterate (Process => print_item'Access);
+      TIO.Put      ("CONTACTS=" & LAT.HT & LAT.HT);
+      specs.contacts.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
    end dump_specification;
 
 end Port_Specification;

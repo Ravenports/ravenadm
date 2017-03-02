@@ -33,7 +33,8 @@ private
          "="             => HT.SU."=");
 
    type spec_array   is (not_array, def, sdesc);
-   type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants);
+   type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
+                        contacts);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;

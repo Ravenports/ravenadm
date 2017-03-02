@@ -16,7 +16,7 @@ package Port_Specification is
    dupe_spec_key   : exception;
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
-                       sp_variants, sp_taglines);
+                       sp_variants, sp_taglines, sp_contacts);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -71,7 +71,7 @@ private
    package CON renames Ada.Containers;
 
    type spec_order is (so_initialized, so_namebase, so_version, so_revision, so_epoch,
-                       so_keywords, so_variants, so_taglines);
+                       so_keywords, so_variants, so_taglines, so_contacts);
 
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
@@ -94,11 +94,15 @@ private
          keywords : string_crate.Vector;
          variants : string_crate.Vector;
          taglines : def_crate.Map;
+         contacts : string_crate.Vector;
 
          last_set : spec_order;
       end record;
 
    --  Compares given keyword against known values
    function keyword_is_valid (keyword : String) return Boolean;
+
+   --  Returns true if there is a short description defined for each variant.
+   function all_taglines_defined (specs : Portspecs) return Boolean;
 
 end Port_Specification;

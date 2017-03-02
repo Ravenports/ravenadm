@@ -3,6 +3,8 @@
 
 package Definitions is
 
-    variant_standard : constant String := "standard";
+   variant_standard  : constant String := "standard";
+   contact_nobody    : constant String := "nobody";
+   contact_automaton : constant String := "automaton";
 
 end Definitions;
