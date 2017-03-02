@@ -229,6 +229,34 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  part_1
+   --------------------------------------------------------------------------------------------
+   function part_1 (S : String; separator : String := "/") return String
+   is
+      slash : Integer := AS.Fixed.Index (S, separator);
+   begin
+      if slash = 0 then
+         return S;
+      end if;
+      return S (S'First .. slash - 1);
+   end part_1;
+
+
+   --------------------------------------------------------------------------------------------
+   --  part_2
+   --------------------------------------------------------------------------------------------
+   function part_2 (S : String; separator : String := "/") return String
+   is
+      slash : Integer := AS.Fixed.Index (S, separator);
+   begin
+      if slash = 0 then
+         return S;
+      end if;
+      return S (slash + separator'Length .. S'Last);
+   end part_2;
+
+
+   --------------------------------------------------------------------------------------------
    --  replace_substring
    --------------------------------------------------------------------------------------------
    function replace_substring (US : Text;

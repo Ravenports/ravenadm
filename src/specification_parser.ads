@@ -32,9 +32,9 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
-   type spec_array   is (not_array, def, sdesc);
+   type spec_array   is (not_array, def, sdesc, sites, distfile);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
-                        contacts);
+                        contacts, dl_groups, dist_subdir, df_index);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;
@@ -74,7 +74,7 @@ private
    function retrieve_single_integer (line : String) return Natural;
 
    --  Returns the key for array item definition lines.
-   function retrieve_key (line : String) return HT.Text;
+   function retrieve_key (line : String; previous_index : HT.Text) return HT.Text;
 
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters.

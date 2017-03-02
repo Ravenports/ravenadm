@@ -29,6 +29,8 @@ package body Specification_Parser is
       last_array    : spec_array    := not_array;
       last_singlet  : spec_singlet  := not_singlet;
       last_seen     : type_category := cat_none;
+      last_df       : Integer := 0;
+      last_index    : HT.Text;
    begin
       success := False;
       specification.initialize;
@@ -75,21 +77,26 @@ package body Specification_Parser is
             if line_singlet = not_singlet and then
               line_array = not_array
             then
-               case last_seen is
-                  when cat_array   => line_array   := last_array;
-                  when cat_singlet => line_singlet := last_singlet;
-                  when cat_none    => null;
-               end case;
+               if line'Length > 3 and then
+                 line (line'First .. line'First + 2) = LAT.HT & LAT.HT & LAT.HT
+               then
+                  case last_seen is
+                     when cat_array   => line_array   := last_array;
+                     when cat_singlet => line_singlet := last_singlet;
+                     when cat_none    => null;
+                  end case;
+               end if;
             end if;
 
             begin
                if line_array /= not_array then
                   declare
                      tvalue   : String  := retrieve_single_value (line);
-                     defkey   : HT.Text := retrieve_key (line);
+                     defkey   : HT.Text := retrieve_key (line, last_index);
                      defvalue : HT.Text := HT.SUS (tvalue);
                      tkey     : String  := HT.USS (defkey);
                   begin
+                     last_index := defkey;
                      case line_array is
                         when def =>
                            if seen_namebase then
@@ -145,36 +152,73 @@ package body Specification_Parser is
                                  exit;
                               end if;
                            end;
+                        when distfile =>
+                           declare
+                              new_index : Integer := Integer'Value (tkey);
+                           begin
+                              if new_index /= last_df + 1 then
+                                 last_parse_error := HT.SUS (LN & "'" & tkey & "' index is " &
+                                                               "not in order 1,2,3,..,n");
+                                 exit;
+                              end if;
+                              last_df := new_index;
+                           exception
+                              when Constraint_Error =>
+                                 last_parse_error := HT.SUS (LN & "'" & tkey & "' index is " &
+                                                               "not an integer as required.");
+                                 exit;
+                           end;
+                           specification.append_list (PSP.sp_distfiles, tvalue);
+                        when sites =>
+                           if specification.download_group_exists (tkey) then
+                              specification.append_list (PSP.sp_dl_sites,
+                                                         tkey & LAT.Colon & tvalue);
+                           else
+                              last_parse_error := HT.SUS (LN & "download group '" & tkey &
+                                                            "' was not previously defined.");
+                              exit;
+                           end if;
                         when not_array => null;
                      end case;
                   end;
+                  last_array := line_array;
+                  last_seen  := cat_array;
                end if;
 
-               case line_singlet is
-                  when namebase =>
-                     seen_namebase := True;
-                     specification.set_single_string (PSP.sp_namebase,
+               if line_singlet /= not_singlet then
+                  case line_singlet is
+                     when namebase =>
+                        seen_namebase := True;
+                        specification.set_single_string (PSP.sp_namebase,
                                                       retrieve_single_value (line));
-                  when version =>
-                     specification.set_single_string (PSP.sp_version,
-                                                      retrieve_single_value (line));
-                  when revision =>
-                     specification.set_natural_integer (PSP.sp_revision,
-                                                       retrieve_single_integer (line));
-                  when epoch =>
-                     specification.set_natural_integer (PSP.sp_epoch,
-                                                       retrieve_single_integer (line));
-                  when keywords =>
-                     build_list (PSP.sp_keywords, line);
-                  when variants =>
-                     build_list (PSP.sp_variants, line);
-                  when contacts =>
-                     build_list (PSP.sp_contacts, line);
-                  when not_singlet =>
-                     null;
-               end case;
-               last_singlet := line_singlet;
-               last_seen := cat_singlet;
+                     when version =>
+                        specification.set_single_string (PSP.sp_version,
+                                                         retrieve_single_value (line));
+                     when dist_subdir =>
+                        specification.set_single_string (PSP.sp_distsubdir,
+                                                         retrieve_single_value (line));
+                     when revision =>
+                        specification.set_natural_integer (PSP.sp_revision,
+                                                           retrieve_single_integer (line));
+                     when epoch =>
+                        specification.set_natural_integer (PSP.sp_epoch,
+                                                           retrieve_single_integer (line));
+                     when keywords =>
+                        build_list (PSP.sp_keywords, line);
+                     when variants =>
+                        build_list (PSP.sp_variants, line);
+                     when contacts =>
+                        build_list (PSP.sp_contacts, line);
+                     when dl_groups =>
+                        build_list (PSP.sp_dl_groups, line);
+                     when df_index =>
+                        build_list (PSP.sp_df_index, line);
+                     when not_singlet =>
+                        null;
+                  end case;
+                  last_singlet := line_singlet;
+                  last_seen := cat_singlet;
+               end if;
             exception
                when F1 : PSP.misordered =>
                   last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F1) &
@@ -496,6 +540,10 @@ package body Specification_Parser is
          return def;
       elsif known ("SDESC") then
          return sdesc;
+      elsif known ("SITES") then
+         return sites;
+      elsif known ("DISTFILE") then
+         return distfile;
       else
          return not_array;
       end if;
@@ -533,6 +581,12 @@ package body Specification_Parser is
          return variants;
       elsif known ("CONTACTS") then
          return contacts;
+      elsif known ("DOWNLOAD_GROUPS") then
+         return dl_groups;
+      elsif known ("DIST_SUBDIR") then
+         return dist_subdir;
+      elsif known ("DF_INDEX") then
+         return df_index;
       else
          return not_singlet;
       end if;
@@ -610,11 +664,16 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  retrieve_key
    --------------------------------------------------------------------------------------------
-   function retrieve_key (line : String) return HT.Text
+   function retrieve_key (line : String; previous_index : HT.Text) return HT.Text
    is
       LB : Natural := AS.Fixed.Index (line, "[");
       RB : Natural := AS.Fixed.Index (line, "]");
    begin
+      if line'Length > 3 and then
+        line (line'First .. line'First + 2) = LAT.HT & LAT.HT & LAT.HT
+      then
+         return previous_index;
+      end if;
       if LB = 0 or else
         RB = 0 or else
         RB <= LB + 1

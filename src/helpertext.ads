@@ -55,6 +55,10 @@ package HelperText is
    function tail (US : Text;   delimiter : Text)   return Text;
    function tail (S  : String; delimiter : String) return String;
 
+   --  Return half of a string split by separator
+   function part_1 (S : String; separator : String := "/") return String;
+   function part_2 (S : String; separator : String := "/") return String;
+
    --  Replace substring with another string
    function replace_substring (US : Text;
                                old_string : String;

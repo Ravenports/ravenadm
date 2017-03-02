@@ -50,6 +50,14 @@ package body Port_Specification is
             end if;
             specs.version := HT.SUS (value);
             specs.last_set := so_version;
+         when sp_distsubdir =>
+            if specs.last_set /= so_distfiles and then
+              specs.last_set /= so_contacts
+            then
+               raise misordered with field'Img;
+            end if;
+            specs.dist_subdir := HT.SUS (value);
+            specs.last_set := so_distsubdir;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -82,6 +90,9 @@ package body Port_Specification is
             if not keyword_is_valid (value) then
                raise wrong_value with "Keyword '" & value & "' is not recognized";
             end if;
+            if specs.keywords.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
             specs.keywords.Append (text_value);
             specs.last_set := so_keywords;
          when sp_variants =>
@@ -98,6 +109,9 @@ package body Port_Specification is
             if value'Length > 15 then
                raise wrong_value with "'" & value & "' value is too long (15-char limit)";
             end if;
+            if specs.variants.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
             specs.variants.Append (text_value);
             specs.last_set := so_variants;
          when sp_contacts =>
@@ -113,7 +127,7 @@ package body Port_Specification is
                if specs.contacts.Contains (HT.SUS (contact_nobody)) then
                   raise wrong_value with "contact '" & contact_nobody & "' must be solitary";
                end if;
-                if specs.contacts.Contains (HT.SUS (contact_automaton)) then
+               if specs.contacts.Contains (HT.SUS (contact_automaton)) then
                   raise wrong_value with "contact '" & contact_automaton & "' must be solitary";
                end if;
                if value = contact_nobody or else value = contact_automaton then
@@ -130,8 +144,99 @@ package body Port_Specification is
             then
                raise wrong_value with "incorrect contact format of '" & value & "'";
             end if;
+            if specs.contacts.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
             specs.contacts.Append (text_value);
             specs.last_set := so_contacts;
+         when sp_dl_groups =>
+            if specs.last_set /= so_dl_groups and then
+              specs.last_set /= so_contacts
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.dl_groups.Is_Empty then
+               if value /= dlgroup_main and then
+                 value /= dlgroup_none
+               then
+                  raise wrong_value with "First download group must be '" & dlgroup_main &
+                    "' or '" & dlgroup_none & "'";
+               end if;
+            else
+               if value = dlgroup_none then
+                  raise wrong_value with "download group '" & value &
+                    "' follows group definition";
+               end if;
+               if value = dlgroup_main then
+                  raise wrong_value with "'" & value & "' download group must be " &
+                    "defined earlier";
+               end if;
+            end if;
+            if specs.dl_groups.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if value'Length > 15 then
+               raise wrong_value with "'" & value & "' value is too long (15-char limit)";
+            end if;
+            specs.dl_groups.Append (text_value);
+            specs.last_set := so_dl_groups;
+         when sp_dl_sites =>
+            if specs.last_set /= so_dl_sites and then
+              specs.last_set /= so_dl_groups
+            then
+               raise misordered with field'Img;
+            end if;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "DEV ISSUE, no colon in site definition";
+            end if;
+            if not specs.dl_groups.Contains (HT.SUS (HT.part_1 (value, ":"))) then
+               raise wrong_value with "download site '" & HT.part_1 (value, ":") &
+                 "' was not established.";
+            end if;
+            if specs.dl_sites.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            specs.dl_sites.Append (text_value);
+            specs.last_set := so_dl_sites;
+         when sp_distfiles =>
+            if specs.last_set /= so_distfiles and then
+              specs.last_set /= so_dl_sites
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.distfiles.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "No download group prefix present in distfile";
+            end if;
+            specs.distfiles.Append (text_value);
+            specs.last_set := so_distfiles;
+         when sp_df_index =>
+            if specs.last_set /= so_df_index and then
+              specs.last_set /= so_distsubdir and then
+              specs.last_set /= so_distfiles
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.df_index.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            declare
+               mynum : Integer := Integer'Value (value);
+            begin
+               if mynum < 1 or else
+                 mynum > Integer (specs.distfiles.Length)
+               then
+                  raise wrong_value with "df_index value '" & value & "' does not match " &
+                    "distfile indices";
+               end if;
+            exception
+               when Constraint_Error =>
+                  raise wrong_value with "df_index value '" & value & "' is not an integer";
+            end;
+            specs.df_index.Append (text_value);
+            specs.last_set := so_df_index;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -209,11 +314,19 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  variant_exists
    --------------------------------------------------------------------------------------------
-   function variant_exists (specs : Portspecs; variant : String) return Boolean
-   is
+   function variant_exists (specs : Portspecs; variant : String) return Boolean is
    begin
       return specs.variants.Contains (Item => HT.SUS (variant));
    end variant_exists;
+
+
+   --------------------------------------------------------------------------------------------
+   --  download_group_exists
+   --------------------------------------------------------------------------------------------
+   function download_group_exists (specs : Portspecs; group : String) return Boolean is
+   begin
+      return specs.dl_groups.Contains (Item => HT.SUS (group));
+   end download_group_exists;
 
 
    --------------------------------------------------------------------------------------------
@@ -357,6 +470,19 @@ package body Port_Specification is
       specs.taglines.Iterate (Process => print_item'Access);
       TIO.Put      ("CONTACTS=" & LAT.HT & LAT.HT);
       specs.contacts.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
+      TIO.Put      ("DOWNLOAD_GROUPS=" & LAT.HT);
+      specs.dl_groups.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
+      TIO.Put      ("SITES=" & LAT.HT & LAT.HT & LAT.HT);
+      specs.dl_sites.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
+      TIO.Put      ("DISTFILE=" & LAT.HT & LAT.HT);
+      specs.distfiles.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
+      TIO.Put_Line ("DIST_SUBDIR=" & LAT.HT & LAT.HT & HT.USS (specs.dist_subdir));
+      TIO.Put      ("DF_INDEX=" & LAT.HT & LAT.HT);
+      specs.df_index.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
    end dump_specification;
 

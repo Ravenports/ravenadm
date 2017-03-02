@@ -14,9 +14,11 @@ package Port_Specification is
    wrong_type      : exception;
    wrong_value     : exception;
    dupe_spec_key   : exception;
+   dupe_list_value : exception;
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
-                       sp_variants, sp_taglines, sp_contacts);
+                       sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
+                       sp_distfiles, sp_distsubdir, sp_df_index);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -62,6 +64,9 @@ package Port_Specification is
    --  Return True if provided variant is known
    function variant_exists (specs : Portspecs; variant : String) return Boolean;
 
+   --  Return True if provide download site group is known
+   function download_group_exists (specs : Portspecs; group : String) return Boolean;
+
    --  Developer routine which shows contents of specification
    procedure dump_specification (specs : Portspecs);
 
@@ -71,7 +76,8 @@ private
    package CON renames Ada.Containers;
 
    type spec_order is (so_initialized, so_namebase, so_version, so_revision, so_epoch,
-                       so_keywords, so_variants, so_taglines, so_contacts);
+                       so_keywords, so_variants, so_taglines, so_contacts, so_dl_groups,
+                       so_dl_sites, so_distfiles, so_distsubdir, so_df_index);
 
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
@@ -87,16 +93,20 @@ private
 
    type Portspecs is tagged
       record
-         namebase : HT.Text;
-         version  : HT.Text;
-         revision : Natural;
-         epoch    : Natural;
-         keywords : string_crate.Vector;
-         variants : string_crate.Vector;
-         taglines : def_crate.Map;
-         contacts : string_crate.Vector;
-
-         last_set : spec_order;
+         namebase    : HT.Text;
+         version     : HT.Text;
+         revision    : Natural;
+         epoch       : Natural;
+         keywords    : string_crate.Vector;
+         variants    : string_crate.Vector;
+         taglines    : def_crate.Map;
+         contacts    : string_crate.Vector;
+         dl_groups   : string_crate.Vector;
+         dl_sites    : string_crate.Vector;
+         distfiles   : string_crate.Vector;
+         dist_subdir : HT.Text;
+         df_index    : string_crate.Vector;
+         last_set    : spec_order;
       end record;
 
    --  Compares given keyword against known values
