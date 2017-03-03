@@ -6,6 +6,8 @@ with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
 
+with Definitions; use Definitions;
+
 package body Specification_Parser is
 
    package FOP renames File_Operations;
@@ -170,9 +172,16 @@ package body Specification_Parser is
                            end;
                            specification.append_list (PSP.sp_distfiles, tvalue);
                         when sites =>
-                           if specification.download_group_exists (tkey) then
-                              specification.append_list (PSP.sp_dl_sites,
-                                                         tkey & LAT.Colon & tvalue);
+                           if specification.group_exists (PSP.sp_dl_sites, tkey) then
+                              if tkey = dlgroup_none then
+                                 last_parse_error := HT.SUS (LN & "cannot set site group to '" &
+                                                               dlgroup_none & "'");
+                              else
+                                 specification.append_array (field        => PSP.sp_dl_sites,
+                                                             key          => tkey,
+                                                             value        => tvalue,
+                                                             allow_spaces => False);
+                              end if;
                            else
                               last_parse_error := HT.SUS (LN & "download group '" & tkey &
                                                             "' was not previously defined.");
@@ -244,18 +253,22 @@ package body Specification_Parser is
                   last_parse_error := HT.SUS (LN & "extra spaces detected between list items.");
                   exit;
                when F8 : expansion_too_long =>
-                  last_parse_error := HT.SUS (LN & "expansion exceeds 512-char maximum");
+                  last_parse_error := HT.SUS (LN & "expansion exceeds 512-char maximum.");
                   exit;
                when F9 : duplicate_key =>
                   last_parse_error := HT.SUS (LN & "array key '" & EX.Exception_Message (F9) &
-                                                "' duplicated");
+                                                "' duplicated.");
                   exit;
                when FA : PSP.dupe_spec_key =>
                   last_parse_error := HT.SUS (LN & EX.Exception_Message (FA) &
-                                                " key duplicated");
+                                                " key duplicated.");
                   exit;
                when FB : generic_format =>
                   last_parse_error := HT.SUS (LN & EX.Exception_Message (FB));
+                  exit;
+               when FC : PSP.missing_group =>
+                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FC) &
+                                                " group has not yet been established.");
                   exit;
             end;
             <<line_done>>
@@ -689,14 +702,26 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure build_list (field : PSP.spec_field; line : String)
    is
+      procedure insert_item (data : String);
+
       arrow      : Natural;
       word_start : Natural;
       strvalue   : constant String := retrieve_single_value (line);
       --  let any exceptions cascade
+
+      procedure insert_item (data : String) is
+      begin
+         case field is
+            when PSP.sp_dl_groups =>
+               specification.establish_group (field, data);
+            when others =>
+               specification.append_list (field, data);
+         end case;
+      end insert_item;
    begin
       --  Handle single item case
       if not HT.contains (S => strvalue, fragment => " ") then
-         specification.append_list (field, strvalue);
+         insert_item (strvalue);
          return;
       end if;
 
@@ -714,12 +739,12 @@ package body Specification_Parser is
       loop
          exit when arrow > strvalue'Last;
          if strvalue (arrow) = ' ' then
-            specification.append_list (field, strvalue (word_start .. arrow - 1));
+            insert_item (strvalue (word_start .. arrow - 1));
             word_start := arrow + 1;
          end if;
          arrow := arrow + 1;
       end loop;
-      specification.append_list (field, strvalue (word_start .. strvalue'Last));
+      insert_item (strvalue (word_start .. strvalue'Last));
 
    end build_list;
 

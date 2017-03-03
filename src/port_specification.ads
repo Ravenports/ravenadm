@@ -15,6 +15,7 @@ package Port_Specification is
    wrong_value     : exception;
    dupe_spec_key   : exception;
    dupe_list_value : exception;
+   missing_group   : exception;
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
@@ -61,11 +62,24 @@ package Port_Specification is
       value : String;
       allow_spaces : Boolean);
 
+   --  Generic function to establish groups of string arrays.
+   --  Throws misordered exception if set out of order.
+   --  Throws contains spaces exception if space found anywhere in string
+   --  Throws wrong_type exception if field isn't a list type.
+   --  Throws duplicate exception if key has already been seen.
+   procedure establish_group
+     (specs : in out Portspecs;
+      field : spec_field;
+      group : String);
+
    --  Return True if provided variant is known
    function variant_exists (specs : Portspecs; variant : String) return Boolean;
 
-   --  Return True if provide download site group is known
-   function download_group_exists (specs : Portspecs; group : String) return Boolean;
+   --  Generic function to determine if group exists, returns True if so
+   function group_exists
+     (specs : Portspecs;
+      field : spec_field;
+      group : String) return Boolean;
 
    --  Developer routine which shows contents of specification
    procedure dump_specification (specs : Portspecs);
@@ -91,6 +105,18 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
+   type group_list is
+      record
+         group : HT.Text;
+         list  : string_crate.Vector;
+      end record;
+
+   package list_crate is new CON.Hashed_Maps
+        (Key_Type        => HT.Text,
+         Element_Type    => group_list,
+         Hash            => HT.hash,
+         Equivalent_Keys => HT.equivalent);
+
    type Portspecs is tagged
       record
          namebase    : HT.Text;
@@ -101,8 +127,7 @@ private
          variants    : string_crate.Vector;
          taglines    : def_crate.Map;
          contacts    : string_crate.Vector;
-         dl_groups   : string_crate.Vector;
-         dl_sites    : string_crate.Vector;
+         dl_sites    : list_crate.Map;
          distfiles   : string_crate.Vector;
          dist_subdir : HT.Text;
          df_index    : string_crate.Vector;

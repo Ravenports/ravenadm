@@ -21,6 +21,13 @@ package body Port_Specification is
       specs.epoch    := 0;
       specs.keywords.Clear;
       specs.variants.Clear;
+      specs.taglines.Clear;
+      specs.contacts.Clear;
+      specs.dl_sites.Clear;
+      specs.distfiles.Clear;
+      specs.dist_subdir := HT.blank;
+      specs.df_index.Clear;
+
 
       specs.last_set := so_initialized;
    end initialize;
@@ -149,55 +156,6 @@ package body Port_Specification is
             end if;
             specs.contacts.Append (text_value);
             specs.last_set := so_contacts;
-         when sp_dl_groups =>
-            if specs.last_set /= so_dl_groups and then
-              specs.last_set /= so_contacts
-            then
-               raise misordered with field'Img;
-            end if;
-            if specs.dl_groups.Is_Empty then
-               if value /= dlgroup_main and then
-                 value /= dlgroup_none
-               then
-                  raise wrong_value with "First download group must be '" & dlgroup_main &
-                    "' or '" & dlgroup_none & "'";
-               end if;
-            else
-               if value = dlgroup_none then
-                  raise wrong_value with "download group '" & value &
-                    "' follows group definition";
-               end if;
-               if value = dlgroup_main then
-                  raise wrong_value with "'" & value & "' download group must be " &
-                    "defined earlier";
-               end if;
-            end if;
-            if specs.dl_groups.Contains (text_value) then
-               raise dupe_list_value with value;
-            end if;
-            if value'Length > 15 then
-               raise wrong_value with "'" & value & "' value is too long (15-char limit)";
-            end if;
-            specs.dl_groups.Append (text_value);
-            specs.last_set := so_dl_groups;
-         when sp_dl_sites =>
-            if specs.last_set /= so_dl_sites and then
-              specs.last_set /= so_dl_groups
-            then
-               raise misordered with field'Img;
-            end if;
-            if not HT.contains (value, ":") then
-               raise wrong_value with "DEV ISSUE, no colon in site definition";
-            end if;
-            if not specs.dl_groups.Contains (HT.SUS (HT.part_1 (value, ":"))) then
-               raise wrong_value with "download site '" & HT.part_1 (value, ":") &
-                 "' was not established.";
-            end if;
-            if specs.dl_sites.Contains (text_value) then
-               raise dupe_list_value with value;
-            end if;
-            specs.dl_sites.Append (text_value);
-            specs.last_set := so_dl_sites;
          when sp_distfiles =>
             if specs.last_set /= so_distfiles and then
               specs.last_set /= so_dl_sites
@@ -247,6 +205,60 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  append_array
    --------------------------------------------------------------------------------------------
+   procedure establish_group
+     (specs : in out Portspecs;
+      field : spec_field;
+      group : String)
+   is
+      text_group : HT.Text := HT.SUS (group);
+      initial_rec : group_list;
+   begin
+      if HT.contains (S => group, fragment => " ") then
+         raise contains_spaces;
+      end if;
+      initial_rec.group := text_group;
+      case field is
+         when sp_dl_groups =>
+            if specs.last_set /= so_dl_groups and then
+              specs.last_set /= so_contacts
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.dl_sites.Is_Empty then
+               if group /= dlgroup_main and then
+                 group /= dlgroup_none
+               then
+                  raise wrong_value with "First download group must be '" & dlgroup_main &
+                    "' or '" & dlgroup_none & "'";
+               end if;
+            else
+               if group = dlgroup_none then
+                  raise wrong_value with "download group '" & group &
+                    "' follows group definition";
+               end if;
+               if group = dlgroup_main then
+                  raise wrong_value with "'" & group & "' download group must be " &
+                    "defined earlier";
+               end if;
+            end if;
+            if group'Length > 15 then
+               raise wrong_value with "'" & group & "' value is too long (15-char limit)";
+            end if;
+            if specs.dl_sites.Contains (text_group) then
+               raise dupe_list_value with group;
+            end if;
+            specs.dl_sites.Insert (Key      => text_group,
+                                   New_Item => initial_rec);
+            specs.last_set := so_dl_groups;
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+   end establish_group;
+
+
+   --------------------------------------------------------------------------------------------
+   --  append_array
+   --------------------------------------------------------------------------------------------
    procedure append_array
      (specs : in out Portspecs;
       field : spec_field;
@@ -254,8 +266,15 @@ package body Port_Specification is
       value : String;
       allow_spaces : Boolean)
    is
+      procedure grow (Key : HT.Text; Element : in out group_list);
+
       text_key   : HT.Text := HT.SUS (key);
       text_value : HT.Text := HT.SUS (value);
+
+      procedure grow (Key : HT.Text; Element : in out group_list) is
+      begin
+         Element.list.Append (text_value);
+      end grow;
    begin
       if not allow_spaces and then
         HT.contains (S => value, fragment => " ")
@@ -276,6 +295,21 @@ package body Port_Specification is
             specs.taglines.Insert (Key      => text_key,
                                    New_Item => text_value);
             specs.last_set := so_taglines;
+         when sp_dl_sites =>
+            if specs.last_set /= so_dl_sites and then
+              specs.last_set /= so_dl_groups
+            then
+               raise misordered with field'Img;
+            end if;
+            if not specs.dl_sites.Contains (text_key) then
+               raise missing_group with key;
+            end if;
+            if specs.dl_sites.Element (text_key).list.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            specs.dl_sites.Update_Element (Position => specs.dl_sites.Find (text_key),
+                                           Process  => grow'Access);
+            specs.last_set := so_dl_sites;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -321,12 +355,21 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  download_group_exists
+   --  group_exists
    --------------------------------------------------------------------------------------------
-   function download_group_exists (specs : Portspecs; group : String) return Boolean is
+   function group_exists
+     (specs : Portspecs;
+      field : spec_field;
+      group : String) return Boolean
+   is
+      text_group : HT.Text := HT.SUS (group);
    begin
-      return specs.dl_groups.Contains (Item => HT.SUS (group));
-   end download_group_exists;
+      case field is
+         when sp_dl_sites =>
+            return specs.dl_sites.Contains (text_group);
+         when others => return False;
+      end case;
+   end group_exists;
 
 
    --------------------------------------------------------------------------------------------
@@ -433,6 +476,7 @@ package body Port_Specification is
    is
       procedure print_item (position : string_crate.Cursor);
       procedure print_item (position : def_crate.Cursor);
+      procedure dump (position : list_crate.Cursor);
 
       array_label : Positive;
 
@@ -455,6 +499,13 @@ package body Port_Specification is
          TIO.Put_Line (HT.USS (def_crate.Key (position)) & LAT.Right_Square_Bracket &
                          LAT.HT & LAT.HT & HT.USS (def_crate.Element (position)));
       end print_item;
+
+      procedure dump (position : list_crate.Cursor) is
+      begin
+         TIO.Put ("   " & HT.USS (list_crate.Element (position).group) & LAT.HT & LAT.HT);
+         list_crate.Element (position).list.Iterate (Process => print_item'Access);
+         TIO.Put (LAT.LF);
+      end dump;
    begin
       TIO.Put_Line ("NAMEBASE=" & LAT.HT & LAT.HT & HT.USS (specs.namebase));
       TIO.Put_Line ("VERSION="  & LAT.HT & LAT.HT & HT.USS (specs.version));
@@ -471,12 +522,8 @@ package body Port_Specification is
       TIO.Put      ("CONTACTS=" & LAT.HT & LAT.HT);
       specs.contacts.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
-      TIO.Put      ("DOWNLOAD_GROUPS=" & LAT.HT);
-      specs.dl_groups.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
-      TIO.Put      ("SITES=" & LAT.HT & LAT.HT & LAT.HT);
-      specs.dl_sites.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
+      TIO.Put_Line ("SITES:");
+      specs.dl_sites.Iterate (Process => dump'Access);
       TIO.Put      ("DISTFILE=" & LAT.HT & LAT.HT);
       specs.distfiles.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
