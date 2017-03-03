@@ -33,6 +33,22 @@ package body Port_Specification is
       specs.exc_opsys.Clear;
       specs.inc_opsys.Clear;
       specs.exc_arch.Clear;
+      specs.extract_only.Clear;
+      specs.extract_zip.Clear;
+      specs.extract_lha.Clear;
+      specs.extract_7z.Clear;
+      specs.extract_head.Clear;
+      specs.extract_tail.Clear;
+      specs.extract_dirty.Clear;
+      specs.distname     := HT.blank;
+
+      specs.skip_build   := False;
+      specs.build_wrksrc := HT.blank;
+      specs.makefile     := HT.blank;
+      specs.make_env.Clear;
+      specs.make_args.Clear;
+      specs.destdirname  := HT.blank;
+      specs.destdir_env  := False;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -86,6 +102,8 @@ package body Port_Specification is
       value : String)
    is
       procedure verify_entry_is_post_options;
+      procedure verify_df_index;
+      procedure verify_special_exraction;
 
       text_value : HT.Text := HT.SUS (value);
 
@@ -95,6 +113,23 @@ package body Port_Specification is
             raise misordered with field'Img;
          end if;
       end verify_entry_is_post_options;
+
+      procedure verify_df_index is
+      begin
+         if not specs.dist_index_is_valid (value) then
+            raise wrong_value with "distfile index '" & value & "' is not valid";
+         end if;
+      end verify_df_index;
+
+      procedure verify_special_exraction is
+      begin
+         if specs.extract_zip.Contains (text_value) or else
+           specs.extract_7z.Contains (text_value)  or else
+           specs.extract_lha.Contains (text_value)
+         then
+            raise dupe_list_value with value;
+         end if;
+      end verify_special_exraction;
    begin
       if HT.contains (S => value, fragment => " ") then
          raise contains_spaces;
@@ -194,19 +229,7 @@ package body Port_Specification is
             if specs.df_index.Contains (text_value) then
                raise dupe_list_value with value;
             end if;
-            declare
-               mynum : Integer := Integer'Value (value);
-            begin
-               if mynum < 1 or else
-                 mynum > Integer (specs.distfiles.Length)
-               then
-                  raise wrong_value with "df_index value '" & value & "' does not match " &
-                    "distfile indices";
-               end if;
-            exception
-               when Constraint_Error =>
-                  raise wrong_value with "df_index value '" & value & "' is not an integer";
-            end;
+            verify_df_index;
             specs.df_index.Append (text_value);
             specs.last_set := so_df_index;
          when sp_opts_avail =>
@@ -265,6 +288,28 @@ package body Port_Specification is
                raise wrong_value with "'" & value & "' is not a valid architecture.";
             end if;
             specs.exc_arch.Append (text_value);
+         when sp_ext_only =>
+            verify_entry_is_post_options;
+            verify_df_index;
+            if specs.extract_only.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            specs.extract_only.Append (text_value);
+         when sp_ext_7z =>
+            verify_entry_is_post_options;
+            verify_df_index;
+            verify_special_exraction;
+            specs.extract_7z.Append (text_value);
+         when sp_ext_lha =>
+            verify_entry_is_post_options;
+            verify_df_index;
+            verify_special_exraction;
+            specs.extract_lha.Append (text_value);
+         when sp_ext_zip =>
+            verify_entry_is_post_options;
+            verify_df_index;
+            verify_special_exraction;
+            specs.extract_zip.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -605,6 +650,20 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  dist_index_is_valid
+   --------------------------------------------------------------------------------------------
+   function dist_index_is_valid (specs : Portspecs; test_index : String) return Boolean
+   is
+      mynum : Integer := Integer'Value (test_index);
+   begin
+      return (mynum >= 1 and then mynum <= Integer (specs.distfiles.Length));
+   exception
+      when Constraint_Error =>
+         return False;
+   end dist_index_is_valid;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean is
@@ -739,6 +798,10 @@ package body Port_Specification is
             when sp_contacts   => specs.contacts.Iterate (Process => print_item'Access);
             when sp_variants   => specs.variants.Iterate (Process => print_item'Access);
             when sp_keywords   => specs.keywords.Iterate (Process => print_item'Access);
+            when sp_ext_only   => specs.extract_only.Iterate (Process => print_item'Access);
+            when sp_ext_zip    => specs.extract_zip.Iterate (Process => print_item'Access);
+            when sp_ext_7z     => specs.extract_7z.Iterate (Process => print_item'Access);
+            when sp_ext_lha    => specs.extract_lha.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -794,6 +857,11 @@ package body Port_Specification is
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
+
+      print_vector_list ("EXTRACT_ONLY", sp_ext_only);
+      print_vector_list ("EXTRACT_WITH_UNZIP", sp_ext_zip);
+      print_vector_list ("EXTRACT_WITH_7Z", sp_ext_7z);
+      print_vector_list ("EXTRACT_WITH_LHA", sp_ext_lha);
 
    end dump_specification;
 

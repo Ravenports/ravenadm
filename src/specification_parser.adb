@@ -242,6 +242,14 @@ package body Specification_Parser is
                         build_list (PSP.sp_inc_opsys, line);
                      when exc_arch =>
                         build_list (PSP.sp_exc_arch, line);
+                     when ext_only =>
+                        build_list (PSP.sp_ext_only, line);
+                     when ext_zip =>
+                        build_list (PSP.sp_ext_zip, line);
+                     when ext_7z =>
+                        build_list (PSP.sp_ext_7z, line);
+                     when ext_lha =>
+                        build_list (PSP.sp_ext_lha, line);
                      when not_singlet =>
                         null;
                   end case;
@@ -289,6 +297,9 @@ package body Specification_Parser is
                when FC : PSP.missing_group =>
                   last_parse_error := HT.SUS (LN & EX.Exception_Message (FC) &
                                                 " group has not yet been established.");
+               when FD : PSP.dupe_list_value =>
+                  last_parse_error := HT.SUS (LN & "list item '" & EX.Exception_Message (FD) &
+                                                "' is duplicate.");
                   exit;
             end;
             <<line_done>>
@@ -635,6 +646,14 @@ package body Specification_Parser is
          return inc_opsys;
       elsif known ("NOT_FOR_ARCHES") then
          return exc_arch;
+      elsif known ("EXTRACT_ONLY") then
+         return ext_only;
+      elsif known ("EXTRACT_WITH_UNZIP") then
+         return ext_zip;
+      elsif known ("EXTRACT_WITH_7Z") then
+         return ext_7z;
+      elsif known ("EXTRACT_WITH_LHA") then
+         return ext_lha;
       else
          return not_singlet;
       end if;

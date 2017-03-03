@@ -20,7 +20,8 @@ package Port_Specification is
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
                        sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
-                       sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch);
+                       sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch,
+                       sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -126,25 +127,41 @@ private
 
    type Portspecs is tagged
       record
-         namebase    : HT.Text;
-         version     : HT.Text;
-         revision    : Natural;
-         epoch       : Natural;
-         keywords    : string_crate.Vector;
-         variants    : string_crate.Vector;
-         taglines    : def_crate.Map;
-         contacts    : string_crate.Vector;
-         dl_sites    : list_crate.Map;
-         distfiles   : string_crate.Vector;
-         dist_subdir : HT.Text;
-         df_index    : string_crate.Vector;
-         subpackages : list_crate.Map;
-         ops_avail   : string_crate.Vector;
-         last_set    : spec_order;
-         variantopts : list_crate.Map;
-         exc_opsys   : string_crate.Vector;
-         inc_opsys   : string_crate.Vector;
-         exc_arch    : string_crate.Vector;
+         namebase      : HT.Text;
+         version       : HT.Text;
+         revision      : Natural;
+         epoch         : Natural;
+         keywords      : string_crate.Vector;
+         variants      : string_crate.Vector;
+         taglines      : def_crate.Map;
+         contacts      : string_crate.Vector;
+         dl_sites      : list_crate.Map;
+         distfiles     : string_crate.Vector;
+         dist_subdir   : HT.Text;
+         df_index      : string_crate.Vector;
+         subpackages   : list_crate.Map;
+         ops_avail     : string_crate.Vector;
+         last_set      : spec_order;
+         variantopts   : list_crate.Map;
+         exc_opsys     : string_crate.Vector;
+         inc_opsys     : string_crate.Vector;
+         exc_arch      : string_crate.Vector;
+         extract_only  : string_crate.Vector;
+         extract_zip   : string_crate.Vector;
+         extract_lha   : string_crate.Vector;
+         extract_7z    : string_crate.Vector;
+         extract_head  : list_crate.Map;
+         extract_tail  : list_crate.Map;
+         extract_dirty : list_crate.Map;
+         distname      : HT.Text;
+         --  configure placeholder
+         skip_build    : Boolean;
+         build_wrksrc  : HT.Text;
+         makefile      : HT.Text;
+         make_env      : list_crate.Map;
+         make_args     : list_crate.Map;
+         destdirname   : HT.Text;
+         destdir_env   : Boolean;
       end record;
 
    --  Compares given keyword against known values
@@ -158,5 +175,9 @@ private
 
    --  Return true if given string is a recognized architecture
    function arch_is_valid (test_arch : String) return Boolean;
+
+   --  Returns true if given string can convert to an integer between 1 and
+   --  distfiles count.
+   function dist_index_is_valid (specs : Portspecs; test_index : String) return Boolean;
 
 end Port_Specification;
