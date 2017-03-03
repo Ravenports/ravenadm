@@ -32,7 +32,7 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
-   type spec_array   is (not_array, def, sdesc, sites, distfile);
+   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                         contacts, dl_groups, dist_subdir, df_index);
    type type_category is (cat_none, cat_array, cat_singlet);
@@ -79,5 +79,12 @@ private
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters.
    procedure build_list (field : PSP.spec_field; line : String);
+
+   --  Line may contain spaces, and each space is considered a single item on a list.
+   --  This iterates through the value with space delimiters to build a group list.
+   procedure build_group_list
+     (field : PSP.spec_field;
+      key   : String;
+      value : String);
 
 end Specification_Parser;

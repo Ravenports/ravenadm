@@ -27,7 +27,7 @@ package body Port_Specification is
       specs.distfiles.Clear;
       specs.dist_subdir := HT.blank;
       specs.df_index.Clear;
-
+      specs.subpackages.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -250,6 +250,11 @@ package body Port_Specification is
             specs.dl_sites.Insert (Key      => text_group,
                                    New_Item => initial_rec);
             specs.last_set := so_dl_groups;
+         when sp_subpackages =>
+            --  variant, order, length and uniqueness already checked
+            --  don't updatee last_set either
+            specs.subpackages.Insert (Key      => text_group,
+                                      New_Item => initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -310,6 +315,21 @@ package body Port_Specification is
             specs.dl_sites.Update_Element (Position => specs.dl_sites.Find (text_key),
                                            Process  => grow'Access);
             specs.last_set := so_dl_sites;
+         when sp_subpackages =>
+            if spec_order'Pos (specs.last_set) > spec_order'Pos (so_subpackages) or else
+              spec_order'Pos (specs.last_set) < spec_order'Pos (so_dl_groups)
+            then
+               raise misordered with field'Img;
+            end if;
+            if not specs.subpackages.Contains (text_key) then
+               raise missing_group with key;
+            end if;
+            if specs.subpackages.Element (text_key).list.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            specs.subpackages.Update_Element (Position => specs.subpackages.Find (text_key),
+                                              Process  => grow'Access);
+            specs.last_set := so_subpackages;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -502,7 +522,7 @@ package body Port_Specification is
 
       procedure dump (position : list_crate.Cursor) is
       begin
-         TIO.Put ("   " & HT.USS (list_crate.Element (position).group) & LAT.HT & LAT.HT);
+         TIO.Put ("   " & HT.USS (list_crate.Element (position).group) & "  " & LAT.HT & LAT.HT);
          list_crate.Element (position).list.Iterate (Process => print_item'Access);
          TIO.Put (LAT.LF);
       end dump;
@@ -531,6 +551,8 @@ package body Port_Specification is
       TIO.Put      ("DF_INDEX=" & LAT.HT & LAT.HT);
       specs.df_index.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
+      TIO.Put_Line ("SPKG:");
+      specs.subpackages.Iterate (Process => dump'Access);
    end dump_specification;
 
 end Port_Specification;

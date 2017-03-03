@@ -172,21 +172,18 @@ package body Specification_Parser is
                            end;
                            specification.append_list (PSP.sp_distfiles, tvalue);
                         when sites =>
-                           if specification.group_exists (PSP.sp_dl_sites, tkey) then
-                              if tkey = dlgroup_none then
-                                 last_parse_error := HT.SUS (LN & "cannot set site group to '" &
-                                                               dlgroup_none & "'");
-                              else
-                                 specification.append_array (field        => PSP.sp_dl_sites,
-                                                             key          => tkey,
-                                                             value        => tvalue,
-                                                             allow_spaces => False);
-                              end if;
+                           if tkey = dlgroup_none then
+                              last_parse_error := HT.SUS (LN & "cannot set site group to '" &
+                                                            dlgroup_none & "'");
                            else
-                              last_parse_error := HT.SUS (LN & "download group '" & tkey &
-                                                            "' was not previously defined.");
-                              exit;
+                              build_group_list (field => PSP.sp_dl_sites,
+                                                key   => tkey,
+                                                value => tvalue);
                            end if;
+                        when spkgs =>
+                           build_group_list (field => PSP.sp_subpackages,
+                                             key   => tkey,
+                                             value => tvalue);
                         when not_array => null;
                      end case;
                   end;
@@ -557,6 +554,8 @@ package body Specification_Parser is
          return sites;
       elsif known ("DISTFILE") then
          return distfile;
+      elsif known ("SPKGS") then
+         return spkgs;
       else
          return not_array;
       end if;
@@ -714,6 +713,9 @@ package body Specification_Parser is
          case field is
             when PSP.sp_dl_groups =>
                specification.establish_group (field, data);
+            when PSP.sp_variants =>
+               specification.append_list (field, data);
+               specification.establish_group (PSP.sp_subpackages, data);
             when others =>
                specification.append_list (field, data);
          end case;
@@ -747,6 +749,56 @@ package body Specification_Parser is
       insert_item (strvalue (word_start .. strvalue'Last));
 
    end build_list;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_group_list
+   --------------------------------------------------------------------------------------------
+   procedure build_group_list (field : PSP.spec_field;
+                               key   : String;
+                               value : String)
+   is
+      procedure insert_item (data : String);
+
+      arrow      : Natural;
+      word_start : Natural;
+
+      procedure insert_item (data : String) is
+      begin
+         specification.append_array (field        => field,
+                                     key          => key,
+                                     value        => data,
+                                     allow_spaces => False);
+      end insert_item;
+   begin
+      --  Handle single item case
+      if not HT.contains (S => value, fragment => " ") then
+         insert_item (value);
+         return;
+      end if;
+
+      --  Check for multiple space error or leading space error
+      if HT.contains (S => value, fragment => "  ") or else
+        value (value'First) = ' '
+      then
+         raise extra_spaces;
+      end if;
+
+      --  Now we have multiple list items separated by single spaces
+      --  We know the original line has no trailing spaces too, btw.
+      word_start := value'First;
+      arrow := word_start;
+      loop
+         exit when arrow > value'Last;
+         if value (arrow) = ' ' then
+            insert_item (value (word_start .. arrow - 1));
+            word_start := arrow + 1;
+         end if;
+         arrow := arrow + 1;
+      end loop;
+      insert_item (value (word_start .. value'Last));
+
+   end build_group_list;
 
 
 end Specification_Parser;
