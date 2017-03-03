@@ -30,6 +30,9 @@ package body Port_Specification is
       specs.subpackages.Clear;
       specs.ops_avail.Clear;
       specs.variantopts.Clear;
+      specs.exc_opsys.Clear;
+      specs.inc_opsys.Clear;
+      specs.exc_arch.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -82,7 +85,16 @@ package body Port_Specification is
       field : spec_field;
       value : String)
    is
+      procedure verify_entry_is_post_options;
+
       text_value : HT.Text := HT.SUS (value);
+
+      procedure verify_entry_is_post_options is
+      begin
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
+            raise misordered with field'Img;
+         end if;
+      end verify_entry_is_post_options;
    begin
       if HT.contains (S => value, fragment => " ") then
          raise contains_spaces;
@@ -220,6 +232,39 @@ package body Port_Specification is
             end if;
             specs.ops_avail.Append (text_value);
             specs.last_set := so_opts_avail;
+         when sp_exc_opsys =>
+            verify_entry_is_post_options;
+            if not specs.inc_opsys.Is_Empty then
+               raise wrong_value with "NOT_FOR_OPSYS can't be used after ONLY_FOR_OPSYS";
+            end if;
+            if specs.exc_opsys.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if not lower_opsys_is_valid (value) then
+               raise wrong_value with "opsys '" & value & "' is not valid.";
+            end if;
+            specs.exc_opsys.Append (text_value);
+         when sp_inc_opsys =>
+            verify_entry_is_post_options;
+            if not specs.exc_opsys.Is_Empty then
+               raise wrong_value with "ONLY_FOR_OPSYS can't be used after NOT_FOR_OPSYS";
+            end if;
+            if specs.inc_opsys.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if not lower_opsys_is_valid (value) then
+               raise wrong_value with "opsys '" & value & "' is not valid.";
+            end if;
+            specs.inc_opsys.Append (text_value);
+         when sp_exc_arch =>
+            verify_entry_is_post_options;
+            if specs.exc_arch.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if not arch_is_valid (value) then
+               raise wrong_value with "'" & value & "' is not a valid architecture.";
+            end if;
+            specs.exc_arch.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -534,6 +579,32 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  lower_opsys_is_valid
+   --------------------------------------------------------------------------------------------
+   function lower_opsys_is_valid (test_opsys : String) return Boolean is
+   begin
+      return (test_opsys = "dragonfly" or else
+              test_opsys = "freebsd" or else
+              test_opsys = "netbsd" or else
+              test_opsys = "openbsd" or else
+              test_opsys = "linux" or else
+              test_opsys = "sunos" or else
+              test_opsys = "macos");
+   end lower_opsys_is_valid;
+
+
+   --------------------------------------------------------------------------------------------
+   --  arch_is_valid
+   --------------------------------------------------------------------------------------------
+   function arch_is_valid (test_arch : String) return Boolean is
+   begin
+      return (test_arch = "x86_64" or else
+              test_arch = "aarch64" or else
+              test_arch = "i386");
+   end arch_is_valid;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean is
@@ -615,6 +686,9 @@ package body Port_Specification is
       procedure print_item (position : string_crate.Cursor);
       procedure print_item (position : def_crate.Cursor);
       procedure dump (position : list_crate.Cursor);
+      procedure print_vector_list (thelabel : String; thelist : spec_field);
+      procedure print_group_list  (thelabel : String; thelist : spec_field);
+      procedure print_single (thelabel : String; thelist : spec_field);
 
       array_label : Positive;
 
@@ -644,38 +718,83 @@ package body Port_Specification is
          list_crate.Element (position).list.Iterate (Process => print_item'Access);
          TIO.Put (LAT.LF);
       end dump;
+
+      procedure print_vector_list (thelabel : String; thelist : spec_field)
+      is
+         labellen : Natural := thelabel'Length;
+      begin
+         TIO.Put (thelabel & LAT.Equals_Sign & LAT.HT);
+         if labellen < 7 then
+            TIO.Put (LAT.HT & LAT.HT);
+         elsif labellen < 15 then
+            TIO.Put (LAT.HT);
+         end if;
+         case thelist is
+            when sp_exc_opsys  => specs.exc_opsys.Iterate (Process => print_item'Access);
+            when sp_inc_opsys  => specs.inc_opsys.Iterate (Process => print_item'Access);
+            when sp_exc_arch   => specs.exc_arch.Iterate (Process => print_item'Access);
+            when sp_opts_avail => specs.ops_avail.Iterate (Process => print_item'Access);
+            when sp_df_index   => specs.df_index.Iterate (Process => print_item'Access);
+            when sp_distfiles  => specs.distfiles.Iterate (Process => print_item'Access);
+            when sp_contacts   => specs.contacts.Iterate (Process => print_item'Access);
+            when sp_variants   => specs.variants.Iterate (Process => print_item'Access);
+            when sp_keywords   => specs.keywords.Iterate (Process => print_item'Access);
+            when others => null;
+         end case;
+         TIO.Put (LAT.LF);
+      end print_vector_list;
+
+      procedure print_group_list (thelabel : String; thelist : spec_field) is
+      begin
+         TIO.Put_Line (thelabel & LAT.Colon);
+         case thelist is
+            when sp_vopts       => specs.variantopts.Iterate (Process => dump'Access);
+            when sp_subpackages => specs.subpackages.Iterate (Process => dump'Access);
+            when sp_dl_sites    => specs.dl_sites.Iterate (Process => dump'Access);
+            when others => null;
+         end case;
+      end print_group_list;
+
+      procedure print_single (thelabel : String; thelist : spec_field)
+      is
+         labellen : Natural := thelabel'Length;
+      begin
+         TIO.Put (thelabel & LAT.Equals_Sign & LAT.HT);
+         if labellen < 7 then
+            TIO.Put (LAT.HT & LAT.HT);
+         elsif labellen < 15 then
+            TIO.Put (LAT.HT);
+         end if;
+         case thelist is
+            when sp_namebase   => TIO.Put_Line (HT.USS (specs.namebase));
+            when sp_version    => TIO.Put_Line (HT.USS (specs.version));
+            when sp_revision   => TIO.Put_Line (HT.int2str (specs.revision));
+            when sp_epoch      => TIO.Put_Line (HT.int2str (specs.epoch));
+            when sp_distsubdir => TIO.Put_Line (HT.USS (specs.dist_subdir));
+            when others => null;
+         end case;
+      end print_single;
    begin
-      TIO.Put_Line ("NAMEBASE=" & LAT.HT & LAT.HT & HT.USS (specs.namebase));
-      TIO.Put_Line ("VERSION="  & LAT.HT & LAT.HT & HT.USS (specs.version));
-      TIO.Put_Line ("REVISION=" & LAT.HT & LAT.HT & HT.int2str (specs.revision));
-      TIO.Put_Line ("EPOCH="    & LAT.HT & LAT.HT & LAT.HT & HT.int2str (specs.epoch));
-      TIO.Put      ("KEYWORDS=" & LAT.HT & LAT.HT);
-      specs.keywords.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
-      TIO.Put      ("VARIANTS=" & LAT.HT & LAT.HT);
-      specs.variants.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
+      print_single      ("NAMEBASE", sp_namebase);
+      print_single      ("VERSION",  sp_version);
+      print_single      ("REVISION", sp_revision);
+      print_single      ("EPOCH",    sp_epoch);
+      print_vector_list ("KEYWORDS", sp_keywords);
+      print_vector_list ("VARIANTS", sp_variants);
       array_label := 1;
       specs.taglines.Iterate (Process => print_item'Access);
-      TIO.Put      ("CONTACTS=" & LAT.HT & LAT.HT);
-      specs.contacts.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
-      TIO.Put_Line ("SITES:");
-      specs.dl_sites.Iterate (Process => dump'Access);
-      TIO.Put      ("DISTFILE=" & LAT.HT & LAT.HT);
-      specs.distfiles.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
-      TIO.Put_Line ("DIST_SUBDIR=" & LAT.HT & LAT.HT & HT.USS (specs.dist_subdir));
-      TIO.Put      ("DF_INDEX=" & LAT.HT & LAT.HT);
-      specs.df_index.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
-      TIO.Put_Line ("SPKG:");
-      specs.subpackages.Iterate (Process => dump'Access);
-      TIO.Put      ("OPTIONS_AVAILABLE=" & LAT.HT);
-      specs.ops_avail.Iterate (Process => print_item'Access);
-      TIO.Put      (LAT.LF);
-      TIO.Put_Line ("VOPTS:");
-      specs.variantopts.Iterate (Process => dump'Access);
+      print_vector_list ("CONTACTS", sp_contacts);
+      print_group_list  ("SITES", sp_dl_sites);
+      print_vector_list ("DISTFILE", sp_distfiles);
+      print_single      ("DIST_SUBDIR=", sp_distsubdir);
+      print_vector_list ("DF_INDEX", sp_df_index);
+      print_group_list  ("SPKGS", sp_subpackages);
+      print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);
+      print_group_list  ("VOPTS", sp_subpackages);
+      print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
+      print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
+      print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
+
    end dump_specification;
 
 end Port_Specification;

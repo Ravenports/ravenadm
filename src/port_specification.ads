@@ -20,7 +20,7 @@ package Port_Specification is
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
                        sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
-                       sp_opts_avail, sp_vopts);
+                       sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -142,6 +142,9 @@ private
          ops_avail   : string_crate.Vector;
          last_set    : spec_order;
          variantopts : list_crate.Map;
+         exc_opsys   : string_crate.Vector;
+         inc_opsys   : string_crate.Vector;
+         exc_arch    : string_crate.Vector;
       end record;
 
    --  Compares given keyword against known values
@@ -149,5 +152,11 @@ private
 
    --  Returns true if there is a short description defined for each variant.
    function all_taglines_defined (specs : Portspecs) return Boolean;
+
+   --  Return true if the given string is a recogized opsys
+   function lower_opsys_is_valid (test_opsys : String) return Boolean;
+
+   --  Return true if given string is a recognized architecture
+   function arch_is_valid (test_arch : String) return Boolean;
 
 end Port_Specification;

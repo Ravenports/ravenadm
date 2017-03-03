@@ -34,7 +34,8 @@ private
 
    type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
-                        contacts, dl_groups, dist_subdir, df_index, opt_avail);
+                         contacts, dl_groups, dist_subdir, df_index, opt_avail, exc_opsys,
+                         inc_opsys, exc_arch);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;
