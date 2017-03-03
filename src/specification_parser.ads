@@ -32,7 +32,7 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
-   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs);
+   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                         contacts, dl_groups, dist_subdir, df_index, opt_avail);
    type type_category is (cat_none, cat_array, cat_singlet);
@@ -86,5 +86,8 @@ private
      (field : PSP.spec_field;
       key   : String;
       value : String);
+
+   --  Return true if all final validity checks pass
+   function late_validity_check_error return HT.Text;
 
 end Specification_Parser;

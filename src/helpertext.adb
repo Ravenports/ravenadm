@@ -123,6 +123,27 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  trails #1
+   --------------------------------------------------------------------------------------------
+   function trails (S : String; fragment : String) return Boolean is
+   begin
+      if fragment'Length > S'Length then
+         return False;
+      end if;
+      return (S (S'Last - fragment'Length + 1 .. S'Last) = fragment);
+   end trails;
+
+
+   --------------------------------------------------------------------------------------------
+   --  trails #2
+   --------------------------------------------------------------------------------------------
+   function trails (US : Text; fragment : String) return Boolean is
+   begin
+      return trails (USS (US), fragment);
+   end trails;
+
+
+   --------------------------------------------------------------------------------------------
    --  uppercase #1
    --------------------------------------------------------------------------------------------
    function uppercase (US : Text) return Text

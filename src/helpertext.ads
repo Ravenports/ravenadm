@@ -39,6 +39,10 @@ package HelperText is
    function contains (S : String; fragment : String) return Boolean;
    function contains (US : Text; fragment : String) return Boolean;
 
+   --  Return True of S terminates with fragment exactly
+   function trails (S  : String; fragment : String) return Boolean;
+   function trails (US : Text;   fragment : String) return Boolean;
+
    --  Convert to uppercase
    function uppercase (US : Text)   return Text;
    function uppercase (S  : String) return String;

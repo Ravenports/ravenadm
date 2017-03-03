@@ -195,6 +195,10 @@ package body Specification_Parser is
                            build_group_list (field => PSP.sp_subpackages,
                                              key   => tkey,
                                              value => tvalue);
+                        when vopts =>
+                           build_group_list (field => PSP.sp_vopts,
+                                             key   => tkey,
+                                             value => tvalue);
                         when not_array => null;
                      end case;
                   end;
@@ -285,7 +289,10 @@ package body Specification_Parser is
          end;
       end loop;
       if HT.IsBlank (last_parse_error) then
-         success := True;
+         last_parse_error := late_validity_check_error;
+         if HT.IsBlank (last_parse_error) then
+            success := True;
+         end if;
       end if;
    exception
       when FOP.file_handling =>
@@ -569,6 +576,8 @@ package body Specification_Parser is
          return distfile;
       elsif known ("SPKGS") then
          return spkgs;
+      elsif known ("VOPTS") then
+         return vopts;
       else
          return not_array;
       end if;
@@ -731,6 +740,9 @@ package body Specification_Parser is
             when PSP.sp_variants =>
                specification.append_list (field, data);
                specification.establish_group (PSP.sp_subpackages, data);
+               if data /= variant_standard then
+                  specification.establish_group (PSP.sp_vopts, data);
+               end if;
             when others =>
                specification.append_list (field, data);
          end case;
@@ -814,6 +826,22 @@ package body Specification_Parser is
       insert_item (value (word_start .. value'Last));
 
    end build_group_list;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_late_validity_checks
+   --------------------------------------------------------------------------------------------
+   function late_validity_check_error return HT.Text
+   is
+      variant_check_result : String := specification.check_variants;
+   begin
+      if variant_check_result /= "" then
+         return HT.SUS ("Variant '" & HT.part_1 (variant_check_result, ":") &
+                          "' is missing the required '" & HT.part_2 (variant_check_result, ":") &
+                          "' option configuration.");
+      end if;
+      return HT.blank;
+   end late_validity_check_error;
 
 
 end Specification_Parser;

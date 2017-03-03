@@ -29,6 +29,7 @@ package body Port_Specification is
       specs.df_index.Clear;
       specs.subpackages.Clear;
       specs.ops_avail.Clear;
+      specs.variantopts.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -214,6 +215,9 @@ package body Port_Specification is
                   raise wrong_value with "option value '" & value & "' is not capitalized";
                end if;
             end if;
+            if value'Length > 14 then
+               raise wrong_value with "'" & value & "' name is too long (14-char limit)";
+            end if;
             specs.ops_avail.Append (text_value);
             specs.last_set := so_opts_avail;
          when others =>
@@ -275,6 +279,11 @@ package body Port_Specification is
             --  variant, order, length and uniqueness already checked
             --  don't updatee last_set either
             specs.subpackages.Insert (Key      => text_group,
+                                      New_Item => initial_rec);
+         when sp_vopts =>
+            --  variant, order, length and uniqueness already checked
+            --  don't updatee last_set either
+            specs.variantopts.Insert (Key      => text_group,
                                       New_Item => initial_rec);
          when others =>
             raise wrong_type with field'Img;
@@ -351,6 +360,44 @@ package body Port_Specification is
             specs.subpackages.Update_Element (Position => specs.subpackages.Find (text_key),
                                               Process  => grow'Access);
             specs.last_set := so_subpackages;
+         when sp_vopts =>
+            if specs.last_set /= so_vopts and then
+              specs.last_set /= so_opts_avail
+            then
+               raise misordered with field'Img;
+            end if;
+            if not specs.variantopts.Contains (text_key) then
+               raise missing_group with key;
+            end if;
+            declare
+               strlast : Natural;
+               WON     : HT.Text;
+               WOFF    : HT.Text;
+            begin
+               if HT.trails (value, "=ON") then
+                  strlast := value'Last - 3;
+                  WON     := text_value;
+                  WOFF    := HT.SUS (value (value'First .. strlast) & "=OFF");
+               elsif HT.trails (value, "=OFF") then
+                  strlast := value'Last - 4;
+                  WOFF    := text_value;
+                  WON     := HT.SUS (value (value'First .. strlast) & "=ON");
+               else
+                  raise wrong_value with "'" & value & "' doesn't end in '=ON' or '=OFF'";
+               end if;
+               if specs.variantopts.Element (text_key).list.Contains (WON) or else
+                 specs.variantopts.Element (text_key).list.Contains (WOFF)
+               then
+                  raise dupe_list_value with value;
+               end if;
+               if not specs.ops_avail.Contains (HT.SUS (value (value'First .. strlast))) then
+                  raise wrong_value with "'" & value (value'First .. strlast)
+                    & "' was not present in OPTIONS_AVAILABLE";
+               end if;
+            end;
+            specs.variantopts.Update_Element (Position => specs.variantopts.Find (text_key),
+                                              Process  => grow'Access);
+            specs.last_set := so_vopts;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -434,6 +481,56 @@ package body Port_Specification is
       specs.variants.Iterate (Process => check'Access);
       return all_present;
    end all_taglines_defined;
+
+
+   --------------------------------------------------------------------------------------------
+   --  check_variants
+   --------------------------------------------------------------------------------------------
+   function check_variants (specs : Portspecs) return String
+   is
+      procedure check (position : string_crate.Cursor);
+      procedure check_option (position : string_crate.Cursor);
+
+      result  : HT.Text := HT.blank;
+      variant : HT.Text;
+
+      --  OPTIONS_AVAILABLE process
+      procedure check_option (position : string_crate.Cursor)
+      is
+         option : HT.Text := string_crate.Element (position);
+      begin
+         if HT.IsBlank (result) then
+            declare
+               step  : String  := HT.USS (option);
+               WON   : HT.Text := HT.SUS (step & "=ON");
+               WOFF  : HT.Text := HT.SUS (step & "=OFF");
+            begin
+               TIO.Put_Line (step & " " & HT.USS (WON));
+               if not specs.variantopts.Element (variant).list.Contains (WON) and then
+                 not specs.variantopts.Element (variant).list.Contains (WOFF)
+               then
+                  result := HT.SUS (HT.USS (variant) & ":" & step);
+               end if;
+            end;
+         end if;
+      end check_option;
+
+      --  variant process
+      procedure check (position : string_crate.Cursor) is
+      begin
+         variant := string_crate.Element (position);
+         if HT.IsBlank (result) then
+            if HT.USS (variant) /= variant_standard then
+
+               --  It's impossible that variantopts doesn't have variant, so don't test
+               specs.ops_avail.Iterate (Process => check_option'Access);
+            end if;
+         end if;
+      end check;
+   begin
+      specs.variants.Iterate (Process => check'Access);
+      return HT.USS (result);
+   end check_variants;
 
 
    --------------------------------------------------------------------------------------------
@@ -577,6 +674,8 @@ package body Port_Specification is
       TIO.Put      ("OPTIONS_AVAILABLE=" & LAT.HT);
       specs.ops_avail.Iterate (Process => print_item'Access);
       TIO.Put      (LAT.LF);
+      TIO.Put_Line ("VOPTS:");
+      specs.variantopts.Iterate (Process => dump'Access);
    end dump_specification;
 
 end Port_Specification;
