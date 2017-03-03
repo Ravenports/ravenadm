@@ -28,6 +28,7 @@ package body Port_Specification is
       specs.dist_subdir := HT.blank;
       specs.df_index.Clear;
       specs.subpackages.Clear;
+      specs.ops_avail.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -195,6 +196,26 @@ package body Port_Specification is
             end;
             specs.df_index.Append (text_value);
             specs.last_set := so_df_index;
+         when sp_opts_avail =>
+            if specs.last_set /= so_opts_avail and then
+              specs.last_set /= so_subpackages
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.ops_avail.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if value = options_none then
+               if not specs.ops_avail.Is_Empty then
+                  raise wrong_value with "'" & options_none & "' must be set first and alone";
+               end if;
+            else
+               if HT.uppercase (value) /= value then
+                  raise wrong_value with "option value '" & value & "' is not capitalized";
+               end if;
+            end if;
+            specs.ops_avail.Append (text_value);
+            specs.last_set := so_opts_avail;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -553,6 +574,9 @@ package body Port_Specification is
       TIO.Put      (LAT.LF);
       TIO.Put_Line ("SPKG:");
       specs.subpackages.Iterate (Process => dump'Access);
+      TIO.Put      ("OPTIONS_AVAILABLE=" & LAT.HT);
+      specs.ops_avail.Iterate (Process => print_item'Access);
+      TIO.Put      (LAT.LF);
    end dump_specification;
 
 end Port_Specification;

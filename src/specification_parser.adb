@@ -33,6 +33,7 @@ package body Specification_Parser is
       last_seen     : type_category := cat_none;
       last_df       : Integer := 0;
       last_index    : HT.Text;
+      seen_singlet  : array (spec_singlet) of Boolean := (others => False);
    begin
       success := False;
       specification.initialize;
@@ -72,6 +73,13 @@ package body Specification_Parser is
             line_array := determine_array (line);
             if line_array = not_array then
                line_singlet := determine_singlet (line);
+               if line_singlet /= not_singlet and then
+                 seen_singlet (line_singlet)
+               then
+                  last_parse_error := HT.SUS (LN & "variable previously defined (use triple tab)");
+                  exit;
+               end if;
+               seen_singlet (line_singlet) := True;
             else
                line_singlet := not_singlet;
             end if;
@@ -87,6 +95,9 @@ package body Specification_Parser is
                      when cat_singlet => line_singlet := last_singlet;
                      when cat_none    => null;
                   end case;
+               else
+                  last_parse_error := HT.SUS (LN & "Parse failed, content unrecognized.");
+                  exit;
                end if;
             end if;
 
@@ -219,6 +230,8 @@ package body Specification_Parser is
                         build_list (PSP.sp_dl_groups, line);
                      when df_index =>
                         build_list (PSP.sp_df_index, line);
+                     when opt_avail =>
+                        build_list (PSP.sp_opts_avail, line);
                      when not_singlet =>
                         null;
                   end case;
@@ -599,6 +612,8 @@ package body Specification_Parser is
          return dist_subdir;
       elsif known ("DF_INDEX") then
          return df_index;
+      elsif known ("OPTIONS_AVAILABLE") then
+         return opt_avail;
       else
          return not_singlet;
       end if;

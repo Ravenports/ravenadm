@@ -19,7 +19,8 @@ package Port_Specification is
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
-                       sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages);
+                       sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
+                       sp_opts_avail);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -92,7 +93,7 @@ private
    type spec_order is (so_initialized, so_namebase, so_version, so_revision, so_epoch,
                        so_keywords, so_variants, so_taglines, so_contacts, so_dl_groups,
                        so_dl_sites, so_distfiles, so_distsubdir, so_df_index,
-                       so_subpackages);
+                       so_subpackages, so_opts_avail);
 
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
@@ -133,6 +134,7 @@ private
          dist_subdir : HT.Text;
          df_index    : string_crate.Vector;
          subpackages : list_crate.Map;
+         ops_avail   : string_crate.Vector;
          last_set    : spec_order;
       end record;
 

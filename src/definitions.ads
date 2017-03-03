@@ -8,5 +8,6 @@ package Definitions is
    contact_automaton : constant String := "automaton";
    dlgroup_main      : constant String := "main";
    dlgroup_none      : constant String := "none";
+   options_none      : constant String := "none";
 
 end Definitions;
