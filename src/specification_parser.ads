@@ -37,7 +37,8 @@ private
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                          contacts, dl_groups, dist_subdir, df_index, opt_avail, exc_opsys,
                          inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha, ext_dirty,
-                         distname, skip_build, destdir_env, build_wrksrc, makefile, destdirname);
+                         distname, skip_build, destdir_env, build_wrksrc, makefile, destdirname,
+                         make_args, make_env);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;

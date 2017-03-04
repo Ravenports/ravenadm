@@ -245,6 +245,8 @@ package body Specification_Parser is
                      when ext_7z       => build_list (PSP.sp_ext_7z, line);
                      when ext_lha      => build_list (PSP.sp_ext_lha, line);
                      when ext_dirty    => build_list (PSP.sp_ext_dirty, line);
+                     when make_args    => build_list (PSP.sp_make_args, line);
+                     when make_env     => build_list (PSP.sp_make_env, line);
                      when not_singlet  => null;
                   end case;
                   last_singlet := line_singlet;
@@ -666,6 +668,10 @@ package body Specification_Parser is
          return destdirname;
       elsif known ("DESTDIR_VIA_ENV") then
          return destdir_env;
+      elsif known ("MAKE_ARGS") then
+         return make_args;
+      elsif known ("MAKE_ENV") then
+         return make_env;
       else
          return not_singlet;
       end if;
@@ -807,6 +813,8 @@ package body Specification_Parser is
       arrow      : Natural;
       word_start : Natural;
       strvalue   : constant String := retrieve_single_value (line);
+      mask       : String := strvalue;
+      Qopened    : Boolean := False;
       --  let any exceptions cascade
 
       procedure insert_item (data : String) is
@@ -832,8 +840,18 @@ package body Specification_Parser is
       end if;
 
       --  Check for multiple space error or leading space error
-      if HT.contains (S => strvalue, fragment => "  ") or else
-        strvalue (strvalue'First) = ' '
+      --  We start by masking all spaces between quotations so we can accurately detect them
+      for x in mask'Range loop
+         if mask (x) = LAT.Quotation then
+            Qopened := not Qopened;
+         elsif mask (x) = LAT.Space then
+            if Qopened then
+               mask (x) := 'X';
+            end if;
+         end if;
+      end loop;
+      if HT.contains (S => mask, fragment => "  ") or else
+        mask (mask'First) = LAT.Space
       then
          raise extra_spaces;
       end if;
@@ -844,7 +862,7 @@ package body Specification_Parser is
       arrow := word_start;
       loop
          exit when arrow > strvalue'Last;
-         if strvalue (arrow) = ' ' then
+         if mask (arrow) = LAT.Space then
             insert_item (strvalue (word_start .. arrow - 1));
             word_start := arrow + 1;
          end if;
@@ -866,6 +884,8 @@ package body Specification_Parser is
 
       arrow      : Natural;
       word_start : Natural;
+      mask       : String := value;
+      Qopened    : Boolean := False;
 
       procedure insert_item (data : String) is
       begin
@@ -882,8 +902,18 @@ package body Specification_Parser is
       end if;
 
       --  Check for multiple space error or leading space error
-      if HT.contains (S => value, fragment => "  ") or else
-        value (value'First) = ' '
+      --  We start by masking all spaces between quotations so we can accurately detect them
+      for x in mask'Range loop
+         if mask (x) = LAT.Quotation then
+            Qopened := not Qopened;
+         elsif mask (x) = LAT.Space then
+            if Qopened then
+               mask (x) := 'X';
+            end if;
+         end if;
+      end loop;
+      if HT.contains (S => mask, fragment => "  ") or else
+        mask (mask'First) = LAT.Space
       then
          raise extra_spaces;
       end if;
@@ -894,7 +924,7 @@ package body Specification_Parser is
       arrow := word_start;
       loop
          exit when arrow > value'Last;
-         if value (arrow) = ' ' then
+         if mask (arrow) = LAT.Space then
             insert_item (value (word_start .. arrow - 1));
             word_start := arrow + 1;
          end if;

@@ -23,7 +23,8 @@ package Port_Specification is
                        sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch,
                        sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
                        sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_destdir_env,
-                       sp_destdirname, sp_build_wrksrc, sp_makefile);
+                       sp_destdirname, sp_build_wrksrc, sp_makefile, sp_make_args,
+                       sp_make_env);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -169,8 +170,8 @@ private
          build_wrksrc  : HT.Text;
          makefile      : HT.Text;
          destdirname   : HT.Text;
-         make_env      : list_crate.Map;
-         make_args     : list_crate.Map;
+         make_env      : string_crate.Vector;
+         make_args     : string_crate.Vector;
       end record;
 
    --  Compares given keyword against known values
@@ -188,5 +189,8 @@ private
    --  Returns true if given string can convert to an integer between 1 and
    --  distfiles count.
    function dist_index_is_valid (specs : Portspecs; test_index : String) return Boolean;
+
+   --  Returns true if space exists outside of quotation marks
+   function contains_nonquoted_spaces (word : String) return Boolean;
 
 end Port_Specification;

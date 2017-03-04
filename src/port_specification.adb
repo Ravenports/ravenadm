@@ -73,7 +73,7 @@ package body Port_Specification is
          end if;
       end verify_entry_is_post_options;
    begin
-      if HT.contains (S => value, fragment => " ") then
+      if contains_nonquoted_spaces (value) then
          raise contains_spaces;
       end if;
       case field is
@@ -154,7 +154,7 @@ package body Port_Specification is
          end if;
       end verify_special_exraction;
    begin
-      if HT.contains (S => value, fragment => " ") then
+      if contains_nonquoted_spaces (value) then
          raise contains_spaces;
       end if;
       case field is
@@ -346,6 +346,12 @@ package body Port_Specification is
                raise dupe_list_value with value;
             end if;
             specs.extract_dirty.Append (text_value);
+         when sp_make_args =>
+            verify_entry_is_post_options;
+            specs.make_args.Append (text_value);
+         when sp_make_env =>
+            verify_entry_is_post_options;
+            specs.make_env.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -708,6 +714,27 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  contains_nonquoted_spaces
+   --------------------------------------------------------------------------------------------
+   function contains_nonquoted_spaces (word : String) return Boolean
+   is
+      mask    : String  := word;
+      Qopened : Boolean := False;
+   begin
+      for x in mask'Range loop
+         if mask (x) = LAT.Quotation then
+            Qopened := not Qopened;
+         elsif mask (x) = LAT.Space then
+            if Qopened then
+               mask (x) := 'X';
+            end if;
+         end if;
+      end loop;
+      return HT.contains (S => mask, fragment => " ");
+   end contains_nonquoted_spaces;
+
+
+   --------------------------------------------------------------------------------------------
    --  lower_opsys_is_valid
    --------------------------------------------------------------------------------------------
    function lower_opsys_is_valid (test_opsys : String) return Boolean is
@@ -897,6 +924,8 @@ package body Port_Specification is
             when sp_ext_7z     => specs.extract_7z.Iterate (Process => print_item'Access);
             when sp_ext_lha    => specs.extract_lha.Iterate (Process => print_item'Access);
             when sp_ext_dirty  => specs.extract_dirty.Iterate (Process => print_item'Access);
+            when sp_make_args  => specs.make_args.Iterate (Process => print_item'Access);
+            when sp_make_env   => specs.make_env.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -991,6 +1020,8 @@ package body Port_Specification is
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
       print_single      ("MAKEFILE", sp_makefile);
       print_single      ("DESTDIRNAME", sp_destdirname);
+      print_vector_list ("MAKE_ARGS", sp_make_args);
+      print_vector_list ("MAKE_ENV", sp_make_env);
 
    end dump_specification;
 
