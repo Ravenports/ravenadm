@@ -24,7 +24,8 @@ package Port_Specification is
                        sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
                        sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_single_job,
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
-                       sp_make_args, sp_make_env, sp_build_target);
+                       sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
+                       sp_cppflags, sp_ldflags);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -174,6 +175,10 @@ private
          make_env      : string_crate.Vector;
          make_args     : string_crate.Vector;
          build_target  : string_crate.Vector;
+         cflags        : string_crate.Vector;
+         cxxflags      : string_crate.Vector;
+         cppflags      : string_crate.Vector;
+         ldflags       : string_crate.Vector;
       end record;
 
    --  Compares given keyword against known values

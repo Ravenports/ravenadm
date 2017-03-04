@@ -249,6 +249,10 @@ package body Specification_Parser is
                      when make_args    => build_list (PSP.sp_make_args, line);
                      when make_env     => build_list (PSP.sp_make_env, line);
                      when build_target => build_list (PSP.sp_build_target, line);
+                     when cflags       => build_list (PSP.sp_cflags, line);
+                     when cxxflags     => build_list (PSP.sp_cxxflags, line);
+                     when cppflags     => build_list (PSP.sp_cppflags, line);
+                     when ldflags      => build_list (PSP.sp_ldflags, line);
                      when not_singlet  => null;
                   end case;
                   last_singlet := line_singlet;
@@ -678,6 +682,14 @@ package body Specification_Parser is
          return build_target;
       elsif known ("SINGLE_JOB") then
          return single_job;
+      elsif known ("CFLAGS") then
+         return cflags;
+      elsif known ("CXXFLAGS") then
+         return cxxflags;
+      elsif known ("CPPFLAGS") then
+         return cppflags;
+      elsif known ("LDFLAGS") then
+         return ldflags;
       else
          return not_singlet;
       end if;

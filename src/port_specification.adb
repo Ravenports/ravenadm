@@ -51,6 +51,10 @@ package body Port_Specification is
       specs.make_env.Clear;
       specs.make_args.Clear;
       specs.build_target.Clear;
+      specs.cflags.Clear;
+      specs.cxxflags.Clear;
+      specs.cppflags.Clear;
+      specs.ldflags.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -357,6 +361,18 @@ package body Port_Specification is
          when sp_build_target =>
             verify_entry_is_post_options;
             specs.build_target.Append (text_value);
+         when sp_cflags =>
+            verify_entry_is_post_options;
+            specs.cflags.Append (text_value);
+         when sp_cxxflags =>
+            verify_entry_is_post_options;
+            specs.cxxflags.Append (text_value);
+         when sp_cppflags =>
+            verify_entry_is_post_options;
+            specs.cppflags.Append (text_value);
+         when sp_ldflags =>
+            verify_entry_is_post_options;
+            specs.ldflags.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -934,6 +950,10 @@ package body Port_Specification is
             when sp_make_args    => specs.make_args.Iterate (Process => print_item'Access);
             when sp_make_env     => specs.make_env.Iterate (Process => print_item'Access);
             when sp_build_target => specs.build_target.Iterate (Process => print_item'Access);
+            when sp_cflags       => specs.cflags.Iterate (Process => print_item'Access);
+            when sp_cxxflags     => specs.cxxflags.Iterate (Process => print_item'Access);
+            when sp_cppflags     => specs.cppflags.Iterate (Process => print_item'Access);
+            when sp_ldflags      => specs.ldflags.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -1033,6 +1053,10 @@ package body Port_Specification is
       print_vector_list ("MAKE_ARGS", sp_make_args);
       print_vector_list ("MAKE_ENV", sp_make_env);
       print_vector_list ("BUILD_TARGET", sp_build_target);
+      print_vector_list ("CFLAGS", sp_cflags);
+      print_vector_list ("CXXFLAGS", sp_cxxflags);
+      print_vector_list ("CPPFLAGS", sp_cppflags);
+      print_vector_list ("LDFLAGS", sp_ldflags);
 
    end dump_specification;
 
