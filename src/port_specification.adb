@@ -708,7 +708,6 @@ package body Port_Specification is
                WON   : HT.Text := HT.SUS (step & "=ON");
                WOFF  : HT.Text := HT.SUS (step & "=OFF");
             begin
-               TIO.Put_Line (step & " " & HT.USS (WON));
                if not specs.variantopts.Element (variant).list.Contains (WON) and then
                  not specs.variantopts.Element (variant).list.Contains (WOFF)
                then
@@ -911,9 +910,9 @@ package body Port_Specification is
          NDX : String := HT.USS (list_crate.Element (position).group);
       begin
          TIO.Put ("   " & NDX);
-         if NDX'Length < 4 then
+         if NDX'Length < 5 then
             TIO.Put (LAT.HT & LAT.HT & LAT.HT);
-         elsif NDX'Length < 12 then
+         elsif NDX'Length < 13 then
             TIO.Put (LAT.HT & LAT.HT);
          else
             TIO.Put (LAT.HT);
@@ -1026,7 +1025,7 @@ package body Port_Specification is
       print_vector_list ("CONTACTS", sp_contacts);
       print_group_list  ("SITES", sp_dl_sites);
       print_vector_list ("DISTFILE", sp_distfiles);
-      print_single      ("DIST_SUBDIR=", sp_distsubdir);
+      print_single      ("DIST_SUBDIR", sp_distsubdir);
       print_vector_list ("DF_INDEX", sp_df_index);
       print_group_list  ("SPKGS", sp_subpackages);
       print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);

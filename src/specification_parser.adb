@@ -636,7 +636,7 @@ package body Specification_Parser is
          return keywords;
       elsif known ("VARIANTS") then
          return variants;
-      elsif known ("CONTACTS") then
+      elsif known ("CONTACT") then
          return contacts;
       elsif known ("DOWNLOAD_GROUPS") then
          return dl_groups;
