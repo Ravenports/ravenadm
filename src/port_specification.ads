@@ -20,8 +20,8 @@ package Port_Specification is
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
                        sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
-                       sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch,
-                       sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
+                       sp_opts_avail, sp_opts_standard, sp_vopts, sp_exc_opsys, sp_inc_opsys,
+                       sp_exc_arch, sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
                        sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_single_job,
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
@@ -110,7 +110,7 @@ private
    type spec_order is (so_initialized, so_namebase, so_version, so_revision, so_epoch,
                        so_keywords, so_variants, so_taglines, so_contacts, so_dl_groups,
                        so_dl_sites, so_distfiles, so_distsubdir, so_df_index,
-                       so_subpackages, so_opts_avail, so_vopts);
+                       so_subpackages, so_opts_avail, so_opts_std, so_vopts);
 
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
@@ -152,6 +152,7 @@ private
          df_index      : string_crate.Vector;
          subpackages   : list_crate.Map;
          ops_avail     : string_crate.Vector;
+         ops_standard  : string_crate.Vector;
          last_set      : spec_order;
          variantopts   : list_crate.Map;
          exc_opsys     : string_crate.Vector;

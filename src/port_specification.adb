@@ -29,6 +29,7 @@ package body Port_Specification is
       specs.df_index.Clear;
       specs.subpackages.Clear;
       specs.ops_avail.Clear;
+      specs.ops_standard.Clear;
       specs.variantopts.Clear;
       specs.exc_opsys.Clear;
       specs.inc_opsys.Clear;
@@ -74,7 +75,7 @@ package body Port_Specification is
 
       procedure verify_entry_is_post_options is
       begin
-         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_std) then
             raise misordered with field'Img;
          end if;
       end verify_entry_is_post_options;
@@ -138,7 +139,7 @@ package body Port_Specification is
 
       procedure verify_entry_is_post_options is
       begin
-         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_std) then
             raise misordered with field'Img;
          end if;
       end verify_entry_is_post_options;
@@ -290,6 +291,26 @@ package body Port_Specification is
             end if;
             specs.ops_avail.Append (text_value);
             specs.last_set := so_opts_avail;
+         when sp_opts_standard =>
+            if specs.last_set /= so_opts_std and then
+              specs.last_set /= so_opts_avail
+            then
+               raise misordered with field'Img;
+            end if;
+            if specs.ops_standard.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            if value = options_none then
+               if not specs.ops_standard.Is_Empty then
+                  raise wrong_value with "'" & options_none & "' must be set first and alone";
+               end if;
+            else
+               if not specs.ops_avail.Contains (text_value) then
+                  raise wrong_value with "'" & value & "' must be present in OPTIONS_AVAILABLE";
+               end if;
+            end if;
+            specs.ops_standard.Append (text_value);
+            specs.last_set := so_opts_std;
          when sp_exc_opsys =>
             verify_entry_is_post_options;
             if not specs.inc_opsys.Is_Empty then
@@ -468,7 +489,7 @@ package body Port_Specification is
 
       procedure verify_entry_is_post_options is
       begin
-         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_std) then
             raise misordered with field'Img;
          end if;
       end verify_entry_is_post_options;
@@ -524,7 +545,7 @@ package body Port_Specification is
             specs.last_set := so_subpackages;
          when sp_vopts =>
             if specs.last_set /= so_vopts and then
-              specs.last_set /= so_opts_avail
+              specs.last_set /= so_opts_std
             then
                raise misordered with field'Img;
             end if;
@@ -932,27 +953,28 @@ package body Port_Specification is
             TIO.Put (LAT.HT);
          end if;
          case thelist is
-            when sp_exc_opsys    => specs.exc_opsys.Iterate (Process => print_item'Access);
-            when sp_inc_opsys    => specs.inc_opsys.Iterate (Process => print_item'Access);
-            when sp_exc_arch     => specs.exc_arch.Iterate (Process => print_item'Access);
-            when sp_opts_avail   => specs.ops_avail.Iterate (Process => print_item'Access);
-            when sp_df_index     => specs.df_index.Iterate (Process => print_item'Access);
-            when sp_distfiles    => specs.distfiles.Iterate (Process => print_item'Access);
-            when sp_contacts     => specs.contacts.Iterate (Process => print_item'Access);
-            when sp_variants     => specs.variants.Iterate (Process => print_item'Access);
-            when sp_keywords     => specs.keywords.Iterate (Process => print_item'Access);
-            when sp_ext_only     => specs.extract_only.Iterate (Process => print_item'Access);
-            when sp_ext_zip      => specs.extract_zip.Iterate (Process => print_item'Access);
-            when sp_ext_7z       => specs.extract_7z.Iterate (Process => print_item'Access);
-            when sp_ext_lha      => specs.extract_lha.Iterate (Process => print_item'Access);
-            when sp_ext_dirty    => specs.extract_dirty.Iterate (Process => print_item'Access);
-            when sp_make_args    => specs.make_args.Iterate (Process => print_item'Access);
-            when sp_make_env     => specs.make_env.Iterate (Process => print_item'Access);
-            when sp_build_target => specs.build_target.Iterate (Process => print_item'Access);
-            when sp_cflags       => specs.cflags.Iterate (Process => print_item'Access);
-            when sp_cxxflags     => specs.cxxflags.Iterate (Process => print_item'Access);
-            when sp_cppflags     => specs.cppflags.Iterate (Process => print_item'Access);
-            when sp_ldflags      => specs.ldflags.Iterate (Process => print_item'Access);
+            when sp_exc_opsys     => specs.exc_opsys.Iterate (Process => print_item'Access);
+            when sp_inc_opsys     => specs.inc_opsys.Iterate (Process => print_item'Access);
+            when sp_exc_arch      => specs.exc_arch.Iterate (Process => print_item'Access);
+            when sp_opts_avail    => specs.ops_avail.Iterate (Process => print_item'Access);
+            when sp_opts_standard => specs.ops_standard.Iterate (Process => print_item'Access);
+            when sp_df_index      => specs.df_index.Iterate (Process => print_item'Access);
+            when sp_distfiles     => specs.distfiles.Iterate (Process => print_item'Access);
+            when sp_contacts      => specs.contacts.Iterate (Process => print_item'Access);
+            when sp_variants      => specs.variants.Iterate (Process => print_item'Access);
+            when sp_keywords      => specs.keywords.Iterate (Process => print_item'Access);
+            when sp_ext_only      => specs.extract_only.Iterate (Process => print_item'Access);
+            when sp_ext_zip       => specs.extract_zip.Iterate (Process => print_item'Access);
+            when sp_ext_7z        => specs.extract_7z.Iterate (Process => print_item'Access);
+            when sp_ext_lha       => specs.extract_lha.Iterate (Process => print_item'Access);
+            when sp_ext_dirty     => specs.extract_dirty.Iterate (Process => print_item'Access);
+            when sp_make_args     => specs.make_args.Iterate (Process => print_item'Access);
+            when sp_make_env      => specs.make_env.Iterate (Process => print_item'Access);
+            when sp_build_target  => specs.build_target.Iterate (Process => print_item'Access);
+            when sp_cflags        => specs.cflags.Iterate (Process => print_item'Access);
+            when sp_cxxflags      => specs.cxxflags.Iterate (Process => print_item'Access);
+            when sp_cppflags      => specs.cppflags.Iterate (Process => print_item'Access);
+            when sp_ldflags       => specs.ldflags.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -1029,6 +1051,7 @@ package body Port_Specification is
       print_vector_list ("DF_INDEX", sp_df_index);
       print_group_list  ("SPKGS", sp_subpackages);
       print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);
+      print_vector_list ("OPTIONS_STANDARD", sp_opts_standard);
       print_group_list  ("VOPTS", sp_subpackages);
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);

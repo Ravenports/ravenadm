@@ -238,6 +238,7 @@ package body Specification_Parser is
                      when dl_groups    => build_list (PSP.sp_dl_groups, line);
                      when df_index     => build_list (PSP.sp_df_index, line);
                      when opt_avail    => build_list (PSP.sp_opts_avail, line);
+                     when opt_standard => build_list (PSP.sp_opts_standard, line);
                      when exc_opsys    => build_list (PSP.sp_exc_opsys, line);
                      when inc_opsys    => build_list (PSP.sp_inc_opsys, line);
                      when exc_arch     => build_list (PSP.sp_exc_arch, line);
@@ -646,6 +647,8 @@ package body Specification_Parser is
          return df_index;
       elsif known ("OPTIONS_AVAILABLE") then
          return opt_avail;
+      elsif known ("OPTIONS_STANDARD") then
+         return opt_standard;
       elsif known ("NOT_FOR_OPSYS") then
          return exc_opsys;
       elsif known ("ONLY_FOR_OPSYS") then
