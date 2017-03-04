@@ -37,7 +37,7 @@ private
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                          contacts, dl_groups, dist_subdir, df_index, opt_avail, exc_opsys,
                          inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha, ext_dirty,
-                         distname);
+                         distname, skip_build, destdir_env, build_wrksrc, makefile, destdirname);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;
@@ -82,6 +82,15 @@ private
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters.
    procedure build_list (field : PSP.spec_field; line : String);
+
+   --  Line may contain spaces and they are considered part of an entire string
+   procedure build_string (field : PSP.spec_field; line : String);
+
+   --  For boolean variables, ensure "yes" was defined and pass to specification record.
+   procedure set_boolean (field : PSP.spec_field; line : String);
+
+   --  Pass integer variables to specification record
+   procedure set_natural (field : PSP.spec_field; line : String);
 
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters to build a group list.

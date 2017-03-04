@@ -43,12 +43,12 @@ package body Port_Specification is
       specs.distname     := HT.blank;
 
       specs.skip_build   := False;
+      specs.destdir_env  := False;
       specs.build_wrksrc := HT.blank;
       specs.makefile     := HT.blank;
+      specs.destdirname  := HT.blank;
       specs.make_env.Clear;
       specs.make_args.Clear;
-      specs.destdirname  := HT.blank;
-      specs.destdir_env  := False;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -63,6 +63,9 @@ package body Port_Specification is
       value : String)
    is
       procedure verify_entry_is_post_options;
+
+      text_value : HT.Text := HT.SUS (value);
+
       procedure verify_entry_is_post_options is
       begin
          if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
@@ -78,13 +81,13 @@ package body Port_Specification is
             if specs.last_set /= so_initialized then
                raise misordered with field'Img;
             end if;
-            specs.namebase := HT.SUS (value);
+            specs.namebase := text_value;
             specs.last_set := so_namebase;
          when sp_version =>
             if specs.last_set /= so_namebase then
                raise misordered with field'Img;
             end if;
-            specs.version := HT.SUS (value);
+            specs.version := text_value;
             specs.last_set := so_version;
          when sp_distsubdir =>
             if specs.last_set /= so_distfiles and then
@@ -92,11 +95,20 @@ package body Port_Specification is
             then
                raise misordered with field'Img;
             end if;
-            specs.dist_subdir := HT.SUS (value);
+            specs.dist_subdir := text_value;
             specs.last_set := so_distsubdir;
          when sp_distname =>
             verify_entry_is_post_options;
-            specs.distname := HT.SUS (value);
+            specs.distname := text_value;
+         when sp_build_wrksrc =>
+            verify_entry_is_post_options;
+            specs.build_wrksrc := text_value;
+         when sp_makefile =>
+            verify_entry_is_post_options;
+            specs.makefile := text_value;
+         when sp_destdirname =>
+            verify_entry_is_post_options;
+            specs.destdirname := text_value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -577,6 +589,25 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  set_boolean
+   --------------------------------------------------------------------------------------------
+   procedure set_boolean
+     (specs : in out Portspecs;
+      field : spec_field;
+      value : Boolean) is
+   begin
+      case field is
+         when sp_skip_build =>
+            specs.skip_build := value;
+         when sp_destdir_env =>
+            specs.destdir_env := value;
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+   end set_boolean;
+
+
+   --------------------------------------------------------------------------------------------
    --  variant_exists
    --------------------------------------------------------------------------------------------
    function variant_exists (specs : Portspecs; variant : String) return Boolean is
@@ -801,6 +832,7 @@ package body Port_Specification is
       procedure print_vector_list (thelabel : String; thelist : spec_field);
       procedure print_group_list  (thelabel : String; thelist : spec_field);
       procedure print_single (thelabel : String; thelist : spec_field);
+      procedure print_boolean (thelabel : String; thelist : spec_field);
 
       array_label : Positive;
 
@@ -894,15 +926,36 @@ package body Port_Specification is
             TIO.Put (LAT.HT);
          end if;
          case thelist is
-            when sp_namebase   => TIO.Put_Line (HT.USS (specs.namebase));
-            when sp_version    => TIO.Put_Line (HT.USS (specs.version));
-            when sp_revision   => TIO.Put_Line (HT.int2str (specs.revision));
-            when sp_epoch      => TIO.Put_Line (HT.int2str (specs.epoch));
-            when sp_distsubdir => TIO.Put_Line (HT.USS (specs.dist_subdir));
-            when sp_distname   => TIO.Put_Line (HT.USS (specs.distname));
+            when sp_namebase     => TIO.Put_Line (HT.USS (specs.namebase));
+            when sp_version      => TIO.Put_Line (HT.USS (specs.version));
+            when sp_revision     => TIO.Put_Line (HT.int2str (specs.revision));
+            when sp_epoch        => TIO.Put_Line (HT.int2str (specs.epoch));
+            when sp_distsubdir   => TIO.Put_Line (HT.USS (specs.dist_subdir));
+            when sp_distname     => TIO.Put_Line (HT.USS (specs.distname));
+            when sp_build_wrksrc => TIO.Put_Line (HT.USS (specs.build_wrksrc));
+            when sp_makefile     => TIO.Put_Line (HT.USS (specs.makefile));
+            when sp_destdirname  => TIO.Put_Line (HT.USS (specs.destdirname));
             when others => null;
          end case;
       end print_single;
+
+      procedure print_boolean (thelabel : String; thelist : spec_field)
+      is
+         labellen : Natural := thelabel'Length;
+      begin
+         TIO.Put (thelabel & LAT.Equals_Sign & LAT.HT);
+         if labellen < 7 then
+            TIO.Put (LAT.HT & LAT.HT);
+         elsif labellen < 15 then
+            TIO.Put (LAT.HT);
+         end if;
+         case thelist is
+            when sp_skip_build     => TIO.Put_Line (specs.skip_build'Img);
+            when sp_destdir_env    => TIO.Put_Line (specs.destdir_env'Img);
+            when others => null;
+         end case;
+      end print_boolean;
+
    begin
       print_single      ("NAMEBASE", sp_namebase);
       print_single      ("VERSION",  sp_version);
@@ -932,6 +985,12 @@ package body Port_Specification is
       print_vector_list ("EXTRACT_DIRTY", sp_ext_dirty);
       print_group_list  ("EXTRACT_HEAD", sp_ext_head);
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
+
+      print_boolean     ("SKIP_BUILD", sp_skip_build);
+      print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
+      print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
+      print_single      ("MAKEFILE", sp_makefile);
+      print_single      ("DESTDIRNAME", sp_destdirname);
 
    end dump_specification;
 

@@ -220,53 +220,32 @@ package body Specification_Parser is
                   case line_singlet is
                      when namebase =>
                         seen_namebase := True;
-                        specification.set_single_string (PSP.sp_namebase,
-                                                      retrieve_single_value (line));
-                     when version =>
-                        specification.set_single_string (PSP.sp_version,
-                                                         retrieve_single_value (line));
-                     when dist_subdir =>
-                        specification.set_single_string (PSP.sp_distsubdir,
-                                                         retrieve_single_value (line));
-                     when distname =>
-                        specification.set_single_string (PSP.sp_distname,
-                                                         retrieve_single_value (line));
-                     when revision =>
-                        specification.set_natural_integer (PSP.sp_revision,
-                                                           retrieve_single_integer (line));
-                     when epoch =>
-                        specification.set_natural_integer (PSP.sp_epoch,
-                                                           retrieve_single_integer (line));
-                     when keywords =>
-                        build_list (PSP.sp_keywords, line);
-                     when variants =>
-                        build_list (PSP.sp_variants, line);
-                     when contacts =>
-                        build_list (PSP.sp_contacts, line);
-                     when dl_groups =>
-                        build_list (PSP.sp_dl_groups, line);
-                     when df_index =>
-                        build_list (PSP.sp_df_index, line);
-                     when opt_avail =>
-                        build_list (PSP.sp_opts_avail, line);
-                     when exc_opsys =>
-                        build_list (PSP.sp_exc_opsys, line);
-                     when inc_opsys =>
-                        build_list (PSP.sp_inc_opsys, line);
-                     when exc_arch =>
-                        build_list (PSP.sp_exc_arch, line);
-                     when ext_only =>
-                        build_list (PSP.sp_ext_only, line);
-                     when ext_zip =>
-                        build_list (PSP.sp_ext_zip, line);
-                     when ext_7z =>
-                        build_list (PSP.sp_ext_7z, line);
-                     when ext_lha =>
-                        build_list (PSP.sp_ext_lha, line);
-                     when ext_dirty =>
-                        build_list (PSP.sp_ext_dirty, line);
-                     when not_singlet =>
-                        null;
+                        build_string (PSP.sp_namebase, line);
+                     when version      => build_string (PSP.sp_version, line);
+                     when dist_subdir  => build_string (PSP.sp_distsubdir, line);
+                     when distname     => build_string (PSP.sp_distname, line);
+                     when build_wrksrc => build_string (PSP.sp_build_wrksrc, line);
+                     when makefile     => build_string (PSP.sp_makefile, line);
+                     when destdirname  => build_string (PSP.sp_destdirname, line);
+                     when revision     => set_natural (PSP.sp_revision, line);
+                     when epoch        => set_natural (PSP.sp_epoch, line);
+                     when skip_build   => set_boolean (PSP.sp_skip_build, line);
+                     when destdir_env  => set_boolean (PSP.sp_destdir_env, line);
+                     when keywords     => build_list (PSP.sp_keywords, line);
+                     when variants     => build_list (PSP.sp_variants, line);
+                     when contacts     => build_list (PSP.sp_contacts, line);
+                     when dl_groups    => build_list (PSP.sp_dl_groups, line);
+                     when df_index     => build_list (PSP.sp_df_index, line);
+                     when opt_avail    => build_list (PSP.sp_opts_avail, line);
+                     when exc_opsys    => build_list (PSP.sp_exc_opsys, line);
+                     when inc_opsys    => build_list (PSP.sp_inc_opsys, line);
+                     when exc_arch     => build_list (PSP.sp_exc_arch, line);
+                     when ext_only     => build_list (PSP.sp_ext_only, line);
+                     when ext_zip      => build_list (PSP.sp_ext_zip, line);
+                     when ext_7z       => build_list (PSP.sp_ext_7z, line);
+                     when ext_lha      => build_list (PSP.sp_ext_lha, line);
+                     when ext_dirty    => build_list (PSP.sp_ext_dirty, line);
+                     when not_singlet  => null;
                   end case;
                   last_singlet := line_singlet;
                   last_seen := cat_singlet;
@@ -677,6 +656,16 @@ package body Specification_Parser is
          return ext_dirty;
       elsif known ("DISTNAME") then
          return distname;
+      elsif known ("SKIP_BUILD") then
+         return skip_build;
+      elsif known ("BUILD_WRKSRC") then
+         return build_wrksrc;
+      elsif known ("MAKEFILE") then
+         return makefile;
+      elsif known ("DESTDIRNAME") then
+         return destdirname;
+      elsif known ("DESTDIR_VIA_ENV") then
+         return destdir_env;
       else
          return not_singlet;
       end if;
@@ -772,6 +761,40 @@ package body Specification_Parser is
       end if;
       return HT.SUS (line (LB + 1 .. RB - 1));
    end retrieve_key;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_boolean
+   --------------------------------------------------------------------------------------------
+   procedure set_boolean (field : PSP.spec_field; line : String)
+   is
+      value : String := retrieve_single_value (line);
+   begin
+      if value = boolean_yes then
+         specification.set_boolean (field, True);
+      else
+         raise PSP.wrong_value with "boolean variables may only be set to '" & boolean_yes
+           & "' (was given '" & value & "')";
+      end if;
+   end set_boolean;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_natural
+   --------------------------------------------------------------------------------------------
+   procedure set_natural (field : PSP.spec_field; line : String) is
+   begin
+       specification.set_natural_integer (field, retrieve_single_integer (line));
+   end set_natural;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_string
+   --------------------------------------------------------------------------------------------
+   procedure build_string (field : PSP.spec_field; line : String) is
+   begin
+      specification.set_single_string (field, retrieve_single_value (line));
+   end build_string;
 
 
    --------------------------------------------------------------------------------------------

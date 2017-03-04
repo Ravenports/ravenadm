@@ -22,7 +22,8 @@ package Port_Specification is
                        sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
                        sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch,
                        sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
-                       sp_ext_tail, sp_ext_dirty, sp_distname);
+                       sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_destdir_env,
+                       sp_destdirname, sp_build_wrksrc, sp_makefile);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -52,6 +53,13 @@ package Port_Specification is
      (specs : in out Portspecs;
       field : spec_field;
       value : Natural);
+
+   --  Generic function to set boolean values
+   --  Throws wrong_type exception if field isn't a boolean type
+   procedure set_boolean
+     (specs : in out Portspecs;
+      field : spec_field;
+      value : Boolean);
 
    --  Generic function to populate arrays
    --  Throws misordered exception if set out of order.
