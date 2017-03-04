@@ -60,7 +60,15 @@ package body Port_Specification is
    procedure set_single_string
      (specs : in out Portspecs;
       field : spec_field;
-      value : String) is
+      value : String)
+   is
+      procedure verify_entry_is_post_options;
+      procedure verify_entry_is_post_options is
+      begin
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
+            raise misordered with field'Img;
+         end if;
+      end verify_entry_is_post_options;
    begin
       if HT.contains (S => value, fragment => " ") then
          raise contains_spaces;
@@ -86,6 +94,9 @@ package body Port_Specification is
             end if;
             specs.dist_subdir := HT.SUS (value);
             specs.last_set := so_distsubdir;
+         when sp_distname =>
+            verify_entry_is_post_options;
+            specs.distname := HT.SUS (value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -888,6 +899,7 @@ package body Port_Specification is
             when sp_revision   => TIO.Put_Line (HT.int2str (specs.revision));
             when sp_epoch      => TIO.Put_Line (HT.int2str (specs.epoch));
             when sp_distsubdir => TIO.Put_Line (HT.USS (specs.dist_subdir));
+            when sp_distname   => TIO.Put_Line (HT.USS (specs.distname));
             when others => null;
          end case;
       end print_single;
@@ -912,6 +924,7 @@ package body Port_Specification is
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
 
+      print_single      ("DISTNAME", sp_distname);
       print_vector_list ("EXTRACT_ONLY", sp_ext_only);
       print_vector_list ("EXTRACT_WITH_UNZIP", sp_ext_zip);
       print_vector_list ("EXTRACT_WITH_7Z", sp_ext_7z);

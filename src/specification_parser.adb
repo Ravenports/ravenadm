@@ -228,6 +228,9 @@ package body Specification_Parser is
                      when dist_subdir =>
                         specification.set_single_string (PSP.sp_distsubdir,
                                                          retrieve_single_value (line));
+                     when distname =>
+                        specification.set_single_string (PSP.sp_distname,
+                                                         retrieve_single_value (line));
                      when revision =>
                         specification.set_natural_integer (PSP.sp_revision,
                                                            retrieve_single_integer (line));
@@ -672,6 +675,8 @@ package body Specification_Parser is
          return ext_lha;
       elsif known ("EXTRACT_DIRTY") then
          return ext_dirty;
+      elsif known ("DISTNAME") then
+         return distname;
       else
          return not_singlet;
       end if;
