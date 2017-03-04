@@ -10,5 +10,6 @@ package Definitions is
    dlgroup_none      : constant String := "none";
    options_none      : constant String := "none";
    boolean_yes       : constant String := "yes";
+   homepage_none     : constant String := "none";
 
 end Definitions;

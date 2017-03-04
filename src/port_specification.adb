@@ -15,13 +15,14 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    procedure initialize (specs : out Portspecs) is
    begin
-      specs.namebase := HT.blank;
-      specs.version  := HT.blank;
-      specs.revision := 0;
-      specs.epoch    := 0;
+      specs.namebase     := HT.blank;
+      specs.version      := HT.blank;
+      specs.revision     := 0;
+      specs.epoch        := 0;
       specs.keywords.Clear;
       specs.variants.Clear;
       specs.taglines.Clear;
+      specs.homepage     := HT.blank;
       specs.contacts.Clear;
       specs.dl_sites.Clear;
       specs.distfiles.Clear;
@@ -96,6 +97,19 @@ package body Port_Specification is
             end if;
             specs.version := text_value;
             specs.last_set := so_version;
+         when sp_homepage =>
+            if specs.last_set /= so_taglines then
+               raise misordered with field'Img;
+            end if;
+            if value /= homepage_none and then
+              not HT.leads (value, "http://") and then
+              not HT.leads (value, "https://")
+            then
+               raise wrong_value with "Must be '" & homepage_none
+                 & "' or valid URL starting with http:// or https://";
+            end if;
+            specs.homepage := text_value;
+            specs.last_set := so_homepage;
          when sp_distsubdir =>
             if specs.last_set /= so_distfiles and then
               specs.last_set /= so_contacts
@@ -202,7 +216,7 @@ package body Port_Specification is
             specs.last_set := so_variants;
          when sp_contacts =>
             if specs.last_set /= so_contacts and then
-              specs.last_set /= so_taglines
+              specs.last_set /= so_homepage
             then
                raise misordered with field'Img;
             end if;
@@ -1013,6 +1027,7 @@ package body Port_Specification is
             when sp_build_wrksrc => TIO.Put_Line (HT.USS (specs.build_wrksrc));
             when sp_makefile     => TIO.Put_Line (HT.USS (specs.makefile));
             when sp_destdirname  => TIO.Put_Line (HT.USS (specs.destdirname));
+            when sp_homepage     => TIO.Put_Line (HT.USS (specs.homepage));
             when others => null;
          end case;
       end print_single;
@@ -1044,6 +1059,7 @@ package body Port_Specification is
       print_vector_list ("VARIANTS", sp_variants);
       array_label := 1;
       specs.taglines.Iterate (Process => print_item'Access);
+      print_single      ("HOMEPAGE", sp_homepage);
       print_vector_list ("CONTACTS", sp_contacts);
       print_group_list  ("SITES", sp_dl_sites);
       print_vector_list ("DISTFILE", sp_distfiles);

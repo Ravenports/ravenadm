@@ -18,8 +18,8 @@ package Port_Specification is
    missing_group   : exception;
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
-                       sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
-                       sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
+                       sp_variants, sp_taglines, sp_homepage, sp_contacts, sp_dl_groups,
+                       sp_dl_sites, sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
                        sp_opts_avail, sp_opts_standard, sp_vopts, sp_exc_opsys, sp_inc_opsys,
                        sp_exc_arch, sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
                        sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_single_job,
@@ -108,8 +108,8 @@ private
    package CON renames Ada.Containers;
 
    type spec_order is (so_initialized, so_namebase, so_version, so_revision, so_epoch,
-                       so_keywords, so_variants, so_taglines, so_contacts, so_dl_groups,
-                       so_dl_sites, so_distfiles, so_distsubdir, so_df_index,
+                       so_keywords, so_variants, so_taglines, so_homepage, so_contacts,
+                       so_dl_groups, so_dl_sites, so_distfiles, so_distsubdir, so_df_index,
                        so_subpackages, so_opts_avail, so_opts_std, so_vopts);
 
    package string_crate is new CON.Vectors
@@ -145,6 +145,7 @@ private
          keywords      : string_crate.Vector;
          variants      : string_crate.Vector;
          taglines      : def_crate.Map;
+         homepage      : HT.Text;
          contacts      : string_crate.Vector;
          dl_sites      : list_crate.Map;
          distfiles     : string_crate.Vector;

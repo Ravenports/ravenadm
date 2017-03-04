@@ -39,7 +39,7 @@ private
                          exc_opsys, inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha,
                          ext_dirty, distname, skip_build, single_job, destdir_env, build_wrksrc,
                          makefile, destdirname, make_args, make_env, build_target, cflags,
-                         cxxflags, cppflags, ldflags);
+                         cxxflags, cppflags, ldflags, homepage);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;

@@ -227,6 +227,7 @@ package body Specification_Parser is
                      when build_wrksrc => build_string (PSP.sp_build_wrksrc, line);
                      when makefile     => build_string (PSP.sp_makefile, line);
                      when destdirname  => build_string (PSP.sp_destdirname, line);
+                     when homepage     => build_string (PSP.sp_homepage, line);
                      when revision     => set_natural (PSP.sp_revision, line);
                      when epoch        => set_natural (PSP.sp_epoch, line);
                      when skip_build   => set_boolean (PSP.sp_skip_build, line);
@@ -637,6 +638,8 @@ package body Specification_Parser is
          return keywords;
       elsif known ("VARIANTS") then
          return variants;
+      elsif known ("HOMEPAGE") then
+         return homepage;
       elsif known ("CONTACT") then
          return contacts;
       elsif known ("DOWNLOAD_GROUPS") then
