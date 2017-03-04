@@ -9,5 +9,6 @@ package Definitions is
    dlgroup_main      : constant String := "main";
    dlgroup_none      : constant String := "none";
    options_none      : constant String := "none";
+   boolean_yes       : constant String := "yes";
 
 end Definitions;

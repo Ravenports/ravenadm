@@ -21,7 +21,8 @@ package Port_Specification is
                        sp_variants, sp_taglines, sp_contacts, sp_dl_groups, sp_dl_sites,
                        sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
                        sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch,
-                       sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha);
+                       sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
+                       sp_ext_tail, sp_ext_dirty);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -150,9 +151,9 @@ private
          extract_zip   : string_crate.Vector;
          extract_lha   : string_crate.Vector;
          extract_7z    : string_crate.Vector;
+         extract_dirty : string_crate.Vector;
          extract_head  : list_crate.Map;
          extract_tail  : list_crate.Map;
-         extract_dirty : list_crate.Map;
          distname      : HT.Text;
          --  configure placeholder
          skip_build    : Boolean;

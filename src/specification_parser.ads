@@ -32,10 +32,11 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
-   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts);
+   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts,
+                         ext_head, ext_tail);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                          contacts, dl_groups, dist_subdir, df_index, opt_avail, exc_opsys,
-                         inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha);
+                         inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha, ext_dirty);
    type type_category is (cat_none, cat_array, cat_singlet);
 
    last_parse_error   : HT.Text;

@@ -199,6 +199,16 @@ package body Specification_Parser is
                            build_group_list (field => PSP.sp_vopts,
                                              key   => tkey,
                                              value => tvalue);
+                        when ext_head =>
+                           specification.append_array (field        => PSP.sp_ext_head,
+                                                       key          => tkey,
+                                                       value        => tvalue,
+                                                       allow_spaces => True);
+                        when ext_tail =>
+                           specification.append_array (field        => PSP.sp_ext_tail,
+                                                       key          => tkey,
+                                                       value        => tvalue,
+                                                       allow_spaces => True);
                         when not_array => null;
                      end case;
                   end;
@@ -250,6 +260,8 @@ package body Specification_Parser is
                         build_list (PSP.sp_ext_7z, line);
                      when ext_lha =>
                         build_list (PSP.sp_ext_lha, line);
+                     when ext_dirty =>
+                        build_list (PSP.sp_ext_dirty, line);
                      when not_singlet =>
                         null;
                   end case;
@@ -595,6 +607,10 @@ package body Specification_Parser is
          return spkgs;
       elsif known ("VOPTS") then
          return vopts;
+      elsif known ("EXTRACT_HEAD") then
+         return ext_head;
+      elsif known ("EXTRACT_TAIL") then
+         return ext_tail;
       else
          return not_array;
       end if;
@@ -654,6 +670,8 @@ package body Specification_Parser is
          return ext_7z;
       elsif known ("EXTRACT_WITH_LHA") then
          return ext_lha;
+      elsif known ("EXTRACT_DIRTY") then
+         return ext_dirty;
       else
          return not_singlet;
       end if;

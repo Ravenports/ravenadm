@@ -37,9 +37,9 @@ package body Port_Specification is
       specs.extract_zip.Clear;
       specs.extract_lha.Clear;
       specs.extract_7z.Clear;
+      specs.extract_dirty.Clear;
       specs.extract_head.Clear;
       specs.extract_tail.Clear;
-      specs.extract_dirty.Clear;
       specs.distname     := HT.blank;
 
       specs.skip_build   := False;
@@ -219,6 +219,12 @@ package body Port_Specification is
             end if;
             specs.distfiles.Append (text_value);
             specs.last_set := so_distfiles;
+            declare
+               group_index : String := HT.int2str (Integer (specs.distfiles.Length));
+            begin
+               specs.establish_group (sp_ext_head, group_index);
+               specs.establish_group (sp_ext_tail, group_index);
+            end;
          when sp_df_index =>
             if specs.last_set /= so_df_index and then
               specs.last_set /= so_distsubdir and then
@@ -310,6 +316,13 @@ package body Port_Specification is
             verify_df_index;
             verify_special_exraction;
             specs.extract_zip.Append (text_value);
+         when sp_ext_dirty =>
+            verify_entry_is_post_options;
+            verify_df_index;
+            if specs.extract_dirty.Contains (text_value) then
+               raise dupe_list_value with value;
+            end if;
+            specs.extract_dirty.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -362,19 +375,20 @@ package body Port_Specification is
             if specs.dl_sites.Contains (text_group) then
                raise dupe_list_value with group;
             end if;
-            specs.dl_sites.Insert (Key      => text_group,
-                                   New_Item => initial_rec);
+            specs.dl_sites.Insert (text_group, initial_rec);
             specs.last_set := so_dl_groups;
          when sp_subpackages =>
             --  variant, order, length and uniqueness already checked
             --  don't updatee last_set either
-            specs.subpackages.Insert (Key      => text_group,
-                                      New_Item => initial_rec);
+            specs.subpackages.Insert (text_group, initial_rec);
          when sp_vopts =>
             --  variant, order, length and uniqueness already checked
             --  don't updatee last_set either
-            specs.variantopts.Insert (Key      => text_group,
-                                      New_Item => initial_rec);
+            specs.variantopts.Insert (text_group, initial_rec);
+         when sp_ext_head =>
+            specs.extract_head.Insert (text_group, initial_rec);
+         when sp_ext_tail =>
+            specs.extract_tail.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -392,6 +406,7 @@ package body Port_Specification is
       allow_spaces : Boolean)
    is
       procedure grow (Key : HT.Text; Element : in out group_list);
+      procedure verify_entry_is_post_options;
 
       text_key   : HT.Text := HT.SUS (key);
       text_value : HT.Text := HT.SUS (value);
@@ -400,6 +415,13 @@ package body Port_Specification is
       begin
          Element.list.Append (text_value);
       end grow;
+
+      procedure verify_entry_is_post_options is
+      begin
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_avail) then
+            raise misordered with field'Img;
+         end if;
+      end verify_entry_is_post_options;
    begin
       if not allow_spaces and then
         HT.contains (S => value, fragment => " ")
@@ -488,6 +510,26 @@ package body Port_Specification is
             specs.variantopts.Update_Element (Position => specs.variantopts.Find (text_key),
                                               Process  => grow'Access);
             specs.last_set := so_vopts;
+         when sp_ext_head =>
+            verify_entry_is_post_options;
+            if not specs.extract_head.Contains (text_key) then
+               raise missing_group with key;
+            end if;
+            if not specs.extract_head.Element (text_key).list.Is_Empty then
+               raise wrong_value with "Only 1 entry is allowed";
+            end if;
+            specs.extract_head.Update_Element (Position => specs.extract_head.Find (text_key),
+                                               Process  => grow'Access);
+         when sp_ext_tail =>
+            verify_entry_is_post_options;
+            if not specs.extract_tail.Contains (text_key) then
+               raise missing_group with key;
+            end if;
+            if not specs.extract_tail.Element (text_key).list.Is_Empty then
+               raise wrong_value with "Only 1 entry is allowed";
+            end if;
+            specs.extract_tail.Update_Element (Position => specs.extract_tail.Find (text_key),
+                                               Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -771,9 +813,18 @@ package body Port_Specification is
                          LAT.HT & LAT.HT & HT.USS (def_crate.Element (position)));
       end print_item;
 
-      procedure dump (position : list_crate.Cursor) is
+      procedure dump (position : list_crate.Cursor)
+      is
+         NDX : String := HT.USS (list_crate.Element (position).group);
       begin
-         TIO.Put ("   " & HT.USS (list_crate.Element (position).group) & "  " & LAT.HT & LAT.HT);
+         TIO.Put ("   " & NDX);
+         if NDX'Length < 4 then
+            TIO.Put (LAT.HT & LAT.HT & LAT.HT);
+         elsif NDX'Length < 12 then
+            TIO.Put (LAT.HT & LAT.HT);
+         else
+            TIO.Put (LAT.HT);
+         end if;
          list_crate.Element (position).list.Iterate (Process => print_item'Access);
          TIO.Put (LAT.LF);
       end dump;
@@ -802,6 +853,7 @@ package body Port_Specification is
             when sp_ext_zip    => specs.extract_zip.Iterate (Process => print_item'Access);
             when sp_ext_7z     => specs.extract_7z.Iterate (Process => print_item'Access);
             when sp_ext_lha    => specs.extract_lha.Iterate (Process => print_item'Access);
+            when sp_ext_dirty  => specs.extract_dirty.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -814,6 +866,8 @@ package body Port_Specification is
             when sp_vopts       => specs.variantopts.Iterate (Process => dump'Access);
             when sp_subpackages => specs.subpackages.Iterate (Process => dump'Access);
             when sp_dl_sites    => specs.dl_sites.Iterate (Process => dump'Access);
+            when sp_ext_head    => specs.extract_head.Iterate (Process => dump'Access);
+            when sp_ext_tail    => specs.extract_tail.Iterate (Process => dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -862,6 +916,9 @@ package body Port_Specification is
       print_vector_list ("EXTRACT_WITH_UNZIP", sp_ext_zip);
       print_vector_list ("EXTRACT_WITH_7Z", sp_ext_7z);
       print_vector_list ("EXTRACT_WITH_LHA", sp_ext_lha);
+      print_vector_list ("EXTRACT_DIRTY", sp_ext_dirty);
+      print_group_list  ("EXTRACT_HEAD", sp_ext_head);
+      print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
 
    end dump_specification;
 
