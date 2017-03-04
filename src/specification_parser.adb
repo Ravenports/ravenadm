@@ -230,6 +230,7 @@ package body Specification_Parser is
                      when revision     => set_natural (PSP.sp_revision, line);
                      when epoch        => set_natural (PSP.sp_epoch, line);
                      when skip_build   => set_boolean (PSP.sp_skip_build, line);
+                     when single_job   => set_boolean (PSP.sp_single_job, line);
                      when destdir_env  => set_boolean (PSP.sp_destdir_env, line);
                      when keywords     => build_list (PSP.sp_keywords, line);
                      when variants     => build_list (PSP.sp_variants, line);
@@ -247,6 +248,7 @@ package body Specification_Parser is
                      when ext_dirty    => build_list (PSP.sp_ext_dirty, line);
                      when make_args    => build_list (PSP.sp_make_args, line);
                      when make_env     => build_list (PSP.sp_make_env, line);
+                     when build_target => build_list (PSP.sp_build_target, line);
                      when not_singlet  => null;
                   end case;
                   last_singlet := line_singlet;
@@ -672,6 +674,10 @@ package body Specification_Parser is
          return make_args;
       elsif known ("MAKE_ENV") then
          return make_env;
+      elsif known ("BUILD_TARGET") then
+         return build_target;
+      elsif known ("SINGLE_JOB") then
+         return single_job;
       else
          return not_singlet;
       end if;

@@ -44,11 +44,13 @@ package body Port_Specification is
 
       specs.skip_build   := False;
       specs.destdir_env  := False;
+      specs.single_job   := False;
       specs.build_wrksrc := HT.blank;
       specs.makefile     := HT.blank;
       specs.destdirname  := HT.blank;
       specs.make_env.Clear;
       specs.make_args.Clear;
+      specs.build_target.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -352,6 +354,9 @@ package body Port_Specification is
          when sp_make_env =>
             verify_entry_is_post_options;
             specs.make_env.Append (text_value);
+         when sp_build_target =>
+            verify_entry_is_post_options;
+            specs.build_target.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -607,6 +612,8 @@ package body Port_Specification is
             specs.skip_build := value;
          when sp_destdir_env =>
             specs.destdir_env := value;
+         when sp_single_job =>
+            specs.single_job := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -910,22 +917,23 @@ package body Port_Specification is
             TIO.Put (LAT.HT);
          end if;
          case thelist is
-            when sp_exc_opsys  => specs.exc_opsys.Iterate (Process => print_item'Access);
-            when sp_inc_opsys  => specs.inc_opsys.Iterate (Process => print_item'Access);
-            when sp_exc_arch   => specs.exc_arch.Iterate (Process => print_item'Access);
-            when sp_opts_avail => specs.ops_avail.Iterate (Process => print_item'Access);
-            when sp_df_index   => specs.df_index.Iterate (Process => print_item'Access);
-            when sp_distfiles  => specs.distfiles.Iterate (Process => print_item'Access);
-            when sp_contacts   => specs.contacts.Iterate (Process => print_item'Access);
-            when sp_variants   => specs.variants.Iterate (Process => print_item'Access);
-            when sp_keywords   => specs.keywords.Iterate (Process => print_item'Access);
-            when sp_ext_only   => specs.extract_only.Iterate (Process => print_item'Access);
-            when sp_ext_zip    => specs.extract_zip.Iterate (Process => print_item'Access);
-            when sp_ext_7z     => specs.extract_7z.Iterate (Process => print_item'Access);
-            when sp_ext_lha    => specs.extract_lha.Iterate (Process => print_item'Access);
-            when sp_ext_dirty  => specs.extract_dirty.Iterate (Process => print_item'Access);
-            when sp_make_args  => specs.make_args.Iterate (Process => print_item'Access);
-            when sp_make_env   => specs.make_env.Iterate (Process => print_item'Access);
+            when sp_exc_opsys    => specs.exc_opsys.Iterate (Process => print_item'Access);
+            when sp_inc_opsys    => specs.inc_opsys.Iterate (Process => print_item'Access);
+            when sp_exc_arch     => specs.exc_arch.Iterate (Process => print_item'Access);
+            when sp_opts_avail   => specs.ops_avail.Iterate (Process => print_item'Access);
+            when sp_df_index     => specs.df_index.Iterate (Process => print_item'Access);
+            when sp_distfiles    => specs.distfiles.Iterate (Process => print_item'Access);
+            when sp_contacts     => specs.contacts.Iterate (Process => print_item'Access);
+            when sp_variants     => specs.variants.Iterate (Process => print_item'Access);
+            when sp_keywords     => specs.keywords.Iterate (Process => print_item'Access);
+            when sp_ext_only     => specs.extract_only.Iterate (Process => print_item'Access);
+            when sp_ext_zip      => specs.extract_zip.Iterate (Process => print_item'Access);
+            when sp_ext_7z       => specs.extract_7z.Iterate (Process => print_item'Access);
+            when sp_ext_lha      => specs.extract_lha.Iterate (Process => print_item'Access);
+            when sp_ext_dirty    => specs.extract_dirty.Iterate (Process => print_item'Access);
+            when sp_make_args    => specs.make_args.Iterate (Process => print_item'Access);
+            when sp_make_env     => specs.make_env.Iterate (Process => print_item'Access);
+            when sp_build_target => specs.build_target.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -981,6 +989,7 @@ package body Port_Specification is
          case thelist is
             when sp_skip_build     => TIO.Put_Line (specs.skip_build'Img);
             when sp_destdir_env    => TIO.Put_Line (specs.destdir_env'Img);
+            when sp_single_job     => TIO.Put_Line (specs.single_job'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -1016,12 +1025,14 @@ package body Port_Specification is
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
+      print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
       print_single      ("MAKEFILE", sp_makefile);
       print_single      ("DESTDIRNAME", sp_destdirname);
       print_vector_list ("MAKE_ARGS", sp_make_args);
       print_vector_list ("MAKE_ENV", sp_make_env);
+      print_vector_list ("BUILD_TARGET", sp_build_target);
 
    end dump_specification;
 

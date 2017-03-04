@@ -22,9 +22,9 @@ package Port_Specification is
                        sp_distfiles, sp_distsubdir, sp_df_index, sp_subpackages,
                        sp_opts_avail, sp_vopts, sp_exc_opsys, sp_inc_opsys, sp_exc_arch,
                        sp_ext_only, sp_ext_zip, sp_ext_7z, sp_ext_lha, sp_ext_head,
-                       sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_destdir_env,
-                       sp_destdirname, sp_build_wrksrc, sp_makefile, sp_make_args,
-                       sp_make_env);
+                       sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_single_job,
+                       sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
+                       sp_make_args, sp_make_env, sp_build_target);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -167,11 +167,13 @@ private
          --  configure placeholder
          skip_build    : Boolean;
          destdir_env   : Boolean;
+         single_job    : Boolean;
          build_wrksrc  : HT.Text;
          makefile      : HT.Text;
          destdirname   : HT.Text;
          make_env      : string_crate.Vector;
          make_args     : string_crate.Vector;
+         build_target  : string_crate.Vector;
       end record;
 
    --  Compares given keyword against known values
