@@ -38,6 +38,7 @@ package body Port_Specification.Makefile is
       procedure dump_ext_7z    (position : string_crate.Cursor);
       procedure dump_ext_lha   (position : string_crate.Cursor);
       procedure dump_extract_head_tail (position : list_crate.Cursor);
+      procedure dump_dirty_extract (position : string_crate.Cursor);
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -105,6 +106,8 @@ package body Port_Specification.Makefile is
                crate.Iterate (Process => dump_ext_7z'Access);
             when 5 =>
                crate.Iterate (Process => dump_ext_lha'Access);
+            when 7 =>
+               crate.Iterate (Process => dump_dirty_extract'Access);
             when others =>
                null;
          end case;
@@ -184,6 +187,13 @@ package body Port_Specification.Makefile is
          send ("EXTRACT_TAIL_" & N & "=# empty");
       end dump_ext_lha;
 
+      procedure dump_dirty_extract (position : string_crate.Cursor)
+      is
+         N : String := HT.USS (string_crate.Element (position));
+      begin
+         send ("DIRTY_EXTRACT_" & N & "=yes");
+      end dump_dirty_extract;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -213,19 +223,25 @@ package body Port_Specification.Makefile is
       send ("DISTNAME",         specs.distname);
       send ("DF_INDEX",         specs.df_index);
       send ("EXTRACT_ONLY",     specs.extract_only);
+      send ("DIRTY_EXTRACT",    specs.extract_dirty, 7);
       send ("ZIP-EXTRACT",      specs.extract_zip, 3);
       send ("7Z-EXTRACT",       specs.extract_7z, 4);
       send ("LHA-EXTRACT",      specs.extract_lha, 5);
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       send ("NO_BUILD",         specs.skip_build, True);
-      send ("SINGLE_JOB",       specs.single_job, True);
-      send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
+      send ("BUILD_TARGET",     specs.build_target);
       send ("MAKEFILE",         specs.makefile);
       send ("MAKE_ENV",         specs.make_env);
       send ("MAKE_ARGS",        specs.make_args);
       send ("CFLAGS",           specs.cflags);
+      send ("CXXFLAGS",         specs.cxxflags);
+      send ("CPPFLAGS",         specs.cppflags);
+      send ("LDFLAGS",          specs.ldflags);
+      send ("SINGLE_JOB",       specs.single_job, True);
+      send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
+      send ("DESTDIRNAME",      specs.destdirname);
 
       --  TODO: This is not correct, placeholder.  rethink.
       send (".include " & LAT.Quotation & "/usr/raven/share/mk/raven.mk" & LAT.Quotation);
