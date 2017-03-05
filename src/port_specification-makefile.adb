@@ -1,0 +1,184 @@
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
+
+with Ada.Text_IO;
+with Ada.Characters.Latin_1;
+
+package body Port_Specification.Makefile is
+
+   package TIO renames Ada.Text_IO;
+   package LAT renames Ada.Characters.Latin_1;
+
+   --------------------------------------------------------------------------------------------
+   --  generator
+   --------------------------------------------------------------------------------------------
+   procedure generator
+     (specs         : Portspecs;
+      variant       : String;
+      opsys         : supported_opsys;
+      arch_standard : supported_arch;
+      osrelease     : String;
+      osmajor       : String;
+      osversion     : String;
+      option_string : String;
+      output_file   : String
+     )
+   is
+      procedure send (data : String; use_put : Boolean := False);
+      procedure send (varname, value : String);
+      procedure send (varname : String; value : HT.Text);
+      procedure send (varname : String; crate : string_crate.Vector);
+      procedure send (varname : String; crate : list_crate.Map);
+      procedure send (varname : String; value : Boolean; dummy : Boolean);
+      procedure send (varname : String; value, default : Integer);
+      procedure print_item (position : string_crate.Cursor);
+      procedure dump_list (position : list_crate.Cursor);
+      procedure dump_distfiles (position : string_crate.Cursor);
+
+      write_to_file   : constant Boolean := (output_file /= "");
+      makefile_handle : TIO.File_Type;
+      varname_prefix  : HT.Text;
+
+      procedure send (data : String;  use_put : Boolean := False) is
+      begin
+         if write_to_file then
+            if use_put then
+               TIO.Put (makefile_handle, data);
+            else
+               TIO.Put_Line (makefile_handle, data);
+            end if;
+         else
+            if use_put then
+               TIO.Put (data);
+            else
+               TIO.Put_Line (data);
+            end if;
+         end if;
+      end send;
+
+      procedure send (varname, value : String) is
+      begin
+         send (varname & LAT.Equals_Sign & value);
+      end send;
+
+      procedure send (varname : String; value : HT.Text) is
+      begin
+         if not HT.IsBlank (value) then
+            send (varname & LAT.Equals_Sign & HT.USS (value));
+         end if;
+      end send;
+
+      procedure send (varname : String; value : Boolean; dummy : Boolean) is
+      begin
+         if value then
+            send (varname & LAT.Equals_Sign & "yes");
+         end if;
+      end send;
+
+      procedure send (varname : String; value, default : Integer) is
+      begin
+         if value /= default then
+            send (varname & LAT.Equals_Sign & HT.int2str (value));
+         end if;
+      end send;
+
+      procedure send (varname : String; crate : string_crate.Vector) is
+      begin
+         if crate.Is_Empty then
+            return;
+         end if;
+         if varname = "DISTFILE" then
+            varname_prefix := HT.SUS (varname);
+            crate.Iterate (Process => dump_distfiles'Access);
+         else
+            send (varname & "=", True);
+            crate.Iterate (Process => print_item'Access);
+            send ("");
+         end if;
+      end send;
+
+      procedure send (varname : String; crate : list_crate.Map) is
+      begin
+         varname_prefix := HT.SUS (varname);
+         crate.Iterate (Process => dump_list'Access);
+      end send;
+
+      procedure dump_list (position : list_crate.Cursor)
+      is
+         NDX : String := HT.USS (varname_prefix)  & "_" &
+                         HT.USS (list_crate.Element (position).group) & LAT.Equals_Sign;
+      begin
+         send (NDX, True);
+         list_crate.Element (position).list.Iterate (Process => print_item'Access);
+         send ("");
+      end dump_list;
+
+      procedure print_item (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+      begin
+         if index > 1 then
+            send (" ", True);
+         end if;
+         send (HT.USS (string_crate.Element (position)), True);
+      end print_item;
+
+      procedure dump_distfiles (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+         NDX   : String  := HT.USS (varname_prefix)  & "_" & HT.int2str (index) & LAT.Equals_Sign;
+      begin
+         send (NDX & HT.USS (string_crate.Element (position)));
+      end dump_distfiles;
+
+   begin
+      if not specs.variant_exists (variant) then
+         TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
+         return;
+      end if;
+
+      if write_to_file then
+        TIO.Create (File => makefile_handle,
+                    Mode => TIO.Out_File,
+                    Name => output_file);
+      end if;
+
+      --  TODO: Check these to see if they are actually used.
+      --  The pkg manifests did use many of these, but they will be generated by ravenadm
+
+      send ("# Makefile has been autogenerated by ravenadm tool" & LAT.LF);
+
+      send ("NAMEBASE",         HT.USS (specs.namebase));
+      send ("VERSION",          HT.USS (specs.version));
+      send ("REVISION",         specs.revision, 0);
+      send ("EPOCH",            specs.epoch, 0);
+      send ("KEYWORDS",         specs.keywords);
+      send ("VARIANT",          variant);
+      send ("DL_SITES",         specs.dl_sites);
+      send ("DISTFILE",         specs.distfiles);
+      send ("DIST_SUBDIR",      specs.dist_subdir);
+      send ("DISTNAME",         specs.distname);
+      send ("NO_BUILD",         specs.skip_build, True);
+      send ("SINGLE_JOB",       specs.single_job, True);
+      send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
+      send ("BUILD_WRKSRC",     specs.build_wrksrc);
+      send ("MAKEFILE",         specs.makefile);
+      send ("MAKE_ENV",         specs.make_env);
+      send ("MAKE_ARGS",        specs.make_args);
+      send ("CFLAGS",           specs.cflags);
+
+      --  TODO: This probably is not correct ultimately.  retrhink.
+      send (".include " & LAT.Quotation & "${.CURDIR:H}/share/mk/raven.mk");
+
+      if write_to_file then
+         TIO.Close (makefile_handle);
+      end if;
+   exception
+      when others =>
+         if TIO.Is_Open (makefile_handle) then
+            TIO.Close (makefile_handle);
+         end if;
+   end generator;
+
+
+end Port_Specification.Makefile;

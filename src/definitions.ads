@@ -19,4 +19,7 @@ package Definitions is
    boolean_yes       : constant String := "yes";
    homepage_none     : constant String := "none";
 
+   type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);
+   type supported_arch  is (x86_64, i386, aarch64);
+
 end Definitions;

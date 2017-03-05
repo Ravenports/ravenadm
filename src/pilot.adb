@@ -6,11 +6,15 @@ with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Information;
 with Specification_Parser;
+with Port_Specification.Makefile;
+
+with Definitions; use Definitions;
 
 package body Pilot is
 
    package NFO renames Information;
    package PAR renames Specification_Parser;
+   package PSM renames Port_Specification.Makefile;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
@@ -85,5 +89,67 @@ package body Pilot is
          TIO.Put_Line (PAR.get_parse_error);
       end if;
    end dump_ravensource;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_makefile
+   --------------------------------------------------------------------------------------------
+   procedure generate_makefile (optional_directory : String;
+                                optional_variant : String)
+   is
+      procedure DNE (filename : String);
+      function get_variant return String;
+
+      directory_specified : constant Boolean := (optional_directory /= "");
+      specfile   : constant String := "specification";
+      errprefix  : constant String := "Error : ";
+      successful : Boolean;
+
+      procedure DNE (filename : String) is
+      begin
+         TIO.Put_Line (errprefix & "File " & LAT.Quotation & filename & LAT.Quotation &
+                         " does not exist.");
+      end DNE;
+
+      function get_variant return String is
+      begin
+         if optional_variant = "" then
+            return variant_standard;
+         else
+            return optional_variant;
+         end if;
+      end get_variant;
+   begin
+      if directory_specified then
+         declare
+            filename : String := optional_directory & "/" & specfile;
+         begin
+            if DIR.Exists (filename) then
+               PAR.parse_specification_file (filename, successful);
+            else
+               DNE (filename);
+               return;
+            end if;
+         end;
+      else
+         if DIR.Exists (specfile) then
+            PAR.parse_specification_file (specfile, successful);
+         else
+            DNE (specfile);
+            return;
+         end if;
+      end if;
+      if successful then
+         PSM.generator (specs         => PAR.specification,
+                        variant       => get_variant,
+                        opsys         => dragonfly,
+                        arch_standard => x86_64,
+                        osrelease     => "4.7",
+                        osmajor       => "4.7",
+                        osversion     => "400709",
+                        option_string => "",
+                        output_file   => "");
+      end if;
+   end generate_makefile;
 
 end Pilot;

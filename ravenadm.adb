@@ -103,7 +103,7 @@ begin
                   when buildsheet =>
                      null;
                   when makefile =>
-                     null;
+                     PLT.generate_makefile (get_arg (3), get_arg (4));
                end case;
             end;
          else
