@@ -40,7 +40,8 @@ private
                          ext_dirty, distname, skip_build, single_job, destdir_env, build_wrksrc,
                          makefile, destdirname, make_args, make_env, build_target, cflags,
                          cxxflags, cppflags, ldflags, homepage);
-   type type_category is (cat_none, cat_array, cat_singlet);
+   type spec_target  is (not_target, target_title, target_body, bad_target);
+   type type_category is (cat_none, cat_array, cat_singlet, cat_target);
 
    last_parse_error   : HT.Text;
    spec_definitions   : def_crate.Map;
@@ -70,6 +71,13 @@ private
    --  If the line represents a recognized singlet type, indicate which one,
    --  otherwise return "not_singlet"
    function determine_singlet (line : String) return spec_singlet;
+
+   --  If the line represents the makefile target definition or it's following body,
+   --  return which one, otherwise return "not_target".
+   --  Exception: if formatted as a target def. which is not recognized, return "bad_target"
+   function determine_target
+     (line      : String;
+      last_seen : type_category) return spec_target;
 
    --  Returns everything following the tab(s) until end of line.  If last tab doesn't align
    --  text with column 24, the mistabbed exception is thrown.

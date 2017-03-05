@@ -25,7 +25,7 @@ package Port_Specification is
                        sp_ext_tail, sp_ext_dirty, sp_distname, sp_skip_build, sp_single_job,
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
-                       sp_cppflags, sp_ldflags);
+                       sp_cppflags, sp_ldflags, sp_makefile_targets);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -87,6 +87,9 @@ package Port_Specification is
 
    --  Return True if provided variant is known
    function variant_exists (specs : Portspecs; variant : String) return Boolean;
+
+   --  Return True if provided option name is known
+   function option_exists (specs : Portspecs; option : String) return Boolean;
 
    --  Generic function to determine if group exists, returns True if so
    function group_exists
@@ -184,6 +187,8 @@ private
          cxxflags      : string_crate.Vector;
          cppflags      : string_crate.Vector;
          ldflags       : string_crate.Vector;
+
+         make_targets  : list_crate.Map;
       end record;
 
    --  Compares given keyword against known values

@@ -58,6 +58,8 @@ package body Port_Specification is
       specs.cppflags.Clear;
       specs.ldflags.Clear;
 
+      specs.make_targets.Clear;
+
       specs.last_set := so_initialized;
    end initialize;
 
@@ -474,6 +476,8 @@ package body Port_Specification is
             specs.extract_head.Insert (text_group, initial_rec);
          when sp_ext_tail =>
             specs.extract_tail.Insert (text_group, initial_rec);
+         when sp_makefile_targets =>
+            specs.make_targets.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -615,6 +619,13 @@ package body Port_Specification is
             end if;
             specs.extract_tail.Update_Element (Position => specs.extract_tail.Find (text_key),
                                                Process  => grow'Access);
+         when sp_makefile_targets =>
+            verify_entry_is_post_options;
+            if not specs.make_targets.Contains (text_key) then
+               raise missing_group with key;
+            end if;
+            specs.make_targets.Update_Element (Position => specs.make_targets.Find (text_key),
+                                               Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -678,6 +689,20 @@ package body Port_Specification is
    begin
       return specs.variants.Contains (Item => HT.SUS (variant));
    end variant_exists;
+
+
+   --------------------------------------------------------------------------------------------
+   --  option_exists
+   --------------------------------------------------------------------------------------------
+   function option_exists (specs : Portspecs; option : String) return Boolean
+   is
+      option_text : HT.Text := HT.SUS (option);
+   begin
+      if option = "" then
+         return False;
+      end if;
+      return specs.ops_avail.Contains (option_text);
+   end option_exists;
 
 
    --------------------------------------------------------------------------------------------
@@ -951,7 +976,9 @@ package body Port_Specification is
    is
       procedure print_item (position : string_crate.Cursor);
       procedure print_item (position : def_crate.Cursor);
+      procedure print_line_item (position : string_crate.Cursor);
       procedure dump (position : list_crate.Cursor);
+      procedure dump_target (position : list_crate.Cursor);
       procedure print_vector_list (thelabel : String; thelist : spec_field);
       procedure print_group_list  (thelabel : String; thelist : spec_field);
       procedure print_single (thelabel : String; thelist : spec_field);
@@ -979,6 +1006,13 @@ package body Port_Specification is
                          LAT.HT & LAT.HT & HT.USS (def_crate.Element (position)));
       end print_item;
 
+      procedure print_line_item (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+      begin
+         TIO.Put_Line (HT.USS (string_crate.Element (position)));
+      end print_line_item;
+
       procedure dump (position : list_crate.Cursor)
       is
          NDX : String := HT.USS (list_crate.Element (position).group);
@@ -994,6 +1028,14 @@ package body Port_Specification is
          list_crate.Element (position).list.Iterate (Process => print_item'Access);
          TIO.Put (LAT.LF);
       end dump;
+
+      procedure dump_target (position : list_crate.Cursor)
+      is
+         NDX : String := HT.USS (list_crate.Element (position).group);
+      begin
+         TIO.Put_Line ("   " & NDX & LAT.Colon);
+         list_crate.Element (position).list.Iterate (Process => print_line_item'Access);
+      end dump_target;
 
       procedure print_vector_list (thelabel : String; thelist : spec_field)
       is
@@ -1037,11 +1079,12 @@ package body Port_Specification is
       begin
          TIO.Put_Line (thelabel & LAT.Colon);
          case thelist is
-            when sp_vopts       => specs.variantopts.Iterate (Process => dump'Access);
-            when sp_subpackages => specs.subpackages.Iterate (Process => dump'Access);
-            when sp_dl_sites    => specs.dl_sites.Iterate (Process => dump'Access);
-            when sp_ext_head    => specs.extract_head.Iterate (Process => dump'Access);
-            when sp_ext_tail    => specs.extract_tail.Iterate (Process => dump'Access);
+            when sp_vopts            => specs.variantopts.Iterate (Process => dump'Access);
+            when sp_subpackages      => specs.subpackages.Iterate (Process => dump'Access);
+            when sp_dl_sites         => specs.dl_sites.Iterate (Process => dump'Access);
+            when sp_ext_head         => specs.extract_head.Iterate (Process => dump'Access);
+            when sp_ext_tail         => specs.extract_tail.Iterate (Process => dump'Access);
+            when sp_makefile_targets => specs.make_targets.Iterate (Process => dump_target'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -1134,6 +1177,8 @@ package body Port_Specification is
       print_vector_list ("CXXFLAGS", sp_cxxflags);
       print_vector_list ("CPPFLAGS", sp_cppflags);
       print_vector_list ("LDFLAGS", sp_ldflags);
+
+      print_group_list  ("Makefile Targets", sp_makefile_targets);
 
    end dump_specification;
 

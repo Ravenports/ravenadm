@@ -1,6 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Utilities;
 with File_Operations;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
@@ -10,6 +11,7 @@ with Definitions; use Definitions;
 
 package body Specification_Parser is
 
+   package UTL renames Utilities;
    package FOP renames File_Operations;
    package LAT renames Ada.Characters.Latin_1;
    package AS  renames Ada.Strings;
@@ -22,12 +24,13 @@ package body Specification_Parser is
      (dossier : String;
       success : out Boolean)
    is
-      contents : constant String := FOP.get_file_contents (dossier);
-      markers  : HT.Line_Markers;
-      linenum  : Natural := 0;
+      contents      : constant String := FOP.get_file_contents (dossier);
+      markers       : HT.Line_Markers;
+      linenum       : Natural := 0;
       seen_namebase : Boolean := False;
       line_array    : spec_array;
       line_singlet  : spec_singlet;
+      line_target   : spec_target;
       last_array    : spec_array    := not_array;
       last_singlet  : spec_singlet  := not_singlet;
       last_seen     : type_category := cat_none;
@@ -70,21 +73,34 @@ package body Specification_Parser is
                end if;
                goto line_done;
             end if;
-            line_array := determine_array (line);
-            if line_array = not_array then
-               line_singlet := determine_singlet (line);
-               if line_singlet /= not_singlet and then
-                 seen_singlet (line_singlet)
-               then
-                  last_parse_error := HT.SUS (LN & "variable previously defined (use triple tab)");
-                  exit;
+
+            line_target := determine_target (line, last_seen);
+            if line_target = bad_target then
+               last_parse_error := HT.SUS (LN & "Make target detected, but not recognized");
+               exit;
+            end if;
+            if line_target = not_target then
+               line_array := determine_array (line);
+               if line_array = not_array then
+                  line_singlet := determine_singlet (line);
+                  if line_singlet /= not_singlet and then
+                    seen_singlet (line_singlet)
+                  then
+                     last_parse_error :=
+                       HT.SUS (LN & "variable previously defined (use triple tab)");
+                     exit;
+                  end if;
+                  seen_singlet (line_singlet) := True;
+               else
+                  line_singlet := not_singlet;
                end if;
-               seen_singlet (line_singlet) := True;
             else
+               line_array   := not_array;
                line_singlet := not_singlet;
             end if;
 
-            if line_singlet = not_singlet and then
+            if line_target = not_target and then
+              line_singlet = not_singlet and then
               line_array = not_array
             then
                if line'Length > 3 and then
@@ -94,6 +110,7 @@ package body Specification_Parser is
                      when cat_array   => line_array   := last_array;
                      when cat_singlet => line_singlet := last_singlet;
                      when cat_none    => null;
+                     when cat_target  => null;
                   end case;
                else
                   last_parse_error := HT.SUS (LN & "Parse failed, content unrecognized.");
@@ -260,6 +277,31 @@ package body Specification_Parser is
                   last_singlet := line_singlet;
                   last_seen := cat_singlet;
                end if;
+
+               if line_target /= not_target then
+                  case line_target is
+                     when target_title =>
+                        declare
+                           target : String := line (line'First .. line'Last - 1);
+                        begin
+                           if specification.group_exists (PSP.sp_makefile_targets, target) then
+                              last_parse_error := HT.SUS (LN & "Duplicate makefile target '"
+                                                          & target & "' detected.");
+                              exit;
+                           end if;
+                           specification.establish_group (PSP.sp_makefile_targets, target);
+                           last_index := HT.SUS (target);
+                        end;
+                     when target_body  =>
+                        specification.append_array (field        => PSP.sp_makefile_targets,
+                                                    key          => HT.USS (last_index),
+                                                    value        => line,
+                                                    allow_spaces => True);
+                     when bad_target   => null;
+                     when not_target   => null;
+                  end case;
+                  last_seen := cat_target;
+               end if;
             exception
                when F1 : PSP.misordered =>
                   last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F1) &
@@ -279,7 +321,8 @@ package body Specification_Parser is
                   last_parse_error := HT.SUS (LN & "value not aligned to column-24 (tab issue)");
                   exit;
                when F6 : missing_definition =>
-                  last_parse_error := HT.SUS (LN & "Variable expansion: definition missing.");
+                  last_parse_error := HT.SUS (LN & "Variable expansion: definition missing. " &
+                                                EX.Exception_Message (F6));
                   exit;
                when F7 : extra_spaces =>
                   last_parse_error := HT.SUS (LN & "extra spaces detected between list items.");
@@ -726,7 +769,7 @@ package body Specification_Parser is
             equals := wrkstr'First + 1;
             c81624 := 24;
          else
-            raise missing_definition;
+            raise missing_definition with "No triple-tab or equals+tab detected.";
          end if;
       end if;
       if c81624 > 24 then
@@ -974,6 +1017,159 @@ package body Specification_Parser is
       end if;
       return HT.blank;
    end late_validity_check_error;
+
+
+   --------------------------------------------------------------------------------------------
+   --  determine_target
+   --------------------------------------------------------------------------------------------
+   function determine_target
+     (line      : String;
+      last_seen : type_category) return spec_target
+   is
+      function active_prefix return String;
+      function extract_option (prefix, line : String) return String;
+
+      lead_pre  : Boolean := False;
+      lead_do   : Boolean := False;
+      lead_post : Boolean := False;
+      fetch     : constant String := "fetch";
+      extract   : constant String := "extract";
+      patch     : constant String := "patch";
+      configure : constant String := "configure";
+      build     : constant String := "build";
+      install   : constant String := "install";
+      opt_on    : constant String := "-ON:";
+      opt_off   : constant String := "-OFF:";
+      pre_pre   : constant String := "pre-";
+      pre_do    : constant String := "do-";
+      pre_post  : constant String := "post-";
+
+      function active_prefix return String is
+      begin
+         if lead_pre then
+            return pre_pre;
+         elsif lead_do then
+            return pre_do;
+         else
+            return pre_post;
+         end if;
+      end active_prefix;
+
+      function extract_option (prefix, line : String) return String
+      is
+         function first_set_successful (substring : String) return Boolean;
+         --  Given: Line terminates in "-ON:" or "-OFF:"
+         last  : Natural;
+         first : Natural := 0;
+
+         function first_set_successful (substring : String) return Boolean is
+         begin
+            if HT.leads (line, substring) then
+               first := line'First + substring'Length;
+               return True;
+            else
+               return False;
+            end if;
+         end first_set_successful;
+      begin
+         if HT.trails (line, opt_on) then
+            last := line'Last - opt_on'Length;
+         else
+            last := line'Last - opt_off'Length;
+         end if;
+         if first_set_successful (prefix & fetch & LAT.Hyphen) or else
+           first_set_successful (prefix & extract & LAT.Hyphen) or else
+           first_set_successful (prefix & patch & LAT.Hyphen) or else
+           first_set_successful (prefix & configure & LAT.Hyphen) or else
+           first_set_successful (prefix & build & LAT.Hyphen) or else
+           first_set_successful (prefix & install & LAT.Hyphen)
+         then
+            return line (first .. last);
+         else
+            return "";
+         end if;
+      end extract_option;
+   begin
+      if last_seen = cat_target then
+         --  If the line starts with a period or if it has a single tab, then mark it as
+         --  as a target body and leave.  We don't need to check more.
+         if line (line'First) = LAT.Full_Stop or else
+           line (line'First) = LAT.HT
+         then
+            return target_body;
+         end if;
+      end if;
+
+      --  Check if line has format of a target (ends in a colon)
+      if not HT.trails (line, ":") then
+         return not_target;
+      end if;
+
+      --  From this point forward, we're either a target_title or bad_target
+
+      lead_pre := HT.leads (line, pre_pre);
+      if not lead_pre then
+         lead_do := HT.leads (line, pre_do);
+         if not lead_do then
+            lead_post := HT.leads (line, pre_post);
+            if not lead_post then
+               return bad_target;
+            end if;
+         end if;
+      end if;
+
+      declare
+         prefix : constant String := active_prefix;
+      begin
+
+         --  Handle pre-, do-, post- target overrides
+         if line = prefix & fetch & LAT.Colon or else
+           line = prefix & fetch & LAT.Colon or else
+           line = prefix & extract & LAT.Colon or else
+           line = prefix & patch & LAT.Colon or else
+           line = prefix & configure & LAT.Colon or else
+           line = prefix & build & LAT.Colon or else
+           line = prefix & install & LAT.Colon
+         then
+            return target_title;
+         end if;
+
+         --  Opsys also applies to pre-, do-, and post-
+         for opsys in supported_opsys'Range loop
+            declare
+               lowsys : String := '-' & UTL.lower_opsys (opsys) & LAT.Colon;
+            begin
+               if line = prefix & fetch & lowsys or else
+                 line = prefix & extract & lowsys or else
+                 line = prefix & patch & lowsys or else
+                 line = prefix & configure & lowsys or else
+                 line = prefix & build & lowsys or else
+                 line = prefix & install & lowsys
+               then
+                  return target_title;
+               end if;
+            end;
+         end loop;
+
+         --  The only targets left to check are options which end in "-ON:" and "-OFF:".
+         --  If these suffices aren't found, it's a bad target.
+         if not HT.trails (line, opt_on) and then
+           not HT.trails (line, opt_off)
+         then
+            return bad_target;
+         end if;
+
+         declare
+            option_name : String := extract_option (prefix, line);
+         begin
+            if specification.option_exists (option_name) then
+               return target_title;
+            else
+               return bad_target;
+            end if;
+         end;
+      end;
+   end determine_target;
 
 
 end Specification_Parser;
