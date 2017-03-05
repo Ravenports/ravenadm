@@ -102,6 +102,9 @@ package Port_Specification is
    --  concatenated with the missing option.
    function check_variants (specs : Portspecs) return String;
 
+   --  Perform any post-parsing adjustments necessary
+   procedure adjust_defaults_port_parse (specs : in out Portspecs);
+
 private
 
    package HT  renames HelperText;

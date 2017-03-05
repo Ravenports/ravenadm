@@ -792,6 +792,45 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  adjust_defaults_port_parse
+   --------------------------------------------------------------------------------------------
+   procedure adjust_defaults_port_parse (specs : in out Portspecs)
+   is
+      procedure grow (Key : HT.Text; Element : in out group_list);
+
+      empty_comment : HT.Text := HT.SUS ("# empty");
+
+      procedure grow (Key : HT.Text; Element : in out group_list) is
+      begin
+         Element.list.Append (empty_comment);
+      end grow;
+   begin
+      for X in Integer range 1 .. Integer (specs.extract_head.Length) loop
+         declare
+            N : HT.Text := HT.SUS (HT.int2str (X));
+         begin
+            if not specs.extract_head.Element (N).list.Is_Empty and then
+              specs.extract_tail.Element (N).list.Is_Empty
+            then
+               specs.extract_tail.Update_Element (Position => specs.extract_tail.Find (N),
+                                                  Process  => grow'Access);
+            else
+               if not specs.extract_tail.Element (N).list.Is_Empty and then
+                 specs.extract_head.Element (N).list.Is_Empty
+               then
+                  specs.extract_head.Update_Element (Position => specs.extract_head.Find (N),
+                                                     Process  => grow'Access);
+               end if;
+            end if;
+         end;
+      end loop;
+      if specs.df_index.Is_Empty then
+         specs.df_index.Append (HT.SUS ("1"));
+      end if;
+   end adjust_defaults_port_parse;
+
+
+   --------------------------------------------------------------------------------------------
    --  lower_opsys_is_valid
    --------------------------------------------------------------------------------------------
    function lower_opsys_is_valid (test_opsys : String) return Boolean is

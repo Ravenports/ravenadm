@@ -312,6 +312,7 @@ package body Specification_Parser is
       if HT.IsBlank (last_parse_error) then
          last_parse_error := late_validity_check_error;
          if HT.IsBlank (last_parse_error) then
+            specification.adjust_defaults_port_parse;
             success := True;
          end if;
       end if;
