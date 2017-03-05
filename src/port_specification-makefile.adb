@@ -27,13 +27,17 @@ package body Port_Specification.Makefile is
       procedure send (data : String; use_put : Boolean := False);
       procedure send (varname, value : String);
       procedure send (varname : String; value : HT.Text);
-      procedure send (varname : String; crate : string_crate.Vector);
+      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive := 1);
       procedure send (varname : String; crate : list_crate.Map);
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send (varname : String; value, default : Integer);
       procedure print_item (position : string_crate.Cursor);
       procedure dump_list (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
+      procedure dump_ext_zip   (position : string_crate.Cursor);
+      procedure dump_ext_7z    (position : string_crate.Cursor);
+      procedure dump_ext_lha   (position : string_crate.Cursor);
+--      procedure dump_ext_HT    (position : string_crate.Cursor);
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -82,19 +86,28 @@ package body Port_Specification.Makefile is
          end if;
       end send;
 
-      procedure send (varname : String; crate : string_crate.Vector) is
+      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive := 1) is
       begin
          if crate.Is_Empty then
             return;
          end if;
-         if varname = "DISTFILE" then
-            varname_prefix := HT.SUS (varname);
-            crate.Iterate (Process => dump_distfiles'Access);
-         else
-            send (varname & "=", True);
-            crate.Iterate (Process => print_item'Access);
-            send ("");
-         end if;
+         case flavor is
+            when 1 =>
+               send (varname & "=", True);
+               crate.Iterate (Process => print_item'Access);
+               send ("");
+            when 2 =>
+               varname_prefix := HT.SUS (varname);
+               crate.Iterate (Process => dump_distfiles'Access);
+            when 3 =>
+               crate.Iterate (Process => dump_ext_zip'Access);
+            when 4 =>
+               crate.Iterate (Process => dump_ext_7z'Access);
+            when 5 =>
+               crate.Iterate (Process => dump_ext_lha'Access);
+            when others =>
+               null;
+         end case;
       end send;
 
       procedure send (varname : String; crate : list_crate.Map) is
@@ -131,6 +144,36 @@ package body Port_Specification.Makefile is
          send (NDX & HT.USS (string_crate.Element (position)));
       end dump_distfiles;
 
+      procedure dump_ext_zip (position : string_crate.Cursor)
+      is
+         N : String := HT.USS (string_crate.Element (position));
+      begin
+         send ("EXTRACT_HEAD_" & N & "=/usr/bin/unzip -qo");
+         send ("EXTRACT_TAIL_" & N & "=-d ${EXTRACT_WRKDIR_" & N & "}");
+      end dump_ext_zip;
+
+      procedure dump_ext_7z (position : string_crate.Cursor)
+      is
+         N : String := HT.USS (string_crate.Element (position));
+      begin
+         send ("EXTRACT_HEAD_" & N & "=7z x -bd -y -o${EXTRACT_WRKDIR_" & N & "} >/dev/null");
+         send ("EXTRACT_TAIL_" & N & "=# empty");
+      end dump_ext_7z;
+
+      procedure dump_ext_lha (position : string_crate.Cursor)
+      is
+         N : String := HT.USS (string_crate.Element (position));
+      begin
+         send ("EXTRACT_HEAD_" & N & "=lha xfpw=${EXTRACT_WRKDIR_" & N & "}");
+         send ("EXTRACT_TAIL_" & N & "=# empty");
+      end dump_ext_lha;
+
+--        procedure dump_ext_HT (position : string_crate.Cursor)
+--        is
+--           index : Natural := string_crate.To_Index (position);
+--        begin
+--        end dump_ext_HT;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -152,12 +195,17 @@ package body Port_Specification.Makefile is
       send ("VERSION",          HT.USS (specs.version));
       send ("REVISION",         specs.revision, 0);
       send ("EPOCH",            specs.epoch, 0);
-      send ("KEYWORDS",         specs.keywords);
+      send ("KEYWORDS",         specs.keywords);    --  probably remove
       send ("VARIANT",          variant);
       send ("DL_SITES",         specs.dl_sites);
-      send ("DISTFILE",         specs.distfiles);
+      send ("DISTFILE",         specs.distfiles, 2);
       send ("DIST_SUBDIR",      specs.dist_subdir);
       send ("DISTNAME",         specs.distname);
+      send ("DF_INDEX",         specs.df_index);
+      send ("EXTRACT_ONLY",     specs.extract_only);
+      send ("ZIP-EXTRACT",      specs.extract_zip, 3);
+      send ("7Z-EXTRACT",       specs.extract_7z, 4);
+      send ("LHA-EXTRACT",      specs.extract_lha, 5);
       send ("NO_BUILD",         specs.skip_build, True);
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
@@ -167,8 +215,8 @@ package body Port_Specification.Makefile is
       send ("MAKE_ARGS",        specs.make_args);
       send ("CFLAGS",           specs.cflags);
 
-      --  TODO: This probably is not correct ultimately.  retrhink.
-      send (".include " & LAT.Quotation & "${.CURDIR:H}/share/mk/raven.mk");
+      --  TODO: This is not correct, placeholder.  rethink.
+      send (".include " & LAT.Quotation & "/usr/raven/share/mk/raven.mk" & LAT.Quotation);
 
       if write_to_file then
          TIO.Close (makefile_handle);
