@@ -28,7 +28,7 @@ package body Port_Specification.Makefile is
       procedure send (varname, value : String);
       procedure send (varname : String; value : HT.Text);
       procedure send (varname : String; crate : string_crate.Vector; flavor : Positive := 1);
-      procedure send (varname : String; crate : list_crate.Map);
+      procedure send (varname : String; crate : list_crate.Map; flavor : Positive := 1);
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send (varname : String; value, default : Integer);
       procedure print_item (position : string_crate.Cursor);
@@ -37,7 +37,7 @@ package body Port_Specification.Makefile is
       procedure dump_ext_zip   (position : string_crate.Cursor);
       procedure dump_ext_7z    (position : string_crate.Cursor);
       procedure dump_ext_lha   (position : string_crate.Cursor);
---      procedure dump_ext_HT    (position : string_crate.Cursor);
+      procedure dump_extract_head_tail (position : list_crate.Cursor);
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -110,10 +110,14 @@ package body Port_Specification.Makefile is
          end case;
       end send;
 
-      procedure send (varname : String; crate : list_crate.Map) is
+      procedure send (varname : String; crate : list_crate.Map; flavor : Positive := 1) is
       begin
          varname_prefix := HT.SUS (varname);
-         crate.Iterate (Process => dump_list'Access);
+         case flavor is
+            when 1 => crate.Iterate (Process => dump_list'Access);
+            when 6 => crate.Iterate (Process => dump_extract_head_tail'Access);
+            when others => null;
+         end case;
       end send;
 
       procedure dump_list (position : list_crate.Cursor)
@@ -125,6 +129,18 @@ package body Port_Specification.Makefile is
          list_crate.Element (position).list.Iterate (Process => print_item'Access);
          send ("");
       end dump_list;
+
+      procedure dump_extract_head_tail (position : list_crate.Cursor)
+      is
+         NDX : String := HT.USS (varname_prefix)  & "_" &
+                         HT.USS (list_crate.Element (position).group) & LAT.Equals_Sign;
+      begin
+         if not list_crate.Element (position).list.Is_Empty then
+            send (NDX, True);
+            list_crate.Element (position).list.Iterate (Process => print_item'Access);
+            send ("");
+         end if;
+      end dump_extract_head_tail;
 
       procedure print_item (position : string_crate.Cursor)
       is
@@ -168,12 +184,6 @@ package body Port_Specification.Makefile is
          send ("EXTRACT_TAIL_" & N & "=# empty");
       end dump_ext_lha;
 
---        procedure dump_ext_HT (position : string_crate.Cursor)
---        is
---           index : Natural := string_crate.To_Index (position);
---        begin
---        end dump_ext_HT;
-
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -206,6 +216,8 @@ package body Port_Specification.Makefile is
       send ("ZIP-EXTRACT",      specs.extract_zip, 3);
       send ("7Z-EXTRACT",       specs.extract_7z, 4);
       send ("LHA-EXTRACT",      specs.extract_lha, 5);
+      send ("EXTRACT_HEAD",     specs.extract_head, 6);
+      send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       send ("NO_BUILD",         specs.skip_build, True);
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
