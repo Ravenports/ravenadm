@@ -724,6 +724,19 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  option_current_setting
+   --------------------------------------------------------------------------------------------
+   function option_current_setting (specs : Portspecs; option : String) return Boolean is
+   begin
+      if not specs.option_exists (option) then
+         raise invalid_option with option;
+      end if;
+      --  TO-DO: return current setting of option
+      return False;
+   end option_current_setting;
+
+
+   --------------------------------------------------------------------------------------------
    --  all_taglines_defined
    --------------------------------------------------------------------------------------------
    function all_taglines_defined (specs : Portspecs) return Boolean

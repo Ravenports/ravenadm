@@ -16,6 +16,7 @@ package Port_Specification is
    dupe_spec_key   : exception;
    dupe_list_value : exception;
    missing_group   : exception;
+   invalid_option  : exception;
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_homepage, sp_contacts, sp_dl_groups,
@@ -90,6 +91,10 @@ package Port_Specification is
 
    --  Return True if provided option name is known
    function option_exists (specs : Portspecs; option : String) return Boolean;
+
+   --  Given the provided option name, return True if setting is "ON" and False otherwise
+   --  If option name is not valid, raise invalid option
+   function option_current_setting (specs : Portspecs; option : String) return Boolean;
 
    --  Generic function to determine if group exists, returns True if so
    function group_exists

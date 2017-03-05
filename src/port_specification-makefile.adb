@@ -44,6 +44,7 @@ package body Port_Specification.Makefile is
       procedure dump_dirty_extract (position : string_crate.Cursor);
       procedure dump_standard_target (target : String);
       procedure dump_opsys_target    (target : String);
+      procedure dump_option_target   (target : String);
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -209,9 +210,9 @@ package body Port_Specification.Makefile is
          target_text : HT.Text := HT.SUS (target);
       begin
          if specs.make_targets.Contains (target_text) then
+            send ("");
             send (target & LAT.Colon);
             specs.make_targets.Element (target_text).list.Iterate (Process => dump_line'Access);
-            send ("");
          end if;
       end dump_standard_target;
 
@@ -221,11 +222,73 @@ package body Port_Specification.Makefile is
          std_target : String := target & "-opsys";
       begin
          if specs.make_targets.Contains (os_target) then
-            send (std_target & LAT.Colon);
-            specs.make_targets.Element (os_target).list.Iterate (Process => dump_line'Access);
             send ("");
+            send (std_target & LAT.Colon);
+            send (LAT.HT & "# " & UTL.mixed_opsys (opsys) & "-specific");
+            specs.make_targets.Element (os_target).list.Iterate (Process => dump_line'Access);
          end if;
       end dump_opsys_target;
+
+      procedure dump_option_target (target : String)
+      is
+         procedure precheck (position : string_crate.Cursor);
+         procedure check (position : string_crate.Cursor);
+
+         --  Logic: considered "used" if option is OFF and <target>-<OPTION NAME>-OFF is set.
+         --         vice versa with "ON"
+         --  Iterate for each option.
+         --  If precheck indicates use, iterate again with check to write out the target.
+
+         target_used : Boolean := False;
+         std_target  : String := target & "-option";
+
+         procedure precheck (position : string_crate.Cursor)
+         is
+            base   : String  := HT.USS (string_crate.Element (position));
+            WON    : HT.Text := HT.SUS (target & "-" & base & "-ON");
+            WOFF   : HT.Text := HT.SUS (target & "-" & base & "-OFF");
+            opt_on : Boolean := specs.option_current_setting (base);
+         begin
+            if not target_used then
+               if opt_on then
+                  if specs.make_targets.Contains (WON) then
+                     target_used := True;
+                  end if;
+               else
+                  if specs.make_targets.Contains (WOFF) then
+                     target_used := True;
+                  end if;
+               end if;
+            end if;
+         end precheck;
+
+         procedure check (position : string_crate.Cursor)
+         is
+            base   : String  := HT.USS (string_crate.Element (position));
+            WON    : HT.Text := HT.SUS (target & "-" & base & "-ON");
+            WOFF   : HT.Text := HT.SUS (target & "-" & base & "-OFF");
+            opt_on : Boolean := specs.option_current_setting (base);
+         begin
+            if opt_on then
+               if specs.make_targets.Contains (WON) then
+                  send (LAT.HT & "# " & base & " option ON");
+                  specs.make_targets.Element (WON).list.Iterate (Process => dump_line'Access);
+               end if;
+            else
+               if specs.make_targets.Contains (WOFF) then
+                  send (LAT.HT & "# " & base & " option OFF");
+                  specs.make_targets.Element (WOFF).list.Iterate (Process => dump_line'Access);
+               end if;
+            end if;
+         end check;
+      begin
+         specs.ops_avail.Iterate (Process => precheck'Access);
+         if target_used then
+            send ("");
+            send (std_target & LAT.Colon);
+            specs.ops_avail.Iterate (Process => check'Access);
+         end if;
+      end dump_option_target;
 
    begin
       if not specs.variant_exists (variant) then
@@ -307,14 +370,15 @@ package body Port_Specification.Makefile is
                   target : String := get_prefix (prefix) & get_phasestr (phase);
                begin
                   dump_standard_target (target);
-                  dump_opsys_target (target);
+                  dump_opsys_target    (target);
+                  dump_option_target   (target);
                end;
             end loop;
          end loop;
       end;
 
       --  TODO: This is not correct, placeholder.  rethink.
-      send (".include " & LAT.Quotation & "/usr/raven/share/mk/raven.mk" & LAT.Quotation);
+      send (LAT.LF & ".include " & LAT.Quotation & "/usr/raven/share/mk/raven.mk" & LAT.Quotation);
 
       if write_to_file then
          TIO.Close (makefile_handle);
