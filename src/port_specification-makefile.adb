@@ -1,11 +1,13 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Utilities;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
 package body Port_Specification.Makefile is
 
+   package UTL renames Utilities;
    package TIO renames Ada.Text_IO;
    package LAT renames Ada.Characters.Latin_1;
 
@@ -37,8 +39,11 @@ package body Port_Specification.Makefile is
       procedure dump_ext_zip   (position : string_crate.Cursor);
       procedure dump_ext_7z    (position : string_crate.Cursor);
       procedure dump_ext_lha   (position : string_crate.Cursor);
+      procedure dump_line      (position : string_crate.Cursor);
       procedure dump_extract_head_tail (position : list_crate.Cursor);
       procedure dump_dirty_extract (position : string_crate.Cursor);
+      procedure dump_standard_target (target : String);
+      procedure dump_opsys_target    (target : String);
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -155,6 +160,11 @@ package body Port_Specification.Makefile is
          send (HT.USS (string_crate.Element (position)), True);
       end print_item;
 
+      procedure dump_line (position : string_crate.Cursor) is
+      begin
+         send (HT.USS (string_crate.Element (position)));
+      end dump_line;
+
       procedure dump_distfiles (position : string_crate.Cursor)
       is
          index : Natural := string_crate.To_Index (position);
@@ -193,6 +203,29 @@ package body Port_Specification.Makefile is
       begin
          send ("DIRTY_EXTRACT_" & N & "=yes");
       end dump_dirty_extract;
+
+      procedure dump_standard_target (target : String)
+      is
+         target_text : HT.Text := HT.SUS (target);
+      begin
+         if specs.make_targets.Contains (target_text) then
+            send (target & LAT.Colon);
+            specs.make_targets.Element (target_text).list.Iterate (Process => dump_line'Access);
+            send ("");
+         end if;
+      end dump_standard_target;
+
+      procedure dump_opsys_target (target : String)
+      is
+         os_target  : HT.Text := HT.SUS (target & LAT.Hyphen & UTL.lower_opsys (opsys));
+         std_target : String := target & "-opsys";
+      begin
+         if specs.make_targets.Contains (os_target) then
+            send (std_target & LAT.Colon);
+            specs.make_targets.Element (os_target).list.Iterate (Process => dump_line'Access);
+            send ("");
+         end if;
+      end dump_opsys_target;
 
    begin
       if not specs.variant_exists (variant) then
@@ -242,6 +275,43 @@ package body Port_Specification.Makefile is
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("DESTDIRNAME",      specs.destdirname);
+
+      declare
+         function get_phasestr (index : Positive) return String;
+         function get_prefix   (index : Positive) return String;
+         function get_phasestr (index : Positive) return String is
+         begin
+            case index is
+               when 1 => return "fetch";
+               when 2 => return "extract";
+               when 3 => return "patch";
+               when 4 => return "configure";
+               when 5 => return "build";
+               when 6 => return "install";
+               when others => return "";
+            end case;
+         end get_phasestr;
+         function get_prefix (index : Positive) return String is
+         begin
+            case index is
+               when 1 => return "pre-";
+               when 2 => return "do-";
+               when 3 => return "post-";
+               when others => return "";
+            end case;
+         end get_prefix;
+      begin
+         for phase in Positive range 1 .. 6 loop
+            for prefix in Positive range 1 .. 3 loop
+               declare
+                  target : String := get_prefix (prefix) & get_phasestr (phase);
+               begin
+                  dump_standard_target (target);
+                  dump_opsys_target (target);
+               end;
+            end loop;
+         end loop;
+      end;
 
       --  TODO: This is not correct, placeholder.  rethink.
       send (".include " & LAT.Quotation & "/usr/raven/share/mk/raven.mk" & LAT.Quotation);
