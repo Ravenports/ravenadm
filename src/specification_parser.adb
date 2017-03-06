@@ -203,6 +203,7 @@ package body Specification_Parser is
                            if tkey = dlgroup_none then
                               last_parse_error := HT.SUS (LN & "cannot set site group to '" &
                                                             dlgroup_none & "'");
+                              exit;
                            else
                               build_group_list (field => PSP.sp_dl_sites,
                                                 key   => tkey,
@@ -226,6 +227,20 @@ package body Specification_Parser is
                                                        key          => tkey,
                                                        value        => tvalue,
                                                        allow_spaces => True);
+                        when option_on =>
+                           if tkey = "all" or else
+                             UTL.valid_lower_opsys (tkey) or else
+                             UTL.valid_cpu_arch (tkey)
+                           then
+                              build_group_list (field => PSP.sp_options_on,
+                                                key   => tkey,
+                                                value => tvalue);
+                           else
+                              last_parse_error :=
+                                HT.SUS (LN & "group '" & tkey &
+                                          "' is not valid (all, <opsys>, <arch>)");
+                              exit;
+                           end if;
                         when not_array => null;
                      end case;
                   end;
@@ -623,7 +638,7 @@ package body Specification_Parser is
    is
       function known (index : Positive) return Boolean;
 
-      total_arrays : constant Positive := 8;
+      total_arrays : constant Positive := 9;
 
       type array_pair is
          record
@@ -639,6 +654,7 @@ package body Specification_Parser is
          ("DISTFILE    ",  8, distfile),
          ("EXTRACT_HEAD", 12, ext_head),
          ("EXTRACT_TAIL", 12, ext_tail),
+         ("OPT_ON      ",  6, option_on),
          ("SDESC       ",  5, sdesc),
          ("SITES       ",  5, sites),
          ("SPKGS       ",  5, spkgs),

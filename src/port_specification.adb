@@ -2,11 +2,13 @@
 --  Reference: ../License.txt
 
 with Definitions; use Definitions;
+with Utilities;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
 package body Port_Specification is
 
+   package UTL renames Utilities;
    package TIO renames Ada.Text_IO;
    package LAT renames Ada.Characters.Latin_1;
 
@@ -32,6 +34,7 @@ package body Port_Specification is
       specs.ops_avail.Clear;
       specs.ops_standard.Clear;
       specs.variantopts.Clear;
+      specs.options_on.Clear;
       specs.exc_opsys.Clear;
       specs.inc_opsys.Clear;
       specs.exc_arch.Clear;
@@ -337,7 +340,7 @@ package body Port_Specification is
             if specs.exc_opsys.Contains (text_value) then
                raise dupe_list_value with value;
             end if;
-            if not lower_opsys_is_valid (value) then
+            if not UTL.valid_lower_opsys (value) then
                raise wrong_value with "opsys '" & value & "' is not valid.";
             end if;
             specs.exc_opsys.Append (text_value);
@@ -349,7 +352,7 @@ package body Port_Specification is
             if specs.inc_opsys.Contains (text_value) then
                raise dupe_list_value with value;
             end if;
-            if not lower_opsys_is_valid (value) then
+            if not UTL.valid_lower_opsys (value) then
                raise wrong_value with "opsys '" & value & "' is not valid.";
             end if;
             specs.inc_opsys.Append (text_value);
@@ -358,7 +361,7 @@ package body Port_Specification is
             if specs.exc_arch.Contains (text_value) then
                raise dupe_list_value with value;
             end if;
-            if not arch_is_valid (value) then
+            if not UTL.valid_cpu_arch (value) then
                raise wrong_value with "'" & value & "' is not a valid architecture.";
             end if;
             specs.exc_arch.Append (text_value);
@@ -480,6 +483,8 @@ package body Port_Specification is
             specs.extract_tail.Insert (text_group, initial_rec);
          when sp_makefile_targets =>
             specs.make_targets.Insert (text_group, initial_rec);
+         when sp_options_on =>
+            specs.options_on.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -628,6 +633,23 @@ package body Port_Specification is
             end if;
             specs.make_targets.Update_Element (Position => specs.make_targets.Find (text_key),
                                                Process  => grow'Access);
+         when sp_options_on =>
+            verify_entry_is_post_options;
+            if not specs.options_on.Contains (text_key) then
+               --  Group already validated, so create if it dosn't exist
+               specs.establish_group (sp_options_on, key);
+               --  "all" must exist if non-"all" keys are used though
+               if not specs.options_on.Contains (HT.SUS (options_all)) then
+                  specs.establish_group (sp_options_on, options_all);
+               end if;
+            end if;
+            if not specs.valid_OPT_ON_value (key, value) then
+               raise wrong_value with "OPT_ON value '" & value &
+                 "' either doesn't match option list, is present in 'all' section, " &
+                 "or it is misformatted";
+            end if;
+            specs.options_on.Update_Element (Position => specs.options_on.Find (text_key),
+                                             Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -886,32 +908,6 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  lower_opsys_is_valid
-   --------------------------------------------------------------------------------------------
-   function lower_opsys_is_valid (test_opsys : String) return Boolean is
-   begin
-      return (test_opsys = "dragonfly" or else
-              test_opsys = "freebsd" or else
-              test_opsys = "netbsd" or else
-              test_opsys = "openbsd" or else
-              test_opsys = "linux" or else
-              test_opsys = "sunos" or else
-              test_opsys = "macos");
-   end lower_opsys_is_valid;
-
-
-   --------------------------------------------------------------------------------------------
-   --  arch_is_valid
-   --------------------------------------------------------------------------------------------
-   function arch_is_valid (test_arch : String) return Boolean is
-   begin
-      return (test_arch = "x86_64" or else
-              test_arch = "aarch64" or else
-              test_arch = "i386");
-   end arch_is_valid;
-
-
-   --------------------------------------------------------------------------------------------
    --  dist_index_is_valid
    --------------------------------------------------------------------------------------------
    function dist_index_is_valid (specs : Portspecs; test_index : String) return Boolean
@@ -923,6 +919,109 @@ package body Port_Specification is
       when Constraint_Error =>
          return False;
    end dist_index_is_valid;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_OPT_ON_value
+   --------------------------------------------------------------------------------------------
+   function valid_OPT_ON_value (specs : Portspecs;
+                                key   : String;
+                                word  : String) return Boolean
+   is
+      function looks_like_release (wrkstr : String) return Boolean;
+      function looks_like_release (wrkstr : String) return Boolean is
+      begin
+         for X in wrkstr'Range loop
+            case wrkstr (X) is
+               when '0' .. '9' | '.' => null;
+               when others => return False;
+            end case;
+         end loop;
+         return True;
+      end looks_like_release;
+   begin
+      if key = options_all or else
+        UTL.valid_cpu_arch (key)
+      then
+         --  "all" and arch types Limited to existing options
+         return specs.option_exists (word);
+      end if;
+
+      --  Note: "all" must come first and nothing following can define options that are
+      --  already defined in "all".
+      if specs.option_exists (word) then
+         return not specs.option_present_in_OPT_ON_all (word);
+      end if;
+
+      declare
+         P2_1 : String := HT.part_1 (word, "/");
+         P2_2 : String := HT.part_2 (word, "/");
+      begin
+         if P2_2'Length = 0 then
+            return False;
+         end if;
+         if specs.option_exists (P2_1) then
+            if specs.option_present_in_OPT_ON_all (P2_1) then
+               return False;
+            end if;
+         else
+            return False;
+         end if;
+         if HT.contains (P2_2, "/") then
+            --  This is a triplet
+            declare
+               P3_1 : String := HT.part_1 (P2_2, "/");
+               P3_2 : String := HT.part_2 (P2_2, "/");
+            begin
+               if P3_1 /= "" and then
+                 not looks_like_release (P3_1)
+               then
+                  return False;
+               end if;
+               --  Here: P2_2 matches an option
+               --        P3_1 is empty string or a release
+               declare
+                  num_bars   : Natural := HT.count_char (P3_2, LAT.Vertical_Line);
+                  bck_marker : Natural := P3_2'First;
+                  vrt_marker : Natural := bck_marker;
+               begin
+                  if num_bars = 0 then
+                     return UTL.valid_cpu_arch (P3_2);
+                  end if;
+                  if num_bars = 1 then
+                     return UTL.valid_cpu_arch (HT.part_1 (P3_2, "|")) and then
+                       UTL.valid_cpu_arch (HT.part_2 (P3_2, "|"));
+                  end if;
+                  for V in Positive range 1 .. num_bars loop
+                     loop
+                        exit when P3_2 (vrt_marker) = LAT.Vertical_Line;
+                        vrt_marker := vrt_marker + 1;
+                     end loop;
+                     if not UTL.valid_cpu_arch (P3_2 (bck_marker .. vrt_marker - 1)) then
+                        return False;
+                     end if;
+                     bck_marker := vrt_marker + 1;
+                     vrt_marker := bck_marker;
+                  end loop;
+                  return UTL.valid_cpu_arch (P3_2 (bck_marker .. P3_2'Last));
+               end;
+            end;
+         else
+            --  Only [0-9.] allowed
+            return looks_like_release (P2_2);
+         end if;
+      end;
+   end valid_OPT_ON_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  option_present_in_OPT_ON_all
+   --------------------------------------------------------------------------------------------
+   function option_present_in_OPT_ON_all (specs : Portspecs;
+                                          option_name : String) return Boolean is
+   begin
+      return specs.options_on.Element (HT.SUS (options_all)).list.Contains (HT.SUS (option_name));
+   end option_present_in_OPT_ON_all;
 
 
    --------------------------------------------------------------------------------------------
@@ -1110,6 +1209,7 @@ package body Port_Specification is
          TIO.Put_Line (thelabel & LAT.Colon);
          case thelist is
             when sp_vopts            => specs.variantopts.Iterate (Process => dump'Access);
+            when sp_options_on       => specs.options_on.Iterate (Process => dump'Access);
             when sp_subpackages      => specs.subpackages.Iterate (Process => dump'Access);
             when sp_dl_sites         => specs.dl_sites.Iterate (Process => dump'Access);
             when sp_ext_head         => specs.extract_head.Iterate (Process => dump'Access);
@@ -1183,6 +1283,7 @@ package body Port_Specification is
       print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);
       print_vector_list ("OPTIONS_STANDARD", sp_opts_standard);
       print_group_list  ("VOPTS", sp_subpackages);
+      print_group_list  ("OPT_ON", sp_options_on);
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);

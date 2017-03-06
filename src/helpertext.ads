@@ -93,6 +93,9 @@ package HelperText is
    --  True when tab preceded by space character is present
    function trapped_space_character_present (line : String) return Boolean;
 
+   --  Returns number of instances of a given character in a given string
+   function count_char (S : String; focus : Character) return Natural;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);

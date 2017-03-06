@@ -27,7 +27,7 @@ package Port_Specification is
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
-                       sp_opt_level);
+                       sp_opt_level, sp_options_on);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -168,6 +168,7 @@ private
          ops_standard  : string_crate.Vector;
          last_set      : spec_order;
          variantopts   : list_crate.Map;
+         options_on    : list_crate.Map;
          exc_opsys     : string_crate.Vector;
          inc_opsys     : string_crate.Vector;
          exc_arch      : string_crate.Vector;
@@ -205,17 +206,23 @@ private
    --  Returns true if there is a short description defined for each variant.
    function all_taglines_defined (specs : Portspecs) return Boolean;
 
-   --  Return true if the given string is a recogized opsys
-   function lower_opsys_is_valid (test_opsys : String) return Boolean;
-
-   --  Return true if given string is a recognized architecture
-   function arch_is_valid (test_arch : String) return Boolean;
-
    --  Returns true if given string can convert to an integer between 1 and
    --  distfiles count.
    function dist_index_is_valid (specs : Portspecs; test_index : String) return Boolean;
 
    --  Returns true if space exists outside of quotation marks
    function contains_nonquoted_spaces (word : String) return Boolean;
+
+   --  OPT_ON can only match existing option names exactly, or
+   --  have "/" separator with digits and full_stop only or
+   --  have above with "/" followed by one or more valid arch separated by "|" or
+   --  same as above except nothing between the two "/" separators
+   function valid_OPT_ON_value (specs : Portspecs;
+                                key   : String;
+                                word  : String) return Boolean;
+
+   --  Return True if same option is already defined in all.
+   function option_present_in_OPT_ON_all (specs : Portspecs;
+                                          option_name : String) return Boolean;
 
 end Port_Specification;
