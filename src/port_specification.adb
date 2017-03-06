@@ -45,6 +45,7 @@ package body Port_Specification is
       specs.distname     := HT.blank;
 
       specs.skip_build   := False;
+      specs.skip_install := False;
       specs.destdir_env  := False;
       specs.single_job   := False;
       specs.build_wrksrc := HT.blank;
@@ -676,6 +677,8 @@ package body Port_Specification is
             specs.destdir_env := value;
          when sp_single_job =>
             specs.single_job := value;
+         when sp_skip_install =>
+            specs.skip_install := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1139,6 +1142,7 @@ package body Port_Specification is
          end if;
          case thelist is
             when sp_skip_build     => TIO.Put_Line (specs.skip_build'Img);
+            when sp_skip_install   => TIO.Put_Line (specs.skip_install'Img);
             when sp_destdir_env    => TIO.Put_Line (specs.destdir_env'Img);
             when sp_single_job     => TIO.Put_Line (specs.single_job'Img);
             when others => null;
@@ -1178,6 +1182,7 @@ package body Port_Specification is
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
+      print_boolean     ("SKIP_INSTALL", sp_skip_install);
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);

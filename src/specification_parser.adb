@@ -248,6 +248,7 @@ package body Specification_Parser is
                      when revision     => set_natural (PSP.sp_revision, line);
                      when epoch        => set_natural (PSP.sp_epoch, line);
                      when skip_build   => set_boolean (PSP.sp_skip_build, line);
+                     when skip_install => set_boolean (PSP.sp_skip_install, line);
                      when single_job   => set_boolean (PSP.sp_single_job, line);
                      when destdir_env  => set_boolean (PSP.sp_destdir_env, line);
                      when keywords     => build_list (PSP.sp_keywords, line);
@@ -716,6 +717,8 @@ package body Specification_Parser is
          return distname;
       elsif known ("SKIP_BUILD") then
          return skip_build;
+      elsif known ("SKIP_INSTALL") then
+         return skip_install;
       elsif known ("BUILD_WRKSRC") then
          return build_wrksrc;
       elsif known ("MAKEFILE") then

@@ -326,6 +326,7 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       send ("NO_BUILD",         specs.skip_build, True);
+      send ("NO_INSTALL",       specs.skip_install, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
       send ("BUILD_TARGET",     specs.build_target);
       send ("MAKEFILE",         specs.makefile);
