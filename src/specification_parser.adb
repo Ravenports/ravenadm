@@ -621,37 +621,49 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_array (line : String) return spec_array
    is
-      function known (array_name : String) return Boolean;
-      function known (array_name : String) return Boolean
+      function known (index : Positive) return Boolean;
+
+      total_arrays : constant Positive := 8;
+
+      type array_pair is
+         record
+            varname : String (1 .. 12);
+            len     : Natural;
+            sparray : spec_array;
+         end record;
+
+      --  Keep in alphabetical order for future conversion to binary search
+      all_arrays : constant array (1 .. total_arrays) of array_pair :=
+        (
+         ("DEF         ",  3, def),
+         ("DISTFILE    ",  8, distfile),
+         ("EXTRACT_HEAD", 12, ext_head),
+         ("EXTRACT_TAIL", 12, ext_tail),
+         ("SDESC       ",  5, sdesc),
+         ("SITES       ",  5, sites),
+         ("SPKGS       ",  5, spkgs),
+         ("VOPTS       ",  5, vopts)
+        );
+
+      function known (index : Positive) return Boolean
       is
-         len : constant Natural := array_name'Length;
+         len   : Natural renames all_arrays (index).len;
+         apple : constant String  := all_arrays (index).varname (1 .. len);
       begin
-         return (line'Length > len + 6) and then
-           line (line'First .. line'First + len) = array_name & LAT.Left_Square_Bracket;
+         return line'Length > len + 6 and then
+           line (line'First .. line'First + len) = apple & LAT.Left_Square_Bracket;
       end known;
    begin
       if not HT.contains (S => line, fragment => "]=" & LAT.HT) then
          return not_array;
       end if;
-      if known ("DEF") then
-         return def;
-      elsif known ("SDESC") then
-         return sdesc;
-      elsif known ("SITES") then
-         return sites;
-      elsif known ("DISTFILE") then
-         return distfile;
-      elsif known ("SPKGS") then
-         return spkgs;
-      elsif known ("VOPTS") then
-         return vopts;
-      elsif known ("EXTRACT_HEAD") then
-         return ext_head;
-      elsif known ("EXTRACT_TAIL") then
-         return ext_tail;
-      else
-         return not_array;
-      end if;
+      for index in all_arrays'Range loop
+         if known (index) then
+            return all_arrays (index).sparray;
+         end if;
+      end loop;
+      return not_array;
+
    end determine_array;
 
 
@@ -719,7 +731,7 @@ package body Specification_Parser is
          len : Natural renames all_singlets (index).len;
          apple : constant String  := all_singlets (index).varname (1 .. len) & LAT.Equals_Sign;
       begin
-         return (line'Length > len + 2) and then
+         return line'Length > len + 2 and then
            line (line'First .. line'First + len) = apple;
       end nailed;
 
@@ -739,6 +751,10 @@ package body Specification_Parser is
       High : Natural := all_singlets'Last;
       Mid  : Natural;
    begin
+      if not HT.contains (S => line, fragment => "=" & LAT.HT) then
+         return not_singlet;
+      end if;
+
       loop
          Mid := (Low + High) / 2;
          if nailed (Mid) then
