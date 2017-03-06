@@ -744,7 +744,7 @@ package body Specification_Parser is
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
          ("NAMEBASE              ",  8, namebase),
-         ("NOT_FOR_ARCHES        ", 14, exc_arch),
+         ("NOT_FOR_ARCH          ", 12, exc_arch),
          ("NOT_FOR_OPSYS         ", 13, exc_opsys),
          ("ONLY_FOR_OPSYS        ", 14, inc_opsys),
          ("OPTIMIZER_LEVEL       ", 15, opt_level),

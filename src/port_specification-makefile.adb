@@ -295,6 +295,10 @@ package body Port_Specification.Makefile is
       is
          procedure precheck (position : list_crate.Cursor);
          procedure check    (position : list_crate.Cursor);
+         procedure precheck_ignore;
+         procedure check_ignore;
+         procedure send_prefix (reason_number : Natural);
+         procedure send_reason (reason_number : Natural; reason : String);
 
          num_reasons : Natural := 0;
          curnum      : Natural := 1;
@@ -302,7 +306,7 @@ package body Port_Specification.Makefile is
          cpu_ia32    : constant String := UTL.cpu_arch (i386) & "_";
          cpu_armv8   : constant String := UTL.cpu_arch (aarch64) & "_";
          separator   : constant String := ": ";
-         varname     : constant String := "BROKEN=";
+         varname     : constant String := "IGNORE=";
 
          procedure precheck (position : list_crate.Cursor)
          is
@@ -353,7 +357,6 @@ package body Port_Specification.Makefile is
             procedure check_list (position : string_crate.Cursor);
 
             broken_Key : String := HT.USS (list_crate.Element (position).group);
-            use_prefix : Boolean := (num_reasons > 1);
 
             procedure check_list (position : string_crate.Cursor)
             is
@@ -387,14 +390,8 @@ package body Port_Specification.Makefile is
                end if;
 
                if used then
-                  if use_prefix then
-                     send ("[Reason " & HT.int2str (curnum) & "] ", True);
-                  end if;
-                  if curnum = num_reasons then
-                     send (reason);
-                  else
-                     send (reason & " \");
-                  end if;
+                  send_prefix (curnum);
+                  send_reason (curnum, reason);
                   curnum := curnum + 1;
                end if;
             end check_list;
@@ -402,8 +399,58 @@ package body Port_Specification.Makefile is
             list_crate.Element (position).list.Iterate (Process => check_list'Access);
          end check;
 
+         procedure send_prefix (reason_number : Natural) is
+         begin
+            if num_reasons > 1 then
+               send ("[Reason " & HT.int2str (reason_number) & "] ", True);
+            end if;
+         end send_prefix;
+
+         procedure send_reason (reason_number : Natural; reason : String) is
+         begin
+            if reason_number = num_reasons then
+               send (reason);
+            else
+               send (reason & " \");
+            end if;
+         end send_reason;
+
+         procedure precheck_ignore
+         is
+            --  exc opsys and inc opsys are mutually exclusive
+         begin
+            if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
+              (not specs.inc_opsys.Is_Empty and then
+               not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
+            then
+               num_reasons := num_reasons + 1;
+            end if;
+            if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
+               num_reasons := num_reasons + 1;
+            end if;
+         end precheck_ignore;
+
+         procedure check_ignore is
+         begin
+            if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
+              (not specs.inc_opsys.Is_Empty and then
+               not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
+            then
+               send_prefix (curnum);
+               send_reason (curnum, "Specification excludes " & UTL.mixed_opsys (opsys) & " OS");
+               curnum := curnum + 1;
+            end if;
+            if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
+               send_prefix (curnum);
+               send_reason (curnum, "Specification excludes " & UTL.cpu_arch (arch_standard) &
+                              " architecture");
+               curnum := curnum + 1;
+            end if;
+         end check_ignore;
+
       begin
          specs.broken.Iterate (Process => precheck'Access);
+         precheck_ignore;
          if num_reasons > 0 then
             if num_reasons > 1 then
                send (varname & "\");
@@ -411,6 +458,7 @@ package body Port_Specification.Makefile is
                send (varname, True);
             end if;
             specs.broken.Iterate (Process => check'Access);
+            check_ignore;
          end if;
       end dump_broken;
 
