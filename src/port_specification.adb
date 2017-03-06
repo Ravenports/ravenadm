@@ -33,6 +33,7 @@ package body Port_Specification is
       specs.subpackages.Clear;
       specs.ops_avail.Clear;
       specs.ops_standard.Clear;
+      specs.ops_helpers.Clear;
       specs.variantopts.Clear;
       specs.options_on.Clear;
       specs.broken.Clear;
@@ -1119,10 +1120,12 @@ package body Port_Specification is
       procedure print_line_item (position : string_crate.Cursor);
       procedure dump (position : list_crate.Cursor);
       procedure dump_target (position : list_crate.Cursor);
+      procedure dump_option (position : option_crate.Cursor);
       procedure print_vector_list (thelabel : String; thelist : spec_field);
       procedure print_group_list  (thelabel : String; thelist : spec_field);
       procedure print_single (thelabel : String; thelist : spec_field);
       procedure print_boolean (thelabel : String; thelist : spec_field);
+      procedure print_opt_vector (vec : string_crate.Vector; thelabel : String);
 
       array_label : Positive;
 
@@ -1177,6 +1180,63 @@ package body Port_Specification is
          list_crate.Element (position).list.Iterate (Process => print_line_item'Access);
       end dump_target;
 
+      procedure dump_option (position : option_crate.Cursor)
+      is
+         rec : Option_Helper renames option_crate.Element (position);
+         NDX : String := HT.USS (rec.option_name);
+      begin
+         TIO.Put_Line ("   " & NDX & LAT.Colon);
+         TIO.Put_Line ("      BROKEN_ON=" & LAT.HT & LAT.HT & LAT.HT & HT.USS (rec.BROKEN_ON));
+         print_opt_vector (rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
+         print_opt_vector (rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
+         print_opt_vector (rec.CFLAGS_ON, "CFLAGS_ON");
+         print_opt_vector (rec.CMAKE_ARGS_OFF, "CMAKE_ARGS_OFF");
+         print_opt_vector (rec.CMAKE_ARGS_ON, "CMAKE_ARGS_ON");
+         print_opt_vector (rec.CMAKE_BOOL_T_BOTH, "CMAKE_BOOL_T_BOTH");
+         print_opt_vector (rec.CMAKE_BOOL_F_BOTH, "CMAKE_BOOL_F_BOTH");
+         print_opt_vector (rec.CONFIGURE_ARGS_ON, "CONFIGURE_ARGS_ON");
+         print_opt_vector (rec.CONFIGURE_ARGS_OFF, "CONFIGURE_ARGS_OFF");
+         print_opt_vector (rec.CONFIGURE_ENABLE_BOTH, "CONFIGURE_ENABLE_BOTH");
+         print_opt_vector (rec.CONFIGURE_ENV_ON, "CONFIGURE_ENV_ON");
+         print_opt_vector (rec.CONFIGURE_WITH_BOTH, "CONFIGURE_WITH_BOTH");
+         print_opt_vector (rec.CPPFLAGS_ON, "CPPFLAGS_ON");
+         print_opt_vector (rec.DF_INDEX_ON, "DF_INDEX_ON");
+         print_opt_vector (rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
+         print_opt_vector (rec.EXTRACT_DEPENDS_ON, "EXTRACT_DEPENDS_ON");
+         print_opt_vector (rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
+         print_opt_vector (rec.GH_ACCOUNT_ON, "GH_ACCOUNT_ON");
+         print_opt_vector (rec.GH_PROJECT_ON, "GH_PROJECT_ON");
+         print_opt_vector (rec.GH_SUBDIR_ON, "GH_SUBDIR_ON");
+         print_opt_vector (rec.GH_TUPLE_ON, "GH_TUPLE_ON");
+         print_opt_vector (rec.IMPLIES_ON, "IMPLIES_ON");
+         print_opt_vector (rec.INFO_ON, "INFO_ON");
+         print_opt_vector (rec.INSTALL_TARGET, "INSTALL_TARGET");
+         print_opt_vector (rec.KEYWORDS, "KEYWORDS");
+         print_opt_vector (rec.LDFLAGS, "LDFLAGS");
+         print_opt_vector (rec.LIB_DEPENDS_ON, "LIB_DEPENDS_ON");
+         print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
+         print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
+         print_opt_vector (rec.PATCHFILES_ON, "PATCHFILES_ON");
+         print_opt_vector (rec.PLIST_SUB_ON, "PLIST_SUB_ON");
+         print_opt_vector (rec.PREVENTS_ON, "PREVENTS_ON");
+         print_opt_vector (rec.QMAKE_OFF, "QMAKE_OFF");
+         print_opt_vector (rec.QMAKE_ON, "QMAKE_ON");
+         print_opt_vector (rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
+         print_opt_vector (rec.SUB_FILES, "SUB_FILES");
+         print_opt_vector (rec.TEST_TARGET_ON, "TEST_TARGET_ON");
+         print_opt_vector (rec.USES, "USES");
+      end dump_option;
+
+      procedure print_opt_vector (vec : string_crate.Vector; thelabel : String)
+      is
+         labellen : Natural := thelabel'Length;
+         num_tabs : Natural := (40 - labellen) / 8;
+         extratab : String (1 .. num_tabs + 1) := (others => LAT.HT);
+      begin
+         TIO.Put ("      " & thelabel & LAT.Equals_Sign & extratab);
+         vec.Iterate (Process => print_item'Access);
+      end print_opt_vector;
+
       procedure print_vector_list (thelabel : String; thelist : spec_field)
       is
          labellen : Natural := thelabel'Length;
@@ -1227,6 +1287,7 @@ package body Port_Specification is
             when sp_ext_head         => specs.extract_head.Iterate (Process => dump'Access);
             when sp_ext_tail         => specs.extract_tail.Iterate (Process => dump'Access);
             when sp_makefile_targets => specs.make_targets.Iterate (Process => dump_target'Access);
+            when sp_opt_helper       => specs.ops_helpers.Iterate (Process => dump_option'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -1300,6 +1361,7 @@ package body Port_Specification is
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
+      print_group_list  ("OPTION HELPERS", sp_opt_helper);
 
       print_single      ("DISTNAME", sp_distname);
       print_vector_list ("EXTRACT_ONLY", sp_ext_only);

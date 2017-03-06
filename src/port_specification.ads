@@ -27,7 +27,7 @@ package Port_Specification is
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
-                       sp_opt_level, sp_options_on, sp_broken);
+                       sp_opt_level, sp_options_on, sp_broken, sp_opt_helper);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -150,6 +150,7 @@ private
 
    type Option_Helper is
       record
+         option_name           : HT.Text;
          currently_set_ON      : Boolean;
          set_ON_by_default     : Boolean;
          BROKEN_ON             : HT.Text;
