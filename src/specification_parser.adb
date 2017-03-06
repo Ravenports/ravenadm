@@ -246,9 +246,10 @@ package body Specification_Parser is
                              UTL.valid_lower_opsys (tkey) or else
                              UTL.valid_cpu_arch (tkey)
                            then
-                              build_group_list (field => PSP.sp_broken,
-                                                key   => tkey,
-                                                value => tvalue);
+                              specification.append_array (field        => PSP.sp_broken,
+                                                          key          => tkey,
+                                                          value        => tvalue,
+                                                          allow_spaces => True);
                            else
                               last_parse_error :=
                                 HT.SUS (LN & "group '" & tkey &

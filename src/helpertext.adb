@@ -433,4 +433,21 @@ package body HelperText is
    end count_char;
 
 
+   --------------------------------------------------------------------------------------------
+   --  partial_search
+   --------------------------------------------------------------------------------------------
+   function partial_search
+     (fullstr    : String;
+      offset     : Natural;
+      end_marker : String) return String
+   is
+      marker : Natural := AS.Fixed.Index (Source => fullstr, Pattern => end_marker);
+   begin
+      if marker = 0 then
+         return "";
+      end if;
+      return fullstr (fullstr'First + offset .. marker - 1);
+   end partial_search;
+
+
 end HelperText;

@@ -45,6 +45,7 @@ package body Port_Specification.Makefile is
       procedure dump_standard_target (target : String);
       procedure dump_opsys_target    (target : String);
       procedure dump_option_target   (target : String);
+      procedure dump_broken;
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -290,6 +291,129 @@ package body Port_Specification.Makefile is
          end if;
       end dump_option_target;
 
+      procedure dump_broken
+      is
+         procedure precheck (position : list_crate.Cursor);
+         procedure check    (position : list_crate.Cursor);
+
+         num_reasons : Natural := 0;
+         curnum      : Natural := 1;
+         cpu_ia64    : constant String := UTL.cpu_arch (x86_64) & "_";
+         cpu_ia32    : constant String := UTL.cpu_arch (i386) & "_";
+         cpu_armv8   : constant String := UTL.cpu_arch (aarch64) & "_";
+         separator   : constant String := ": ";
+         varname     : constant String := "BROKEN=";
+
+         procedure precheck (position : list_crate.Cursor)
+         is
+            procedure precheck_list (position : string_crate.Cursor);
+
+            broken_Key : String := HT.USS (list_crate.Element (position).group);
+
+            procedure precheck_list (position : string_crate.Cursor)
+            is
+               reason : String := HT.USS (string_crate.Element (position));
+               used  : Boolean := False;
+            begin
+               if broken_Key = broken_all or else
+                 broken_Key = UTL.cpu_arch (arch_standard)
+               then
+                  used := True;
+               elsif broken_Key = UTL.lower_opsys (opsys) then
+                  if HT.leads (reason, "REL_") then
+                     used := (HT.partial_search (reason, 4, separator) = osmajor);
+                  elsif HT.leads (reason, "GTE_") then
+                     used := GTE (gen_opsys  => opsys,
+                                  gen_major  => osmajor,
+                                  spec_major => HT.partial_search (reason, 4, separator));
+                  elsif HT.leads (reason, "LTE_") then
+                     used := LTE (gen_opsys  => opsys,
+                                  gen_major  => osmajor,
+                                  spec_major => HT.partial_search (reason, 4, separator));
+                  elsif HT.leads (reason, cpu_ia64) then
+                     used := (HT.partial_search (reason, cpu_ia64'Length, separator) = osmajor);
+                  elsif HT.leads (reason, cpu_ia32) then
+                     used := (HT.partial_search (reason, cpu_ia32'Length, separator) = osmajor);
+                  elsif HT.leads (reason, cpu_armv8) then
+                     used := (HT.partial_search (reason, cpu_armv8'Length, separator) = osmajor);
+                  else
+                     used := True;
+                  end if;
+               end if;
+               if used then
+                  num_reasons := num_reasons + 1;
+               end if;
+            end precheck_list;
+         begin
+            list_crate.Element (position).list.Iterate (Process => precheck_list'Access);
+         end precheck;
+
+         procedure check (position : list_crate.Cursor)
+         is
+            procedure check_list (position : string_crate.Cursor);
+
+            broken_Key : String := HT.USS (list_crate.Element (position).group);
+            use_prefix : Boolean := (num_reasons > 1);
+
+            procedure check_list (position : string_crate.Cursor)
+            is
+               reason     : String  := HT.USS (string_crate.Element (position));
+               used       : Boolean := False;
+            begin
+               if broken_Key = broken_all or else
+                 broken_Key = UTL.cpu_arch (arch_standard)
+               then
+                  used := True;
+               elsif broken_Key = UTL.lower_opsys (opsys) then
+                  if HT.leads (reason, "REL_") then
+                     used := (HT.partial_search (reason, 4, separator) = osmajor);
+                  elsif HT.leads (reason, "GTE_") then
+                     used := GTE (gen_opsys  => opsys,
+                                  gen_major  => osmajor,
+                                  spec_major => HT.partial_search (reason, 4, separator));
+                  elsif HT.leads (reason, "LTE_") then
+                     used := LTE (gen_opsys  => opsys,
+                                  gen_major  => osmajor,
+                                  spec_major => HT.partial_search (reason, 4, separator));
+                  elsif HT.leads (reason, cpu_ia64) then
+                     used := (HT.partial_search (reason, cpu_ia64'Length, separator) = osmajor);
+                  elsif HT.leads (reason, cpu_ia32) then
+                     used := (HT.partial_search (reason, cpu_ia32'Length, separator) = osmajor);
+                  elsif HT.leads (reason, cpu_armv8) then
+                     used := (HT.partial_search (reason, cpu_armv8'Length, separator) = osmajor);
+                  else
+                     used := True;
+                  end if;
+               end if;
+
+               if used then
+                  if use_prefix then
+                     send ("[Reason " & HT.int2str (curnum) & "] ", True);
+                  end if;
+                  if curnum = num_reasons then
+                     send (reason);
+                  else
+                     send (reason & " \");
+                  end if;
+                  curnum := curnum + 1;
+               end if;
+            end check_list;
+         begin
+            list_crate.Element (position).list.Iterate (Process => check_list'Access);
+         end check;
+
+      begin
+         specs.broken.Iterate (Process => precheck'Access);
+         if num_reasons > 0 then
+            if num_reasons > 1 then
+               send (varname & "\");
+            else
+               send (varname, True);
+            end if;
+            specs.broken.Iterate (Process => check'Access);
+         end if;
+      end dump_broken;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -323,6 +447,7 @@ package body Port_Specification.Makefile is
       send ("LHA-EXTRACT",      specs.extract_lha, 5);
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
+      dump_broken;
       send ("NO_BUILD",         specs.skip_build, True);
       send ("NO_INSTALL",       specs.skip_install, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
@@ -389,6 +514,87 @@ package body Port_Specification.Makefile is
             TIO.Close (makefile_handle);
          end if;
    end generator;
+
+
+   --------------------------------------------------------------------------------------------
+   --  release_format
+   --------------------------------------------------------------------------------------------
+   function release_format (candidate : String) return Boolean
+   is
+      fullstop : Boolean := False;
+   begin
+      for X in candidate'Range loop
+         case candidate (X) is
+            when '.' =>
+               if fullstop then
+                  return False;
+               end if;
+               if X = candidate'First or else
+                 X = candidate'Last
+               then
+                  return False;
+               end if;
+               fullstop := True;
+            when '0' .. '9' => null;
+            when others     => return False;
+         end case;
+      end loop;
+      return True;
+   end release_format;
+
+
+   --------------------------------------------------------------------------------------------
+   --  centurian_release
+   --------------------------------------------------------------------------------------------
+   function centurian_release (release : String) return Natural
+   is
+      --  Requires release is validated by release_format()
+      X  : String := HT.part_1 (release, ".");
+      Y  : String := HT.part_2 (release, ".");
+      RX : Natural := Integer'Value (X) * 100;
+      RY : Natural := 0;
+   begin
+      if Y = "" then
+        RY := Integer'Value (Y);
+      end if;
+      return (RX + RY);
+   end centurian_release;
+
+
+   --------------------------------------------------------------------------------------------
+   --  LTE
+   --------------------------------------------------------------------------------------------
+   function LTE (gen_opsys : supported_opsys; gen_major, spec_major : String) return Boolean
+   is
+      GR : Natural := 999900;
+      SR : Natural := 0;
+   begin
+      if release_format (gen_major) then
+         GR := centurian_release (gen_major);
+      end if;
+      if release_format (spec_major) then
+         SR := centurian_release (spec_major);
+      end if;
+      return (GR <= SR);
+   end LTE;
+
+
+   --------------------------------------------------------------------------------------------
+   --  GTE
+   --------------------------------------------------------------------------------------------
+   function GTE (gen_opsys : supported_opsys; gen_major, spec_major : String) return Boolean
+   is
+      GR : Natural := 0;
+      SR : Natural := 999900;
+   begin
+      if release_format (gen_major) then
+         GR := centurian_release (gen_major);
+      end if;
+      if release_format (spec_major) then
+         SR := centurian_release (spec_major);
+      end if;
+      return (GR >= SR);
+   end GTE;
 
 
 end Port_Specification.Makefile;

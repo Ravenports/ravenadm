@@ -96,6 +96,12 @@ package HelperText is
    --  Returns number of instances of a given character in a given string
    function count_char (S : String; focus : Character) return Natural;
 
+   --  Returns string that is 'First + offset to index(end_marker) - 1
+   function partial_search
+     (fullstr    : String;
+      offset     : Natural;
+      end_marker : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);

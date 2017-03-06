@@ -27,4 +27,16 @@ package Port_Specification.Makefile is
       output_file   : String
      );
 
+private
+
+   --  Implement less-than and greater-than OS Major comparision
+   function LTE (gen_opsys : supported_opsys; gen_major, spec_major : String) return Boolean;
+   function GTE (gen_opsys : supported_opsys; gen_major, spec_major : String) return Boolean;
+
+   --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
+   function release_format (candidate : String) return Boolean;
+
+   --  Given X, X.Y or X.YY, returns X*100, X*100+Y or X*100+YY
+   function centurian_release (release : String) return Natural;
+
 end Port_Specification.Makefile;
