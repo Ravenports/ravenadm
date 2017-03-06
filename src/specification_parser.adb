@@ -228,11 +228,25 @@ package body Specification_Parser is
                                                        value        => tvalue,
                                                        allow_spaces => True);
                         when option_on =>
-                           if tkey = "all" or else
+                           if tkey = options_all or else
                              UTL.valid_lower_opsys (tkey) or else
                              UTL.valid_cpu_arch (tkey)
                            then
                               build_group_list (field => PSP.sp_options_on,
+                                                key   => tkey,
+                                                value => tvalue);
+                           else
+                              last_parse_error :=
+                                HT.SUS (LN & "group '" & tkey &
+                                          "' is not valid (all, <opsys>, <arch>)");
+                              exit;
+                           end if;
+                        when broken =>
+                           if tkey = broken_all or else
+                             UTL.valid_lower_opsys (tkey) or else
+                             UTL.valid_cpu_arch (tkey)
+                           then
+                              build_group_list (field => PSP.sp_broken,
                                                 key   => tkey,
                                                 value => tvalue);
                            else
@@ -638,7 +652,7 @@ package body Specification_Parser is
    is
       function known (index : Positive) return Boolean;
 
-      total_arrays : constant Positive := 9;
+      total_arrays : constant Positive := 10;
 
       type array_pair is
          record
@@ -650,6 +664,7 @@ package body Specification_Parser is
       --  Keep in alphabetical order for future conversion to binary search
       all_arrays : constant array (1 .. total_arrays) of array_pair :=
         (
+         ("BROKEN      ",  6, broken),
          ("DEF         ",  3, def),
          ("DISTFILE    ",  8, distfile),
          ("EXTRACT_HEAD", 12, ext_head),

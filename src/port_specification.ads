@@ -27,7 +27,7 @@ package Port_Specification is
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
-                       sp_opt_level, sp_options_on);
+                       sp_opt_level, sp_options_on, sp_broken);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -169,6 +169,7 @@ private
          last_set      : spec_order;
          variantopts   : list_crate.Map;
          options_on    : list_crate.Map;
+         broken        : list_crate.Map;
          exc_opsys     : string_crate.Vector;
          inc_opsys     : string_crate.Vector;
          exc_arch      : string_crate.Vector;

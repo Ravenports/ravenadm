@@ -35,6 +35,7 @@ package body Port_Specification is
       specs.ops_standard.Clear;
       specs.variantopts.Clear;
       specs.options_on.Clear;
+      specs.broken.Clear;
       specs.exc_opsys.Clear;
       specs.inc_opsys.Clear;
       specs.exc_arch.Clear;
@@ -485,6 +486,8 @@ package body Port_Specification is
             specs.make_targets.Insert (text_group, initial_rec);
          when sp_options_on =>
             specs.options_on.Insert (text_group, initial_rec);
+         when sp_broken =>
+            specs.broken.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -650,6 +653,14 @@ package body Port_Specification is
             end if;
             specs.options_on.Update_Element (Position => specs.options_on.Find (text_key),
                                              Process  => grow'Access);
+         when sp_broken =>
+            verify_entry_is_post_options;
+            if not specs.broken.Contains (text_key) then
+               --  Group already validated, so create if it dosn't exist
+               specs.establish_group (sp_broken, key);
+            end if;
+            specs.broken.Update_Element (Position => specs.broken.Find (text_key),
+                                         Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1210,6 +1221,7 @@ package body Port_Specification is
          case thelist is
             when sp_vopts            => specs.variantopts.Iterate (Process => dump'Access);
             when sp_options_on       => specs.options_on.Iterate (Process => dump'Access);
+            when sp_broken           => specs.broken.Iterate (Process => dump'Access);
             when sp_subpackages      => specs.subpackages.Iterate (Process => dump'Access);
             when sp_dl_sites         => specs.dl_sites.Iterate (Process => dump'Access);
             when sp_ext_head         => specs.extract_head.Iterate (Process => dump'Access);
@@ -1284,6 +1296,7 @@ package body Port_Specification is
       print_vector_list ("OPTIONS_STANDARD", sp_opts_standard);
       print_group_list  ("VOPTS", sp_subpackages);
       print_group_list  ("OPT_ON", sp_options_on);
+      print_group_list  ("BROKEN", sp_broken);
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
