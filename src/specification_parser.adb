@@ -304,6 +304,19 @@ package body Specification_Parser is
                      when cxxflags     => build_list (PSP.sp_cxxflags, line);
                      when cppflags     => build_list (PSP.sp_cppflags, line);
                      when ldflags      => build_list (PSP.sp_ldflags, line);
+                     when patchfiles   => build_list (PSP.sp_patchfiles, line);
+                     when uses         => build_list (PSP.sp_uses, line);
+                     when sub_files    => build_list (PSP.sp_sub_files, line);
+                     when sub_list     => build_list (PSP.sp_sub_list, line);
+                     when config_args  => build_list (PSP.sp_config_args, line);
+                     when config_env   => build_list (PSP.sp_config_env, line);
+                     when build_deps   => build_list (PSP.sp_build_deps, line);
+                     when lib_deps     => build_list (PSP.sp_lib_deps, line);
+                     when run_deps     => build_list (PSP.sp_run_deps, line);
+                     when cmake_args   => build_list (PSP.sp_cmake_args, line);
+                     when qmake_args   => build_list (PSP.sp_qmake_args, line);
+                     when info         => build_list (PSP.sp_info, line);
+                     when install_tgt  => build_list (PSP.sp_install_tgt, line);
                      when not_singlet  => null;
                   end case;
                   last_singlet := line_singlet;
@@ -707,7 +720,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 37;
+      total_singlets : constant Positive := 50;
 
       type singlet_pair is
          record
@@ -719,9 +732,13 @@ package body Specification_Parser is
       --  It is critical that this list be alphabetized correctly.
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
+         ("BUILD_DEPENDS         ", 13, build_deps),
          ("BUILD_TARGET          ", 12, build_target),
          ("BUILD_WRKSRC          ", 12, build_wrksrc),
          ("CFLAGS                ",  6, cflags),
+         ("CMAKE_ARGS            ", 10, cmake_args),
+         ("CONFIGURE_ARGS        ", 14, config_args),
+         ("CONFIGURE_ENV         ", 13, config_env),
          ("CONTACT               ",  7, contacts),
          ("CPPFLAGS              ",  8, cppflags),
          ("CXXFLAGS              ",  8, cxxflags),
@@ -738,8 +755,11 @@ package body Specification_Parser is
          ("EXTRACT_WITH_LHA      ", 16, ext_lha),
          ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
          ("HOMEPAGE              ",  8, homepage),
+         ("INFO                  ",  4, info),
+         ("INSTALL_TARGET        ", 14, install_tgt),
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
+         ("LIB_DEPENDS           ", 11, lib_deps),
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
@@ -750,10 +770,16 @@ package body Specification_Parser is
          ("OPTIMIZER_LEVEL       ", 15, opt_level),
          ("OPTIONS_AVAILABLE     ", 17, opt_avail),
          ("OPTIONS_STANDARD      ", 16, opt_standard),
+         ("PATCHFILES            ", 10, patchfiles),
+         ("QMAKE_ARGS            ", 10, qmake_args),
          ("REVISION              ",  8, revision),
+         ("RUN_DEPENDS           ", 11, run_deps),
          ("SINGLE_JOB            ", 10, single_job),
          ("SKIP_BUILD            ", 10, skip_build),
          ("SKIP_INSTALL          ", 12, skip_install),
+         ("SUB_FILES             ",  9, sub_files),
+         ("SUB_LIST              ",  8, sub_list),
+         ("USES                  ",  4, uses),
          ("VARIANTS              ",  8, variants),
          ("VERSION               ",  7, version)
         );

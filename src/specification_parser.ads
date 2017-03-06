@@ -39,7 +39,10 @@ private
                          exc_opsys, inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha,
                          ext_dirty, distname, skip_build, single_job, destdir_env, build_wrksrc,
                          makefile, destdirname, make_args, make_env, build_target, cflags,
-                         cxxflags, cppflags, ldflags, homepage, skip_install, opt_level);
+                         cxxflags, cppflags, ldflags, homepage, skip_install, opt_level,
+                         patchfiles, uses, sub_list, sub_files, config_args, config_env,
+                         build_deps, lib_deps, run_deps, cmake_args, qmake_args, info,
+                         install_tgt);
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target);
 
