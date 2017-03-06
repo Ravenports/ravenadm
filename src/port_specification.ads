@@ -148,6 +148,57 @@ private
          Hash            => HT.hash,
          Equivalent_Keys => HT.equivalent);
 
+   type Option_Helper is
+      record
+         currently_set_ON      : Boolean;
+         set_ON_by_default     : Boolean;
+         BROKEN_ON             : HT.Text;
+         BUILD_DEPENDS_ON      : string_crate.Vector;
+         BUILD_TARGET_ON       : string_crate.Vector;
+         CFLAGS_ON             : string_crate.Vector;
+         CMAKE_ARGS_OFF        : string_crate.Vector;
+         CMAKE_ARGS_ON         : string_crate.Vector;
+         CMAKE_BOOL_T_BOTH     : string_crate.Vector;
+         CMAKE_BOOL_F_BOTH     : string_crate.Vector;
+         CONFIGURE_ARGS_ON     : string_crate.Vector;
+         CONFIGURE_ARGS_OFF    : string_crate.Vector;
+         CONFIGURE_ENABLE_BOTH : string_crate.Vector;
+         CONFIGURE_ENV_ON      : string_crate.Vector;
+         CONFIGURE_WITH_BOTH   : string_crate.Vector;
+         CPPFLAGS_ON           : string_crate.Vector;
+         DF_INDEX_ON           : string_crate.Vector;
+         EXTRA_PATCHES_ON      : string_crate.Vector;
+         EXTRACT_DEPENDS_ON    : string_crate.Vector;
+         EXTRACT_ONLY_ON       : string_crate.Vector;
+         GH_ACCOUNT_ON         : string_crate.Vector;
+         GH_PROJECT_ON         : string_crate.Vector;
+         GH_SUBDIR_ON          : string_crate.Vector;
+         GH_TUPLE_ON           : string_crate.Vector;
+         IMPLIES_ON            : string_crate.Vector;
+         INFO_ON               : string_crate.Vector;
+         INSTALL_TARGET        : string_crate.Vector;
+         KEYWORDS              : string_crate.Vector;
+         LDFLAGS               : string_crate.Vector;
+         LIB_DEPENDS_ON        : string_crate.Vector;
+         MAKE_ARGS_ON          : string_crate.Vector;
+         MAKE_ENV_ON           : string_crate.Vector;
+         PATCHFILES_ON         : string_crate.Vector;
+         PLIST_SUB_ON          : string_crate.Vector;
+         PREVENTS_ON           : string_crate.Vector;
+         QMAKE_OFF             : string_crate.Vector;
+         QMAKE_ON              : string_crate.Vector;
+         RUN_DEPENDS_ON        : string_crate.Vector;
+         SUB_FILES             : string_crate.Vector;
+         TEST_TARGET_ON        : string_crate.Vector;
+         USES                  : string_crate.Vector;
+      end record;
+
+   package option_crate is new CON.Hashed_Maps
+        (Key_Type        => HT.Text,
+         Element_Type    => Option_Helper,
+         Hash            => HT.hash,
+         Equivalent_Keys => HT.equivalent);
+
    type Portspecs is tagged
       record
          namebase      : HT.Text;
@@ -166,6 +217,7 @@ private
          subpackages   : list_crate.Map;
          ops_avail     : string_crate.Vector;
          ops_standard  : string_crate.Vector;
+         ops_helpers   : option_crate.Map;
          last_set      : spec_order;
          variantopts   : list_crate.Map;
          options_on    : list_crate.Map;
