@@ -27,7 +27,10 @@ package Port_Specification is
                        sp_destdir_env, sp_destdirname, sp_build_wrksrc, sp_makefile,
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
-                       sp_opt_level, sp_options_on, sp_broken, sp_opt_helper);
+                       sp_opt_level, sp_options_on, sp_broken, sp_opt_helper, sp_patchfiles,
+                       sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_env,
+                       sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
+                       sp_info, sp_install_tgt);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -169,7 +172,6 @@ private
          CPPFLAGS_ON           : string_crate.Vector;
          DF_INDEX_ON           : string_crate.Vector;
          EXTRA_PATCHES_ON      : string_crate.Vector;
-         EXTRACT_DEPENDS_ON    : string_crate.Vector;
          EXTRACT_ONLY_ON       : string_crate.Vector;
          GH_ACCOUNT_ON         : string_crate.Vector;
          GH_PROJECT_ON         : string_crate.Vector;
@@ -215,6 +217,7 @@ private
          distfiles     : string_crate.Vector;
          dist_subdir   : HT.Text;
          df_index      : string_crate.Vector;
+         patchfiles    : string_crate.Vector;
          subpackages   : list_crate.Map;
          ops_avail     : string_crate.Vector;
          ops_standard  : string_crate.Vector;
@@ -226,6 +229,9 @@ private
          exc_opsys     : string_crate.Vector;
          inc_opsys     : string_crate.Vector;
          exc_arch      : string_crate.Vector;
+         uses          : string_crate.Vector;
+         sub_list      : string_crate.Vector;
+         sub_files     : string_crate.Vector;
          extract_only  : string_crate.Vector;
          extract_zip   : string_crate.Vector;
          extract_lha   : string_crate.Vector;
@@ -235,6 +241,9 @@ private
          extract_tail  : list_crate.Map;
          distname      : HT.Text;
          --  configure placeholder
+         config_args   : string_crate.Vector;
+         config_env    : string_crate.Vector;
+
          skip_build    : Boolean;
          skip_install  : Boolean;
          destdir_env   : Boolean;
@@ -245,11 +254,18 @@ private
          make_env      : string_crate.Vector;
          make_args     : string_crate.Vector;
          build_target  : string_crate.Vector;
+         build_deps    : string_crate.Vector;
+         lib_deps      : string_crate.Vector;
+         run_deps      : string_crate.Vector;
          cflags        : string_crate.Vector;
          cxxflags      : string_crate.Vector;
          cppflags      : string_crate.Vector;
          ldflags       : string_crate.Vector;
          optimizer_lvl : Natural;
+         cmake_args    : string_crate.Vector;
+         qmake_args    : string_crate.Vector;
+         info          : string_crate.Vector;
+         install_tgt   : string_crate.Vector;
 
          make_targets  : list_crate.Map;
       end record;

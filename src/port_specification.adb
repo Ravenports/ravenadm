@@ -30,6 +30,7 @@ package body Port_Specification is
       specs.distfiles.Clear;
       specs.dist_subdir := HT.blank;
       specs.df_index.Clear;
+      specs.patchfiles.Clear;
       specs.subpackages.Clear;
       specs.ops_avail.Clear;
       specs.ops_standard.Clear;
@@ -40,6 +41,9 @@ package body Port_Specification is
       specs.exc_opsys.Clear;
       specs.inc_opsys.Clear;
       specs.exc_arch.Clear;
+      specs.uses.Clear;
+      specs.sub_list.Clear;
+      specs.sub_files.Clear;
       specs.extract_only.Clear;
       specs.extract_zip.Clear;
       specs.extract_lha.Clear;
@@ -48,6 +52,9 @@ package body Port_Specification is
       specs.extract_head.Clear;
       specs.extract_tail.Clear;
       specs.distname     := HT.blank;
+
+      specs.config_args.Clear;
+      specs.config_env.Clear;
 
       specs.skip_build   := False;
       specs.skip_install := False;
@@ -59,11 +66,18 @@ package body Port_Specification is
       specs.make_env.Clear;
       specs.make_args.Clear;
       specs.build_target.Clear;
+      specs.build_deps.Clear;
+      specs.lib_deps.Clear;
+      specs.run_deps.Clear;
       specs.cflags.Clear;
       specs.cxxflags.Clear;
       specs.cppflags.Clear;
       specs.ldflags.Clear;
       specs.optimizer_lvl := 2;
+      specs.cmake_args.Clear;
+      specs.qmake_args.Clear;
+      specs.info.Clear;
+      specs.install_tgt.Clear;
 
       specs.make_targets.Clear;
 
@@ -1202,7 +1216,6 @@ package body Port_Specification is
          print_opt_vector (rec.CPPFLAGS_ON, "CPPFLAGS_ON");
          print_opt_vector (rec.DF_INDEX_ON, "DF_INDEX_ON");
          print_opt_vector (rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
-         print_opt_vector (rec.EXTRACT_DEPENDS_ON, "EXTRACT_DEPENDS_ON");
          print_opt_vector (rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
          print_opt_vector (rec.GH_ACCOUNT_ON, "GH_ACCOUNT_ON");
          print_opt_vector (rec.GH_PROJECT_ON, "GH_PROJECT_ON");
@@ -1270,6 +1283,19 @@ package body Port_Specification is
             when sp_cxxflags      => specs.cxxflags.Iterate (Process => print_item'Access);
             when sp_cppflags      => specs.cppflags.Iterate (Process => print_item'Access);
             when sp_ldflags       => specs.ldflags.Iterate (Process => print_item'Access);
+            when sp_patchfiles    => specs.patchfiles.Iterate (Process => print_item'Access);
+            when sp_uses          => specs.uses.Iterate (Process => print_item'Access);
+            when sp_sub_list      => specs.sub_list.Iterate (Process => print_item'Access);
+            when sp_sub_files     => specs.sub_files.Iterate (Process => print_item'Access);
+            when sp_config_args   => specs.config_args.Iterate (Process => print_item'Access);
+            when sp_config_env    => specs.config_env.Iterate (Process => print_item'Access);
+            when sp_build_deps    => specs.build_deps.Iterate (Process => print_item'Access);
+            when sp_lib_deps      => specs.lib_deps.Iterate (Process => print_item'Access);
+            when sp_run_deps      => specs.run_deps.Iterate (Process => print_item'Access);
+            when sp_cmake_args    => specs.cmake_args.Iterate (Process => print_item'Access);
+            when sp_qmake_args    => specs.qmake_args.Iterate (Process => print_item'Access);
+            when sp_info          => specs.info.Iterate (Process => print_item'Access);
+            when sp_install_tgt   => specs.install_tgt.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -1352,6 +1378,7 @@ package body Port_Specification is
       print_vector_list ("DISTFILE", sp_distfiles);
       print_single      ("DIST_SUBDIR", sp_distsubdir);
       print_vector_list ("DF_INDEX", sp_df_index);
+      print_vector_list ("PATCHFILES", sp_patchfiles);
       print_group_list  ("SPKGS", sp_subpackages);
       print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);
       print_vector_list ("OPTIONS_STANDARD", sp_opts_standard);
@@ -1361,6 +1388,12 @@ package body Port_Specification is
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
+      print_vector_list ("BUILD_DEPENDS", sp_build_deps);
+      print_vector_list ("LIB_DEPENDS", sp_lib_deps);
+      print_vector_list ("RUN_DEPENDS", sp_run_deps);
+      print_vector_list ("USES", sp_uses);
+      print_vector_list ("SUB_LIST", sp_sub_list);
+      print_vector_list ("SUB_FILES", sp_sub_files);
       print_group_list  ("OPTION HELPERS", sp_opt_helper);
 
       print_single      ("DISTNAME", sp_distname);
@@ -1371,6 +1404,9 @@ package body Port_Specification is
       print_vector_list ("EXTRACT_DIRTY", sp_ext_dirty);
       print_group_list  ("EXTRACT_HEAD", sp_ext_head);
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
+
+      print_vector_list ("CONFIGURE_ARGS", sp_config_args);
+      print_vector_list ("CONFIGURE_ENV", sp_config_env);
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
       print_boolean     ("SKIP_INSTALL", sp_skip_install);
@@ -1387,6 +1423,10 @@ package body Port_Specification is
       print_vector_list ("CXXFLAGS", sp_cxxflags);
       print_vector_list ("CPPFLAGS", sp_cppflags);
       print_vector_list ("LDFLAGS", sp_ldflags);
+      print_vector_list ("CMAKE_ARGS", sp_cmake_args);
+      print_vector_list ("QMAKE_ARGS", sp_qmake_args);
+      print_vector_list ("INFO", sp_info);
+      print_vector_list ("INSTALL_TARGET", sp_install_tgt);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 
