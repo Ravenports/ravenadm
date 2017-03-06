@@ -660,95 +660,99 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_singlet (line : String) return spec_singlet
    is
-      function known (varname : String) return Boolean;
-      function known (varname : String) return Boolean
+      function nailed    (index : Natural) return Boolean;
+      function less_than (index : Natural) return Boolean;
+
+      total_singlets : constant Positive := 37;
+
+      type singlet_pair is
+         record
+            varname : String (1 .. 22);
+            len     : Natural;
+            singlet : spec_singlet;
+         end record;
+
+      --  It is critical that this list be alphabetized correctly.
+      all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
+        (
+         ("BUILD_TARGET          ", 12, build_target),
+         ("BUILD_WRKSRC          ", 12, build_wrksrc),
+         ("CFLAGS                ",  6, cflags),
+         ("CONTACT               ",  7, contacts),
+         ("CPPFLAGS              ",  8, cppflags),
+         ("CXXFLAGS              ",  8, cxxflags),
+         ("DESTDIRNAME           ", 11, destdirname),
+         ("DESTDIR_VIA_ENV       ", 15, destdir_env),
+         ("DF_INDEX              ",  8, df_index),
+         ("DISTNAME              ",  8, distname),
+         ("DIST_SUBDIR           ", 11, dist_subdir),
+         ("DOWNLOAD_GROUPS       ", 15, dl_groups),
+         ("EPOCH                 ",  5, epoch),
+         ("EXTRACT_DIRTY         ", 13, ext_dirty),
+         ("EXTRACT_ONLY          ", 12, ext_only),
+         ("EXTRACT_WITH_7Z       ", 15, ext_7z),
+         ("EXTRACT_WITH_LHA      ", 16, ext_lha),
+         ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
+         ("HOMEPAGE              ",  8, homepage),
+         ("KEYWORDS              ",  8, keywords),
+         ("LDFLAGS               ",  7, ldflags),
+         ("MAKEFILE              ",  8, makefile),
+         ("MAKE_ARGS             ",  9, make_args),
+         ("MAKE_ENV              ",  8, make_env),
+         ("NAMEBASE              ",  8, namebase),
+         ("NOT_FOR_ARCHES        ", 14, exc_arch),
+         ("NOT_FOR_OPSYS         ", 13, exc_opsys),
+         ("ONLY_FOR_OPSYS        ", 14, inc_opsys),
+         ("OPTIMIZER_LEVEL       ", 15, opt_level),
+         ("OPTIONS_AVAILABLE     ", 17, opt_avail),
+         ("OPTIONS_STANDARD      ", 16, opt_standard),
+         ("REVISION              ",  8, revision),
+         ("SINGLE_JOB            ", 10, single_job),
+         ("SKIP_BUILD            ", 10, skip_build),
+         ("SKIP_INSTALL          ", 12, skip_install),
+         ("VARIANTS              ",  8, variants),
+         ("VERSION               ",  7, version)
+        );
+
+      function nailed (index : Natural) return Boolean
       is
-         len : constant Natural := varname'Length;
+         len : Natural renames all_singlets (index).len;
+         apple : constant String  := all_singlets (index).varname (1 .. len) & LAT.Equals_Sign;
       begin
          return (line'Length > len + 2) and then
-           line (line'First .. line'First + len) = varname & "=";
-      end known;
+           line (line'First .. line'First + len) = apple;
+      end nailed;
+
+      function less_than (index : Natural) return Boolean
+      is
+         len : Natural renames all_singlets (index).len;
+         apple : constant String  := all_singlets (index).varname (1 .. len) & LAT.Equals_Sign;
+      begin
+         if line'Length > len + 2 then
+            return line (line'First .. line'First + len) < apple;
+         else
+            return line < apple;
+         end if;
+      end less_than;
+
+      Low  : Natural := all_singlets'First;
+      High : Natural := all_singlets'Last;
+      Mid  : Natural;
    begin
-      if not HT.contains (S => line, fragment => "=" & LAT.HT) then
-         return not_singlet;
-      end if;
-      if known ("NAMEBASE") then
-         return namebase;
-      elsif known ("VERSION") then
-         return version;
-      elsif known ("REVISION") then
-         return revision;
-      elsif known ("EPOCH") then
-         return epoch;
-      elsif known ("KEYWORDS") then
-         return keywords;
-      elsif known ("VARIANTS") then
-         return variants;
-      elsif known ("HOMEPAGE") then
-         return homepage;
-      elsif known ("CONTACT") then
-         return contacts;
-      elsif known ("DOWNLOAD_GROUPS") then
-         return dl_groups;
-      elsif known ("DIST_SUBDIR") then
-         return dist_subdir;
-      elsif known ("DF_INDEX") then
-         return df_index;
-      elsif known ("OPTIONS_AVAILABLE") then
-         return opt_avail;
-      elsif known ("OPTIONS_STANDARD") then
-         return opt_standard;
-      elsif known ("NOT_FOR_OPSYS") then
-         return exc_opsys;
-      elsif known ("ONLY_FOR_OPSYS") then
-         return inc_opsys;
-      elsif known ("NOT_FOR_ARCHES") then
-         return exc_arch;
-      elsif known ("EXTRACT_ONLY") then
-         return ext_only;
-      elsif known ("EXTRACT_WITH_UNZIP") then
-         return ext_zip;
-      elsif known ("EXTRACT_WITH_7Z") then
-         return ext_7z;
-      elsif known ("EXTRACT_WITH_LHA") then
-         return ext_lha;
-      elsif known ("EXTRACT_DIRTY") then
-         return ext_dirty;
-      elsif known ("DISTNAME") then
-         return distname;
-      elsif known ("SKIP_BUILD") then
-         return skip_build;
-      elsif known ("SKIP_INSTALL") then
-         return skip_install;
-      elsif known ("BUILD_WRKSRC") then
-         return build_wrksrc;
-      elsif known ("MAKEFILE") then
-         return makefile;
-      elsif known ("DESTDIRNAME") then
-         return destdirname;
-      elsif known ("DESTDIR_VIA_ENV") then
-         return destdir_env;
-      elsif known ("MAKE_ARGS") then
-         return make_args;
-      elsif known ("MAKE_ENV") then
-         return make_env;
-      elsif known ("BUILD_TARGET") then
-         return build_target;
-      elsif known ("SINGLE_JOB") then
-         return single_job;
-      elsif known ("CFLAGS") then
-         return cflags;
-      elsif known ("CXXFLAGS") then
-         return cxxflags;
-      elsif known ("CPPFLAGS") then
-         return cppflags;
-      elsif known ("LDFLAGS") then
-         return ldflags;
-      elsif known ("OPTIMIZER_LEVEL") then
-         return opt_level;
-      else
-         return not_singlet;
-      end if;
+      loop
+         Mid := (Low + High) / 2;
+         if nailed (Mid) then
+            return  all_singlets (Mid).singlet;
+         elsif less_than (Mid) then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return not_singlet;
+
    end determine_singlet;
 
 
