@@ -58,6 +58,7 @@ package body Port_Specification is
       specs.cxxflags.Clear;
       specs.cppflags.Clear;
       specs.ldflags.Clear;
+      specs.optimizer_lvl := 2;
 
       specs.make_targets.Clear;
 
@@ -640,6 +641,13 @@ package body Port_Specification is
      (specs : in out Portspecs;
       field : spec_field;
       value : Natural) is
+      procedure verify_entry_is_post_options;
+      procedure verify_entry_is_post_options is
+      begin
+         if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_std) then
+            raise misordered with field'Img;
+         end if;
+      end verify_entry_is_post_options;
    begin
       case field is
          when sp_revision =>
@@ -656,6 +664,12 @@ package body Port_Specification is
             end if;
             specs.epoch := value;
             specs.last_set := so_epoch;
+         when sp_opt_level =>
+            verify_entry_is_post_options;
+            if value > 3 then
+               raise wrong_value with "OPTIMIZER_LEVEL is limited to 3";
+            end if;
+            specs.optimizer_lvl := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1120,6 +1134,7 @@ package body Port_Specification is
             when sp_version      => TIO.Put_Line (HT.USS (specs.version));
             when sp_revision     => TIO.Put_Line (HT.int2str (specs.revision));
             when sp_epoch        => TIO.Put_Line (HT.int2str (specs.epoch));
+            when sp_opt_level    => TIO.Put_Line (HT.int2str (specs.optimizer_lvl));
             when sp_distsubdir   => TIO.Put_Line (HT.USS (specs.dist_subdir));
             when sp_distname     => TIO.Put_Line (HT.USS (specs.distname));
             when sp_build_wrksrc => TIO.Put_Line (HT.USS (specs.build_wrksrc));
@@ -1191,6 +1206,7 @@ package body Port_Specification is
       print_vector_list ("MAKE_ARGS", sp_make_args);
       print_vector_list ("MAKE_ENV", sp_make_env);
       print_vector_list ("BUILD_TARGET", sp_build_target);
+      print_single      ("OPTIMIZER_LEVEL", sp_opt_level);
       print_vector_list ("CFLAGS", sp_cflags);
       print_vector_list ("CXXFLAGS", sp_cxxflags);
       print_vector_list ("CPPFLAGS", sp_cppflags);

@@ -332,6 +332,7 @@ package body Port_Specification.Makefile is
       send ("MAKEFILE",         specs.makefile);
       send ("MAKE_ENV",         specs.make_env);
       send ("MAKE_ARGS",        specs.make_args);
+      send ("OPTIMIZER_LEVEL",  specs.optimizer_lvl, 2);
       send ("CFLAGS",           specs.cflags);
       send ("CXXFLAGS",         specs.cxxflags);
       send ("CPPFLAGS",         specs.cppflags);

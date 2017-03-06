@@ -247,6 +247,7 @@ package body Specification_Parser is
                      when homepage     => build_string (PSP.sp_homepage, line);
                      when revision     => set_natural (PSP.sp_revision, line);
                      when epoch        => set_natural (PSP.sp_epoch, line);
+                     when opt_level    => set_natural (PSP.sp_opt_level, line);
                      when skip_build   => set_boolean (PSP.sp_skip_build, line);
                      when skip_install => set_boolean (PSP.sp_skip_install, line);
                      when single_job   => set_boolean (PSP.sp_single_job, line);
@@ -743,6 +744,8 @@ package body Specification_Parser is
          return cppflags;
       elsif known ("LDFLAGS") then
          return ldflags;
+      elsif known ("OPTIMIZER_LEVEL") then
+         return opt_level;
       else
          return not_singlet;
       end if;
