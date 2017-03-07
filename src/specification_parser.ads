@@ -54,6 +54,7 @@ private
    bad_modifier       : exception;
    expansion_too_long : exception;
    mistabbed          : exception;
+   mistabbed_40       : exception;
    integer_expected   : exception;
    extra_spaces       : exception;
    duplicate_key      : exception;
@@ -82,8 +83,8 @@ private
    function determine_option (line : String) return PSP.spec_option;
 
    --  Returns empty string if it's not a recognized option, otherwise it returns
-   --  The option name.
-   function extract_option_name (line : String) return String;
+   --  The option name.  If 5-tabs detected, return previous name (given).
+   function extract_option_name (line : String; last_name : HT.Text) return String;
 
    --  If the line represents the makefile target definition or it's following body,
    --  return which one, otherwise return "not_target".

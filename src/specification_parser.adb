@@ -38,6 +38,7 @@ package body Specification_Parser is
       last_seen     : type_category   := cat_none;
       last_df       : Integer := 0;
       last_index    : HT.Text;
+      last_optindex : HT.Text;
       seen_singlet  : array (spec_singlet)    of Boolean := (others => False);
       seen_helper   : array (PSP.spec_option) of Boolean := (others => False);
 
@@ -381,14 +382,17 @@ package body Specification_Parser is
 
                if line_option /= PSP.not_helper_format then
                   declare
-                     option_name : String := extract_option_name (line);
+                     option_name : String := extract_option_name (line, last_optindex);
                   begin
                      if option_name = "" then
-                        last_parse_error := HT.SUS (LN & "Valid helper, but option has never " &
-                                                      "been defined.");
+                        last_parse_error :=
+                          HT.SUS (LN & "Valid helper, but option has never been defined " &
+                                    "(also seen when continuation line doesn't start with " &
+                                    "5 tabs)");
                         exit;
                      end if;
                      build_list (line_option, option_name, line);
+                     last_optindex := HT.SUS (option_name);
                   end;
                   last_option := line_option;
                   last_seen   := cat_option;
@@ -439,6 +443,10 @@ package body Specification_Parser is
                when FD : PSP.dupe_list_value =>
                   last_parse_error := HT.SUS (LN & "list item '" & EX.Exception_Message (FD) &
                                                 "' is duplicate.");
+                  exit;
+               when FE : mistabbed_40 =>
+                  last_parse_error :=
+                    HT.SUS (LN & "option value not aligned to column-40 (tab issue)");
                   exit;
             end;
             <<line_done>>
@@ -1412,13 +1420,21 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  extract_option_name
    --------------------------------------------------------------------------------------------
-   function extract_option_name (line : String) return String
+   function extract_option_name (line : String; last_name : HT.Text) return String
    is
       --  Already known: first character = "]" and there's "]." present
       candidate : String := HT.partial_search (fullstr    => line,
                                                offset     => 1,
                                                end_marker => "].");
+      tabs5 : String (1 .. 5) := (others => LAT.HT);
    begin
+      if candidate = "" and then
+        line'Length > 5 and then
+        line (line'First .. line'First + 4) = tabs5
+      then
+         return HT.USS (last_name);
+      end if;
+
       if specification.option_exists (candidate) then
          return candidate;
       else
@@ -1524,7 +1540,7 @@ package body Specification_Parser is
          end if;
       end if;
       if c81624 > 40 then
-         raise mistabbed;
+         raise mistabbed_40;
       end if;
       declare
          rest : constant String := wrkstr (equals + 2 .. wrkstr'Last);
@@ -1543,7 +1559,7 @@ package body Specification_Parser is
            ((c81624 = 32) and then (contig_tabs /= 1)) or else
            ((c81624 = 40) and then (contig_tabs /= 0))
          then
-            raise mistabbed;
+            raise mistabbed_40;
          end if;
          return expand_value (rest (rest'First + contig_tabs .. rest'Last));
       end;

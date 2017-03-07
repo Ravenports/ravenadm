@@ -328,6 +328,12 @@ package body Port_Specification is
             end if;
             specs.ops_avail.Append (text_value);
             specs.last_set := so_opts_avail;
+            declare
+               initial_rec : Option_Helper;
+            begin
+               initial_rec.option_name := text_value;
+               specs.ops_helpers.Insert (text_value, initial_rec);
+            end;
          when sp_opts_standard =>
             if specs.last_set /= so_opts_std and then
               specs.last_set /= so_opts_avail
@@ -761,7 +767,7 @@ package body Port_Specification is
       option_text  : HT.Text := HT.SUS (option);
       value_text   : HT.Text := HT.SUS (value);
       mycursor     : option_crate.Cursor;
-      allow_spaces : Boolean
+      allow_spaces : Boolean;
 
       procedure Change (Key : HT.Text; Element : in out Option_Helper) is
       begin
@@ -857,12 +863,11 @@ package body Port_Specification is
          raise misordered with field'Img;
       end if;
       case field is
-         when build_target_on | build_target_on | build_target_on | cmake_bool_f_both |
-              cmake_bool_t_both | configure_enable_both | configure_with_both | df_index_on |
-              extra_patches_on | extract_only | gh_subdir_on | gh_project_on | gh_account_on |
-              gh_tagname_on | gh_tuple_on | implies_on | info_on | install_target_on |
-              keywords_on  | lib_depends_on | patchfiles_on | prevents_on | run_depends_on |
-              sub_files_on | test_target_on | uses_on =>
+         when build_target_on | cmake_bool_f_both | cmake_bool_t_both | configure_enable_both |
+              configure_with_both | df_index_on | extra_patches_on | extract_only | gh_subdir_on |
+              gh_project_on | gh_account_on | gh_tagname_on | gh_tuple_on | implies_on | info_on |
+              install_target_on | keywords_on  | lib_depends_on | patchfiles_on | prevents_on |
+              run_depends_on | sub_files_on | test_target_on | uses_on =>
             allow_spaces := False;
          when others =>
             allow_spaces := True;
@@ -1451,6 +1456,7 @@ package body Port_Specification is
       begin
          TIO.Put ("      " & thelabel & LAT.Equals_Sign & extratab);
          vec.Iterate (Process => print_item'Access);
+         TIO.Put (LAT.LF);
       end print_opt_vector;
 
       procedure print_vector_list (thelabel : String; thelist : spec_field)
