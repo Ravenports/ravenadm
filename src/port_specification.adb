@@ -1185,74 +1185,109 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
-   function keyword_is_valid (keyword : String) return Boolean is
+   function keyword_is_valid (keyword : String) return Boolean
+   is
+      total_keywords : constant Positive := 66;
+
+      subtype keyword_string is String (1 .. 13);
+
+      --  It is critical that this list be alphabetized correctly.
+      all_keywords : constant array (1 .. total_keywords) of keyword_string :=
+        (
+         "accessibility",
+         "ada          ",
+         "arabic       ",
+         "archivers    ",
+         "astro        ",
+         "audio        ",
+         "benchmarks   ",
+         "biology      ",
+         "c++          ",
+         "cad          ",
+         "chinese      ",
+         "comms        ",
+         "converters   ",
+         "csharp       ",
+         "databases    ",
+         "deskutils    ",
+         "devel        ",
+         "dns          ",
+         "editors      ",
+         "emulators    ",
+         "finance      ",
+         "french       ",
+         "ftp          ",
+         "games        ",
+         "german       ",
+         "graphics     ",
+         "irc          ",
+         "italian      ",
+         "japanese     ",
+         "java         ",
+         "javascript   ",
+         "lang         ",
+         "lisp         ",
+         "mail         ",
+         "math         ",
+         "misc         ",
+         "multimedia   ",
+         "net          ",
+         "net_im       ",
+         "net_mgmt     ",
+         "net_p2p      ",
+         "news         ",
+         "perl         ",
+         "php          ",
+         "print        ",
+         "python       ",
+         "raven        ",
+         "ruby         ",
+         "russian      ",
+         "scheme       ",
+         "science      ",
+         "security     ",
+         "shells       ",
+         "spanish      ",
+         "sysutils     ",
+         "textproc     ",
+         "vietnamese   ",
+         "www          ",
+         "x11          ",
+         "x11_clocks   ",
+         "x11_drivers  ",
+         "x11_fm       ",
+         "x11_fonts    ",
+         "x11_servers  ",
+         "x11_toolkits ",
+         "x11_wm       "
+        );
+
+      testword_len : constant Natural := keyword'Length;
+      bandolier    : keyword_string := (others => LAT.Space);
+      Low          : Natural := all_keywords'First;
+      High         : Natural := all_keywords'Last;
+      Mid          : Natural;
+
    begin
-      return (keyword = "accessibility" or else
-              keyword = "archivers" or else
-              keyword = "astro" or else
-              keyword = "audio" or else
-              keyword = "benchmarks" or else
-              keyword = "biology" or else
-              keyword = "cad" or else
-              keyword = "comms" or else
-              keyword = "converters" or else
-              keyword = "databases" or else
-              keyword = "deskutils" or else
-              keyword = "devel" or else
-              keyword = "dns" or else
-              keyword = "editors" or else
-              keyword = "emulators" or else
-              keyword = "finance" or else
-              keyword = "ftp" or else
-              keyword = "games" or else
-              keyword = "graphics" or else
-              keyword = "irc" or else
-              keyword = "lang" or else
-              keyword = "mail" or else
-              keyword = "math" or else
-              keyword = "misc" or else
-              keyword = "multimedia" or else
-              keyword = "net" or else
-              keyword = "net_im" or else
-              keyword = "net_mgmt" or else
-              keyword = "net_p2p" or else
-              keyword = "news" or else
-              keyword = "print" or else
-              keyword = "raven" or else
-              keyword = "science" or else
-              keyword = "security" or else
-              keyword = "shells" or else
-              keyword = "sysutils" or else
-              keyword = "textproc" or else
-              keyword = "www" or else
-              keyword = "x11" or else
-              keyword = "x11_clocks" or else
-              keyword = "x11_drivers" or else
-              keyword = "x11_fm" or else
-              keyword = "x11_fonts" or else
-              keyword = "x11_servers" or else
-              keyword = "x11_toolkits" or else
-              keyword = "x11_wm" or else
-              keyword = "ada" or else
-              keyword = "c++" or else
-              keyword = "csharp" or else
-              keyword = "java" or else
-              keyword = "javascript" or else
-              keyword = "lisp" or else
-              keyword = "perl" or else
-              keyword = "php" or else
-              keyword = "python" or else
-              keyword = "ruby" or else
-              keyword = "scheme" or else
-              keyword = "Arabic" or else
-              keyword = "Chinese" or else
-              keyword = "French" or else
-              keyword = "German" or else
-              keyword = "Italian" or else
-              keyword = "Japanese" or else
-              keyword = "Russian" or else
-              keyword = "Spanish" or else
-              keyword = "Vietnamese");
+      if testword_len < 3 or else testword_len > keyword_string'Length then
+         return False;
+      end if;
+      bandolier (1 .. testword_len) := keyword;
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_keywords (Mid) then
+            return True;
+         elsif bandolier < all_keywords (Mid) then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return False;
+
    end keyword_is_valid;
 
 
