@@ -28,9 +28,10 @@ package Port_Specification is
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
                        sp_opt_level, sp_options_on, sp_broken, sp_opt_helper, sp_patchfiles,
-                       sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_env,
-                       sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
-                       sp_info, sp_install_tgt);
+                       sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_args_off,
+                       sp_config_env, sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args,
+                       sp_cmake_args_off, sp_qmake_args, sp_qmake_args_off, sp_info,
+                       sp_install_tgt);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -89,6 +90,18 @@ package Port_Specification is
      (specs : in out Portspecs;
       field : spec_field;
       group : String);
+
+   --  Generic function to populate option helper
+   --  Throws misordered exception if called before standard options
+   --  Throws contains spaces exception if spaces aren't permitted but found
+   --  Throws wrong_type exception if field isn't supported
+   --  Throws wrong_value exception if option doesn't exist (caller should check first)
+   procedure build_option_helper
+     (specs  : in out Portspecs;
+      field  : spec_field;
+      option : String;
+      value  : String;
+      allow_spaces : Boolean);
 
    --  Return True if provided variant is known
    function variant_exists (specs : Portspecs; variant : String) return Boolean;
@@ -191,7 +204,8 @@ private
          QMAKE_OFF             : string_crate.Vector;
          QMAKE_ON              : string_crate.Vector;
          RUN_DEPENDS_ON        : string_crate.Vector;
-         SUB_FILES             : string_crate.Vector;
+         SUB_FILES_ON          : string_crate.Vector;
+         SUB_LIST_ON           : string_crate.Vector;
          TEST_TARGET_ON        : string_crate.Vector;
          USES                  : string_crate.Vector;
       end record;

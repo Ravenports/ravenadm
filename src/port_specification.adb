@@ -748,6 +748,138 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  build_option_helper
+   --------------------------------------------------------------------------------------------
+   procedure build_option_helper
+     (specs  : in out Portspecs;
+      field  : spec_field;
+      option : String;
+      value  : String;
+      allow_spaces : Boolean)
+   is
+      procedure Change (Key : HT.Text; Element : in out Option_Helper);
+
+      option_text : HT.Text := HT.SUS (option);
+      value_text  : HT.Text := HT.SUS (value);
+      mycursor    : option_crate.Cursor;
+
+      procedure Change (Key : HT.Text; Element : in out Option_Helper) is
+      begin
+         case field is
+            when sp_broken =>
+               Element.BROKEN_ON := value_text;
+            when sp_build_deps =>
+               Element.BUILD_DEPENDS_ON.Append (value_text);
+            when sp_build_target =>
+               Element.BUILD_TARGET_ON.Append (value_text);
+            when sp_cflags =>
+               Element.CFLAGS_ON.Append (value_text);
+            when sp_cmake_args_off =>
+               Element.CMAKE_ARGS_OFF.Append (value_text);
+            when sp_cmake_args =>
+               Element.CMAKE_ARGS_ON.Append (value_text);
+               --  CMAKE_BOOL_T_BOTH
+               --  CMAKE_BOOL_F_BOTH
+            when sp_config_args_off =>
+               Element.CONFIGURE_ARGS_OFF.Append (value_text);
+            when sp_config_args =>
+               Element.CONFIGURE_ARGS_ON.Append (value_text);
+               --  CONFIGURE_ENABLE_BOTH
+            when sp_config_env =>
+               Element.CONFIGURE_ENV_ON.Append (value_text);
+               --  CONFIGURE_WITH_BOTH
+            when sp_cppflags =>
+               Element.CPPFLAGS_ON.Append (value_text);
+            when sp_df_index =>
+               Element.DF_INDEX_ON.Append (value_text);
+               --  EXTRA_PATCHES_ON
+            when sp_ext_only =>
+               Element.EXTRACT_ONLY_ON.Append (value_text);
+               --  GH_ACCOUNT_ON
+               --  GH_PROJECT_ON
+               --  GH_SUBDIR_ON
+               --  GH_TARGNAME_ON
+               --  GH_TUPLE_ON
+               --  IMPLIES_ON
+            when sp_info =>
+               Element.INFO_ON.Append (value_text);
+            when sp_install_tgt =>
+               Element.INSTALL_TARGET.Append (value_text);
+            when sp_keywords =>
+               Element.KEYWORDS.Append (value_text);
+            when sp_ldflags =>
+               Element.LDFLAGS.Append (value_text);
+            when sp_lib_deps =>
+               Element.LIB_DEPENDS_ON.Append (value_text);
+            when sp_make_args =>
+               Element.MAKE_ARGS_ON.Append (value_text);
+            when sp_make_env =>
+               Element.MAKE_ENV_ON.Append (value_text);
+            when sp_patchfiles =>
+               Element.PATCHFILES_ON.Append (value_text);
+               --  PLIST_SUB
+               --  PREVENTS_ON
+            when sp_qmake_args_off =>
+               Element.QMAKE_OFF.Append (value_text);
+            when sp_qmake_args =>
+               Element.QMAKE_ON.Append (value_text);
+            when sp_run_deps =>
+               Element.RUN_DEPENDS_ON.Append (value_text);
+            when sp_sub_files =>
+               Element.SUB_FILES_ON.Append (value_text);
+            when sp_sub_list =>
+               Element.SUB_LIST_ON.Append (value_text);
+               --  TEST_TARGET_ON
+            when sp_uses =>
+               Element.USES.Append (value_text);
+            when others => null;
+         end case;
+      end Change;
+   begin
+      if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_std) then
+         raise misordered with field'Img;
+      end if;
+      if not allow_spaces and then
+        HT.contains (S => value, fragment => " ")
+      then
+         raise contains_spaces;
+      end if;
+      if not specs.ops_helpers.Contains (option_text) then
+         raise wrong_value with "option '" & option & "' is not defined.";
+      end if;
+      mycursor := specs.ops_helpers.Find (Key => option_text);
+
+      --  validate first
+      case field is
+         when sp_broken |
+              sp_build_target | sp_cflags | sp_cmake_args_off | sp_cmake_args |
+              sp_config_args_off | sp_config_args | sp_config_env | sp_cppflags | sp_info |
+              sp_install_tgt | sp_make_args | sp_make_env | sp_patchfiles | sp_qmake_args  |
+              sp_qmake_args_off | sp_sub_files | sp_sub_list =>
+            --  No validation required
+            null;
+         when sp_build_deps | sp_lib_deps | sp_run_deps =>
+            null; --  TODO: Add validation
+         when sp_df_index | sp_ext_only =>
+            null; --  TODO: Add validation
+         when sp_keywords =>
+            if not keyword_is_valid (value) then
+               raise wrong_value with "Keyword '" & value & "' is not recognized";
+            end if;
+            if option_crate.Element (mycursor).KEYWORDS.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
+         when sp_uses =>
+            null; --  TODO: Add validation (needs uses_is_valid function I guess);
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+
+      specs.ops_helpers.Update_Element (Position => mycursor, Process => Change'Access);
+   end build_option_helper;
+
+
+   --------------------------------------------------------------------------------------------
    --  variant_exists
    --------------------------------------------------------------------------------------------
    function variant_exists (specs : Portspecs; variant : String) return Boolean is
@@ -1235,7 +1367,8 @@ package body Port_Specification is
          print_opt_vector (rec.QMAKE_OFF, "QMAKE_OFF");
          print_opt_vector (rec.QMAKE_ON, "QMAKE_ON");
          print_opt_vector (rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
-         print_opt_vector (rec.SUB_FILES, "SUB_FILES");
+         print_opt_vector (rec.SUB_FILES_ON, "SUB_FILES_ON");
+         print_opt_vector (rec.SUB_LIST_ON, "SUB_LIST_ON");
          print_opt_vector (rec.TEST_TARGET_ON, "TEST_TARGET_ON");
          print_opt_vector (rec.USES, "USES");
       end dump_option;
