@@ -752,93 +752,121 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    procedure build_option_helper
      (specs  : in out Portspecs;
-      field  : spec_field;
+      field  : spec_option;
       option : String;
-      value  : String;
-      allow_spaces : Boolean)
+      value  : String)
    is
       procedure Change (Key : HT.Text; Element : in out Option_Helper);
 
-      option_text : HT.Text := HT.SUS (option);
-      value_text  : HT.Text := HT.SUS (value);
-      mycursor    : option_crate.Cursor;
+      option_text  : HT.Text := HT.SUS (option);
+      value_text   : HT.Text := HT.SUS (value);
+      mycursor     : option_crate.Cursor;
+      allow_spaces : Boolean
 
       procedure Change (Key : HT.Text; Element : in out Option_Helper) is
       begin
          case field is
-            when sp_broken =>
+            when broken_on =>
                Element.BROKEN_ON := value_text;
-            when sp_build_deps =>
+            when build_depends_on =>
                Element.BUILD_DEPENDS_ON.Append (value_text);
-            when sp_build_target =>
+            when build_target_on =>
                Element.BUILD_TARGET_ON.Append (value_text);
-            when sp_cflags =>
+            when cflags_on =>
                Element.CFLAGS_ON.Append (value_text);
-            when sp_cmake_args_off =>
+            when cmake_args_off =>
                Element.CMAKE_ARGS_OFF.Append (value_text);
-            when sp_cmake_args =>
+            when cmake_args_on =>
                Element.CMAKE_ARGS_ON.Append (value_text);
-               --  CMAKE_BOOL_T_BOTH
-               --  CMAKE_BOOL_F_BOTH
-            when sp_config_args_off =>
+            when cmake_bool_f_both =>
+               Element.CMAKE_BOOL_F_BOTH.Append (value_text);
+            when cmake_bool_t_both =>
+               Element.CMAKE_BOOL_T_BOTH.Append (value_text);
+            when configure_args_off =>
                Element.CONFIGURE_ARGS_OFF.Append (value_text);
-            when sp_config_args =>
+            when configure_args_on =>
                Element.CONFIGURE_ARGS_ON.Append (value_text);
-               --  CONFIGURE_ENABLE_BOTH
-            when sp_config_env =>
+            when configure_enable_both =>
+               Element.CONFIGURE_ENABLE_BOTH.Append (value_text);
+            when configure_env_on =>
                Element.CONFIGURE_ENV_ON.Append (value_text);
-               --  CONFIGURE_WITH_BOTH
-            when sp_cppflags =>
+            when configure_with_both =>
+               Element.CONFIGURE_WITH_BOTH.Append (value_text);
+            when cppflags_on =>
                Element.CPPFLAGS_ON.Append (value_text);
-            when sp_df_index =>
+            when cxxflags_on =>
+               Element.CXXFLAGS_ON.Append (value_text);
+            when df_index_on =>
                Element.DF_INDEX_ON.Append (value_text);
-               --  EXTRA_PATCHES_ON
-            when sp_ext_only =>
+            when extra_patches_on =>
+               Element.EXTRA_PATCHES_ON.Append (value_text);
+            when extract_only  =>
                Element.EXTRACT_ONLY_ON.Append (value_text);
-               --  GH_ACCOUNT_ON
-               --  GH_PROJECT_ON
-               --  GH_SUBDIR_ON
-               --  GH_TARGNAME_ON
-               --  GH_TUPLE_ON
-               --  IMPLIES_ON
-            when sp_info =>
+            when gh_account_on =>
+               Element.GH_ACCOUNT_ON.Append (value_text);
+            when gh_project_on =>
+               Element.GH_PROJECT_ON.Append (value_text);
+            when gh_subdir_on =>
+               Element.GH_SUBDIR_ON.Append (value_text);
+            when gh_tagname_on =>
+               Element.GH_TAGNAME_ON.Append (value_text);
+            when gh_tuple_on =>
+               Element.GH_TUPLE_ON.Append (value_text);
+            when implies_on =>
+               Element.IMPLIES_ON.Append (value_text);
+            when info_on =>
                Element.INFO_ON.Append (value_text);
-            when sp_install_tgt =>
+            when install_target_on =>
                Element.INSTALL_TARGET.Append (value_text);
-            when sp_keywords =>
+            when keywords_on =>
                Element.KEYWORDS.Append (value_text);
-            when sp_ldflags =>
+            when ldflags_on =>
                Element.LDFLAGS.Append (value_text);
-            when sp_lib_deps =>
+            when lib_depends_on =>
                Element.LIB_DEPENDS_ON.Append (value_text);
-            when sp_make_args =>
+            when make_args_on =>
                Element.MAKE_ARGS_ON.Append (value_text);
-            when sp_make_env =>
+            when make_env_on =>
                Element.MAKE_ENV_ON.Append (value_text);
-            when sp_patchfiles =>
+            when patchfiles_on =>
                Element.PATCHFILES_ON.Append (value_text);
-               --  PLIST_SUB
-               --  PREVENTS_ON
-            when sp_qmake_args_off =>
+            when plist_sub_on =>
+               Element.PLIST_SUB_ON.Append (value_text);
+            when prevents_on =>
+               Element.PREVENTS_ON.Append (value_text);
+            when qmake_off =>
                Element.QMAKE_OFF.Append (value_text);
-            when sp_qmake_args =>
+            when qmake_on =>
                Element.QMAKE_ON.Append (value_text);
-            when sp_run_deps =>
+            when run_depends_on =>
                Element.RUN_DEPENDS_ON.Append (value_text);
-            when sp_sub_files =>
+            when sub_files_on =>
                Element.SUB_FILES_ON.Append (value_text);
-            when sp_sub_list =>
+            when sub_list_on =>
                Element.SUB_LIST_ON.Append (value_text);
-               --  TEST_TARGET_ON
-            when sp_uses =>
+            when test_target_on =>
+               Element.TEST_TARGET_ON.Append (value_text);
+            when uses_on =>
                Element.USES.Append (value_text);
-            when others => null;
+            when not_helper_format | not_supported_helper =>
+               null;
          end case;
       end Change;
    begin
       if spec_order'Pos (specs.last_set) < spec_order'Pos (so_opts_std) then
          raise misordered with field'Img;
       end if;
+      case field is
+         when build_target_on | build_target_on | build_target_on | cmake_bool_f_both |
+              cmake_bool_t_both | configure_enable_both | configure_with_both | df_index_on |
+              extra_patches_on | extract_only | gh_subdir_on | gh_project_on | gh_account_on |
+              gh_tagname_on | gh_tuple_on | implies_on | info_on | install_target_on |
+              keywords_on  | lib_depends_on | patchfiles_on | prevents_on | run_depends_on |
+              sub_files_on | test_target_on | uses_on =>
+            allow_spaces := False;
+         when others =>
+            allow_spaces := True;
+      end case;
       if not allow_spaces and then
         HT.contains (S => value, fragment => " ")
       then
@@ -851,28 +879,32 @@ package body Port_Specification is
 
       --  validate first
       case field is
-         when sp_broken |
-              sp_build_target | sp_cflags | sp_cmake_args_off | sp_cmake_args |
-              sp_config_args_off | sp_config_args | sp_config_env | sp_cppflags | sp_info |
-              sp_install_tgt | sp_make_args | sp_make_env | sp_patchfiles | sp_qmake_args  |
-              sp_qmake_args_off | sp_sub_files | sp_sub_list =>
+         when broken_on | build_target_on | cflags_on | cmake_args_off | cmake_args_on |
+              cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
+              configure_enable_both | configure_env_on | configure_with_both |
+              cppflags_on | cxxflags_on | extra_patches_on | gh_tuple_on | gh_tagname_on |
+              gh_account_on | gh_project_on | gh_subdir_on | info_on | install_target_on |
+              ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
+              qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on =>
             --  No validation required
             null;
-         when sp_build_deps | sp_lib_deps | sp_run_deps =>
+         when build_depends_on | lib_depends_on | run_depends_on =>
             null; --  TODO: Add validation
-         when sp_df_index | sp_ext_only =>
+         when df_index_on | extract_only =>
             null; --  TODO: Add validation
-         when sp_keywords =>
+         when implies_on | prevents_on =>
+            null; --  TODO: add validation
+         when keywords_on =>
             if not keyword_is_valid (value) then
                raise wrong_value with "Keyword '" & value & "' is not recognized";
             end if;
             if option_crate.Element (mycursor).KEYWORDS.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
-         when sp_uses =>
+         when uses_on =>
             null; --  TODO: Add validation (needs uses_is_valid function I guess);
-         when others =>
-            raise wrong_type with field'Img;
+         when not_supported_helper | not_helper_format =>
+            null;
       end case;
 
       specs.ops_helpers.Update_Element (Position => mycursor, Process => Change'Access);
@@ -1367,7 +1399,7 @@ package body Port_Specification is
          NDX : String := HT.USS (rec.option_name);
       begin
          TIO.Put_Line ("   " & NDX & LAT.Colon);
-         TIO.Put_Line ("      BROKEN_ON=" & LAT.HT & LAT.HT & LAT.HT & HT.USS (rec.BROKEN_ON));
+         TIO.Put_Line ("      BROKEN_ON=" & LAT.HT & LAT.HT & HT.USS (rec.BROKEN_ON));
          print_opt_vector (rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
          print_opt_vector (rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
          print_opt_vector (rec.CFLAGS_ON, "CFLAGS_ON");
@@ -1381,12 +1413,14 @@ package body Port_Specification is
          print_opt_vector (rec.CONFIGURE_ENV_ON, "CONFIGURE_ENV_ON");
          print_opt_vector (rec.CONFIGURE_WITH_BOTH, "CONFIGURE_WITH_BOTH");
          print_opt_vector (rec.CPPFLAGS_ON, "CPPFLAGS_ON");
+         print_opt_vector (rec.CXXFLAGS_ON, "CXXFLAGS_ON");
          print_opt_vector (rec.DF_INDEX_ON, "DF_INDEX_ON");
          print_opt_vector (rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          print_opt_vector (rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
          print_opt_vector (rec.GH_ACCOUNT_ON, "GH_ACCOUNT_ON");
          print_opt_vector (rec.GH_PROJECT_ON, "GH_PROJECT_ON");
          print_opt_vector (rec.GH_SUBDIR_ON, "GH_SUBDIR_ON");
+         print_opt_vector (rec.GH_TAGNAME_ON, "GH_TAGNAME_ON");
          print_opt_vector (rec.GH_TUPLE_ON, "GH_TUPLE_ON");
          print_opt_vector (rec.IMPLIES_ON, "IMPLIES_ON");
          print_opt_vector (rec.INFO_ON, "INFO_ON");
@@ -1410,9 +1444,10 @@ package body Port_Specification is
 
       procedure print_opt_vector (vec : string_crate.Vector; thelabel : String)
       is
+         --  Align at column-40
          labellen : Natural := thelabel'Length;
-         num_tabs : Natural := (40 - labellen) / 8;
-         extratab : String (1 .. num_tabs + 1) := (others => LAT.HT);
+         num_tabs : Natural := (32 - labellen) / 8;
+         extratab : String (1 .. num_tabs) := (others => LAT.HT);
       begin
          TIO.Put ("      " & thelabel & LAT.Equals_Sign & extratab);
          vec.Iterate (Process => print_item'Access);

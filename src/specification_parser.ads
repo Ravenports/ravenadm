@@ -43,8 +43,9 @@ private
                          patchfiles, uses, sub_list, sub_files, config_args, config_env,
                          build_deps, lib_deps, run_deps, cmake_args, qmake_args, info,
                          install_tgt);
+
    type spec_target  is (not_target, target_title, target_body, bad_target);
-   type type_category is (cat_none, cat_array, cat_singlet, cat_target);
+   type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option);
 
    last_parse_error   : HT.Text;
    spec_definitions   : def_crate.Map;
@@ -75,6 +76,15 @@ private
    --  otherwise return "not_singlet"
    function determine_singlet (line : String) return spec_singlet;
 
+   --  Returns "not_helper_format" if it's not in option format
+   --  Returns "not_supported_helper" if it's not a recognized (supported) helper
+   --  Otherwise it returns the detected spec_option
+   function determine_option (line : String) return PSP.spec_option;
+
+   --  Returns empty string if it's not a recognized option, otherwise it returns
+   --  The option name.
+   function extract_option_name (line : String) return String;
+
    --  If the line represents the makefile target definition or it's following body,
    --  return which one, otherwise return "not_target".
    --  Exception: if formatted as a target def. which is not recognized, return "bad_target"
@@ -86,6 +96,10 @@ private
    --  text with column 24, the mistabbed exception is thrown.
    function retrieve_single_value (line : String) return String;
 
+   --  Returns everything following the tab(s) until end of line.  If last tab doesn't align
+   --  text with column 40, the mistabbed exception is thrown.
+   function retrieve_single_option_value (line : String) return String;
+
    --  Calls retrieve_single_value and tries to convert to a natural number.
    function retrieve_single_integer (line : String) return Natural;
 
@@ -95,6 +109,10 @@ private
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters.
    procedure build_list (field : PSP.spec_field; line : String);
+
+   --  Same as build_list but for options.
+   --  Handles all valid options (since only one isn't a list)
+   procedure build_list (field : PSP.spec_option; option : String; line : String);
 
    --  Line may contain spaces and they are considered part of an entire string
    procedure build_string (field : PSP.spec_field; line : String);

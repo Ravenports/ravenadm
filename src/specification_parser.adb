@@ -31,12 +31,17 @@ package body Specification_Parser is
       line_array    : spec_array;
       line_singlet  : spec_singlet;
       line_target   : spec_target;
-      last_array    : spec_array    := not_array;
-      last_singlet  : spec_singlet  := not_singlet;
-      last_seen     : type_category := cat_none;
+      line_option   : PSP.spec_option;
+      last_array    : spec_array      := not_array;
+      last_singlet  : spec_singlet    := not_singlet;
+      last_option   : PSP.spec_option := PSP.not_helper_format;
+      last_seen     : type_category   := cat_none;
       last_df       : Integer := 0;
       last_index    : HT.Text;
-      seen_singlet  : array (spec_singlet) of Boolean := (others => False);
+      seen_singlet  : array (spec_singlet)    of Boolean := (others => False);
+      seen_helper   : array (PSP.spec_option) of Boolean := (others => False);
+
+      use type PSP.spec_option;
    begin
       success := False;
       specification.initialize;
@@ -79,38 +84,64 @@ package body Specification_Parser is
                last_parse_error := HT.SUS (LN & "Make target detected, but not recognized");
                exit;
             end if;
+
             if line_target = not_target then
-               line_array := determine_array (line);
-               if line_array = not_array then
-                  line_singlet := determine_singlet (line);
-                  if line_singlet /= not_singlet and then
-                    seen_singlet (line_singlet)
-                  then
+               line_option := determine_option (line);
+               if line_option = PSP.not_supported_helper then
+                  last_parse_error := HT.SUS (LN & "Option format, but helper not recognized.");
+                  exit;
+               end if;
+               if line_option = PSP.not_helper_format then
+                  line_array := determine_array (line);
+                  if line_array = not_array then
+                     line_singlet := determine_singlet (line);
+                     if line_singlet /= not_singlet and then
+                       seen_singlet (line_singlet)
+                     then
+                        last_parse_error :=
+                          HT.SUS (LN & "variable previously defined (use triple tab)");
+                        exit;
+                     end if;
+                     seen_singlet (line_singlet) := True;
+                  else
+                     line_singlet := not_singlet;
+                  end if;
+               else
+                  if seen_helper (line_option) then
                      last_parse_error :=
-                       HT.SUS (LN & "variable previously defined (use triple tab)");
+                       HT.SUS (LN & "option helper previously defined (use quadruple tab)");
                      exit;
                   end if;
-                  seen_singlet (line_singlet) := True;
-               else
+                  seen_helper (line_option) := True;
+
+                  line_array   := not_array;
                   line_singlet := not_singlet;
                end if;
             else
+               line_option  := PSP.not_helper_format;
                line_array   := not_array;
                line_singlet := not_singlet;
             end if;
 
             if line_target = not_target and then
-              line_singlet = not_singlet and then
-              line_array = not_array
+              line_option = PSP.not_helper_format and then
+              line_array = not_array and then
+              line_singlet = not_singlet
             then
-               if line'Length > 3 and then
-                 line (line'First .. line'First + 2) = LAT.HT & LAT.HT & LAT.HT
+               if (
+                   last_seen = cat_option and then
+                   line'Length > 4 and then
+                   line (line'First .. line'First + 3) = LAT.HT & LAT.HT & LAT.HT & LAT.HT
+                  ) or else
+                 (line'Length > 3 and then
+                  line (line'First .. line'First + 2) = LAT.HT & LAT.HT & LAT.HT)
                then
                   case last_seen is
                      when cat_array   => line_array   := last_array;
                      when cat_singlet => line_singlet := last_singlet;
                      when cat_none    => null;
                      when cat_target  => null;
+                     when cat_option  => line_option  := last_option;
                   end case;
                else
                   last_parse_error := HT.SUS (LN & "Parse failed, content unrecognized.");
@@ -347,6 +378,22 @@ package body Specification_Parser is
                   end case;
                   last_seen := cat_target;
                end if;
+
+               if line_option /= PSP.not_helper_format then
+                  declare
+                     option_name : String := extract_option_name (line);
+                  begin
+                     if option_name = "" then
+                        last_parse_error := HT.SUS (LN & "Valid helper, but option has never " &
+                                                      "been defined.");
+                        exit;
+                     end if;
+                     build_list (line_option, option_name, line);
+                  end;
+                  last_option := line_option;
+                  last_seen   := cat_option;
+               end if;
+
             exception
                when F1 : PSP.misordered =>
                   last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F1) &
@@ -831,6 +878,112 @@ package body Specification_Parser is
 
 
    --------------------------------------------------------------------------------------------
+   --  determine_option
+   --------------------------------------------------------------------------------------------
+   function determine_option (line : String) return PSP.spec_option
+   is
+      total_helpers : constant Positive := 40;
+
+      subtype helper_string is String (1 .. 21);
+
+      type helper_pair is
+         record
+            varname : helper_string;
+            singlet : PSP.spec_option;
+         end record;
+
+      --  It is critical that this list be alphabetized correctly.
+      all_helpers : constant array (1 .. total_helpers) of helper_pair :=
+        (
+         ("BROKEN_ON            ", PSP.broken_on),
+         ("BUILD_DEPENDS_ON     ", PSP.build_depends_on),
+         ("BUILD_TARGET_ON      ", PSP.build_target_on),
+         ("CFLAGS_ON            ", PSP.cflags_on),
+         ("CMAKE_ARGS_OFF       ", PSP.cmake_args_off),
+         ("CMAKE_ARGS_ON        ", PSP.cmake_args_on),
+         ("CMAKE_BOOL_F_BOTH    ", PSP.cmake_bool_f_both),
+         ("CMAKE_BOOL_T_BOTH    ", PSP.cmake_bool_t_both),
+         ("CONFIGURE_ARGS_OFF   ", PSP.configure_args_off),
+         ("CONFIGURE_ARGS_ON    ", PSP.configure_args_on),
+         ("CONFIGURE_ENABLE_BOTH", PSP.configure_enable_both),
+         ("CONFIGURE_ENV_ON     ", PSP.configure_env_on),
+         ("CONFIGURE_WITH_BOTH  ", PSP.configure_with_both),
+         ("CPPFLAGS_ON          ", PSP.cppflags_on),
+         ("DF_INDEX_ON          ", PSP.df_index_on),
+         ("EXTRACT_ONLY_ON      ", PSP.extra_patches_on),
+         ("EXTRA_PATCHES_ON     ", PSP.extra_patches_on),
+         ("GH_ACCOUNT_ON        ", PSP.gh_account_on),
+         ("GH_PROJECT_ON        ", PSP.gh_project_on),
+         ("GH_SUBDIR_ON         ", PSP.gh_subdir_on),
+         ("GH_TAGNAME_ON        ", PSP.gh_tagname_on),
+         ("GH_TUPLE_ON          ", PSP.gh_tuple_on),
+         ("IMPLIES_ON           ", PSP.implies_on),
+         ("INFO_ON              ", PSP.info_on),
+         ("INSTALL_TARGET_ON    ", PSP.install_target_on),
+         ("KEYWORDS_ON          ", PSP.keywords_on),
+         ("LDFLAGS_ON           ", PSP.ldflags_on),
+         ("LIB_DEPENDS_ON       ", PSP.lib_depends_on),
+         ("MAKE_ARGS_ON         ", PSP.make_args_on),
+         ("MAKE_ENV_ON          ", PSP.make_env_on),
+         ("PATCHFILES_ON        ", PSP.patchfiles_on),
+         ("PLIST_SUB_ON         ", PSP.plist_sub_on),
+         ("PREVENTS_ON          ", PSP.prevents_on),
+         ("QMAKE_OFF            ", PSP.qmake_off),
+         ("QMAKE_ON             ", PSP.qmake_on),
+         ("RUN_DEPENDS_ON       ", PSP.run_depends_on),
+         ("SUB_FILES_ON         ", PSP.sub_files_on),
+         ("SUB_LIST_ON          ", PSP.sub_list_on),
+         ("TEST_TARGET_ON       ", PSP.test_target_on),
+         ("USES_ON              ", PSP.uses_on)
+        );
+
+      end_opt_name : Natural;
+      end_varname  : Natural;
+      testword_len : Natural;
+      bandolier    : helper_string := (others => LAT.Space);
+      Low          : Natural := all_helpers'First;
+      High         : Natural := all_helpers'Last;
+      Mid          : Natural;
+
+   begin
+      if line (line'First) /= LAT.Left_Square_Bracket then
+         return PSP.not_helper_format;
+      end if;
+
+      end_opt_name := AS.Fixed.Index (Source => line, Pattern => "].");
+      if end_opt_name = 0 then
+         return PSP.not_helper_format;
+      end if;
+      end_varname := AS.Fixed.Index (Source => line, Pattern => "=");
+      if end_varname = 0 or else end_varname < end_opt_name then
+         return PSP.not_helper_format;
+      end if;
+
+      testword_len := end_varname - end_opt_name - 2;
+      if testword_len < 6 or else testword_len > helper_string'Length then
+         return PSP.not_supported_helper;
+      end if;
+
+      bandolier (1 .. testword_len) := line (end_opt_name + 2 .. end_varname - 1);
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_helpers (Mid).varname then
+            return all_helpers (Mid).singlet;
+         elsif bandolier < all_helpers (Mid).varname then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return PSP.not_supported_helper;
+
+   end determine_option;
+
+
+   --------------------------------------------------------------------------------------------
    --  retrieve_single_value
    --------------------------------------------------------------------------------------------
    function retrieve_single_value (line : String) return String
@@ -1254,6 +1407,147 @@ package body Specification_Parser is
          end;
       end;
    end determine_target;
+
+
+   --------------------------------------------------------------------------------------------
+   --  extract_option_name
+   --------------------------------------------------------------------------------------------
+   function extract_option_name (line : String) return String
+   is
+      --  Already known: first character = "]" and there's "]." present
+      candidate : String := HT.partial_search (fullstr    => line,
+                                               offset     => 1,
+                                               end_marker => "].");
+   begin
+      if specification.option_exists (candidate) then
+         return candidate;
+      else
+         return "";
+      end if;
+   end extract_option_name;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_list
+   --------------------------------------------------------------------------------------------
+   procedure build_list (field : PSP.spec_option; option : String; line : String)
+   is
+      procedure insert_item (data : String);
+
+      arrow      : Natural;
+      word_start : Natural;
+      strvalue   : constant String := retrieve_single_option_value (line);
+      mask       : String := strvalue;
+      Qopened    : Boolean := False;
+      --  let any exceptions cascade
+
+      procedure insert_item (data : String) is
+      begin
+         specification.build_option_helper (field  => field,
+                                            option => option,
+                                            value  => data);
+      end insert_item;
+
+      use type PSP.spec_option;
+   begin
+      if field = PSP.broken_on then
+         specification.build_option_helper (field  => field,
+                                            option => option,
+                                            value  => strvalue);
+         return;
+      end if;
+
+      --  Handle single item case
+      if not HT.contains (S => strvalue, fragment => " ") then
+         insert_item (strvalue);
+         return;
+      end if;
+
+      --  Check for multiple space error or leading space error
+      --  We start by masking all spaces between quotations so we can accurately detect them
+      for x in mask'Range loop
+         if mask (x) = LAT.Quotation then
+            Qopened := not Qopened;
+         elsif mask (x) = LAT.Space then
+            if Qopened then
+               mask (x) := 'X';
+            end if;
+         end if;
+      end loop;
+      if HT.contains (S => mask, fragment => "  ") or else
+        mask (mask'First) = LAT.Space
+      then
+         raise extra_spaces;
+      end if;
+
+      --  Now we have multiple list items separated by single spaces
+      --  We know the original line has no trailing spaces too, btw.
+      word_start := strvalue'First;
+      arrow := word_start;
+      loop
+         exit when arrow > strvalue'Last;
+         if mask (arrow) = LAT.Space then
+            insert_item (strvalue (word_start .. arrow - 1));
+            word_start := arrow + 1;
+         end if;
+         arrow := arrow + 1;
+      end loop;
+      insert_item (strvalue (word_start .. strvalue'Last));
+
+   end build_list;
+
+   --------------------------------------------------------------------------------------------
+   --  retrieve_single_option_value
+   --------------------------------------------------------------------------------------------
+   function retrieve_single_option_value (line : String) return String
+   is
+      wrkstr : String (1 .. line'Length) := line;
+      equals : Natural := AS.Fixed.Index (wrkstr, LAT.Equals_Sign & LAT.HT);
+      c81624 : Natural := ((equals / 8) + 1) * 8;
+      tabs5  : String (1 .. 5) := (others => LAT.HT);
+      --  f(4)  =  8    ( 2 ..  7)
+      --  f(8)  = 16;   ( 8 .. 15)
+      --  f(18) = 24;   (16 .. 23)
+      --  We are looking for an exact number of tabs starting at equals + 2:
+      --  if c81624 = 8, then we need 2 tabs.  IF it's 16 then we need 1 tab,
+      --  if it's 24 then there can be no tabs, and if it's higher, that's a problem.
+   begin
+      if equals = 0 then
+         --  Support quadruple-tab line too.
+         if wrkstr'Length > 5 and then
+           wrkstr (wrkstr'First .. wrkstr'First + 4) = tabs5
+         then
+            equals := wrkstr'First + 3;
+            c81624 := 40;
+         else
+            raise missing_definition with "No quintuple-tab or equals+tab detected.";
+         end if;
+      end if;
+      if c81624 > 40 then
+         raise mistabbed;
+      end if;
+      declare
+         rest : constant String := wrkstr (equals + 2 .. wrkstr'Last);
+         contig_tabs : Natural := 0;
+         arrow : Natural := rest'First;
+      begin
+         loop
+            exit when arrow > rest'Last;
+            exit when rest (arrow) /= LAT.HT;
+            contig_tabs := contig_tabs + 1;
+            arrow := arrow + 1;
+         end loop;
+         if ((c81624 = 8) and then (contig_tabs /= 4)) or else
+           ((c81624 = 16) and then (contig_tabs /= 3)) or else
+           ((c81624 = 24) and then (contig_tabs /= 2)) or else
+           ((c81624 = 32) and then (contig_tabs /= 1)) or else
+           ((c81624 = 40) and then (contig_tabs /= 0))
+         then
+            raise mistabbed;
+         end if;
+         return expand_value (rest (rest'First + contig_tabs .. rest'Last));
+      end;
+   end retrieve_single_option_value;
 
 
 end Specification_Parser;

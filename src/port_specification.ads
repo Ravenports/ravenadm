@@ -28,10 +28,21 @@ package Port_Specification is
                        sp_make_args, sp_make_env, sp_build_target, sp_cflags, sp_cxxflags,
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
                        sp_opt_level, sp_options_on, sp_broken, sp_opt_helper, sp_patchfiles,
-                       sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_args_off,
-                       sp_config_env, sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args,
-                       sp_cmake_args_off, sp_qmake_args, sp_qmake_args_off, sp_info,
-                       sp_install_tgt);
+                       sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_env,
+                       sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
+                       sp_info, sp_install_tgt);
+
+   type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
+                         build_target_on, cflags_on, cmake_args_off, cmake_args_on,
+                         cmake_bool_t_both, cmake_bool_f_both, configure_args_off,
+                         configure_args_on, configure_enable_both, configure_env_on,
+                         configure_with_both, cppflags_on, cxxflags_on, df_index_on,
+                         extra_patches_on, extract_only, gh_account_on, gh_project_on,
+                         gh_subdir_on, gh_tagname_on, gh_tuple_on, implies_on, info_on,
+                         install_target_on, keywords_on, ldflags_on, lib_depends_on,
+                         make_args_on, make_env_on, patchfiles_on, plist_sub_on, prevents_on,
+                         qmake_off, qmake_on, run_depends_on, sub_files_on, sub_list_on,
+                         test_target_on, uses_on);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -98,10 +109,9 @@ package Port_Specification is
    --  Throws wrong_value exception if option doesn't exist (caller should check first)
    procedure build_option_helper
      (specs  : in out Portspecs;
-      field  : spec_field;
+      field  : spec_option;
       option : String;
-      value  : String;
-      allow_spaces : Boolean);
+      value  : String);
 
    --  Return True if provided variant is known
    function variant_exists (specs : Portspecs; variant : String) return Boolean;
@@ -183,12 +193,14 @@ private
          CONFIGURE_ENV_ON      : string_crate.Vector;
          CONFIGURE_WITH_BOTH   : string_crate.Vector;
          CPPFLAGS_ON           : string_crate.Vector;
+         CXXFLAGS_ON           : string_crate.Vector;
          DF_INDEX_ON           : string_crate.Vector;
          EXTRA_PATCHES_ON      : string_crate.Vector;
          EXTRACT_ONLY_ON       : string_crate.Vector;
          GH_ACCOUNT_ON         : string_crate.Vector;
          GH_PROJECT_ON         : string_crate.Vector;
          GH_SUBDIR_ON          : string_crate.Vector;
+         GH_TAGNAME_ON         : string_crate.Vector;
          GH_TUPLE_ON           : string_crate.Vector;
          IMPLIES_ON            : string_crate.Vector;
          INFO_ON               : string_crate.Vector;
