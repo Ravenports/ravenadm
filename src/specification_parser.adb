@@ -22,7 +22,8 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure parse_specification_file
      (dossier : String;
-      success : out Boolean)
+      success : out Boolean;
+      stop_at_targets : Boolean)
    is
       contents      : constant String := FOP.get_file_contents (dossier);
       markers       : HT.Line_Markers;
@@ -356,6 +357,9 @@ package body Specification_Parser is
                end if;
 
                if line_target /= not_target then
+                  if stop_at_targets then
+                     exit;
+                  end if;
                   case line_target is
                      when target_title =>
                         declare

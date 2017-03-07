@@ -15,7 +15,8 @@ package Specification_Parser is
    --  Parse the port specification file and extract the data into the specification record.
    procedure parse_specification_file
      (dossier : String;
-      success : out Boolean);
+      success : out Boolean;
+      stop_at_targets : Boolean);
 
    --  If the parse procedure fails, this function returns the associated error message
    function get_parse_error return String;

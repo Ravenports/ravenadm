@@ -68,7 +68,7 @@ package body Pilot is
             filename : String := optional_directory & "/" & specfile;
          begin
             if DIR.Exists (filename) then
-               PAR.parse_specification_file (filename, successful);
+               PAR.parse_specification_file (filename, successful, False);
             else
                DNE (filename);
                return;
@@ -76,7 +76,7 @@ package body Pilot is
          end;
       else
          if DIR.Exists (specfile) then
-            PAR.parse_specification_file (specfile, successful);
+            PAR.parse_specification_file (specfile, successful, False);
          else
             DNE (specfile);
             return;
@@ -125,7 +125,7 @@ package body Pilot is
             filename : String := optional_directory & "/" & specfile;
          begin
             if DIR.Exists (filename) then
-               PAR.parse_specification_file (filename, successful);
+               PAR.parse_specification_file (filename, successful, False);
             else
                DNE (filename);
                return;
@@ -133,7 +133,7 @@ package body Pilot is
          end;
       else
          if DIR.Exists (specfile) then
-            PAR.parse_specification_file (specfile, successful);
+            PAR.parse_specification_file (specfile, successful, False);
          else
             DNE (specfile);
             return;
