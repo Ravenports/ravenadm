@@ -18,40 +18,84 @@ package body Port_Specification.Transform is
 
       procedure copy_option_over (position : option_crate.Cursor)
       is
-         procedure augment (field : spec_field; directive : string_crate.Vector);
+         procedure augment (field : spec_option; directive : string_crate.Vector);
 
          rec : Option_Helper renames option_crate.Element (position);
 
-         procedure augment (field : spec_field; directive : string_crate.Vector)
+         procedure augment (field : spec_option; directive : string_crate.Vector)
          is
             procedure transfer (position : string_crate.Cursor);
             procedure transfer (position : string_crate.Cursor)
             is
-               item : HT.Text renames string_crate.Element (position);
+               item    : HT.Text renames string_crate.Element (position);
+               itemstr : String := HT.USS (item);
+               special : HT.Text;
             begin
                case field is
-                  when sp_build_deps   => specs.build_deps.Append (item);
-                  when sp_build_target => specs.build_target.Append (item);
-                  when sp_cflags       => specs.cflags.Append (item);
-                  when sp_cmake_args   => specs.cmake_args.Append (item);
-                  when sp_config_args  => specs.config_args.Append (item);
-                  when sp_config_env   => specs.config_env.Append (item);
-                  when sp_cppflags     => specs.cppflags.Append (item);
-                  when sp_cxxflags     => specs.cxxflags.Append (item);
-                  when sp_df_index     => specs.df_index.Append (item);
-                  when sp_install_tgt  => specs.install_tgt.Append (item);
-                  when sp_keywords     => specs.keywords.Append (item);
-                  when sp_ldflags      => specs.ldflags.Append (item);
-                  when sp_lib_deps     => specs.lib_deps.Append (item);
-                  when sp_make_args    => specs.make_args.Append (item);
-                  when sp_make_env     => specs.make_env.Append (item);
-                  when sp_patchfiles   => specs.patchfiles.Append (item);
-                  when sp_run_deps     => specs.run_deps.Append (item);
-                  when sp_sub_files    => specs.sub_files.Append (item);
-                  when sp_sub_list     => specs.sub_list.Append (item);
-                  when sp_uses         => specs.uses.Append (item);
+                  when build_depends_on       => specs.build_deps.Append (item);
+                  when build_target_on        => specs.build_target.Append (item);
+                  when cflags_on              => specs.cflags.Append (item);
+                  when cmake_args_on |
+                       cmake_args_off         => specs.cmake_args.Append (item);
+                  when configure_args_on |
+                       configure_args_off     => specs.config_args.Append (item);
+                  when configure_env_on       => specs.config_env.Append (item);
+                  when cppflags_on            => specs.cppflags.Append (item);
+                  when cxxflags_on            => specs.cxxflags.Append (item);
+                  when df_index_on            => specs.df_index.Append (item);
+                  when extract_only           => specs.extract_only.Append (item);
+                  when install_target_on      => specs.install_tgt.Append (item);
+                  when keywords_on            => specs.keywords.Append (item);
+                  when ldflags_on             => specs.ldflags.Append (item);
+                  when lib_depends_on         => specs.lib_deps.Append (item);
+                  when make_args_on           => specs.make_args.Append (item);
+                  when make_env_on            => specs.make_env.Append (item);
+                  when patchfiles_on          => specs.patchfiles.Append (item);
+                  when run_depends_on         => specs.run_deps.Append (item);
+                  when sub_files_on           => specs.sub_files.Append (item);
+                  when sub_list_on            => specs.sub_list.Append (item);
+                  when uses_on                => specs.uses.Append (item);
+                  when qmake_off |
+                       qmake_on               => specs.qmake_args.Append (item);
                   when others => null;
                end case;
+
+               if rec.currently_set_ON then
+                  case field is
+                     when cmake_bool_f_both =>
+                        special := HT.SUS ("-D" & itemstr & ":BOOL=false");
+                        specs.cmake_args.Append (special);
+                     when cmake_bool_t_both =>
+                        special := HT.SUS ("-D" & itemstr & ":BOOL-true");
+                        specs.cmake_args.Append (special);
+                     when configure_enable_both =>
+                        special := HT.SUS ("--enable-"  & itemstr);
+                        specs.config_args.Append (special);
+                     when configure_with_both =>
+                        special := HT.SUS ("--with-" & itemstr);
+                        specs.config_args.Append (special);
+                     when others =>
+                        null;
+                  end case;
+               else
+                  case field is
+                     when cmake_bool_f_both =>
+                        special := HT.SUS ("-D" & itemstr & ":BOOL-true");
+                        specs.cmake_args.Append (special);
+                     when cmake_bool_t_both =>
+                        special := HT.SUS ("-D" & itemstr & ":BOOL=false");
+                        specs.cmake_args.Append (special);
+                     when configure_enable_both =>
+                        special := HT.SUS ("--disable-"  & itemstr);
+                        specs.config_args.Append (special);
+                     when configure_with_both =>
+                        special := HT.SUS ("--without-" & itemstr);
+                        specs.config_args.Append (special);
+                     when others =>
+                        null;
+                  end case;
+               end if;
+
             end transfer;
          begin
             directive.Iterate (Process => transfer'Access);
@@ -59,65 +103,44 @@ package body Port_Specification.Transform is
       begin
          if rec.currently_set_ON then
             --  TODO BROKEN_ON
-            augment (sp_build_deps,   rec.BUILD_DEPENDS_ON);
-            augment (sp_build_target, rec.BUILD_TARGET_ON);
-            augment (sp_cflags,       rec.CFLAGS_ON);
-            augment (sp_cmake_args,   rec.CMAKE_ARGS_ON);
-            augment (sp_config_args,  rec.CONFIGURE_ARGS_ON);
-            augment (sp_config_env,   rec.CONFIGURE_ENV_ON);
-            augment (sp_cppflags,     rec.CPPFLAGS_ON);
-            augment (sp_cxxflags,     rec.CXXFLAGS_ON);
-            augment (sp_df_index,     rec.DF_INDEX_ON);
+            augment (build_depends_on,   rec.BUILD_DEPENDS_ON);
+            augment (build_target_on,    rec.BUILD_TARGET_ON);
+            augment (cflags_on,          rec.CFLAGS_ON);
+            augment (cmake_args_on,      rec.CMAKE_ARGS_ON);
+            augment (configure_args_on,  rec.CONFIGURE_ARGS_ON);
+            augment (configure_args_on,  rec.CONFIGURE_ENV_ON);
+            augment (cppflags_on,        rec.CPPFLAGS_ON);
+            augment (cxxflags_on,        rec.CXXFLAGS_ON);
+            augment (df_index_on,        rec.DF_INDEX_ON);
 --              --  EXTRA_PATCHES
 --              --  GH stuff (rethink)
-            augment (sp_install_tgt,  rec.INSTALL_TARGET_ON);
-            augment (sp_keywords,     rec.KEYWORDS_ON);
-            augment (sp_ldflags,      rec.LDFLAGS_ON);
-            augment (sp_lib_deps,     rec.LIB_DEPENDS_ON);
-            augment (sp_make_args,    rec.MAKE_ARGS_ON);
-            augment (sp_make_env,     rec.MAKE_ENV_ON);
-            augment (sp_patchfiles,   rec.PATCHFILES_ON);
---              --  QMAKE_OM
-            augment (sp_run_deps,     rec.RUN_DEPENDS_ON);
-            augment (sp_sub_files,    rec.SUB_FILES_ON);
-            augment (sp_sub_list,     rec.SUB_LIST_ON);
+            augment (install_target_on,  rec.INSTALL_TARGET_ON);
+            augment (keywords_on,        rec.KEYWORDS_ON);
+            augment (ldflags_on,         rec.LDFLAGS_ON);
+            augment (lib_depends_on,     rec.LIB_DEPENDS_ON);
+            augment (make_args_on,       rec.MAKE_ARGS_ON);
+            augment (make_env_on,        rec.MAKE_ENV_ON);
+            augment (patchfiles_on,      rec.PATCHFILES_ON);
+            augment (qmake_on,           rec.QMAKE_ON);
+            augment (run_depends_on,     rec.RUN_DEPENDS_ON);
+            augment (sub_files_on,       rec.SUB_FILES_ON);
+            augment (sub_list_on,        rec.SUB_LIST_ON);
 --              --  test-target on
-            augment (sp_uses,         rec.USES_ON);
+            augment (uses_on,            rec.USES_ON);
          else
-            augment (sp_cmake_args,   rec.CMAKE_ARGS_OFF);
-            augment (sp_config_args,  rec.CONFIGURE_ARGS_OFF);
-            --  QMAKE_OFF
+            augment (cmake_args_off,     rec.CMAKE_ARGS_OFF);
+            augment (configure_args_off, rec.CONFIGURE_ARGS_OFF);
+            augment (qmake_off,          rec.QMAKE_OFF);
          end if;
-         --  special handing
-         --  CMAKE_BOOL_T_BOTH
-         --  CMAKE_BOOL_F_BOTH
-         --  CONFIGURE_ENABLE_BOTH
-         --  CONFIGURE_WITH_BOTH
+         augment (cmake_bool_f_both,     rec.CMAKE_BOOL_F_BOTH);
+         augment (cmake_bool_t_both,     rec.CMAKE_BOOL_T_BOTH);
+         augment (configure_enable_both, rec.CONFIGURE_ENABLE_BOTH);
+         augment (configure_with_both,   rec.CONFIGURE_WITH_BOTH);
+
       end copy_option_over;
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
    end apply_directives;
-
-
-   --------------------------------------------------------------------------------------------
-   --  augment
-   --------------------------------------------------------------------------------------------
---     procedure augment (specs : in out Portspecs;
---                        main  : spec_field;
---                        option_directive : string_crate.Vector)
---     is
---        procedure copy_over (position : string_crate.Cursor);
---        procedure copy_over (position : string_crate.Cursor)
---        is
---        begin
---           case main is
---              when sp_cflags => specs.cflags.Append (string_crate.Element (position));
---              when others => null;
---           end case;
---        end copy_over;
---     begin
---        option_directive.Iterate (Process => copy_over'Access);
---     end augment;
 
 
    --------------------------------------------------------------------------------------------
