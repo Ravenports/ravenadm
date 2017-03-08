@@ -236,7 +236,7 @@ package body Port_Specification.Transform is
                   opt_name     : HT.Text := HT.SUS (HT.part_1 (option_name, "/"));
                   spec_version : String  := HT.part_2 (option_name, "/");
                begin
-                  if GTE (gen_major  => osrelease, spec_major => spec_version) then
+                  if GTE (gen_release => osrelease, spec_release => spec_version) then
                      option_text := opt_name;
                   end if;
                end;
@@ -356,16 +356,16 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  LTE
    --------------------------------------------------------------------------------------------
-   function LTE (gen_major, spec_major : String) return Boolean
+   function LTE (gen_release, spec_release : String) return Boolean
    is
       GR : Natural := 999900;
       SR : Natural := 0;
    begin
-      if release_format (gen_major) then
-         GR := centurian_release (gen_major);
+      if release_format (gen_release) then
+         GR := centurian_release (gen_release);
       end if;
-      if release_format (spec_major) then
-         SR := centurian_release (spec_major);
+      if release_format (spec_release) then
+         SR := centurian_release (spec_release);
       end if;
       return (GR <= SR);
    end LTE;
@@ -374,19 +374,131 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  GTE
    --------------------------------------------------------------------------------------------
-   function GTE (gen_major, spec_major : String) return Boolean
+   function GTE (gen_release, spec_release : String) return Boolean
    is
       GR : Natural := 0;
       SR : Natural := 999900;
    begin
-      if release_format (gen_major) then
-         GR := centurian_release (gen_major);
+      if release_format (gen_release) then
+         GR := centurian_release (spec_release);
       end if;
-      if release_format (spec_major) then
-         SR := centurian_release (spec_major);
+      if release_format (spec_release) then
+         SR := centurian_release (spec_release);
       end if;
       return (GR >= SR);
    end GTE;
 
+
+   --------------------------------------------------------------------------------------------
+   --  GTE
+   --------------------------------------------------------------------------------------------
+   procedure set_outstanding_ignore
+     (specs         : in out Portspecs;
+      variant       : String;
+      opsys         : supported_opsys;
+      arch_standard : supported_arch;
+      osrelease     : String;
+      osmajor       : String)
+   is
+      --  Copy relevant arch broken to "all" index
+      --  Copy relevant opsys broken to "all" index (may be funtion of release or arch)
+      procedure check (position : list_crate.Cursor);
+      procedure check_ignore;
+
+      cpu_ia64  : constant String := UTL.cpu_arch (x86_64) & "_";
+      cpu_ia32  : constant String := UTL.cpu_arch (i386) & "_";
+      cpu_armv8 : constant String := UTL.cpu_arch (aarch64) & "_";
+      separator : constant String := ": ";
+      index     : HT.Text := HT.SUS (broken_all);
+
+      procedure check (position : list_crate.Cursor)
+      is
+         procedure check_list (position : string_crate.Cursor);
+
+         broken_Key : String  := HT.USS (list_crate.Element (position).group);
+
+
+         procedure check_list (position : string_crate.Cursor)
+         is
+            procedure grow (Key : HT.Text; Element : in out group_list);
+
+            reason : String  := HT.USS (string_crate.Element (position));
+            used   : Boolean := False;
+            split  : Boolean := True;
+
+            procedure grow (Key : HT.Text; Element : in out group_list) is
+            begin
+               if split then
+                  Element.list.Append (HT.SUS (HT.part_2 (reason, ": ")));
+               else
+                  Element.list.Append (string_crate.Element (position));
+               end if;
+            end grow;
+         begin
+            if broken_Key = UTL.cpu_arch (arch_standard) then
+               used  := True;
+               split := False;
+            elsif broken_Key = UTL.lower_opsys (opsys) then
+               if HT.leads (reason, "REL_") then
+                  used := (HT.partial_search (reason, 4, separator) = osmajor);
+               elsif HT.leads (reason, "GTE_") then
+                  used := GTE (gen_release  => osrelease,
+                               spec_release => HT.partial_search (reason, 4, separator));
+               elsif HT.leads (reason, "LTE_") then
+                  used := LTE (gen_release  => osmajor,
+                               spec_release => HT.partial_search (reason, 4, separator));
+               elsif HT.leads (reason, cpu_ia64) then
+                  used := (HT.partial_search (reason, cpu_ia64'Length, separator) = osmajor);
+               elsif HT.leads (reason, cpu_ia32) then
+                  used := (HT.partial_search (reason, cpu_ia32'Length, separator) = osmajor);
+               elsif HT.leads (reason, cpu_armv8) then
+                  used := (HT.partial_search (reason, cpu_armv8'Length, separator) = osmajor);
+               else
+                  used  := True;
+                  split := False;
+               end if;
+            end if;
+
+            if used then
+               specs.broken.Update_Element (Position => specs.broken.Find (index),
+                                            Process  => grow'Access);
+            end if;
+         end check_list;
+
+      begin
+         list_crate.Element (position).list.Iterate (Process => check_list'Access);
+      end check;
+
+      procedure check_ignore
+      is
+         procedure grow (Key : HT.Text; Element : in out group_list);
+
+         reason : HT.Text;
+
+         procedure grow (Key : HT.Text; Element : in out group_list) is
+         begin
+               Element.list.Append (reason);
+         end grow;
+      begin
+         if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
+           (not specs.inc_opsys.Is_Empty and then
+              not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
+         then
+            reason := HT.SUS ("Specification excludes " & UTL.mixed_opsys (opsys) & " OS");
+         end if;
+         if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
+            reason := HT.SUS ("Specification excludes " & UTL.cpu_arch (arch_standard) &
+                                " architecture");
+         end if;
+         if not HT.IsBlank (reason) then
+            specs.broken.Update_Element (Position => specs.broken.Find (index),
+                                         Process  => grow'Access);
+         end if;
+      end check_ignore;
+
+   begin
+      specs.broken.Iterate (Process => check'Access);
+      check_ignore;
+   end set_outstanding_ignore;
 
 end Port_Specification.Transform;

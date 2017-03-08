@@ -36,6 +36,14 @@ package Port_Specification.Transform is
 
    procedure set_option_to_default_values (specs : in out Portspecs);
 
+   procedure set_outstanding_ignore
+     (specs         : in out Portspecs;
+      variant       : String;
+      opsys         : supported_opsys;
+      arch_standard : supported_arch;
+      osrelease     : String;
+      osmajor       : String);
+
 private
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
@@ -45,7 +53,7 @@ private
    function centurian_release (release : String) return Natural;
 
    --  Implement less-than and greater-than OS Major comparision
-   function LTE (gen_major, spec_major : String) return Boolean;
-   function GTE (gen_major, spec_major : String) return Boolean;
+   function LTE (gen_release, spec_release : String) return Boolean;
+   function GTE (gen_release, spec_release : String) return Boolean;
 
 end Port_Specification.Transform;

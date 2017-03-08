@@ -148,6 +148,12 @@ package body Pilot is
                                   arch_standard => x86_64,
                                   osrelease     => "4.7");
          PST.set_option_to_default_values (specs => PAR.specification);
+         PST.set_outstanding_ignore (specs         => PAR.specification,
+                                     variant       => get_variant,
+                                     opsys         => dragonfly,
+                                     arch_standard => x86_64,
+                                     osrelease     => "4.7",
+                                     osmajor       => "4.7");
          PST.apply_directives (specs => PAR.specification);
          PSM.generator (specs         => PAR.specification,
                         variant       => get_variant,
@@ -158,6 +164,9 @@ package body Pilot is
                         osversion     => "400709",
                         option_string => "",
                         output_file   => "");
+      else
+         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line (PAR.get_parse_error);
       end if;
    end generate_makefile;
 
