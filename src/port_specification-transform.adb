@@ -19,6 +19,7 @@ package body Port_Specification.Transform is
       procedure copy_option_over (position : option_crate.Cursor)
       is
          procedure augment (field : spec_option; directive : string_crate.Vector);
+         procedure handle_broken;
 
          rec : Option_Helper renames option_crate.Element (position);
 
@@ -100,9 +101,32 @@ package body Port_Specification.Transform is
          begin
             directive.Iterate (Process => transfer'Access);
          end augment;
+
+         procedure handle_broken
+         is
+            procedure grow (Key : HT.Text; Element : in out group_list);
+
+            index : HT.Text := HT.SUS (broken_all);
+
+            procedure grow (Key : HT.Text; Element : in out group_list) is
+            begin
+               Element.list.Append (rec.BROKEN_ON);
+            end grow;
+         begin
+            if not HT.IsBlank (rec.BROKEN_ON) then
+
+               if not specs.broken.Contains (index) then
+                  specs.establish_group (sp_broken, broken_all);
+               end if;
+
+               specs.broken.Update_Element (Position => specs.broken.Find (index),
+                                            Process  => grow'Access);
+            end if;
+         end handle_broken;
       begin
          if rec.currently_set_ON then
-            --  TODO BROKEN_ON
+
+            handle_broken;
             augment (build_depends_on,   rec.BUILD_DEPENDS_ON);
             augment (build_target_on,    rec.BUILD_TARGET_ON);
             augment (cflags_on,          rec.CFLAGS_ON);
