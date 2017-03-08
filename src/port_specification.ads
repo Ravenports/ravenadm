@@ -177,8 +177,8 @@ private
    type Option_Helper is
       record
          option_name           : HT.Text;
-         currently_set_ON      : Boolean;
-         set_ON_by_default     : Boolean;
+         currently_set_ON      : Boolean := False;
+         set_ON_by_default     : Boolean := False;
          BROKEN_ON             : HT.Text;
          BUILD_DEPENDS_ON      : string_crate.Vector;
          BUILD_TARGET_ON       : string_crate.Vector;
@@ -204,9 +204,9 @@ private
          GH_TUPLE_ON           : string_crate.Vector;
          IMPLIES_ON            : string_crate.Vector;
          INFO_ON               : string_crate.Vector;
-         INSTALL_TARGET        : string_crate.Vector;
-         KEYWORDS              : string_crate.Vector;
-         LDFLAGS               : string_crate.Vector;
+         INSTALL_TARGET_ON     : string_crate.Vector;
+         KEYWORDS_ON           : string_crate.Vector;
+         LDFLAGS_ON            : string_crate.Vector;
          LIB_DEPENDS_ON        : string_crate.Vector;
          MAKE_ARGS_ON          : string_crate.Vector;
          MAKE_ENV_ON           : string_crate.Vector;
@@ -219,7 +219,7 @@ private
          SUB_FILES_ON          : string_crate.Vector;
          SUB_LIST_ON           : string_crate.Vector;
          TEST_TARGET_ON        : string_crate.Vector;
-         USES                  : string_crate.Vector;
+         USES_ON               : string_crate.Vector;
       end record;
 
    package option_crate is new CON.Hashed_Maps

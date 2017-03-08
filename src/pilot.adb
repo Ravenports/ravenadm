@@ -7,6 +7,7 @@ with Ada.Characters.Latin_1;
 with Information;
 with Specification_Parser;
 with Port_Specification.Makefile;
+with Port_Specification.Transform;
 
 with Definitions; use Definitions;
 
@@ -15,6 +16,7 @@ package body Pilot is
    package NFO renames Information;
    package PAR renames Specification_Parser;
    package PSM renames Port_Specification.Makefile;
+   package PST renames Port_Specification.Transform;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
@@ -140,6 +142,13 @@ package body Pilot is
          end if;
       end if;
       if successful then
+         PST.set_option_defaults (specs         => PAR.specification,
+                                  variant       => get_variant,
+                                  opsys         => dragonfly,
+                                  arch_standard => x86_64,
+                                  osrelease     => "4.7");
+         PST.set_option_to_default_values (specs => PAR.specification);
+         PST.apply_directives (specs => PAR.specification);
          PSM.generator (specs         => PAR.specification,
                         variant       => get_variant,
                         opsys         => dragonfly,

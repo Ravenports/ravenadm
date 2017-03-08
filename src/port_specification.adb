@@ -823,11 +823,11 @@ package body Port_Specification is
             when info_on =>
                Element.INFO_ON.Append (value_text);
             when install_target_on =>
-               Element.INSTALL_TARGET.Append (value_text);
+               Element.INSTALL_TARGET_ON.Append (value_text);
             when keywords_on =>
-               Element.KEYWORDS.Append (value_text);
+               Element.KEYWORDS_ON.Append (value_text);
             when ldflags_on =>
-               Element.LDFLAGS.Append (value_text);
+               Element.LDFLAGS_ON.Append (value_text);
             when lib_depends_on =>
                Element.LIB_DEPENDS_ON.Append (value_text);
             when make_args_on =>
@@ -853,7 +853,7 @@ package body Port_Specification is
             when test_target_on =>
                Element.TEST_TARGET_ON.Append (value_text);
             when uses_on =>
-               Element.USES.Append (value_text);
+               Element.USES_ON.Append (value_text);
             when not_helper_format | not_supported_helper =>
                null;
          end case;
@@ -903,7 +903,7 @@ package body Port_Specification is
             if not keyword_is_valid (value) then
                raise wrong_value with "Keyword '" & value & "' is not recognized";
             end if;
-            if option_crate.Element (mycursor).KEYWORDS.Contains (value_text) then
+            if option_crate.Element (mycursor).KEYWORDS_ON.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
          when uses_on =>
@@ -1429,9 +1429,9 @@ package body Port_Specification is
          print_opt_vector (rec.GH_TUPLE_ON, "GH_TUPLE_ON");
          print_opt_vector (rec.IMPLIES_ON, "IMPLIES_ON");
          print_opt_vector (rec.INFO_ON, "INFO_ON");
-         print_opt_vector (rec.INSTALL_TARGET, "INSTALL_TARGET");
-         print_opt_vector (rec.KEYWORDS, "KEYWORDS");
-         print_opt_vector (rec.LDFLAGS, "LDFLAGS");
+         print_opt_vector (rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
+         print_opt_vector (rec.KEYWORDS_ON, "KEYWORDS_ON");
+         print_opt_vector (rec.LDFLAGS_ON, "LDFLAGS_ON");
          print_opt_vector (rec.LIB_DEPENDS_ON, "LIB_DEPENDS_ON");
          print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
@@ -1444,7 +1444,7 @@ package body Port_Specification is
          print_opt_vector (rec.SUB_FILES_ON, "SUB_FILES_ON");
          print_opt_vector (rec.SUB_LIST_ON, "SUB_LIST_ON");
          print_opt_vector (rec.TEST_TARGET_ON, "TEST_TARGET_ON");
-         print_opt_vector (rec.USES, "USES");
+         print_opt_vector (rec.USES_ON, "USES_ON");
       end dump_option;
 
       procedure print_opt_vector (vec : string_crate.Vector; thelabel : String)
@@ -1591,7 +1591,7 @@ package body Port_Specification is
       print_group_list  ("SPKGS", sp_subpackages);
       print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);
       print_vector_list ("OPTIONS_STANDARD", sp_opts_standard);
-      print_group_list  ("VOPTS", sp_subpackages);
+      print_group_list  ("VOPTS", sp_vopts);
       print_group_list  ("OPT_ON", sp_options_on);
       print_group_list  ("BROKEN", sp_broken);
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
