@@ -305,6 +305,7 @@ package body Specification_Parser is
                      when build_wrksrc     => build_string (PSP.sp_build_wrksrc, line);
                      when patch_wrksrc     => build_string (PSP.sp_patch_wrksrc, line);
                      when configure_wrksrc => build_string (PSP.sp_config_wrksrc, line);
+                     when install_wrksrc   => build_string (PSP.sp_install_wrksrc, line);
                      when makefile         => build_string (PSP.sp_makefile, line);
                      when destdirname      => build_string (PSP.sp_destdirname, line);
                      when homepage         => build_string (PSP.sp_homepage, line);
@@ -798,7 +799,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 63;
+      total_singlets : constant Positive := 64;
 
       type singlet_pair is
          record
@@ -844,6 +845,7 @@ package body Specification_Parser is
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
          ("INSTALL_TARGET        ", 14, install_tgt),
+         ("INSTALL_WRKSRC        ", 14, install_wrksrc),
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
          ("LIB_DEPENDS           ", 11, lib_deps),

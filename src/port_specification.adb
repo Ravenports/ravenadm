@@ -86,16 +86,17 @@ package body Port_Specification is
       specs.patch_strip.Clear;
       specs.pfiles_strip.Clear;
 
-      specs.config_outsrc := False;
-      specs.apply_f10_fix := False;
-      specs.patch_wrksrc  := HT.blank;
-      specs.config_prefix := HT.blank;
-      specs.config_script := HT.blank;
-      specs.config_target := HT.blank;
-      specs.config_wrksrc := HT.blank;
-      specs.config_must   := HT.blank;
-      specs.expire_date   := HT.blank;
-      specs.deprecated    := HT.blank;
+      specs.config_outsrc  := False;
+      specs.apply_f10_fix  := False;
+      specs.patch_wrksrc   := HT.blank;
+      specs.install_wrksrc := HT.blank;
+      specs.config_prefix  := HT.blank;
+      specs.config_script  := HT.blank;
+      specs.config_target  := HT.blank;
+      specs.config_wrksrc  := HT.blank;
+      specs.config_must    := HT.blank;
+      specs.expire_date    := HT.blank;
+      specs.deprecated     := HT.blank;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -205,6 +206,9 @@ package body Port_Specification is
                raise wrong_value with "Not valid ISO 8601 date for EXPIRATION_DATE";
             end if;
             specs.expire_date := text_value;
+         when sp_install_wrksrc =>
+            verify_entry_is_post_options;
+            specs.install_wrksrc := text_value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1776,6 +1780,7 @@ package body Port_Specification is
             when sp_must_config    => TIO.Put_Line (HT.USS (specs.config_must));
             when sp_expiration     => TIO.Put_Line (HT.USS (specs.expire_date));
             when sp_deprecated     => TIO.Put_Line (HT.USS (specs.deprecated));
+            when sp_install_wrksrc => TIO.Put_Line (HT.USS (specs.install_wrksrc));
             when others => null;
          end case;
       end print_single;
@@ -1879,6 +1884,7 @@ package body Port_Specification is
       print_vector_list ("QMAKE_ARGS", sp_qmake_args);
       print_vector_list ("INFO", sp_info);
       print_vector_list ("INSTALL_TARGET", sp_install_tgt);
+      print_single      ("INSTALL_WRKSRC", sp_install_wrksrc);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 
