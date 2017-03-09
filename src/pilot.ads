@@ -7,8 +7,16 @@ package Pilot is
    procedure react_to_unknown_first_level_command (argument : String);
    procedure react_to_unknown_second_level_command (level1, level2 : String);
    procedure dump_ravensource (optional_directory : String);
-   --  This is just a placeholder
+   --  These are just a placeholders
    procedure generate_makefile (optional_directory : String;
                                 optional_variant : String);
+   procedure generate_buildsheet (optional_directory : String);
+
+private
+
+   specfile  : constant String := "specification";
+   errprefix : constant String := "Error : ";
+
+   procedure DNE (filename : String);
 
 end Pilot;

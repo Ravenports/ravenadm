@@ -101,7 +101,7 @@ begin
                   when distinfo =>
                      null;
                   when buildsheet =>
-                     null;
+                     PLT.generate_buildsheet (get_arg (3));
                   when makefile =>
                      PLT.generate_makefile (get_arg (3), get_arg (4));
                end case;

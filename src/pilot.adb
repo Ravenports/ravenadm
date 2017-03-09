@@ -6,6 +6,7 @@ with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Information;
 with Specification_Parser;
+with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
 
@@ -15,6 +16,7 @@ package body Pilot is
 
    package NFO renames Information;
    package PAR renames Specification_Parser;
+   package PSB renames Port_Specification.Buildsheet;
    package PSM renames Port_Specification.Makefile;
    package PST renames Port_Specification.Transform;
    package LAT renames Ada.Characters.Latin_1;
@@ -52,18 +54,8 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    procedure dump_ravensource (optional_directory : String)
    is
-      procedure DNE (filename : String);
-
       directory_specified : constant Boolean := (optional_directory /= "");
-      specfile   : constant String := "specification";
-      errprefix  : constant String := "Error : ";
       successful : Boolean;
-
-      procedure DNE (filename : String) is
-      begin
-         TIO.Put_Line (errprefix & "File " & LAT.Quotation & filename & LAT.Quotation &
-                         " does not exist.");
-      end DNE;
    begin
       if directory_specified then
          declare
@@ -99,19 +91,10 @@ package body Pilot is
    procedure generate_makefile (optional_directory : String;
                                 optional_variant : String)
    is
-      procedure DNE (filename : String);
       function get_variant return String;
 
       directory_specified : constant Boolean := (optional_directory /= "");
-      specfile   : constant String := "specification";
-      errprefix  : constant String := "Error : ";
       successful : Boolean;
-
-      procedure DNE (filename : String) is
-      begin
-         TIO.Put_Line (errprefix & "File " & LAT.Quotation & filename & LAT.Quotation &
-                         " does not exist.");
-      end DNE;
 
       function get_variant return String is
       begin
@@ -164,5 +147,52 @@ package body Pilot is
          TIO.Put_Line (PAR.get_parse_error);
       end if;
    end generate_makefile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_buildsheet
+   --------------------------------------------------------------------------------------------
+   procedure generate_buildsheet (optional_directory : String)
+   is
+      directory_specified : constant Boolean := (optional_directory /= "");
+      successful : Boolean;
+   begin
+      if directory_specified then
+         declare
+            filename : String := optional_directory & "/" & specfile;
+         begin
+            if DIR.Exists (filename) then
+               PAR.parse_specification_file (filename, successful, False);
+            else
+               DNE (filename);
+               return;
+            end if;
+         end;
+      else
+         if DIR.Exists (specfile) then
+            PAR.parse_specification_file (specfile, successful, False);
+         else
+            DNE (specfile);
+            return;
+         end if;
+      end if;
+      if successful then
+         PSB.generator (specs       => PAR.specification,
+                        output_file => "");
+      else
+         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line (PAR.get_parse_error);
+      end if;
+   end generate_buildsheet;
+
+
+   --------------------------------------------------------------------------------------------
+   --  DNE
+   --------------------------------------------------------------------------------------------
+   procedure DNE (filename : String) is
+   begin
+      TIO.Put_Line (errprefix & "File " & LAT.Quotation & filename & LAT.Quotation &
+                      " does not exist.");
+   end DNE;
 
 end Pilot;
