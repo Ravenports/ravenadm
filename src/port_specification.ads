@@ -40,7 +40,7 @@ package Port_Specification is
                          cmake_bool_t_both, cmake_bool_f_both, configure_args_off,
                          configure_args_on, configure_enable_both, configure_env_on,
                          configure_with_both, cppflags_on, cxxflags_on, df_index_on,
-                         extra_patches_on, extract_only, gh_account_on, gh_project_on,
+                         extra_patches_on, extract_only_on, gh_account_on, gh_project_on,
                          gh_subdir_on, gh_tagname_on, gh_tuple_on, implies_on, info_on,
                          install_target_on, keywords_on, ldflags_on, lib_depends_on,
                          make_args_on, make_env_on, patchfiles_on, plist_sub_on, prevents_on,

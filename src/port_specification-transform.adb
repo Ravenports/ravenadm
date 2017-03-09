@@ -44,7 +44,8 @@ package body Port_Specification.Transform is
                   when cppflags_on            => specs.cppflags.Append (item);
                   when cxxflags_on            => specs.cxxflags.Append (item);
                   when df_index_on            => specs.df_index.Append (item);
-                  when extract_only           => specs.extract_only.Append (item);
+                  when extract_only_on        => specs.extract_only.Append (item);
+                  when extra_patches_on       => specs.extra_patches.Append (item);
                   when install_target_on      => specs.install_tgt.Append (item);
                   when keywords_on            => specs.keywords.Append (item);
                   when ldflags_on             => specs.ldflags.Append (item);
@@ -136,7 +137,7 @@ package body Port_Specification.Transform is
             augment (cppflags_on,        rec.CPPFLAGS_ON);
             augment (cxxflags_on,        rec.CXXFLAGS_ON);
             augment (df_index_on,        rec.DF_INDEX_ON);
---              --  EXTRA_PATCHES
+            augment (extra_patches_on,   rec.EXTRA_PATCHES_ON);
 --              --  GH stuff (rethink)
             augment (install_target_on,  rec.INSTALL_TARGET_ON);
             augment (keywords_on,        rec.KEYWORDS_ON);

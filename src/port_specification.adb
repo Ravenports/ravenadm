@@ -857,7 +857,7 @@ package body Port_Specification is
                Element.DF_INDEX_ON.Append (value_text);
             when extra_patches_on =>
                Element.EXTRA_PATCHES_ON.Append (value_text);
-            when extract_only  =>
+            when extract_only_on  =>
                Element.EXTRACT_ONLY_ON.Append (value_text);
             when gh_account_on =>
                Element.GH_ACCOUNT_ON.Append (value_text);
@@ -915,10 +915,11 @@ package body Port_Specification is
       end if;
       case field is
          when build_target_on | cmake_bool_f_both | cmake_bool_t_both | configure_enable_both |
-              configure_with_both | df_index_on | extra_patches_on | extract_only | gh_subdir_on |
-              gh_project_on | gh_account_on | gh_tagname_on | gh_tuple_on | implies_on | info_on |
-              install_target_on | keywords_on  | lib_depends_on | patchfiles_on | prevents_on |
-              run_depends_on | sub_files_on | test_target_on | uses_on =>
+              configure_with_both | df_index_on | extra_patches_on | extract_only_on |
+              gh_subdir_on | gh_project_on | gh_account_on | gh_tagname_on | gh_tuple_on |
+              implies_on | info_on | install_target_on | keywords_on  | lib_depends_on |
+              patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
+              uses_on =>
             allow_spaces := False;
          when others =>
             allow_spaces := True;
@@ -953,7 +954,7 @@ package body Port_Specification is
             if specs.ops_helpers.Element (option_text).DF_INDEX_ON.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
-         when extract_only =>
+         when extract_only_on =>
             if not specs.dist_index_is_valid (value) then
                raise wrong_value with "distfile index '" & value & "' is not valid";
             end if;
