@@ -1607,4 +1607,57 @@ package body Specification_Parser is
    end retrieve_single_option_value;
 
 
+   --------------------------------------------------------------------------------------------
+   --  is_file_capsule
+   --------------------------------------------------------------------------------------------
+   function is_file_capsule (line : String) return Boolean
+   is
+      --  format: [FILE:XXXX:filename]
+      dummy : Integer;
+   begin
+      if line (line'Last) /= LAT.Right_Square_Bracket then
+         return False;
+      end if;
+      if not HT.leads (line, "[FILE:") then
+         return False;
+      end if;
+      if HT.count_char (line, LAT.Colon) /= 2 then
+         return False;
+      end if;
+      dummy := Integer'Value (HT.partial_search (line, 6, ":"));
+      return True;
+   exception
+      when others =>
+         return False;
+   end is_file_capsule;
+
+
+   --------------------------------------------------------------------------------------------
+   --  retrieve_file_size
+   --------------------------------------------------------------------------------------------
+   function retrieve_file_size (capsule_label : String) return Natural
+   is
+      result : Natural;
+   begin
+      result := Integer'Value (HT.partial_search (capsule_label, 6, ":"));
+      if result > 0 then
+         return result;
+      else
+         return 0;
+      end if;
+   exception
+      when others =>
+         return 0;
+   end retrieve_file_size;
+
+
+   --------------------------------------------------------------------------------------------
+   --  retrieve_file_name
+   --------------------------------------------------------------------------------------------
+   function retrieve_file_name (capsule_label : String) return String is
+   begin
+      return HT.part_2 (HT.partial_search (capsule_label, 6, "]"), ":");
+   end retrieve_file_name;
+
+
 end Specification_Parser;

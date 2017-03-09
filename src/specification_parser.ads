@@ -97,6 +97,15 @@ private
      (line      : String;
       last_seen : type_category) return spec_target;
 
+   --  Returns true if the given line indicates a package containing a file follows
+   function is_file_capsule (line : String) return Boolean;
+
+   --  Given a string validated as a file capsule, return the size of the file
+   function retrieve_file_size (capsule_label : String) return Natural;
+
+   --  Given a string validated as a file capsule, return the relative path for extracted file
+   function retrieve_file_name (capsule_label : String) return String;
+
    --  Returns everything following the tab(s) until end of line.  If last tab doesn't align
    --  text with column 24, the mistabbed exception is thrown.
    function retrieve_single_value (line : String) return String;
