@@ -41,6 +41,7 @@ package body Port_Specification.Makefile is
       procedure dump_opsys_target    (target : String);
       procedure dump_option_target   (target : String);
       procedure dump_broken;
+      procedure dump_has_configure   (value  : HT.Text);
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -366,6 +367,17 @@ package body Port_Specification.Makefile is
          end if;
       end dump_broken;
 
+      procedure dump_has_configure (value : HT.Text)
+      is
+         valuestr : String := HT.USS (value);
+      begin
+         if valuestr = boolean_yes then
+            send ("HAS_CONFIGURE=yes");
+         elsif valuestr = "gnu" then
+            send ("GNU_CONFIGURE=yes");
+         end if;
+      end dump_has_configure;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -400,10 +412,25 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
+      send ("PATCH_WRKSRC",     specs.patch_wrksrc);
+
+      dump_has_configure (specs.config_must);
+      send ("GNU_CONFIGURE_PREFIX", specs.config_prefix);
+      send ("CONFIGURE_OUTSOURCE",  specs.config_outsrc, True);
+      send ("CONFIGURE_WRKSRC",     specs.config_wrksrc);
+      send ("CONFIGURE_SCRIPT",     specs.config_script);
+      send ("CONFIGURE_TARGET",     specs.config_target);
+      send ("CONFIGURE_ARGS",       specs.config_args);
+      send ("CONFIGURE_ENV",        specs.config_env);
+      send ("APPLY_F10_FIX",        specs.apply_f10_fix, True);
+
       send ("NO_BUILD",         specs.skip_build, True);
-      send ("NO_INSTALL",       specs.skip_install, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
       send ("BUILD_TARGET",     specs.build_target);
+      send ("NO_INSTALL",       specs.skip_install, True);
+      send ("INSTALL_WRKSRC",   specs.install_wrksrc);
+      send ("INSTALL_TARGET",   specs.install_tgt);
+      send ("PLIST_SUB",        specs.plist_sub);
       send ("MAKEFILE",         specs.makefile);
       send ("MAKE_ENV",         specs.make_env);
       send ("MAKE_ARGS",        specs.make_args);

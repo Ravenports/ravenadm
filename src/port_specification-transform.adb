@@ -19,6 +19,7 @@ package body Port_Specification.Transform is
       procedure copy_option_over (position : option_crate.Cursor)
       is
          procedure augment (field : spec_option; directive : string_crate.Vector);
+         procedure grow_plist_sub (name : String; currently_ON : Boolean);
          procedure handle_broken;
 
          rec : Option_Helper renames option_crate.Element (position);
@@ -53,6 +54,7 @@ package body Port_Specification.Transform is
                   when make_args_on           => specs.make_args.Append (item);
                   when make_env_on            => specs.make_env.Append (item);
                   when patchfiles_on          => specs.patchfiles.Append (item);
+                  when plist_sub_on           => specs.plist_sub.Append (item);
                   when run_depends_on         => specs.run_deps.Append (item);
                   when sub_files_on           => specs.sub_files.Append (item);
                   when sub_list_on            => specs.sub_list.Append (item);
@@ -103,6 +105,21 @@ package body Port_Specification.Transform is
             directive.Iterate (Process => transfer'Access);
          end augment;
 
+         procedure grow_plist_sub (name : String; currently_ON : Boolean)
+         is
+            comment : constant String := LAT.Quotation & "@comment " & LAT.Quotation;
+            WON     : constant String := "-ON=";
+            WOFF    : constant String := "-OFF=";
+         begin
+            if currently_ON then
+               specs.plist_sub.Append (HT.SUS (name & WON));
+               specs.plist_sub.Append (HT.SUS (name & WOFF & comment));
+            else
+               specs.plist_sub.Append (HT.SUS (name & WOFF));
+               specs.plist_sub.Append (HT.SUS (name & WON & comment));
+            end if;
+         end grow_plist_sub;
+
          procedure handle_broken
          is
             procedure grow (Key : HT.Text; Element : in out group_list);
@@ -146,6 +163,7 @@ package body Port_Specification.Transform is
             augment (make_args_on,       rec.MAKE_ARGS_ON);
             augment (make_env_on,        rec.MAKE_ENV_ON);
             augment (patchfiles_on,      rec.PATCHFILES_ON);
+            augment (plist_sub_on,       rec.PLIST_SUB_ON);
             augment (qmake_on,           rec.QMAKE_ON);
             augment (run_depends_on,     rec.RUN_DEPENDS_ON);
             augment (sub_files_on,       rec.SUB_FILES_ON);
@@ -161,6 +179,8 @@ package body Port_Specification.Transform is
          augment (cmake_bool_t_both,     rec.CMAKE_BOOL_T_BOTH);
          augment (configure_enable_both, rec.CONFIGURE_ENABLE_BOTH);
          augment (configure_with_both,   rec.CONFIGURE_WITH_BOTH);
+
+         grow_plist_sub (HT.USS (rec.option_name), rec.currently_set_ON);
 
       end copy_option_over;
    begin

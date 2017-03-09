@@ -362,6 +362,7 @@ package body Specification_Parser is
                      when patch_strip      => build_list (PSP.sp_patch_strip, line);
                      when extra_patches    => build_list (PSP.sp_extra_patches, line);
                      when patchfiles_strip => build_list (PSP.sp_pfiles_strip, line);
+                     when plist_sub        => build_list (PSP.sp_plist_sub, line);
                      when not_singlet      => null;
                   end case;
                   last_singlet := line_singlet;
@@ -799,7 +800,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 64;
+      total_singlets : constant Positive := 65;
 
       type singlet_pair is
          record
@@ -864,6 +865,7 @@ package body Specification_Parser is
          ("PATCHFILES_STRIP      ", 16, patchfiles_strip),
          ("PATCH_STRIP           ", 11, patch_strip),
          ("PATCH_WRKSRC          ", 12, patch_wrksrc),
+         ("PLIST_SUB             ",  9, plist_sub),
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),

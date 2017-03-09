@@ -80,6 +80,7 @@ package body Port_Specification is
       specs.qmake_args.Clear;
       specs.info.Clear;
       specs.install_tgt.Clear;
+      specs.plist_sub.Clear;
 
       specs.make_targets.Clear;
       specs.extra_patches.Clear;
@@ -505,6 +506,9 @@ package body Port_Specification is
          when sp_extra_patches =>
             verify_entry_is_post_options;
             specs.extra_patches.Append (text_value);
+         when sp_plist_sub =>
+            verify_entry_is_post_options;
+            specs.plist_sub.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1728,6 +1732,7 @@ package body Port_Specification is
             when sp_patch_strip   => specs.patch_strip.Iterate (Process => print_item'Access);
             when sp_pfiles_strip  => specs.pfiles_strip.Iterate (Process => print_item'Access);
             when sp_extra_patches => specs.extra_patches.Iterate (Process => print_item'Access);
+            when sp_plist_sub     => specs.plist_sub.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -1885,6 +1890,7 @@ package body Port_Specification is
       print_vector_list ("INFO", sp_info);
       print_vector_list ("INSTALL_TARGET", sp_install_tgt);
       print_single      ("INSTALL_WRKSRC", sp_install_wrksrc);
+      print_vector_list ("PLIST_SUB", sp_plist_sub);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 
