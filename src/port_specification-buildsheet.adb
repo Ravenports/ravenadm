@@ -26,12 +26,16 @@ package body Port_Specification.Buildsheet is
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send_targets;
       procedure print_item (position : string_crate.Cursor);
+      procedure print_item40   (position : string_crate.Cursor);
       procedure print_straight (position : string_crate.Cursor);
       procedure print_adjacent (position : string_crate.Cursor);
       procedure dump_sdesc (position : def_crate.Cursor);
       procedure dump_sites (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
       procedure dump_targets (position : list_crate.Cursor);
+      procedure dump_helper (option_name : String; crate : string_crate.Vector; helper : String);
+      procedure expand_option_record (position : option_crate.Cursor);
+      procedure dump_options;
       procedure blank_line;
 
       write_to_file   : constant Boolean := (output_file /= "");
@@ -134,6 +138,18 @@ package body Port_Specification.Buildsheet is
          end if;
       end print_item;
 
+      procedure print_item40 (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+         item  : String  := HT.USS (string_crate.Element (position));
+      begin
+         if index = 1 then
+            send (item);
+         else
+            send (LAT.HT & LAT.HT & LAT.HT & LAT.HT & LAT.HT & item);
+         end if;
+      end print_item40;
+
       procedure print_adjacent (position : string_crate.Cursor)
       is
          index : Natural := string_crate.To_Index (position);
@@ -203,13 +219,80 @@ package body Port_Specification.Buildsheet is
 
       procedure dump_targets (position : list_crate.Cursor)
       is
-         rec     : group_list renames list_crate.Element (position);
+         rec    : group_list renames list_crate.Element (position);
          target : String := HT.USS (rec.group) & LAT.Colon;
       begin
          blank_line;
          send (target);
          rec.list.Iterate (Process => print_straight'Access);
       end dump_targets;
+
+      procedure dump_helper (option_name : String; crate : string_crate.Vector; helper : String)
+      is
+      begin
+         if not crate.Is_Empty then
+            send (align40 (LAT.Left_Square_Bracket & option_name & "]." &
+                    helper & LAT.Equals_Sign), True);
+            crate.Iterate (Process => print_item40'Access);
+         end if;
+      end dump_helper;
+
+      procedure expand_option_record (position : option_crate.Cursor)
+      is
+         rec  : Option_Helper renames option_crate.Element (position);
+         name : String := HT.USS (rec.option_name);
+      begin
+         blank_line;
+         if not HT.IsBlank (rec.BROKEN_ON) then
+            send (align40 (LAT.Left_Square_Bracket & name & "].BROKEN_ON=") &
+                    HT.USS (rec.BROKEN_ON));
+         end if;
+         dump_helper (name, rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
+         dump_helper (name, rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
+         dump_helper (name, rec.CFLAGS_ON, "CFLAGS_ON");
+         dump_helper (name, rec.CMAKE_ARGS_OFF, "CMAKE_ARGS_OFF");
+         dump_helper (name, rec.CMAKE_ARGS_ON, "CMAKE_ARGS_ON");
+         dump_helper (name, rec.CMAKE_BOOL_T_BOTH, "CMAKE_BOOL_T_BOTH");
+         dump_helper (name, rec.CMAKE_BOOL_F_BOTH, "CMAKE_BOOL_F_BOTH");
+         dump_helper (name, rec.CONFIGURE_ARGS_ON, "CONFIGURE_ARGS_ON");
+         dump_helper (name, rec.CONFIGURE_ARGS_OFF, "CONFIGURE_ARGS_OFF");
+         dump_helper (name, rec.CONFIGURE_ENABLE_BOTH, "CONFIGURE_ENABLE_BOTH");
+         dump_helper (name, rec.CONFIGURE_ENV_ON, "CONFIGURE_ENV_ON");
+         dump_helper (name, rec.CONFIGURE_WITH_BOTH, "CONFIGURE_WITH_BOTH");
+         dump_helper (name, rec.CPPFLAGS_ON, "CPPFLAGS_ON");
+         dump_helper (name, rec.CXXFLAGS_ON, "CXXFLAGS_ON");
+         dump_helper (name, rec.DF_INDEX_ON, "DF_INDEX_ON");
+         dump_helper (name, rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
+         dump_helper (name, rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
+         dump_helper (name, rec.GH_ACCOUNT_ON, "GH_ACCOUNT_ON");
+         dump_helper (name, rec.GH_PROJECT_ON, "GH_PROJECT_ON");
+         dump_helper (name, rec.GH_SUBDIR_ON, "GH_SUBDIR_ON");
+         dump_helper (name, rec.GH_TAGNAME_ON, "GH_TAGNAME_ON");
+         dump_helper (name, rec.GH_TUPLE_ON, "GH_TUPLE_ON");
+         dump_helper (name, rec.IMPLIES_ON, "IMPLIES_ON");
+         dump_helper (name, rec.INFO_ON, "INFO_ON");
+         dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
+         dump_helper (name, rec.KEYWORDS_ON, "KEYWORDS_ON");
+         dump_helper (name, rec.LDFLAGS_ON, "LDFLAGS_ON");
+         dump_helper (name, rec.LIB_DEPENDS_ON, "LIB_DEPENDS_ON");
+         dump_helper (name, rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
+         dump_helper (name, rec.MAKE_ENV_ON, "MAKE_ENV_ON");
+         dump_helper (name, rec.PATCHFILES_ON, "PATCHFILES_ON");
+         dump_helper (name, rec.PLIST_SUB_ON, "PLIST_SUB_ON");
+         dump_helper (name, rec.PREVENTS_ON, "PREVENTS_ON");
+         dump_helper (name, rec.QMAKE_OFF, "QMAKE_OFF");
+         dump_helper (name, rec.QMAKE_ON, "QMAKE_ON");
+         dump_helper (name, rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
+         dump_helper (name, rec.SUB_FILES_ON, "SUB_FILES_ON");
+         dump_helper (name, rec.SUB_LIST_ON, "SUB_LIST_ON");
+         dump_helper (name, rec.TEST_TARGET_ON, "TEST_TARGET_ON");
+         dump_helper (name, rec.USES_ON, "USES_ON");
+      end expand_option_record;
+
+      procedure dump_options is
+      begin
+         specs.ops_helpers.Iterate (Process => expand_option_record'Access);
+      end dump_options;
 
    begin
       send ("# Buildsheet autogenerated by ravenadm tool -- Do not edit." & LAT.LF);
@@ -307,6 +390,7 @@ package body Port_Specification.Buildsheet is
       --  WITH_DEBUG (?)
       --  DEBUG_FLAGS (?)
 
+      dump_options;
       send_targets;
 
 
