@@ -6,6 +6,7 @@ with Definitions; use Definitions;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Text_IO;
+with Package_Manifests;
 with File_Operations;
 with Utilities;
 
@@ -14,9 +15,9 @@ package body Port_Specification.Buildsheet is
    package TIO renames Ada.Text_IO;
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
+   package MAN renames Package_Manifests;
    package FOP renames File_Operations;
    package UTL renames Utilities;
-
    --------------------------------------------------------------------------------------------
    --  generator
    --------------------------------------------------------------------------------------------
@@ -37,12 +38,15 @@ package body Port_Specification.Buildsheet is
       procedure send_targets;
       procedure send_descriptions;
       procedure send_scripts;
+      procedure send_manifests;
       procedure print_item     (position : string_crate.Cursor);
       procedure print_item40   (position : string_crate.Cursor);
       procedure print_straight (position : string_crate.Cursor);
       procedure print_adjacent (position : string_crate.Cursor);
       procedure dump_vardesc   (position : string_crate.Cursor);
       procedure dump_vardesc2  (position : string_crate.Cursor);
+      procedure dump_manifest  (position : string_crate.Cursor);
+      procedure dump_manifest2 (position : string_crate.Cursor);
       procedure dump_sdesc     (position : def_crate.Cursor);
       procedure dump_sites     (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
@@ -51,6 +55,7 @@ package body Port_Specification.Buildsheet is
       procedure expand_option_record (position : option_crate.Cursor);
       procedure blank_line;
       procedure send_file      (filename : String);
+      procedure send_plist     (filename : String);
       procedure send_directory (dirname  : String; pattern : String := "");
 
       write_to_file   : constant Boolean := (output_file /= "");
@@ -59,6 +64,7 @@ package body Port_Specification.Buildsheet is
       current_len     : Natural;
       currently_blank : Boolean := True;
       desc_prefix     : constant String := "descriptions/desc.";
+      plist_prefix    : constant String := "manifests/plist.";
       distinfo        : constant String := "distinfo";
       temp_storage    : string_crate.Vector;
 
@@ -328,6 +334,22 @@ package body Port_Specification.Buildsheet is
          end if;
       end send_file;
 
+      procedure send_plist (filename : String)
+      is
+         abspath : constant String := ravensrcdir & "/" & filename;
+      begin
+         if DIR.Exists (abspath) then
+            declare
+               contents : constant String := MAN.compress_manifest (MAN.Filename (abspath));
+            begin
+               blank_line;
+               send ("[FILE:" & HT.int2str (contents'Length) & LAT.Colon & filename &
+                       LAT.Right_Square_Bracket);
+               send (contents);
+            end;
+         end if;
+      end send_plist;
+
       procedure dump_vardesc2  (position : string_crate.Cursor)
       is
          item : HT.Text renames string_crate.Element (position);
@@ -342,9 +364,7 @@ package body Port_Specification.Buildsheet is
          end if;
       end dump_vardesc2;
 
-      procedure dump_vardesc (position : string_crate.Cursor)
-      is
-         variant : String := HT.USS (string_crate.Element (position));
+      procedure dump_vardesc (position : string_crate.Cursor) is
       begin
          varname_prefix := string_crate.Element (position);
          specs.subpackages.Element (varname_prefix).list.Iterate (dump_vardesc2'Access);
@@ -429,6 +449,36 @@ package body Port_Specification.Buildsheet is
          sorter.Sort (Container => bucket);
          bucket.Iterate (Process => dump_file'Access);
       end send_directory;
+
+      procedure dump_manifest2  (position : string_crate.Cursor)
+      is
+         item : HT.Text renames string_crate.Element (position);
+         subpkg : String := HT.USS (item);
+      begin
+         if DIR.Exists (ravensrcdir & "/" & plist_prefix & subpkg) and then
+           not temp_storage.Contains (item)
+         then
+            temp_storage.Append (item);
+            send_plist (plist_prefix & subpkg);
+         end if;
+      end dump_manifest2;
+
+      procedure dump_manifest (position : string_crate.Cursor)
+      is
+         variant : HT.Text renames string_crate.Element (position);
+      begin
+         specs.subpackages.Element (variant).list.Iterate (dump_manifest2'Access);
+      end dump_manifest;
+
+      procedure send_manifests
+      is
+         --  Manifests are subpackage-based
+         --  Not having a subpackage manifest is ok.
+         --  Subpackaegs typically missing: docs, examples, complete (Metaport)
+      begin
+         specs.variants.Iterate (Process => dump_manifest'Access);
+         temp_storage.Clear;
+      end send_manifests;
 
    begin
       send ("# Buildsheet autogenerated by ravenadm tool -- Do not edit." & LAT.LF);
@@ -530,8 +580,8 @@ package body Port_Specification.Buildsheet is
       send_targets;
       send_descriptions;
       send_file (distinfo);
+      send_manifests;
       send_scripts;
-      --  TODO: manifests
       send_directory ("patches", "patch-*");
       send_directory ("files", "");
       for opsys in supported_opsys'Range loop
