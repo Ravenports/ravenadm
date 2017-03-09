@@ -41,7 +41,7 @@ package body Specification_Parser is
       last_index    : HT.Text;
       last_optindex : HT.Text;
       seen_singlet  : array (spec_singlet)    of Boolean := (others => False);
-      seen_helper   : array (PSP.spec_option) of Boolean := (others => False);
+      quad_tab      : Boolean;
 
       use type PSP.spec_option;
    begin
@@ -50,6 +50,7 @@ package body Specification_Parser is
       HT.initialize_markers (contents, markers);
       loop
          exit when not HT.next_line_present (contents, markers);
+         quad_tab := False;
          linenum := linenum + 1;
          declare
             line : constant String := HT.extract_line (contents, markers);
@@ -109,13 +110,6 @@ package body Specification_Parser is
                      line_singlet := not_singlet;
                   end if;
                else
-                  if seen_helper (line_option) then
-                     last_parse_error :=
-                       HT.SUS (LN & "option helper previously defined (use quadruple tab)");
-                     exit;
-                  end if;
-                  seen_helper (line_option) := True;
-
                   line_array   := not_array;
                   line_singlet := not_singlet;
                end if;
@@ -144,6 +138,7 @@ package body Specification_Parser is
                      when cat_none    => null;
                      when cat_target  => null;
                      when cat_option  => line_option  := last_option;
+                                         quad_tab := True;
                   end case;
                else
                   last_parse_error := HT.SUS (LN & "Parse failed, content unrecognized.");
@@ -404,6 +399,14 @@ package body Specification_Parser is
                           HT.SUS (LN & "Valid helper, but option has never been defined " &
                                     "(also seen when continuation line doesn't start with " &
                                     "5 tabs)");
+                        exit;
+                     end if;
+                     if not quad_tab and then
+                       not specification.option_helper_unset (field  => line_option,
+                                                              option => option_name)
+                     then
+                        last_parse_error :=
+                          HT.SUS (LN & "option helper previously defined (use quadruple tab)");
                         exit;
                      end if;
                      build_list (line_option, option_name, line);

@@ -18,11 +18,6 @@ package body Port_Specification.Makefile is
      (specs         : Portspecs;
       variant       : String;
       opsys         : supported_opsys;
-      arch_standard : supported_arch;
-      osrelease     : String;
-      osmajor       : String;
-      osversion     : String;
-      option_string : String;
       output_file   : String
      )
    is

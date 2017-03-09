@@ -158,11 +158,6 @@ package body Pilot is
          PSM.generator (specs         => PAR.specification,
                         variant       => get_variant,
                         opsys         => dragonfly,
-                        arch_standard => x86_64,
-                        osrelease     => "4.7",
-                        osmajor       => "4.7",
-                        osversion     => "400709",
-                        option_string => "",
                         output_file   => "");
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);

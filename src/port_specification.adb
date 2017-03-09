@@ -993,6 +993,71 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  option_helper_unset
+   --------------------------------------------------------------------------------------------
+   function option_helper_unset
+     (specs  : Portspecs;
+      field  : spec_option;
+      option : String) return Boolean
+   is
+      option_text : HT.Text := HT.SUS (option);
+   begin
+      if not specs.ops_helpers.Contains (option_text) then
+         return False;
+      end if;
+      declare
+         rec : Option_Helper renames specs.ops_helpers.Element (option_text);
+      begin
+         case field is
+            when broken_on             => return HT.IsBlank (rec.BROKEN_ON);
+            when build_depends_on      => return rec.BUILD_DEPENDS_ON.Is_Empty;
+            when build_target_on       => return rec.BUILD_TARGET_ON.Is_Empty;
+            when cflags_on             => return rec.CFLAGS_ON.Is_Empty;
+            when cmake_args_off        => return rec.CMAKE_ARGS_OFF.Is_Empty;
+            when cmake_args_on         => return rec.CMAKE_ARGS_ON.Is_Empty;
+            when cmake_bool_f_both     => return rec.CMAKE_BOOL_F_BOTH.Is_Empty;
+            when cmake_bool_t_both     => return rec.CMAKE_BOOL_T_BOTH.Is_Empty;
+            when configure_args_off    => return rec.CONFIGURE_ARGS_OFF.Is_Empty;
+            when configure_args_on     => return rec.CONFIGURE_ARGS_ON.Is_Empty;
+            when configure_enable_both => return rec.CONFIGURE_ENABLE_BOTH.Is_Empty;
+            when configure_env_on      => return rec.CONFIGURE_ENV_ON.Is_Empty;
+            when configure_with_both   => return rec.CONFIGURE_WITH_BOTH.Is_Empty;
+            when cppflags_on           => return rec.CPPFLAGS_ON.Is_Empty;
+            when cxxflags_on           => return rec.CXXFLAGS_ON.Is_Empty;
+            when df_index_on           => return rec.DF_INDEX_ON.Is_Empty;
+            when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
+            when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
+            when gh_account_on         => return rec.GH_ACCOUNT_ON.Is_Empty;
+            when gh_project_on         => return rec.GH_PROJECT_ON.Is_Empty;
+            when gh_subdir_on          => return rec.GH_SUBDIR_ON.Is_Empty;
+            when gh_tagname_on         => return rec.GH_TAGNAME_ON.Is_Empty;
+            when gh_tuple_on           => return rec.GH_TUPLE_ON.Is_Empty;
+            when implies_on            => return rec.IMPLIES_ON.Is_Empty;
+            when info_on               => return rec.INFO_ON.Is_Empty;
+            when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
+            when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
+            when ldflags_on            => return rec.LDFLAGS_ON.Is_Empty;
+            when lib_depends_on        => return rec.LIB_DEPENDS_ON.Is_Empty;
+            when make_args_on          => return rec.MAKE_ARGS_ON.Is_Empty;
+            when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
+            when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
+            when plist_sub_on          => return rec.PLIST_SUB_ON.Is_Empty;
+            when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
+            when qmake_off             => return rec.QMAKE_OFF.Is_Empty;
+            when qmake_on              => return rec.QMAKE_ON.Is_Empty;
+            when run_depends_on        => return rec.RUN_DEPENDS_ON.Is_Empty;
+            when sub_files_on          => return rec.SUB_FILES_ON.Is_Empty;
+            when sub_list_on           => return rec.SUB_LIST_ON.Is_Empty;
+            when test_target_on        => return rec.TEST_TARGET_ON.Is_Empty;
+            when uses_on               => return rec.USES_ON.Is_Empty;
+            when not_helper_format     => return False;
+            when not_supported_helper  => return False;
+         end case;
+      end;
+   end option_helper_unset;
+
+
+   --------------------------------------------------------------------------------------------
    --  variant_exists
    --------------------------------------------------------------------------------------------
    function variant_exists (specs : Portspecs; variant : String) return Boolean is
@@ -1036,12 +1101,16 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  option_current_setting
    --------------------------------------------------------------------------------------------
-   function option_current_setting (specs : Portspecs; option : String) return Boolean is
+   function option_current_setting (specs : Portspecs; option : String) return Boolean
+   is
+      option_text : HT.Text := HT.SUS (option);
    begin
       if not specs.option_exists (option) then
          raise invalid_option with option;
       end if;
-      --  TO-DO: return current setting of option
+      if specs.ops_helpers.Contains (option_text) then
+         return specs.ops_helpers.Element (option_text).currently_set_ON;
+      end if;
       return False;
    end option_current_setting;
 

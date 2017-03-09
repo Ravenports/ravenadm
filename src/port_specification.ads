@@ -37,7 +37,7 @@ package Port_Specification is
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
-                         cmake_bool_t_both, cmake_bool_f_both, configure_args_off,
+                         cmake_bool_f_both, cmake_bool_t_both, configure_args_off,
                          configure_args_on, configure_enable_both, configure_env_on,
                          configure_with_both, cppflags_on, cxxflags_on, df_index_on,
                          extra_patches_on, extract_only_on, gh_account_on, gh_project_on,
@@ -143,6 +143,12 @@ package Port_Specification is
    --  Perform any post-parsing adjustments necessary
    procedure adjust_defaults_port_parse (specs : in out Portspecs);
 
+   --  Returns true if indicated option helper is empty
+   function option_helper_unset
+     (specs  : Portspecs;
+      field  : spec_option;
+      option : String) return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -188,8 +194,8 @@ private
          CFLAGS_ON             : string_crate.Vector;
          CMAKE_ARGS_OFF        : string_crate.Vector;
          CMAKE_ARGS_ON         : string_crate.Vector;
-         CMAKE_BOOL_T_BOTH     : string_crate.Vector;
          CMAKE_BOOL_F_BOTH     : string_crate.Vector;
+         CMAKE_BOOL_T_BOTH     : string_crate.Vector;
          CONFIGURE_ARGS_ON     : string_crate.Vector;
          CONFIGURE_ARGS_OFF    : string_crate.Vector;
          CONFIGURE_ENABLE_BOTH : string_crate.Vector;
