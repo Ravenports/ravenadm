@@ -5,12 +5,14 @@ with Definitions; use Definitions;
 with Utilities;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
+with Ada.Calendar.Formatting;
 
 package body Port_Specification is
 
    package UTL renames Utilities;
    package TIO renames Ada.Text_IO;
    package LAT renames Ada.Characters.Latin_1;
+   package CAL renames Ada.Calendar;
 
    --------------------------------------------------------------------------------------------
    --  initialize
@@ -92,6 +94,8 @@ package body Port_Specification is
       specs.config_target := HT.blank;
       specs.config_wrksrc := HT.blank;
       specs.config_must   := HT.blank;
+      specs.expire_date   := HT.blank;
+      specs.deprecated    := HT.blank;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -116,9 +120,13 @@ package body Port_Specification is
          end if;
       end verify_entry_is_post_options;
    begin
-      if contains_nonquoted_spaces (value) then
-         raise contains_spaces;
-      end if;
+      case field is
+         when sp_deprecated => null;
+         when others =>
+            if contains_nonquoted_spaces (value) then
+               raise contains_spaces;
+            end if;
+      end case;
       case field is
          when sp_namebase =>
             if specs.last_set /= so_initialized then
@@ -188,6 +196,15 @@ package body Port_Specification is
                raise wrong_value with "MUST_CONFIGURE may only be 'yes' or 'gnu'";
             end if;
             specs.config_must := text_value;
+         when sp_deprecated =>
+            verify_entry_is_post_options;
+            specs.deprecated := text_value;
+         when sp_expiration =>
+            verify_entry_is_post_options;
+            if not ISO8601_format (value) then
+               raise wrong_value with "Not valid ISO 8601 date for EXPIRATION_DATE";
+            end if;
+            specs.expire_date := text_value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1365,6 +1382,60 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  ISO8601_format
+   --------------------------------------------------------------------------------------------
+   function ISO8601_format (value : String) return Boolean
+   is
+      --  Requires YYYY-MM-DD, YYYY >= 2017, MM 01..12, DD 01..31, converts
+   begin
+      if value'Length /= 10 then
+         return False;
+      end if;
+      declare
+         year : Integer;
+         month : Integer;
+         day   : Integer;
+         wrkstr : String (1 .. 10) := value;
+         dummy : CAL.Time;
+      begin
+         if not (wrkstr (5) = LAT.Hyphen) or else
+           not (wrkstr (8) = LAT.Hyphen)
+         then
+            return False;
+         end if;
+         year  := Integer'Value (wrkstr (1 .. 4));
+         month := Integer'Value (wrkstr (6 .. 7));
+         day   := Integer'Value (wrkstr (9 .. 10));
+         if year < 2017 or else
+           month < 1 or else
+           month > 12 or else
+           day < 1 or else
+           day > 31
+         then
+            return False;
+         end if;
+         dummy := CAL.Formatting.Value (wrkstr & " 00:00:00");
+         return True;
+      end;
+   exception
+      when others =>
+         return False;
+   end ISO8601_format;
+
+
+   --------------------------------------------------------------------------------------------
+   --  check_deprecation
+   --------------------------------------------------------------------------------------------
+   function deprecation_valid (specs : Portspecs) return Boolean
+   is
+      DEP : Boolean := not HT.IsBlank (specs.deprecated);
+      EXP : Boolean := not HT.IsBlank (specs.expire_date);
+   begin
+      return (DEP and EXP) or else (not DEP and not EXP);
+   end deprecation_valid;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
@@ -1703,6 +1774,8 @@ package body Port_Specification is
             when sp_config_wrksrc  => TIO.Put_Line (HT.USS (specs.config_wrksrc));
             when sp_patch_wrksrc   => TIO.Put_Line (HT.USS (specs.patch_wrksrc));
             when sp_must_config    => TIO.Put_Line (HT.USS (specs.config_must));
+            when sp_expiration     => TIO.Put_Line (HT.USS (specs.expire_date));
+            when sp_deprecated     => TIO.Put_Line (HT.USS (specs.deprecated));
             when others => null;
          end case;
       end print_single;
@@ -1753,6 +1826,8 @@ package body Port_Specification is
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);
+      print_single      ("DEPRECATED", sp_deprecated);
+      print_single      ("EXPIRATION_DATE", sp_expiration);
       print_vector_list ("BUILD_DEPENDS", sp_build_deps);
       print_vector_list ("LIB_DEPENDS", sp_lib_deps);
       print_vector_list ("RUN_DEPENDS", sp_run_deps);

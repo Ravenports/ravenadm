@@ -33,7 +33,7 @@ package Port_Specification is
                        sp_info, sp_install_tgt, sp_patch_strip, sp_pfiles_strip,
                        sp_patch_wrksrc, sp_extra_patches, sp_apply_f10_fix, sp_must_config,
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
-                       sp_config_target);
+                       sp_config_target, sp_deprecated, sp_expiration);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -139,6 +139,9 @@ package Port_Specification is
    --  Return blank string if all of them pass or the name of the first variant that doesn't
    --  concatenated with the missing option.
    function check_variants (specs : Portspecs) return String;
+
+   --  Return False if deprecation set without expiration or vice versa.
+   function deprecation_valid (specs : Portspecs) return Boolean;
 
    --  Perform any post-parsing adjustments necessary
    procedure adjust_defaults_port_parse (specs : in out Portspecs);
@@ -263,6 +266,8 @@ private
          exc_opsys     : string_crate.Vector;
          inc_opsys     : string_crate.Vector;
          exc_arch      : string_crate.Vector;
+         deprecated    : HT.Text;
+         expire_date   : HT.Text;
          uses          : string_crate.Vector;
          sub_list      : string_crate.Vector;
          sub_files     : string_crate.Vector;
@@ -341,5 +346,9 @@ private
    --  Return True if same option is already defined in all.
    function option_present_in_OPT_ON_all (specs : Portspecs;
                                           option_name : String) return Boolean;
+
+   --  Return True if in format YYYY-MM-DD and YYYY > 2016 and MM is 01..12 and DD is 01..31
+   --  and it succesfully converts to a date.
+   function ISO8601_format (value : String) return Boolean;
 
 end Port_Specification;

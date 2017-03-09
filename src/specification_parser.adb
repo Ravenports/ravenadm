@@ -88,7 +88,10 @@ package body Specification_Parser is
                exit;
             end if;
 
-            if line_target = not_target then
+            --  Short-circuit the rest if the first character is a tab.
+            if line_target = not_target or else
+              line (line'First) = LAT.HT
+            then
                line_option := determine_option (line);
                if line_option = PSP.not_supported_helper then
                   last_parse_error := HT.SUS (LN & "Option format, but helper not recognized.");
@@ -308,6 +311,8 @@ package body Specification_Parser is
                      when configure_script => build_string (PSP.sp_config_script, line);
                      when gnu_cfg_prefix   => build_string (PSP.sp_gnu_cfg_prefix, line);
                      when must_configure   => build_string (PSP.sp_must_config, line);
+                     when deprecated       => build_string (PSP.sp_deprecated, line);
+                     when expiration       => build_string (PSP.sp_expiration, line);
                      when revision         => set_natural (PSP.sp_revision, line);
                      when epoch            => set_natural (PSP.sp_epoch, line);
                      when opt_level        => set_natural (PSP.sp_opt_level, line);
@@ -793,7 +798,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 61;
+      total_singlets : constant Positive := 63;
 
       type singlet_pair is
          record
@@ -820,6 +825,7 @@ package body Specification_Parser is
          ("CONTACT               ",  7, contacts),
          ("CPPFLAGS              ",  8, cppflags),
          ("CXXFLAGS              ",  8, cxxflags),
+         ("DEPRECATED            ", 10, deprecated),
          ("DESTDIRNAME           ", 11, destdirname),
          ("DESTDIR_VIA_ENV       ", 15, destdir_env),
          ("DF_INDEX              ",  8, df_index),
@@ -827,6 +833,7 @@ package body Specification_Parser is
          ("DIST_SUBDIR           ", 11, dist_subdir),
          ("DOWNLOAD_GROUPS       ", 15, dl_groups),
          ("EPOCH                 ",  5, epoch),
+         ("EXPIRATION_DATE       ", 15, expiration),
          ("EXTRACT_DIRTY         ", 13, ext_dirty),
          ("EXTRACT_ONLY          ", 12, ext_only),
          ("EXTRACT_WITH_7Z       ", 15, ext_7z),
@@ -1288,6 +1295,9 @@ package body Specification_Parser is
          return HT.SUS ("Variant '" & HT.part_1 (variant_check_result, ":") &
                           "' is missing the required '" & HT.part_2 (variant_check_result, ":") &
                           "' option configuration.");
+      end if;
+      if not specification.deprecation_valid then
+         return HT.SUS ("DEPRECATED and EXPIRATION must both be set");
       end if;
       return HT.blank;
    end late_validity_check_error;
