@@ -946,10 +946,34 @@ package body Port_Specification is
             null;
          when build_depends_on | lib_depends_on | run_depends_on =>
             null; --  TODO: Add validation
-         when df_index_on | extract_only =>
-            null; --  TODO: Add validation
-         when implies_on | prevents_on =>
-            null; --  TODO: add validation
+         when df_index_on =>
+            if not specs.dist_index_is_valid (value) then
+               raise wrong_value with "distfile index '" & value & "' is not valid";
+            end if;
+            if specs.ops_helpers.Element (option_text).DF_INDEX_ON.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
+         when extract_only =>
+            if not specs.dist_index_is_valid (value) then
+               raise wrong_value with "distfile index '" & value & "' is not valid";
+            end if;
+            if specs.ops_helpers.Element (option_text).EXTRACT_ONLY_ON.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
+         when implies_on =>
+            if not specs.ops_avail.Contains (value_text) then
+               raise wrong_value with "Not a defined option: '" & value & "'";
+            end if;
+            if specs.ops_helpers.Element (option_text).IMPLIES_ON.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
+         when prevents_on =>
+            if not specs.ops_avail.Contains (value_text) then
+               raise wrong_value with "Not a defined option: '" & value & "'";
+            end if;
+            if specs.ops_helpers.Element (option_text).PREVENTS_ON.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
          when keywords_on =>
             if not keyword_is_valid (value) then
                raise wrong_value with "Keyword '" & value & "' is not recognized";
