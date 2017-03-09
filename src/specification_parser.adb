@@ -301,56 +301,67 @@ package body Specification_Parser is
                      when namebase =>
                         seen_namebase := True;
                         build_string (PSP.sp_namebase, line);
-                     when version      => build_string (PSP.sp_version, line);
-                     when dist_subdir  => build_string (PSP.sp_distsubdir, line);
-                     when distname     => build_string (PSP.sp_distname, line);
-                     when build_wrksrc => build_string (PSP.sp_build_wrksrc, line);
-                     when makefile     => build_string (PSP.sp_makefile, line);
-                     when destdirname  => build_string (PSP.sp_destdirname, line);
-                     when homepage     => build_string (PSP.sp_homepage, line);
-                     when revision     => set_natural (PSP.sp_revision, line);
-                     when epoch        => set_natural (PSP.sp_epoch, line);
-                     when opt_level    => set_natural (PSP.sp_opt_level, line);
-                     when skip_build   => set_boolean (PSP.sp_skip_build, line);
-                     when skip_install => set_boolean (PSP.sp_skip_install, line);
-                     when single_job   => set_boolean (PSP.sp_single_job, line);
-                     when destdir_env  => set_boolean (PSP.sp_destdir_env, line);
-                     when keywords     => build_list (PSP.sp_keywords, line);
-                     when variants     => build_list (PSP.sp_variants, line);
-                     when contacts     => build_list (PSP.sp_contacts, line);
-                     when dl_groups    => build_list (PSP.sp_dl_groups, line);
-                     when df_index     => build_list (PSP.sp_df_index, line);
-                     when opt_avail    => build_list (PSP.sp_opts_avail, line);
-                     when opt_standard => build_list (PSP.sp_opts_standard, line);
-                     when exc_opsys    => build_list (PSP.sp_exc_opsys, line);
-                     when inc_opsys    => build_list (PSP.sp_inc_opsys, line);
-                     when exc_arch     => build_list (PSP.sp_exc_arch, line);
-                     when ext_only     => build_list (PSP.sp_ext_only, line);
-                     when ext_zip      => build_list (PSP.sp_ext_zip, line);
-                     when ext_7z       => build_list (PSP.sp_ext_7z, line);
-                     when ext_lha      => build_list (PSP.sp_ext_lha, line);
-                     when ext_dirty    => build_list (PSP.sp_ext_dirty, line);
-                     when make_args    => build_list (PSP.sp_make_args, line);
-                     when make_env     => build_list (PSP.sp_make_env, line);
-                     when build_target => build_list (PSP.sp_build_target, line);
-                     when cflags       => build_list (PSP.sp_cflags, line);
-                     when cxxflags     => build_list (PSP.sp_cxxflags, line);
-                     when cppflags     => build_list (PSP.sp_cppflags, line);
-                     when ldflags      => build_list (PSP.sp_ldflags, line);
-                     when patchfiles   => build_list (PSP.sp_patchfiles, line);
-                     when uses         => build_list (PSP.sp_uses, line);
-                     when sub_files    => build_list (PSP.sp_sub_files, line);
-                     when sub_list     => build_list (PSP.sp_sub_list, line);
-                     when config_args  => build_list (PSP.sp_config_args, line);
-                     when config_env   => build_list (PSP.sp_config_env, line);
-                     when build_deps   => build_list (PSP.sp_build_deps, line);
-                     when lib_deps     => build_list (PSP.sp_lib_deps, line);
-                     when run_deps     => build_list (PSP.sp_run_deps, line);
-                     when cmake_args   => build_list (PSP.sp_cmake_args, line);
-                     when qmake_args   => build_list (PSP.sp_qmake_args, line);
-                     when info         => build_list (PSP.sp_info, line);
-                     when install_tgt  => build_list (PSP.sp_install_tgt, line);
-                     when not_singlet  => null;
+                     when version          => build_string (PSP.sp_version, line);
+                     when dist_subdir      => build_string (PSP.sp_distsubdir, line);
+                     when distname         => build_string (PSP.sp_distname, line);
+                     when build_wrksrc     => build_string (PSP.sp_build_wrksrc, line);
+                     when patch_wrksrc     => build_string (PSP.sp_patch_wrksrc, line);
+                     when configure_wrksrc => build_string (PSP.sp_config_wrksrc, line);
+                     when makefile         => build_string (PSP.sp_makefile, line);
+                     when destdirname      => build_string (PSP.sp_destdirname, line);
+                     when homepage         => build_string (PSP.sp_homepage, line);
+                     when configure_script => build_string (PSP.sp_config_script, line);
+                     when gnu_cfg_prefix   => build_string (PSP.sp_gnu_cfg_prefix, line);
+                     when must_configure   => build_string (PSP.sp_must_config, line);
+                     when revision         => set_natural (PSP.sp_revision, line);
+                     when epoch            => set_natural (PSP.sp_epoch, line);
+                     when opt_level        => set_natural (PSP.sp_opt_level, line);
+                     when skip_build       => set_boolean (PSP.sp_skip_build, line);
+                     when skip_install     => set_boolean (PSP.sp_skip_install, line);
+                     when single_job       => set_boolean (PSP.sp_single_job, line);
+                     when destdir_env      => set_boolean (PSP.sp_destdir_env, line);
+                     when config_outsource => set_boolean (PSP.sp_cfg_outsrc, line);
+                     when keywords         => build_list (PSP.sp_keywords, line);
+                     when variants         => build_list (PSP.sp_variants, line);
+                     when contacts         => build_list (PSP.sp_contacts, line);
+                     when dl_groups        => build_list (PSP.sp_dl_groups, line);
+                     when df_index         => build_list (PSP.sp_df_index, line);
+                     when opt_avail        => build_list (PSP.sp_opts_avail, line);
+                     when opt_standard     => build_list (PSP.sp_opts_standard, line);
+                     when exc_opsys        => build_list (PSP.sp_exc_opsys, line);
+                     when inc_opsys        => build_list (PSP.sp_inc_opsys, line);
+                     when exc_arch         => build_list (PSP.sp_exc_arch, line);
+                     when ext_only         => build_list (PSP.sp_ext_only, line);
+                     when ext_zip          => build_list (PSP.sp_ext_zip, line);
+                     when ext_7z           => build_list (PSP.sp_ext_7z, line);
+                     when ext_lha          => build_list (PSP.sp_ext_lha, line);
+                     when ext_dirty        => build_list (PSP.sp_ext_dirty, line);
+                     when make_args        => build_list (PSP.sp_make_args, line);
+                     when make_env         => build_list (PSP.sp_make_env, line);
+                     when build_target     => build_list (PSP.sp_build_target, line);
+                     when cflags           => build_list (PSP.sp_cflags, line);
+                     when cxxflags         => build_list (PSP.sp_cxxflags, line);
+                     when cppflags         => build_list (PSP.sp_cppflags, line);
+                     when ldflags          => build_list (PSP.sp_ldflags, line);
+                     when patchfiles       => build_list (PSP.sp_patchfiles, line);
+                     when uses             => build_list (PSP.sp_uses, line);
+                     when sub_files        => build_list (PSP.sp_sub_files, line);
+                     when sub_list         => build_list (PSP.sp_sub_list, line);
+                     when config_args      => build_list (PSP.sp_config_args, line);
+                     when config_env       => build_list (PSP.sp_config_env, line);
+                     when configure_target => build_list (PSP.sp_config_target, line);
+                     when build_deps       => build_list (PSP.sp_build_deps, line);
+                     when lib_deps         => build_list (PSP.sp_lib_deps, line);
+                     when run_deps         => build_list (PSP.sp_run_deps, line);
+                     when cmake_args       => build_list (PSP.sp_cmake_args, line);
+                     when qmake_args       => build_list (PSP.sp_qmake_args, line);
+                     when info             => build_list (PSP.sp_info, line);
+                     when install_tgt      => build_list (PSP.sp_install_tgt, line);
+                     when apply_10_fix     => build_list (PSP.sp_apply_f10_fix, line);
+                     when patch_strip      => build_list (PSP.sp_patch_strip, line);
+                     when extra_patches    => build_list (PSP.sp_extra_patches, line);
+                     when patchfiles_strip => build_list (PSP.sp_pfiles_strip, line);
+                     when not_singlet      => null;
                   end case;
                   last_singlet := line_singlet;
                   last_seen := cat_singlet;
@@ -779,7 +790,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 50;
+      total_singlets : constant Positive := 61;
 
       type singlet_pair is
          record
@@ -791,6 +802,7 @@ package body Specification_Parser is
       --  It is critical that this list be alphabetized correctly.
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
+         ("APPLY_F10_FIX         ", 13, apply_10_fix),
          ("BUILD_DEPENDS         ", 13, build_deps),
          ("BUILD_TARGET          ", 12, build_target),
          ("BUILD_WRKSRC          ", 12, build_wrksrc),
@@ -798,6 +810,10 @@ package body Specification_Parser is
          ("CMAKE_ARGS            ", 10, cmake_args),
          ("CONFIGURE_ARGS        ", 14, config_args),
          ("CONFIGURE_ENV         ", 13, config_env),
+         ("CONFIGURE_OUTSOURCE   ", 19, config_outsource),
+         ("CONFIGURE_SCRIPT      ", 16, configure_script),
+         ("CONFIGURE_TARGET      ", 16, configure_target),
+         ("CONFIGURE_WRKSRC      ", 16, configure_wrksrc),
          ("CONTACT               ",  7, contacts),
          ("CPPFLAGS              ",  8, cppflags),
          ("CXXFLAGS              ",  8, cxxflags),
@@ -813,6 +829,8 @@ package body Specification_Parser is
          ("EXTRACT_WITH_7Z       ", 15, ext_7z),
          ("EXTRACT_WITH_LHA      ", 16, ext_lha),
          ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
+         ("EXTRA_PATCHES         ", 13, extra_patches),
+         ("GNU_CONFIGURE_PREFIX  ", 20, gnu_cfg_prefix),
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
          ("INSTALL_TARGET        ", 14, install_tgt),
@@ -822,6 +840,7 @@ package body Specification_Parser is
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
+         ("MUST_CONFIGURE        ", 14, must_configure),
          ("NAMEBASE              ",  8, namebase),
          ("NOT_FOR_ARCH          ", 12, exc_arch),
          ("NOT_FOR_OPSYS         ", 13, exc_opsys),
@@ -830,6 +849,9 @@ package body Specification_Parser is
          ("OPTIONS_AVAILABLE     ", 17, opt_avail),
          ("OPTIONS_STANDARD      ", 16, opt_standard),
          ("PATCHFILES            ", 10, patchfiles),
+         ("PATCHFILES_STRIP      ", 16, patchfiles_strip),
+         ("PATCH_STRIP           ", 11, patch_strip),
+         ("PATCH_WRKSRC          ", 12, patch_wrksrc),
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),

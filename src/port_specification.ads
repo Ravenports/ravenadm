@@ -30,7 +30,10 @@ package Port_Specification is
                        sp_opt_level, sp_options_on, sp_broken, sp_opt_helper, sp_patchfiles,
                        sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_env,
                        sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
-                       sp_info, sp_install_tgt);
+                       sp_info, sp_install_tgt, sp_patch_strip, sp_pfiles_strip,
+                       sp_patch_wrksrc, sp_extra_patches, sp_apply_f10_fix, sp_must_config,
+                       sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
+                       sp_config_target);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -243,7 +246,6 @@ private
          distfiles     : string_crate.Vector;
          dist_subdir   : HT.Text;
          df_index      : string_crate.Vector;
-         patchfiles    : string_crate.Vector;
          subpackages   : list_crate.Map;
          ops_avail     : string_crate.Vector;
          ops_standard  : string_crate.Vector;
@@ -266,9 +268,22 @@ private
          extract_head  : list_crate.Map;
          extract_tail  : list_crate.Map;
          distname      : HT.Text;
-         --  configure placeholder
+
+         patchfiles    : string_crate.Vector;
+         extra_patches : string_crate.Vector;
+         patch_strip   : string_crate.Vector;
+         pfiles_strip  : string_crate.Vector;
+         patch_wrksrc  : HT.Text;
+
          config_args   : string_crate.Vector;
          config_env    : string_crate.Vector;
+         config_must   : HT.Text;
+         config_prefix : HT.Text;
+         config_script : HT.Text;
+         config_target : HT.Text;
+         config_wrksrc : HT.Text;
+         config_outsrc : Boolean;
+         apply_f10_fix : Boolean;
 
          skip_build    : Boolean;
          skip_install  : Boolean;

@@ -80,6 +80,18 @@ package body Port_Specification is
       specs.install_tgt.Clear;
 
       specs.make_targets.Clear;
+      specs.extra_patches.Clear;
+      specs.patch_strip.Clear;
+      specs.pfiles_strip.Clear;
+
+      specs.config_outsrc := False;
+      specs.apply_f10_fix := False;
+      specs.patch_wrksrc  := HT.blank;
+      specs.config_prefix := HT.blank;
+      specs.config_script := HT.blank;
+      specs.config_target := HT.blank;
+      specs.config_wrksrc := HT.blank;
+      specs.config_must   := HT.blank;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -153,6 +165,29 @@ package body Port_Specification is
          when sp_destdirname =>
             verify_entry_is_post_options;
             specs.destdirname := text_value;
+         when sp_patch_wrksrc =>
+            verify_entry_is_post_options;
+            specs.patch_wrksrc := text_value;
+         when sp_gnu_cfg_prefix =>
+            verify_entry_is_post_options;
+            specs.config_prefix := text_value;
+         when sp_config_script =>
+            verify_entry_is_post_options;
+            specs.config_script := text_value;
+         when sp_config_target =>
+            verify_entry_is_post_options;
+            specs.config_target := text_value;
+         when sp_config_wrksrc =>
+            verify_entry_is_post_options;
+            specs.config_wrksrc := text_value;
+         when sp_must_config =>
+            verify_entry_is_post_options;
+            if value /= boolean_yes and then
+              value /= "gnu"
+            then
+               raise wrong_value with "MUST_CONFIGURE may only be 'yes' or 'gnu'";
+            end if;
+            specs.config_must := text_value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -437,6 +472,18 @@ package body Port_Specification is
          when sp_ldflags =>
             verify_entry_is_post_options;
             specs.ldflags.Append (text_value);
+         when sp_patchfiles =>
+            verify_entry_is_post_options;
+            specs.patchfiles.Append (text_value);
+         when sp_pfiles_strip =>
+            verify_entry_is_post_options;
+            specs.patch_strip.Append (text_value);
+         when sp_patch_strip =>
+            verify_entry_is_post_options;
+            specs.patch_strip.Append (text_value);
+         when sp_extra_patches =>
+            verify_entry_is_post_options;
+            specs.extra_patches.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -747,6 +794,10 @@ package body Port_Specification is
             specs.single_job := value;
          when sp_skip_install =>
             specs.skip_install := value;
+         when sp_cfg_outsrc =>
+            specs.config_outsrc := value;
+         when sp_apply_f10_fix =>
+            specs.apply_f10_fix := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1505,6 +1556,9 @@ package body Port_Specification is
             when sp_qmake_args    => specs.qmake_args.Iterate (Process => print_item'Access);
             when sp_info          => specs.info.Iterate (Process => print_item'Access);
             when sp_install_tgt   => specs.install_tgt.Iterate (Process => print_item'Access);
+            when sp_patch_strip   => specs.patch_strip.Iterate (Process => print_item'Access);
+            when sp_pfiles_strip  => specs.pfiles_strip.Iterate (Process => print_item'Access);
+            when sp_extra_patches => specs.extra_patches.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -1538,17 +1592,23 @@ package body Port_Specification is
             TIO.Put (LAT.HT);
          end if;
          case thelist is
-            when sp_namebase     => TIO.Put_Line (HT.USS (specs.namebase));
-            when sp_version      => TIO.Put_Line (HT.USS (specs.version));
-            when sp_revision     => TIO.Put_Line (HT.int2str (specs.revision));
-            when sp_epoch        => TIO.Put_Line (HT.int2str (specs.epoch));
-            when sp_opt_level    => TIO.Put_Line (HT.int2str (specs.optimizer_lvl));
-            when sp_distsubdir   => TIO.Put_Line (HT.USS (specs.dist_subdir));
-            when sp_distname     => TIO.Put_Line (HT.USS (specs.distname));
-            when sp_build_wrksrc => TIO.Put_Line (HT.USS (specs.build_wrksrc));
-            when sp_makefile     => TIO.Put_Line (HT.USS (specs.makefile));
-            when sp_destdirname  => TIO.Put_Line (HT.USS (specs.destdirname));
-            when sp_homepage     => TIO.Put_Line (HT.USS (specs.homepage));
+            when sp_namebase       => TIO.Put_Line (HT.USS (specs.namebase));
+            when sp_version        => TIO.Put_Line (HT.USS (specs.version));
+            when sp_revision       => TIO.Put_Line (HT.int2str (specs.revision));
+            when sp_epoch          => TIO.Put_Line (HT.int2str (specs.epoch));
+            when sp_opt_level      => TIO.Put_Line (HT.int2str (specs.optimizer_lvl));
+            when sp_distsubdir     => TIO.Put_Line (HT.USS (specs.dist_subdir));
+            when sp_distname       => TIO.Put_Line (HT.USS (specs.distname));
+            when sp_build_wrksrc   => TIO.Put_Line (HT.USS (specs.build_wrksrc));
+            when sp_makefile       => TIO.Put_Line (HT.USS (specs.makefile));
+            when sp_destdirname    => TIO.Put_Line (HT.USS (specs.destdirname));
+            when sp_homepage       => TIO.Put_Line (HT.USS (specs.homepage));
+            when sp_gnu_cfg_prefix => TIO.Put_Line (HT.USS (specs.config_prefix));
+            when sp_config_script  => TIO.Put_Line (HT.USS (specs.config_script));
+            when sp_config_target  => TIO.Put_Line (HT.USS (specs.config_target));
+            when sp_config_wrksrc  => TIO.Put_Line (HT.USS (specs.config_wrksrc));
+            when sp_patch_wrksrc   => TIO.Put_Line (HT.USS (specs.patch_wrksrc));
+            when sp_must_config    => TIO.Put_Line (HT.USS (specs.config_must));
             when others => null;
          end case;
       end print_single;
@@ -1568,6 +1628,8 @@ package body Port_Specification is
             when sp_skip_install   => TIO.Put_Line (specs.skip_install'Img);
             when sp_destdir_env    => TIO.Put_Line (specs.destdir_env'Img);
             when sp_single_job     => TIO.Put_Line (specs.single_job'Img);
+            when sp_apply_f10_fix  => TIO.Put_Line (specs.apply_f10_fix'Img);
+            when sp_cfg_outsrc     => TIO.Put_Line (specs.config_outsrc'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -1614,8 +1676,20 @@ package body Port_Specification is
       print_group_list  ("EXTRACT_HEAD", sp_ext_head);
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
 
+      print_single      ("PATCH_WRKSRC", sp_patch_wrksrc);
+      print_vector_list ("EXTRA_PATCHES", sp_extra_patches);
+      print_vector_list ("PATCH_STRIP", sp_patch_strip);
+      print_vector_list ("PATCHFILES_STRIP", sp_pfiles_strip);
+
+      print_single      ("MUST_CONFIGURE", sp_must_config);
+      print_single      ("CONFIGURE_WRKSRC", sp_config_wrksrc);
+      print_single      ("CONFIGURE_TARGET", sp_config_target);
+      print_single      ("CONFIGURE_SCRIPT", sp_config_script);
+      print_boolean     ("CONFIGURE_OUTSOURCE", sp_cfg_outsrc);
       print_vector_list ("CONFIGURE_ARGS", sp_config_args);
       print_vector_list ("CONFIGURE_ENV", sp_config_env);
+      print_single      ("GNU_CONFIGURE_PREFIX", sp_gnu_cfg_prefix);
+      print_boolean     ("APPLY_F10_FIX", sp_apply_f10_fix);
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
       print_boolean     ("SKIP_INSTALL", sp_skip_install);
