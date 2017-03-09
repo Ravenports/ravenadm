@@ -178,6 +178,7 @@ package body Pilot is
       end if;
       if successful then
          PSB.generator (specs       => PAR.specification,
+                        ravensrcdir => optional_directory,
                         output_file => "");
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);

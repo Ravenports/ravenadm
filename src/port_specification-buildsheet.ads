@@ -7,8 +7,9 @@ package Port_Specification.Buildsheet is
    --  The output_file must be blank (stdout) or a file to (over)write a file with output.
 
    procedure generator
-     (specs         : Portspecs;
-      output_file   : String);
+     (specs       : Portspecs;
+      ravensrcdir : String;
+      output_file : String);
 
 private
 
