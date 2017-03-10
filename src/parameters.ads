@@ -23,8 +23,7 @@ package Parameters is
          dir_options     : HT.Text;
          num_builders    : builders;
          jobs_limit      : builders;
-         tmpfs_workdir   : Boolean;
-         tmpfs_localbase : Boolean;
+         avoid_tmpfs     : Boolean;
          avec_ncurses    : Boolean;
          defer_prebuilt  : Boolean;
       end record;

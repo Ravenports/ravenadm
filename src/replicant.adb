@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with Ada.Directories;
+with Ada.Containers.Vectors;
 with Ada.Characters.Latin_1;
 with Parameters;
 with Unix;
@@ -9,6 +10,7 @@ with Unix;
 package body Replicant is
 
    package PM  renames Parameters;
+   package CON renames Ada.Containers;
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
 
@@ -193,7 +195,7 @@ package body Replicant is
    function ravenadm_mounts_exist return Boolean
    is
       buildbase : constant String := HT.USS (PM.configuration.dir_buildbase);
-      comres    : constant String := HT.USS (internal_system_command ("/bin/df -h"));
+      comres    : constant String := HT.USS (internal_system_command (df_command));
       markers   : HT.Line_Markers;
    begin
       HT.initialize_markers (comres, markers);
@@ -212,6 +214,109 @@ package body Replicant is
       when others =>
          return True;
    end ravenadm_mounts_exist;
+
+
+   --------------------------------------------------------------------------------------------
+   --  clear_existing_mounts
+   --------------------------------------------------------------------------------------------
+   function clear_existing_mounts return Boolean
+   is
+      package crate is new CON.Vectors (Index_Type   => Positive,
+                                        Element_Type => HT.Text,
+                                        "="          => HT.SU."=");
+      procedure annihilate (cursor : crate.Cursor);
+
+      buildbase : constant String := HT.USS (PM.configuration.dir_buildbase);
+      comres    : constant String := HT.USS (internal_system_command (df_command));
+      markers   : HT.Line_Markers;
+      mpoints   : crate.Vector;
+
+      procedure annihilate (cursor : crate.Cursor)
+      is
+         mountpoint : constant String := HT.USS (crate.Element (cursor));
+      begin
+         unmount (mountpoint);
+         if DIR.Exists (mountpoint) then
+            DIR.Delete_Directory (mountpoint);
+         end if;
+      exception
+         when others => null;
+      end annihilate;
+   begin
+      HT.initialize_markers (comres, markers);
+      loop
+         exit when not HT.next_line_present (comres, markers);
+         declare
+            line   : constant String := HT.extract_line (comres, markers);
+            mindex : Natural;
+         begin
+            mindex := HT.start_index (line, buildbase);
+            if mindex > 0 then
+               mpoints.Append (HT.SUS (line (mindex .. line'Last)));
+            end if;
+         end;
+      end loop;
+
+      mpoints.Reverse_Iterate (Process => annihilate'Access);
+
+      if ravenadm_mounts_exist then
+         return False;
+      end if;
+
+      --  No need to remove empty dirs, the upcoming run will do that.
+      return True;
+   end clear_existing_mounts;
+
+
+   --------------------------------------------------------------------------------------------
+   --  disk_workareas_exist
+   --------------------------------------------------------------------------------------------
+   function disk_workareas_exist return Boolean
+   is
+      Search    : DIR.Search_Type;
+      buildbase : constant String := HT.USS (PM.configuration.dir_buildbase);
+      result    : Boolean := False;
+   begin
+      if not DIR.Exists (buildbase) then
+         return False;
+      end if;
+      DIR.Start_Search (Search    => Search,
+                        Directory => buildbase,
+                        Filter    => (DIR.Directory => True, others => False),
+                        Pattern   => "SL*_*");
+
+      result := DIR.More_Entries (Search => Search);
+      DIR.End_Search (Search);
+      return result;
+   end disk_workareas_exist;
+
+
+   --------------------------------------------------------------------------------------------
+   --  clear_existing_workareas
+   --------------------------------------------------------------------------------------------
+   function clear_existing_workareas return Boolean
+   is
+      Search    : DIR.Search_Type;
+      Dir_Ent   : DIR.Directory_Entry_Type;
+      buildbase : constant String := HT.USS (PM.configuration.dir_buildbase);
+   begin
+      DIR.Start_Search (Search    => Search,
+                       Directory => buildbase,
+                       Filter    => (DIR.Directory => True, others => False),
+                       Pattern   => "SL*_*");
+      while DIR.More_Entries (Search => Search) loop
+         DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
+         declare
+            target : constant String := buildbase & "/" & DIR.Simple_Name (Dir_Ent);
+         begin
+            annihilate_directory_tree (target);
+         end;
+      end loop;
+      DIR.End_Search (Search);
+      return True;
+   exception
+      when others => return False;
+   end clear_existing_workareas;
 
 
    --------------------------------------------------------------------------------------------
@@ -308,4 +413,21 @@ package body Replicant is
          & RB & "/share/xml/catalog.ports"
         );
    end write_preinstall_section;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unmount
+   --------------------------------------------------------------------------------------------
+   procedure unmount (device_or_node : String)
+   is
+      sysroot_cmd : constant String := "/bin/umount " & device_or_node;
+   begin
+      --  failure to unmount causes stderr squawks which messes up curses display
+      --  Just log it and ignore for now (Add robustness later)
+      execute (sysroot_cmd);
+
+   exception
+      when others => null;  -- silently fail
+   end unmount;
+
 end Replicant;

@@ -104,22 +104,32 @@ package body HelperText is
    end IsBlank;
 
 
-   --------------------
-   --  contains  #1  --
-   --------------------
+   --------------------------------------------------------------------------------------------
+   --  contains #1
+   --------------------------------------------------------------------------------------------
    function contains (S : String; fragment : String) return Boolean is
    begin
       return (AS.Fixed.Index (Source => S, Pattern => fragment) > 0);
    end contains;
 
 
-   --------------------
-   --  contains  #2  --
-   --------------------
+   --------------------------------------------------------------------------------------------
+   --  contains #2
+   --------------------------------------------------------------------------------------------
    function contains (US : Text; fragment : String) return Boolean is
    begin
       return (SU.Index (Source => US, Pattern => fragment) > 0);
    end contains;
+
+
+   --------------------------------------------------------------------------------------------
+   --  start_index
+   --------------------------------------------------------------------------------------------
+   function start_index (S : String; fragment : String) return Natural
+   is
+   begin
+      return AS.Fixed.Index (Source => S, Pattern => fragment);
+   end start_index;
 
 
    --------------------------------------------------------------------------------------------

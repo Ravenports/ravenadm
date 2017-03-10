@@ -67,6 +67,9 @@ package HelperText is
    function part_1 (S : String; separator : String := "/") return String;
    function part_2 (S : String; separator : String := "/") return String;
 
+   --  Returns index of first character of fragment (0 if not found)
+   function start_index (S : String; fragment : String) return Natural;
+
    --  Replace substring with another string
    function replace_substring (US : Text;
                                old_string : String;

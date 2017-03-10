@@ -25,6 +25,15 @@ package Replicant is
    --  Returns True if any mounts are detected (used by pilot)
    function ravenadm_mounts_exist return Boolean;
 
+   --  Returns True if any _work/_localbase dirs are detected (used by pilot)
+   function disk_workareas_exist return Boolean;
+
+   --  Returns True if the attempt to clear mounts is successful.
+   function clear_existing_mounts return Boolean;
+
+   --  Returns True if the attempt to remove the disk work areas is successful
+   function clear_existing_workareas return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -39,6 +48,7 @@ private
 
    abnormal_cmd_logname : constant String := "05_abnormal_command_output.log";
 
+   df_command       : constant String := "/bin/df -h";
    reference_base   : constant String := "Base";
    raven_sysroot    : constant String := host_localbase & "/share/raven-sysroot/" &
                                          UTL.mixed_opsys (platform_type);
@@ -63,5 +73,8 @@ private
    procedure create_mtree_exc_preinst (path_to_mm : String);
    procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type);
    procedure write_preinstall_section (mtreefile : TIO.File_Type);
+
+   --  Throws exception if unmount attempt was unsuccessful
+   procedure unmount (device_or_node : String);
 
 end Replicant;
