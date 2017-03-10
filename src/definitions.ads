@@ -29,7 +29,8 @@ package Definitions is
    type scanners  is range cpu_range'First .. cpu_range'Last;
    type builders  is range cpu_range'First .. cpu_range'Last * jobs_per_cpu;
 
-   -- Modify following with post-patch sed accordingly
-   platform_type : constant supported_opsys := dragonfly;
+   --  Modify following with post-patch sed accordingly
+   platform_type  : constant supported_opsys := dragonfly;
+   host_localbase : constant String := "/usr/local";
 
 end Definitions;
