@@ -3,6 +3,7 @@
 
 with Utilities;
 with File_Operations;
+with Package_Manifests;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
@@ -11,6 +12,7 @@ package body Specification_Parser is
 
    package UTL renames Utilities;
    package FOP renames File_Operations;
+   package MAN renames Package_Manifests;
    package LAT renames Ada.Characters.Latin_1;
    package AS  renames Ada.Strings;
    package EX  renames Ada.Exceptions;
@@ -456,7 +458,6 @@ package body Specification_Parser is
                        subdir = "patches" or else
                        subdir = "files" or else
                        subdir = "scripts" or else
-                       subdir = "manifests" or else
                        subdir = "descriptions"
                      then
                         FOP.create_subdirectory (extraction_dir, subdir);
@@ -469,6 +470,11 @@ package body Specification_Parser is
                         begin
                            FOP.dump_contents_to_file (fileguts, newname);
                         end;
+                     elsif subdir = "manifests" then
+                        FOP.create_subdirectory (extraction_dir, subdir);
+                        MAN.decompress_manifest
+                          (compressed_string => fileguts,
+                           save_to_file      => MAN.Filename (extraction_dir & "/" & filename));
                      end if;
                   end;
                end if;
