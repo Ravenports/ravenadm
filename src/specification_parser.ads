@@ -16,7 +16,8 @@ package Specification_Parser is
    procedure parse_specification_file
      (dossier : String;
       success : out Boolean;
-      stop_at_targets : Boolean);
+      stop_at_targets : Boolean;
+      extraction_dir  : String := "");
 
    --  If the parse procedure fails, this function returns the associated error message
    function get_parse_error return String;
@@ -49,7 +50,7 @@ private
                          expiration, install_wrksrc, plist_sub);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
-   type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option);
+   type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
 
    last_parse_error   : HT.Text;
    spec_definitions   : def_crate.Map;

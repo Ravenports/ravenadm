@@ -14,4 +14,11 @@ package File_Operations is
      (contents : String;
       dossier  : String);
 
+   --  If relative_filename contains no path separator ("/") do nothing
+   --  Otherwise test the existence of extraction_directory / subdirectory and if it
+   --  does not exist, create it.
+   procedure create_subdirectory
+     (extraction_directory : String;
+      relative_filename    : String);
+
 end File_Operations;

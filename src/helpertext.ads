@@ -87,6 +87,12 @@ package HelperText is
       shuttle    : in Line_Markers)
       return String;
 
+   function extract_file
+     (block_text : in String;
+      shuttle    : in out Line_Markers;
+      file_size  : in Natural)
+     return String;
+
    --  True when trailing white space detected
    function trailing_whitespace_present (line : String) return Boolean;
 

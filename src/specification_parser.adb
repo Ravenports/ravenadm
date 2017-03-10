@@ -23,9 +23,11 @@ package body Specification_Parser is
    procedure parse_specification_file
      (dossier : String;
       success : out Boolean;
-      stop_at_targets : Boolean)
+      stop_at_targets : Boolean;
+      extraction_dir  : String := "")
    is
-      contents      : constant String := FOP.get_file_contents (dossier);
+      contents      : constant String  := FOP.get_file_contents (dossier);
+      stop_at_files : constant Boolean := (extraction_dir = "");
       markers       : HT.Line_Markers;
       linenum       : Natural := 0;
       seen_namebase : Boolean := False;
@@ -33,6 +35,7 @@ package body Specification_Parser is
       line_singlet  : spec_singlet;
       line_target   : spec_target;
       line_option   : PSP.spec_option;
+      line_file     : Boolean;
       last_array    : spec_array      := not_array;
       last_singlet  : spec_singlet    := not_singlet;
       last_option   : PSP.spec_option := PSP.not_helper_format;
@@ -92,37 +95,46 @@ package body Specification_Parser is
             if line_target = not_target or else
               line (line'First) = LAT.HT
             then
-               line_option := determine_option (line);
-               if line_option = PSP.not_supported_helper then
-                  last_parse_error := HT.SUS (LN & "Option format, but helper not recognized.");
-                  exit;
-               end if;
-               if line_option = PSP.not_helper_format then
-                  line_array := determine_array (line);
-                  if line_array = not_array then
-                     line_singlet := determine_singlet (line);
-                     if line_singlet /= not_singlet and then
-                       seen_singlet (line_singlet)
-                     then
-                        last_parse_error :=
-                          HT.SUS (LN & "variable previously defined (use triple tab)");
-                        exit;
+               line_file := is_file_capsule (line);
+               if not line_file then
+                  line_option := determine_option (line);
+                  if line_option = PSP.not_supported_helper then
+                     last_parse_error := HT.SUS (LN & "Option format, but helper not recognized.");
+                     exit;
+                  end if;
+                  if line_option = PSP.not_helper_format then
+                     line_array := determine_array (line);
+                     if line_array = not_array then
+                        line_singlet := determine_singlet (line);
+                        if line_singlet /= not_singlet and then
+                          seen_singlet (line_singlet)
+                        then
+                           last_parse_error :=
+                             HT.SUS (LN & "variable previously defined (use triple tab)");
+                           exit;
+                        end if;
+                        seen_singlet (line_singlet) := True;
+                     else
+                        line_singlet := not_singlet;
                      end if;
-                     seen_singlet (line_singlet) := True;
                   else
+                     line_array   := not_array;
                      line_singlet := not_singlet;
                   end if;
                else
+                  line_option  := PSP.not_helper_format;
                   line_array   := not_array;
                   line_singlet := not_singlet;
                end if;
             else
+               line_file    := False;
                line_option  := PSP.not_helper_format;
                line_array   := not_array;
                line_singlet := not_singlet;
             end if;
 
-            if line_target = not_target and then
+            if not line_file and then
+              line_target = not_target and then
               line_option = PSP.not_helper_format and then
               line_array = not_array and then
               line_singlet = not_singlet
@@ -140,6 +152,7 @@ package body Specification_Parser is
                      when cat_singlet => line_singlet := last_singlet;
                      when cat_none    => null;
                      when cat_target  => null;
+                     when cat_file    => null;
                      when cat_option  => line_option  := last_option;
                                          quad_tab := True;
                   end case;
@@ -421,6 +434,20 @@ package body Specification_Parser is
                   end;
                   last_option := line_option;
                   last_seen   := cat_option;
+               end if;
+
+               if line_file then
+                  if stop_at_files then
+                     exit;
+                  end if;
+                  declare
+                     filename : String  := retrieve_file_name (line);
+                     filesize : Natural := retrieve_file_size (line);
+                     fileguts : String  := HT.extract_file (contents, markers, filesize);
+                  begin
+                     FOP.create_subdirectory (extraction_dir, filename);
+                     FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & filename);
+                  end;
                end if;
 
             exception

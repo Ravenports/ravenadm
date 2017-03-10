@@ -1,12 +1,14 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with HelperText;
 with Ada.Directories;
 with Ada.Direct_IO;
 
 package body File_Operations is
 
    package DIR renames Ada.Directories;
+   package HT  renames HelperText;
 
    --------------------------------------------------------------------------------------------
    --  get_file_contents
@@ -64,5 +66,24 @@ package body File_Operations is
          end if;
          raise file_handling;
    end dump_contents_to_file;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_subdirectory
+   --------------------------------------------------------------------------------------------
+   procedure create_subdirectory
+     (extraction_directory : String;
+      relative_filename    : String)
+   is
+      subdir  : String := HT.part_1 (relative_filename, "/");
+      abspath : String := extraction_directory & "/" & subdir;
+   begin
+      if subdir = "" then
+         return;
+      end if;
+      if not DIR.Exists (abspath) then
+         DIR.Create_Directory (abspath);
+      end if;
+   end create_subdirectory;
 
 end File_Operations;

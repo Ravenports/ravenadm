@@ -383,6 +383,34 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  extract_file
+   --------------------------------------------------------------------------------------------
+   function extract_file
+     (block_text : in String;
+      shuttle    : in out Line_Markers;
+      file_size  : in Natural)
+      return String
+   is
+      --  Nomally executed after next_line_present followed by extract_line
+      --  Needs to adjust adjust shuttle to prepare for another next_line_present after
+      --  file is extracted
+   begin
+      if shuttle.front_marker + 2 > block_text'Last or else
+        not shuttle.utilized or else
+        shuttle.zero_length or else
+        file_size = 0
+      then
+         --  User seems to have to screwed up since none of these should be true.
+         return "";
+      end if;
+      shuttle.back_marker  := shuttle.front_marker + 2;
+      shuttle.front_marker := shuttle.back_marker + file_size - 1;
+      shuttle.zero_length  := False;
+      return block_text (shuttle.back_marker .. shuttle.front_marker);
+   end extract_file;
+
+
+   --------------------------------------------------------------------------------------------
    --  trailing_whitespace_present
    --------------------------------------------------------------------------------------------
    function trailing_whitespace_present (line : String) return Boolean
