@@ -7,8 +7,6 @@ with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
 
-with Definitions; use Definitions;
-
 package body Specification_Parser is
 
    package UTL renames Utilities;
@@ -21,13 +19,15 @@ package body Specification_Parser is
    --  parse_specification_file
    --------------------------------------------------------------------------------------------
    procedure parse_specification_file
-     (dossier : String;
-      success : out Boolean;
+     (dossier         : String;
+      opsys_focus     : supported_opsys;
+      success         : out Boolean;
       stop_at_targets : Boolean;
       extraction_dir  : String := "")
    is
       contents      : constant String  := FOP.get_file_contents (dossier);
       stop_at_files : constant Boolean := (extraction_dir = "");
+      match_opsys   : constant String  := UTL.lower_opsys (opsys_focus);
       markers       : HT.Line_Markers;
       linenum       : Natural := 0;
       seen_namebase : Boolean := False;
@@ -444,9 +444,32 @@ package body Specification_Parser is
                      filename : String  := retrieve_file_name (line);
                      filesize : Natural := retrieve_file_size (line);
                      fileguts : String  := HT.extract_file (contents, markers, filesize);
+                     subdir   : String  := HT.partial_search (filename, 0, "/");
+                     --  only acceptable subdir:
+                     --     1. ""
+                     --     2. "patches"
+                     --     3. "files"
+                     --     4. "scripts"
+                     --     5. current lower opsys (saves to "opsys")
                   begin
-                     FOP.create_subdirectory (extraction_dir, filename);
-                     FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & filename);
+                     if subdir = "" or else
+                       subdir = "patches" or else
+                       subdir = "files" or else
+                       subdir = "scripts" or else
+                       subdir = "manifests" or else
+                       subdir = "descriptions"
+                     then
+                        FOP.create_subdirectory (extraction_dir, subdir);
+                        FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & filename);
+                     elsif subdir = match_opsys then
+                        FOP.create_subdirectory (extraction_dir, "opsys");
+                        declare
+                           newname : String :=
+                             extraction_dir & "/opsys/" & HT.part_2 (filename, "/");
+                        begin
+                           FOP.dump_contents_to_file (fileguts, newname);
+                        end;
+                     end if;
                   end;
                end if;
 

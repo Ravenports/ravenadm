@@ -19,6 +19,6 @@ package File_Operations is
    --  does not exist, create it.
    procedure create_subdirectory
      (extraction_directory : String;
-      relative_filename    : String);
+      subdirectory         : String);
 
 end File_Operations;

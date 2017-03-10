@@ -1,6 +1,8 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Definitions; use Definitions;
+
 with Port_Specification;
 
 private with HelperText;
@@ -14,8 +16,9 @@ package Specification_Parser is
 
    --  Parse the port specification file and extract the data into the specification record.
    procedure parse_specification_file
-     (dossier : String;
-      success : out Boolean;
+     (dossier         : String;
+      opsys_focus     : supported_opsys;
+      success         : out Boolean;
       stop_at_targets : Boolean;
       extraction_dir  : String := "");
 

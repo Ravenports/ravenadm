@@ -469,12 +469,13 @@ package body HelperText is
       offset     : Natural;
       end_marker : String) return String
    is
-      marker : Natural := AS.Fixed.Index (Source => fullstr, Pattern => end_marker);
+      newstr : String := fullstr (fullstr'First + offset .. fullstr'Last);
+      marker : Natural := AS.Fixed.Index (Source => newstr, Pattern => end_marker);
    begin
       if marker = 0 then
          return "";
       end if;
-      return fullstr (fullstr'First + offset .. marker - 1);
+      return newstr (newstr'First .. marker - 1);
    end partial_search;
 
 

@@ -12,7 +12,7 @@ procedure Ravenadm is
    package PLT renames Pilot;
 
    type mandate_type is (unset, help, dev, build, test, status);
-   type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet);
+   type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, explode);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -50,6 +50,8 @@ procedure Ravenadm is
          return distinfo;
       elsif second = "buildsheet" then
          return buildsheet;
+      elsif second = "explode" then
+         return explode;
       else
          return unset;
       end if;
@@ -104,6 +106,8 @@ begin
                      PLT.generate_buildsheet (get_arg (3));
                   when makefile =>
                      PLT.generate_makefile (get_arg (3), get_arg (4));
+                  when explode =>
+                     PLT.explode_buildsheet (get_arg (3), get_arg (4));
                end case;
             end;
          else

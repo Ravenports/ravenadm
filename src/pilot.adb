@@ -56,13 +56,18 @@ package body Pilot is
    is
       directory_specified : constant Boolean := (optional_directory /= "");
       successful : Boolean;
+
+      use_opsys : supported_opsys := dragonfly;
    begin
       if directory_specified then
          declare
             filename : String := optional_directory & "/" & specfile;
          begin
             if DIR.Exists (filename) then
-               PAR.parse_specification_file (filename, successful, False);
+               PAR.parse_specification_file (dossier         => filename,
+                                             opsys_focus     => use_opsys,
+                                             success         => successful,
+                                             stop_at_targets => False);
             else
                DNE (filename);
                return;
@@ -70,7 +75,10 @@ package body Pilot is
          end;
       else
          if DIR.Exists (specfile) then
-            PAR.parse_specification_file (specfile, successful, False);
+            PAR.parse_specification_file (dossier         => specfile,
+                                          opsys_focus     => use_opsys,
+                                          success         => successful,
+                                          stop_at_targets => False);
          else
             DNE (specfile);
             return;
@@ -104,13 +112,18 @@ package body Pilot is
             return optional_variant;
          end if;
       end get_variant;
+
+      use_opsys : supported_opsys := dragonfly;
    begin
       if directory_specified then
          declare
             filename : String := optional_directory & "/" & specfile;
          begin
             if DIR.Exists (filename) then
-               PAR.parse_specification_file (filename, successful, False);
+               PAR.parse_specification_file (dossier         => filename,
+                                             opsys_focus     => use_opsys,
+                                             success         => successful,
+                                             stop_at_targets => False);
             else
                DNE (filename);
                return;
@@ -118,7 +131,10 @@ package body Pilot is
          end;
       else
          if DIR.Exists (specfile) then
-            PAR.parse_specification_file (specfile, successful, False);
+            PAR.parse_specification_file (dossier         => specfile,
+                                          opsys_focus     => use_opsys,
+                                          success         => successful,
+                                          stop_at_targets => False);
          else
             DNE (specfile);
             return;
@@ -127,20 +143,20 @@ package body Pilot is
       if successful then
          PST.set_option_defaults (specs         => PAR.specification,
                                   variant       => get_variant,
-                                  opsys         => dragonfly,
+                                  opsys         => use_opsys,
                                   arch_standard => x86_64,
                                   osrelease     => "4.7");
          PST.set_option_to_default_values (specs => PAR.specification);
          PST.set_outstanding_ignore (specs         => PAR.specification,
                                      variant       => get_variant,
-                                     opsys         => dragonfly,
+                                     opsys         => use_opsys,
                                      arch_standard => x86_64,
                                      osrelease     => "4.7",
                                      osmajor       => "4.7");
          PST.apply_directives (specs => PAR.specification);
          PSM.generator (specs         => PAR.specification,
                         variant       => get_variant,
-                        opsys         => dragonfly,
+                        opsys         => use_opsys,
                         output_file   => "");
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
@@ -156,13 +172,18 @@ package body Pilot is
    is
       directory_specified : constant Boolean := (optional_directory /= "");
       successful : Boolean;
+
+      use_opsys : supported_opsys := dragonfly;
    begin
       if directory_specified then
          declare
             filename : String := optional_directory & "/" & specfile;
          begin
             if DIR.Exists (filename) then
-               PAR.parse_specification_file (filename, successful, False);
+               PAR.parse_specification_file (dossier         => filename,
+                                             opsys_focus     => use_opsys,
+                                             success         => successful,
+                                             stop_at_targets => False);
             else
                DNE (filename);
                return;
@@ -170,7 +191,10 @@ package body Pilot is
          end;
       else
          if DIR.Exists (specfile) then
-            PAR.parse_specification_file (specfile, successful, False);
+            PAR.parse_specification_file (dossier         => specfile,
+                                          opsys_focus     => use_opsys,
+                                          success         => successful,
+                                          stop_at_targets => False);
          else
             DNE (specfile);
             return;
@@ -185,6 +209,69 @@ package body Pilot is
          TIO.Put_Line (PAR.get_parse_error);
       end if;
    end generate_buildsheet;
+
+
+   --------------------------------------------------------------------------------------------
+   --  explode_buildsheet
+   --------------------------------------------------------------------------------------------
+   procedure explode_buildsheet (extract_to_directory : String;
+                                 optional_variant : String)
+   is
+      function get_variant return String;
+
+      successful : Boolean;
+
+      function get_variant return String is
+      begin
+         if optional_variant = "" then
+            return variant_standard;
+         else
+            return optional_variant;
+         end if;
+      end get_variant;
+
+      use_opsys : supported_opsys := dragonfly;
+      specfile : constant String := "buildsheet";
+   begin
+      if extract_to_directory = "" then
+         TIO.Put_Line (errprefix & "extraction sheet can't be empty");
+         return;
+      end if;
+
+      if DIR.Exists (specfile) then
+         PAR.parse_specification_file (dossier         => specfile,
+                                       opsys_focus     => use_opsys,
+                                       success         => successful,
+                                       stop_at_targets => False,
+                                       extraction_dir  => extract_to_directory);
+      else
+         DNE (specfile);
+         return;
+      end if;
+
+      if successful then
+         PST.set_option_defaults (specs         => PAR.specification,
+                                  variant       => get_variant,
+                                  opsys         => use_opsys,
+                                  arch_standard => x86_64,
+                                  osrelease     => "4.7");
+         PST.set_option_to_default_values (specs => PAR.specification);
+         PST.set_outstanding_ignore (specs         => PAR.specification,
+                                     variant       => get_variant,
+                                     opsys         => use_opsys,
+                                     arch_standard => x86_64,
+                                     osrelease     => "4.7",
+                                     osmajor       => "4.7");
+         PST.apply_directives (specs => PAR.specification);
+         PSM.generator (specs         => PAR.specification,
+                        variant       => get_variant,
+                        opsys         => use_opsys,
+                        output_file   => extract_to_directory & "/Makefile");
+      else
+         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line (PAR.get_parse_error);
+      end if;
+   end explode_buildsheet;
 
 
    --------------------------------------------------------------------------------------------

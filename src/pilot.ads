@@ -12,6 +12,9 @@ package Pilot is
                                 optional_variant : String);
    procedure generate_buildsheet (optional_directory : String);
 
+   procedure explode_buildsheet (extract_to_directory : String;
+                                 optional_variant : String);
+
 private
 
    specfile  : constant String := "specification";
