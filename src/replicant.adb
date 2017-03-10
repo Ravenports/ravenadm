@@ -798,6 +798,57 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  destroy_slave
+   --------------------------------------------------------------------------------------------
+   procedure destroy_slave (id : builders; need_procfs : Boolean := False)
+   is
+      slave_base  : constant String := get_slave_mount (id);
+      slave_local : constant String := slave_base & "_localbase";
+      dir_system  : constant String := HT.USS (PM.configuration.dir_system);
+      localbase   : constant String := HT.USS (PM.configuration.dir_localbase);
+   begin
+
+       unmount_devices (location (slave_base, dev));
+
+      if DIR.Exists (mount_target (ccache)) then
+         unmount (location (slave_base, ccache));
+      end if;
+
+      if need_procfs then
+         unmount_procfs (location (slave_base, proc));
+      end if;
+
+      if localbase = bsd_localbase then
+         unmount (slave_base & bsd_localbase);
+         if PM.configuration.avoid_tmpfs then
+            annihilate_directory_tree (slave_local);
+         end if;
+      end if;
+
+      unmount (location (slave_base, distfiles));
+      unmount (location (slave_base, packages));
+      unmount (location (slave_base, xports));
+
+      folder_access (location (slave_base, root), unlock);
+      folder_access (location (slave_base, home), unlock);
+      folder_access (location (slave_base, var) & "/empty", unlock);
+
+      for mnt in subfolder'Range loop
+         unmount (location (slave_base, mnt));
+      end loop;
+
+      if not PM.configuration.avoid_tmpfs then
+         unmount (slave_base);
+      end if;
+      annihilate_directory_tree (slave_base);
+
+   exception
+      when hiccup : others =>
+         EX.Reraise_Occurrence (hiccup);
+   end destroy_slave;
+
+
+   --------------------------------------------------------------------------------------------
    --  slave_name
    --------------------------------------------------------------------------------------------
    function slave_name (id : builders) return String
