@@ -9,18 +9,20 @@ package Parameters is
 
    package HT renames HelperText;
 
+   raven_confdir : constant String := host_localbase & "/etc/ravenadm";
+
    type configuration_record is
       record
          profile         : HT.Text;
          dir_system      : HT.Text;
          dir_repository  : HT.Text;
          dir_packages    : HT.Text;
-         dir_portsdir    : HT.Text;
+         dir_conspiracy  : HT.Text;
          dir_distfiles   : HT.Text;
          dir_buildbase   : HT.Text;
          dir_logs        : HT.Text;
          dir_ccache      : HT.Text;
-         dir_options     : HT.Text;
+         dir_localbase   : HT.Text;
          num_builders    : builders;
          jobs_limit      : builders;
          avoid_tmpfs     : Boolean;

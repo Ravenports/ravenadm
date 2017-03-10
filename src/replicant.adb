@@ -1,6 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Ada.Exceptions;
 with Ada.Directories;
 with Ada.Containers.Vectors;
 with Ada.Characters.Latin_1;
@@ -9,6 +10,7 @@ with Unix;
 
 package body Replicant is
 
+   package EX  renames Ada.Exceptions;
    package PM  renames Parameters;
    package CON renames Ada.Containers;
    package DIR renames Ada.Directories;
@@ -23,11 +25,12 @@ package body Replicant is
       localbase : String)
    is
       mm     : constant String := get_master_mount;
-      sretc  : constant String := raven_sysroot & "/usr/share/etc";
+      sretc  : constant String := raven_sysroot & "/usr/share";
       maspas : constant String := "/master.passwd";
       passwd : constant String := "/passwd";
       spwd   : constant String := "/spwd.db";
       pwd    : constant String := "/pwd.db";
+      rcconf : constant String := "/rc.conf";
    begin
       smp_cores      := num_cores;
       developer_mode := testmode;
@@ -62,6 +65,16 @@ package body Replicant is
               macos     |
               sunos     => null;  -- pwd.db not used
       end case;
+      case platform_type is
+         when dragonfly |
+              freebsd   |
+              netbsd    |
+              openbsd   =>
+            DIR.Copy_File (sretc & rcconf, mm & rcconf);
+         when linux     |
+              macos     |
+              sunos     => null;  --  rc.conf not used
+      end case;
       create_mtree_exc_preinst (mm);
       create_mtree_exc_preconfig (mm);
 
@@ -89,6 +102,15 @@ package body Replicant is
    begin
       return HT.USS (PM.configuration.dir_buildbase) & "/" & reference_base;
    end get_master_mount;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_slave_mount
+   --------------------------------------------------------------------------------------------
+   function get_slave_mount  (id : builders) return String is
+   begin
+      return HT.USS (PM.configuration.dir_buildbase) & "/" & slave_name (id);
+   end get_slave_mount;
 
 
    --------------------------------------------------------------------------------------------
@@ -560,5 +582,413 @@ package body Replicant is
    begin
       unmount (path_to_dev);
    end unmount_devices;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_procfs
+   --------------------------------------------------------------------------------------------
+   procedure mount_procfs (path_to_proc : String)
+   is
+      bsd_command : constant String := "/sbin/mount -t procfs proc " & path_to_proc;
+      net_command : constant String := "/sbin/mount_procfs /proc " & path_to_proc;
+      lin_command : constant String := "/usr/bin/mount --bind /proc " & path_to_proc;
+   begin
+      case platform_type is
+         when dragonfly |
+              freebsd   => execute (bsd_command);
+         when netbsd    |
+              openbsd   => execute (net_command);
+         when linux     => execute (lin_command);
+         when sunos     => mount_nullfs (target => "/proc", mount_point => path_to_proc);
+         when macos =>
+            raise scenario_unexpected with
+              "Null mounting not supported on " & platform_type'Img;
+      end case;
+   end mount_procfs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unmount_procfs
+   --------------------------------------------------------------------------------------------
+   procedure unmount_procfs (path_to_proc : String) is
+   begin
+      unmount (path_to_proc);
+   end unmount_procfs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  location
+   --------------------------------------------------------------------------------------------
+   function location (mount_base : String; point : folder) return String is
+   begin
+      case point is
+         when bin         => return mount_base & root_bin;
+         when usr         => return mount_base & root_usr;
+         when dev         => return mount_base & root_dev;
+         when etc         => return mount_base & root_etc;
+         when etc_default => return mount_base & root_etc_default;
+         when etc_rcd     => return mount_base & root_etc_rcd;
+         when tmp         => return mount_base & root_tmp;
+         when var         => return mount_base & root_var;
+         when home        => return mount_base & root_home;
+         when proc        => return mount_base & root_proc;
+         when root        => return mount_base & root_root;
+         when xports      => return mount_base & root_xports;
+         when libexec     => return mount_base & root_libexec;
+         when packages    => return mount_base & root_packages;
+         when distfiles   => return mount_base & root_distfiles;
+         when wrkdirs     => return mount_base & root_wrkdirs;
+         when ccache      => return mount_base & root_ccache;
+         when localbase   => return mount_base & HT.USS (PM.configuration.dir_localbase);
+      end case;
+   end location;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_target
+   --------------------------------------------------------------------------------------------
+   function mount_target (point : folder) return String is
+   begin
+      case point is
+         when xports    => return HT.USS (PM.configuration.dir_conspiracy);
+         when packages  => return HT.USS (PM.configuration.dir_packages);
+         when distfiles => return HT.USS (PM.configuration.dir_distfiles);
+         when ccache    => return HT.USS (PM.configuration.dir_ccache);
+         when others    => return "ERROR";
+      end case;
+   end mount_target;
+
+
+   --------------------------------------------------------------------------------------------
+   --  forge_directory
+   --------------------------------------------------------------------------------------------
+   procedure forge_directory (target : String) is
+   begin
+      DIR.Create_Path (New_Directory => target);
+   exception
+      when failed : others =>
+         TIO.Put_Line (EX.Exception_Information (failed));
+         raise scenario_unexpected with
+           "failed to create " & target & " directory";
+   end forge_directory;
+
+
+   --------------------------------------------------------------------------------------------
+   --  folder_access
+   --------------------------------------------------------------------------------------------
+   procedure folder_access (path : String; operation : folder_operation)
+   is
+      cmd_freebsd   : constant String := "/bin/chflags";
+      cmd_dragonfly : constant String := "/usr/bin/chflags";
+      cmd_linux     : constant String := "/usr/bin/chattr";
+      cmd_solaris   : constant String := "/usr/bin/chmod";
+      flag_lock     : constant String := " schg ";
+      flag_unlock   : constant String := " noschg ";
+      chattr_lock   : constant String := " +i ";
+      chattr_unlock : constant String := " -i ";
+      sol_lock      : constant String := " S+ci ";
+      sol_unlock    : constant String := " S-ci ";
+      command       : HT.Text;
+   begin
+      if not DIR.Exists (path) then
+         --  e.g. <slave>/var/empty does not exist on NetBSD
+         return;
+      end if;
+      case platform_type is
+         when freebsd   => command := HT.SUS (cmd_freebsd);
+         when dragonfly |
+              netbsd    |
+              openbsd   |
+              macos     => command := HT.SUS (cmd_dragonfly);
+         when linux     => command := HT.SUS (cmd_linux);
+         when sunos     => command := HT.SUS (cmd_solaris);
+      end case;
+      case platform_type is
+         when freebsd | dragonfly | netbsd | openbsd | macos =>
+            case operation is
+               when lock   => HT.SU.Append (command, flag_lock & path);
+               when unlock => HT.SU.Append (command, flag_unlock & path);
+            end case;
+         when linux =>
+            case operation is
+               when lock   => HT.SU.Append (command, chattr_lock & path);
+               when unlock => HT.SU.Append (command, chattr_unlock & path);
+            end case;
+         when sunos =>
+            case operation is
+               when lock   => HT.SU.Append (command, sol_lock & path);
+               when unlock => HT.SU.Append (command, sol_unlock & path);
+            end case;
+      end case;
+      execute (HT.USS (command));
+   end folder_access;
+
+
+   --------------------------------------------------------------------------------------------
+   --  launch_slave
+   --------------------------------------------------------------------------------------------
+   procedure launch_slave  (id : builders; need_procfs : Boolean := False)
+    is
+      function clean_mount_point (point : folder) return String;
+      slave_base  : constant String := get_slave_mount (id);
+      slave_local : constant String := slave_base & "_localbase";
+      dir_system  : constant String := HT.USS (PM.configuration.dir_system);
+      localbase   : constant String := HT.USS (PM.configuration.dir_localbase);
+
+      function clean_mount_point (point : folder) return String is
+      begin
+         return location (dir_system, point);
+      end clean_mount_point;
+   begin
+      forge_directory (slave_base);
+      if not PM.configuration.avoid_tmpfs then
+         --  Limit slave to 16Gb, covers localbase + construction mainly
+         mount_tmpfs (slave_base, 16 * 1024);
+      end if;
+
+      for mnt in folder'Range loop
+         forge_directory (location (slave_base, mnt));
+      end loop;
+
+      for mnt in subfolder'Range loop
+         mount_nullfs (target      => clean_mount_point (mnt),
+                       mount_point => location (slave_base, mnt));
+      end loop;
+
+      folder_access (location (slave_base, home), lock);
+      folder_access (location (slave_base, root), lock);
+
+      mount_nullfs (mount_target (xports),    location (slave_base, xports));
+      mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
+      mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
+
+      if localbase = bsd_localbase then
+         if PM.configuration.avoid_tmpfs then
+            forge_directory (slave_local);
+            mount_nullfs (slave_local, slave_base & bsd_localbase, readwrite);
+         else
+            mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
+         end if;
+      end if;
+
+      if need_procfs then
+         mount_procfs (path_to_proc => location (slave_base, proc));
+      end if;
+
+      if DIR.Exists (mount_target (ccache)) then
+         mount_nullfs (mount_target (ccache), location (slave_base, ccache),
+                       mode => readwrite);
+      end if;
+
+       mount_devices (location (slave_base, dev));
+
+      populate_var_folder      (location (slave_base, var));
+--      copy_mtree_files    (location (slave_base, etc_mtree));
+      copy_rc_default          (location (slave_base, etc));
+      copy_resolv_conf         (location (slave_base, etc));
+      create_make_conf         (location (slave_base, etc));
+      install_passwd_and_group (location (slave_base, etc));
+      create_etc_services      (location (slave_base, etc));
+      create_etc_shells        (location (slave_base, etc));
+
+   exception
+      when hiccup : others =>
+         EX.Reraise_Occurrence (hiccup);
+   end launch_slave;
+
+
+   --------------------------------------------------------------------------------------------
+   --  slave_name
+   --------------------------------------------------------------------------------------------
+   function slave_name (id : builders) return String
+   is
+      id_image     : constant String := HT.int2str (Integer (id));
+      suffix       : String := "SL00";
+   begin
+      if id < 10 then
+         suffix (4) := id_image (1);
+      else
+         suffix (3 .. 4) := id_image (1 .. 2);
+      end if;
+      return suffix;
+   end slave_name;
+
+
+   --------------------------------------------------------------------------------------------
+   --  populate_var_folder
+   --------------------------------------------------------------------------------------------
+   procedure populate_var_folder (path : String) is
+   begin
+      forge_directory (path & "/cache");
+      forge_directory (path & "/cron");
+      forge_directory (path & "/db");
+      forge_directory (path & "/empty");
+      forge_directory (path & "/games");
+      forge_directory (path & "/log");
+      forge_directory (path & "/mail");
+      forge_directory (path & "/msgs");
+      forge_directory (path & "/preserve");
+      forge_directory (path & "/run");
+      forge_directory (path & "/spool");
+      forge_directory (path & "/tmp");
+   end populate_var_folder;
+
+
+   --------------------------------------------------------------------------------------------
+   --  populate_var_folder
+   --------------------------------------------------------------------------------------------
+   procedure copy_rc_default (path_to_etc : String)
+   is
+      mm     : constant String := get_master_mount;
+      rcconf : constant String := "/rc.conf";
+   begin
+      if DIR.Exists (mm & rcconf) then
+         DIR.Copy_File (Source_Name => mm & rcconf,
+                        Target_Name => path_to_etc & "/defaults" & rcconf);
+      end if;
+   end copy_rc_default;
+
+
+   --------------------------------------------------------------------------------------------
+   --  copy_resolv_conf
+   --------------------------------------------------------------------------------------------
+   procedure copy_resolv_conf (path_to_etc : String)
+   is
+      original : constant String := "/etc/resolv.conf";
+   begin
+      if not DIR.Exists (original) then
+         DIR.Copy_File (Source_Name => original,
+                        Target_Name => path_to_etc & "/resolv.conf");
+      end if;
+   end copy_resolv_conf;
+
+
+   --------------------------------------------------------------------------------------------
+   --  install_passwd
+   --------------------------------------------------------------------------------------------
+   procedure install_passwd_and_group (path_to_etc : String)
+   is
+      procedure install (filename : String);
+
+      mm     : constant String := get_master_mount;
+      maspwd : constant String := "/master.passwd";
+      passwd : constant String := "/passwd";
+      spwd   : constant String := "/spwd.db";
+      pwd    : constant String := "/pwd.db";
+      group  : constant String := "/group";
+
+      procedure install (filename : String) is
+      begin
+         if DIR.Exists (mm & filename) then
+            DIR.Copy_File (Source_Name => mm & filename,
+                           Target_Name => path_to_etc & filename);
+         end if;
+      end install;
+   begin
+      install (passwd);
+      install (maspwd);
+      install (spwd);
+      install (pwd);
+      install (group);
+   end install_passwd_and_group;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_etc_services
+   --------------------------------------------------------------------------------------------
+   procedure create_etc_services (path_to_etc : String)
+   is
+      svcfile : TIO.File_Type;
+   begin
+      TIO.Create (File => svcfile,
+                  Mode => TIO.Out_File,
+                  Name => path_to_etc & "/services");
+      TIO.Put_Line (svcfile,
+                      "ftp    21/tcp" & LAT.LF &
+                      "ftp    21/udp" & LAT.LF &
+                      "ssh    22/tcp" & LAT.LF &
+                      "ssh    22/udp" & LAT.LF &
+                      "http   80/tcp" & LAT.LF &
+                      "http   80/udp" & LAT.LF &
+                      "https 443/tcp" & LAT.LF &
+                      "https 443/udp" & LAT.LF);
+      TIO.Close (svcfile);
+   end create_etc_services;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_etc_shells
+   --------------------------------------------------------------------------------------------
+   procedure create_etc_shells (path_to_etc : String)
+   is
+      shells : TIO.File_Type;
+   begin
+      TIO.Create (File => shells,
+                  Mode => TIO.Out_File,
+                  Name => path_to_etc & "/shells");
+            TIO.Put_Line (shells, "/bin/sh" & LAT.LF);
+      TIO.Close (shells);
+   end create_etc_shells;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_make_conf
+   --------------------------------------------------------------------------------------------
+   procedure create_make_conf (path_to_etc : String)
+   is
+      makeconf  : TIO.File_Type;
+      profilemc : constant String := PM.raven_confdir & "/" &
+                  HT.USS (PM.configuration.profile) & "-make.conf";
+      profile   : constant String := HT.USS (PM.configuration.profile);
+      mjnum     : constant Integer := Integer (PM.configuration.jobs_limit);
+   begin
+
+      TIO.Create (File => makeconf,
+                  Mode => TIO.Out_File,
+                  Name => path_to_etc & "/make.conf");
+
+      TIO.Put_Line
+        (makeconf,
+           "RAVENPROFILE=" & profile & LAT.LF &
+           "RAVENBASE=" & HT.USS (PM.configuration.dir_localbase) & LAT.LF &
+           "WRKDIRPREFIX=/construction" & LAT.LF &
+           "DISTDIR=/distfiles" & LAT.LF &
+           "NUMBER_CPUS=" & HT.int2str (Integer (smp_cores)) &
+           "MAKE_JOBS_NUMBER_LIMIT=" & HT.int2str (mjnum));
+
+      if developer_mode then
+         TIO.Put_Line (makeconf, "DEVELOPER=1");
+      end if;
+      if DIR.Exists (HT.USS (PM.configuration.dir_ccache)) then
+         TIO.Put_Line (makeconf, "BUILD_WITH_CCACHE=yes");
+         TIO.Put_Line (makeconf, "CCACHE_DIR=/ccache");
+      end if;
+      concatenate_makeconf (makeconf, profilemc);
+      TIO.Close (makeconf);
+
+   end create_make_conf;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_make_conf
+   --------------------------------------------------------------------------------------------
+   procedure concatenate_makeconf (makeconf_handle : TIO.File_Type; target_name : String)
+   is
+      fragment : TIO.File_Type;
+   begin
+      if DIR.Exists (target_name) then
+         TIO.Open (File => fragment, Mode => TIO.In_File, Name => target_name);
+         while not TIO.End_Of_File (fragment) loop
+            declare
+               Line : String := TIO.Get_Line (fragment);
+            begin
+               TIO.Put_Line (makeconf_handle, Line);
+            end;
+         end loop;
+         TIO.Close (fragment);
+      end if;
+   exception
+      when others => null;
+   end concatenate_makeconf;
 
 end Replicant;
