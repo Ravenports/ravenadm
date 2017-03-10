@@ -416,18 +416,149 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  df_command
+   --------------------------------------------------------------------------------------------
+   function df_command return String is
+   begin
+      case platform_type is
+         when dragonfly |
+              freebsd   |
+              macos     |
+              netbsd    |
+              openbsd   => return "/bin/df -h";
+         when sunos     => return "/usr/sbin/df -h";
+         when linux     => return "/usr/bin/df -h";
+      end case;
+   end df_command;
+
+
+   --------------------------------------------------------------------------------------------
    --  unmount
    --------------------------------------------------------------------------------------------
    procedure unmount (device_or_node : String)
    is
-      sysroot_cmd : constant String := "/bin/umount " & device_or_node;
+      bsd_command : constant String := "/sbin/umount " & device_or_node;
+      sol_command : constant String := "/usr/sbin/umount " & device_or_node;
+      lin_command : constant String := "/usr/bin/umount " & device_or_node;
    begin
       --  failure to unmount causes stderr squawks which messes up curses display
       --  Just log it and ignore for now (Add robustness later)
-      execute (sysroot_cmd);
+      case platform_type is
+         when dragonfly |
+              freebsd   |
+              macos     |
+              netbsd    |
+              openbsd   => execute (bsd_command);
+         when linux     => execute (lin_command);
+         when sunos     => execute (sol_command);
+      end case;
 
    exception
       when others => null;  -- silently fail
    end unmount;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_nullfs
+   --------------------------------------------------------------------------------------------
+   procedure mount_nullfs (target, mount_point : String; mode : mount_mode := readonly)
+   is
+      cmd_freebsd   : constant String := "/sbin/mount_nullfs";
+      cmd_dragonfly : constant String := "/sbin/mount_null";
+      cmd_solaris   : constant String := "/usr/sbin/mount -F lofs";
+      cmd_linux     : constant String := "/usr/bin/mount --bind";
+      command       : HT.Text;
+   begin
+      if not DIR.Exists (mount_point) then
+         raise scenario_unexpected with
+           "mount point " & mount_point & " does not exist";
+      end if;
+      if not DIR.Exists (target) then
+         raise scenario_unexpected with
+           "mount target " & target & " does not exist";
+      end if;
+
+      case platform_type is
+         when freebsd   => command := HT.SUS (cmd_freebsd);
+         when dragonfly |
+              netbsd    => command := HT.SUS (cmd_dragonfly);
+         when sunos     => command := HT.SUS (cmd_solaris);
+         when linux     => command := HT.SUS (cmd_linux);
+         when openbsd | macos =>
+            raise scenario_unexpected with
+              "Null mounting not supported on " & platform_type'Img;
+      end case;
+      case mode is
+         when readonly  => HT.SU.Append (command, " -o ro");
+         when readwrite => null;
+      end case;
+      execute (HT.USS (command) & " " & target & " " & mount_point);
+   end mount_nullfs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_tmpfs
+   --------------------------------------------------------------------------------------------
+   procedure mount_tmpfs (mount_point : String; max_size_M : Natural := 0)
+   is
+      cmd_freebsd   : constant String := "/sbin/mount -t tmpfs";
+      cmd_dragonfly : constant String := "/sbin/mount_tmpfs";
+      cmd_solaris   : constant String := "/sbin/mount -F tmpfs";
+      command       : HT.Text;
+   begin
+      case platform_type is
+         when freebsd   |
+              netbsd    |
+              openbsd   |
+              linux     => command := HT.SUS (cmd_freebsd);
+         when dragonfly => command := HT.SUS (cmd_dragonfly);
+         when sunos     => command := HT.SUS (cmd_solaris);
+         when macos     =>
+            raise scenario_unexpected with
+              "Null mounting not supported on " & platform_type'Img;
+      end case;
+      if max_size_M > 0 then
+         HT.SU.Append (command, " -o size=" & HT.trim (max_size_M'Img) & "M");
+      end if;
+      case platform_type is
+         when sunos     => HT.SU.Append (command, " swap " & mount_point);
+         when freebsd   |
+              dragonfly |
+              netbsd    |
+              openbsd   |
+              linux     => HT.SU.Append (command, " tmpfs " & mount_point);
+         when macos     => null;
+      end case;
+      execute (HT.USS (command));
+   end mount_tmpfs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_devices
+   --------------------------------------------------------------------------------------------
+   procedure mount_devices (path_to_dev : String)
+   is
+      bsd_command : constant String := "/sbin/mount -t devfs devfs " & path_to_dev;
+      lin_command : constant String := "/usr/bin/mount --bind /dev " & path_to_dev;
+   begin
+      case platform_type is
+         when dragonfly |
+              freebsd   => execute (bsd_command);
+         when linux     => execute (lin_command);
+         when netbsd    |
+              openbsd   |
+              macos     |
+              sunos     => mount_nullfs (target => "/dev", mount_point => path_to_dev);
+      end case;
+   end mount_devices;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unmount_devices
+   --------------------------------------------------------------------------------------------
+   procedure unmount_devices (path_to_dev : String) is
+   begin
+      unmount (path_to_dev);
+   end unmount_devices;
 
 end Replicant;

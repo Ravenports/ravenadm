@@ -48,10 +48,39 @@ private
 
    abnormal_cmd_logname : constant String := "05_abnormal_command_output.log";
 
-   df_command       : constant String := "/bin/df -h";
-   reference_base   : constant String := "Base";
    raven_sysroot    : constant String := host_localbase & "/share/raven-sysroot/" &
                                          UTL.mixed_opsys (platform_type);
+
+   type mount_mode is (readonly, readwrite);
+   type folder is (bin, libexec, usr,
+                   xports, packages, distfiles,
+                   dev, etc, etc_default, etc_rcd, home,
+                   proc, root, tmp, var, wrkdirs, localbase, ccache);
+   subtype subfolder is folder range bin .. usr;
+   subtype filearch is String (1 .. 11);
+
+   --  home and root need to be set readonly
+   reference_base   : constant String := "Base";
+   root_bin         : constant String := "/bin";
+   root_usr         : constant String := "/usr";
+   root_dev         : constant String := "/dev";
+   root_etc         : constant String := "/etc";
+   root_etc_default : constant String := "/etc/defaults";
+   root_etc_rcd     : constant String := "/etc/rc.d";
+   root_lib         : constant String := "/lib";
+   root_tmp         : constant String := "/tmp";
+   root_var         : constant String := "/var";
+   root_home        : constant String := "/home";
+   root_root        : constant String := "/root";
+   root_proc        : constant String := "/proc";
+   root_xports      : constant String := "/xports";
+   root_libexec     : constant String := "/libexec";
+   root_wrkdirs     : constant String := "/construction";
+   root_packages    : constant String := "/packages";
+   root_distfiles   : constant String := "/distfiles";
+   root_ccache      : constant String := "/ccache";
+
+   chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
 
    --  Query configuration to determine the master mount
    function get_master_mount return String;
@@ -74,7 +103,21 @@ private
    procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type);
    procedure write_preinstall_section (mtreefile : TIO.File_Type);
 
+   --  platform-specific localhost command "umount"
    --  Throws exception if unmount attempt was unsuccessful
    procedure unmount (device_or_node : String);
+
+   --  Throws exception if mount attempt was unsuccessful or if nullfs is unsupported
+   procedure mount_nullfs (target, mount_point : String; mode : mount_mode := readonly);
+
+   --  Throws exception if mount attempt was unsuccessful of if tmpfs is unsupported
+   procedure mount_tmpfs (mount_point : String; max_size_M : Natural := 0);
+
+   --  platform-specific localhost command "df"
+   function df_command return String;
+
+   --  mount the devices
+   procedure mount_devices (path_to_dev : String);
+   procedure unmount_devices (path_to_dev : String);
 
 end Replicant;
