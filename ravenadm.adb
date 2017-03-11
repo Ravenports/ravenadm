@@ -107,8 +107,17 @@ begin
       return;
    end if;
 
-   --  TODO:  PIL.previous_run_mounts_detected
-   --  TODO:  PIL.previous_realfs_work_detected
+   if Pilot.previous_run_mounts_detected and then
+     not Pilot.old_mounts_successfully_removed
+   then
+      return;
+   end if;
+
+   if Pilot.previous_realfs_work_detected and then
+     not Pilot.old_realfs_work_successfully_removed
+   then
+      return;
+   end if;
 
    --  TODO: ravenexec existence check
 

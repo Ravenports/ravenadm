@@ -9,6 +9,7 @@ with File_Operations;
 with Information;
 with HelperText;
 with Parameters;
+with Replicant;
 with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
@@ -18,6 +19,7 @@ with Definitions; use Definitions;
 
 package body Pilot is
 
+   package REP renames Replicant;
    package HT  renames HelperText;
    package PM  renames Parameters;
    package NFO renames Information;
@@ -420,5 +422,81 @@ package body Pilot is
    begin
       FOP.destroy_pidfile (pidfile);
    end destroy_pidfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  previous_run_mounts_detected
+   --------------------------------------------------------------------------------------------
+   function previous_run_mounts_detected return Boolean is
+   begin
+      if REP.ravenadm_mounts_exist then
+         TIO.Put_Line ("Builder mounts detected; attempting to remove them automatically ...");
+         return True;
+      else
+         return False;
+      end if;
+   end previous_run_mounts_detected;
+
+
+   --------------------------------------------------------------------------------------------
+   --  previous_realfs_work_detected
+   --------------------------------------------------------------------------------------------
+   function previous_realfs_work_detected return Boolean is
+   begin
+      if REP.disk_workareas_exist then
+         TIO.Put_Line ("Old work directories detected; " &
+                         "attempting to remove them automatically ...");
+         return True;
+      else
+         return False;
+      end if;
+   end previous_realfs_work_detected;
+
+
+   --------------------------------------------------------------------------------------------
+   --  old_mounts_successfully_removed
+   --------------------------------------------------------------------------------------------
+   function old_mounts_successfully_removed return Boolean is
+   begin
+      if REP.clear_existing_mounts then
+         TIO.Put_Line ("Dismounting successful!");
+         return True;
+      end if;
+      TIO.Put_Line ("The attempt failed.  Check for stuck or ongoing processes and kill them.");
+      TIO.Put_Line ("After that try running ravenadm again or just manually unmount everything");
+      TIO.Put_Line ("that is still attached to " & HT.USS (PM.configuration.dir_buildbase));
+      return False;
+   end old_mounts_successfully_removed;
+
+
+   --------------------------------------------------------------------------------------------
+   --  old_realfs_work_successfully_removed
+   --------------------------------------------------------------------------------------------
+   function old_realfs_work_successfully_removed return Boolean is
+   begin
+      if REP.clear_existing_workareas then
+         TIO.Put_Line ("Directory removal successful!");
+         return True;
+      end if;
+      TIO.Put_Line ("The attempt to remove the work directories located at ");
+      TIO.Put_Line (HT.USS (PM.configuration.dir_buildbase) & "failed.");
+      TIO.Put_Line ("Please remove them manually before continuing.");
+      return False;
+   end old_realfs_work_successfully_removed;
+
+
+   --------------------------------------------------------------------------------------------
+   --  ravenexec_missing
+   --------------------------------------------------------------------------------------------
+   function ravenexec_missing return Boolean
+   is
+      ravenexec : constant String := host_localbase & "/libexec/ravenexec";
+   begin
+      if DIR.Exists (ravenexec) then
+         return False;
+      end if;
+      TIO.Put_Line (ravenexec & " missing!" & bailing);
+      return True;
+   end ravenexec_missing;
 
 end Pilot;
