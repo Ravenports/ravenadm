@@ -489,4 +489,20 @@ package body HelperText is
    end partial_search;
 
 
+   --------------------------------------------------------------------------------------------
+   --  first_line
+   --------------------------------------------------------------------------------------------
+   function first_line (S : String) return String
+   is
+      LF_position : Integer;
+   begin
+      LF_position := AS.Fixed.Index (Source => S, Pattern => single_LF);
+      if LF_position > 0 then
+         return S (S'First .. LF_position - 1);
+      else
+         return S;
+      end if;
+   end first_line;
+
+
 end HelperText;

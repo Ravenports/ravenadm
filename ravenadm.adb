@@ -3,13 +3,14 @@
 
 with Ada.Command_Line;
 with Ada.Text_IO;
+with Parameters;
 with Pilot;
+with Unix;
 
 procedure Ravenadm is
 
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
-   package PLT renames Pilot;
 
    type mandate_type is (unset, help, dev, build, test, status);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, explode);
@@ -69,15 +70,57 @@ procedure Ravenadm is
 begin
 
    if CLI.Argument_Count = 0 then
-      PLT.display_usage;
+      Pilot.display_usage;
       return;
    end if;
 
    scan_first_command_word;
 
+   if mandate = unset then
+      Pilot.react_to_unknown_first_level_command (CLI.Argument (1));
+      return;
+   end if;
+
+   --------------------------------------------------------------------------------------------
+   --  Validation block start
+   --------------------------------------------------------------------------------------------
+
+   if not Parameters.all_paths_valid then
+      return;
+   end if;
+
+   if not Pilot.TERM_defined_in_environment then
+      return;
+   end if;
+
+   if Pilot.launch_clash_detected then
+      return;
+   end if;
+
+   --  TODO: store origins check
+
+   if Pilot.insufficient_privileges then
+      return;
+   end if;
+
+   if Pilot.already_running then
+      return;
+   end if;
+
+   --  TODO:  PIL.previous_run_mounts_detected
+   --  TODO:  PIL.previous_realfs_work_detected
+
+   --  TODO: ravenexec existence check
+
+   Pilot.create_pidfile;
+   Unix.ignore_background_tty;
+   Unix.cone_of_silence (deploy => True);
+
+   --------------------------------------------------------------------------------------------
+   --  Validation block end
+   --------------------------------------------------------------------------------------------
+
    case mandate is
-      when unset =>
-         PLT.react_to_unknown_first_level_command (CLI.Argument (1));
 
       when build =>
          --------------------------------
@@ -96,22 +139,22 @@ begin
             begin
                case dev_subcmd is
                   when unset =>
-                     PLT.react_to_unknown_second_level_command (CLI.Argument (1),
-                                                                CLI.Argument (2));
+                     Pilot.react_to_unknown_second_level_command (CLI.Argument (1),
+                                                                  CLI.Argument (2));
                   when dump =>
-                     PLT.dump_ravensource (get_arg (3));
+                     Pilot.dump_ravensource (get_arg (3));
                   when distinfo =>
                      null;
                   when buildsheet =>
-                     PLT.generate_buildsheet (get_arg (3));
+                     Pilot.generate_buildsheet (get_arg (3));
                   when makefile =>
-                     PLT.generate_makefile (get_arg (3), get_arg (4));
+                     Pilot.generate_makefile (get_arg (3), get_arg (4));
                   when explode =>
-                     PLT.explode_buildsheet (get_arg (3), get_arg (4));
+                     Pilot.explode_buildsheet (get_arg (3), get_arg (4));
                end case;
             end;
          else
-            PLT.react_to_unknown_second_level_command (CLI.Argument (1), "");
+            Pilot.react_to_unknown_second_level_command (CLI.Argument (1), "");
          end if;
 
       when help =>
@@ -131,6 +174,12 @@ begin
          --  test command
          --------------------------------
          null; --  tbw
+
+      when unset => null;
+
    end case;
+
+   Unix.cone_of_silence (deploy => False);
+   Pilot.destroy_pidfile;
 
 end Ravenadm;

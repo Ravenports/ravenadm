@@ -4,8 +4,12 @@
 with Ada.Directories;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
-with Information;
 with Specification_Parser;
+with File_Operations;
+with Information;
+with HelperText;
+with Parameters;
+with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
@@ -14,7 +18,10 @@ with Definitions; use Definitions;
 
 package body Pilot is
 
+   package HT  renames HelperText;
+   package PM  renames Parameters;
    package NFO renames Information;
+   package FOP renames File_Operations;
    package PAR renames Specification_Parser;
    package PSB renames Port_Specification.Buildsheet;
    package PSM renames Port_Specification.Makefile;
@@ -282,5 +289,136 @@ package body Pilot is
       TIO.Put_Line (errprefix & "File " & LAT.Quotation & filename & LAT.Quotation &
                       " does not exist.");
    end DNE;
+
+
+   --------------------------------------------------------------------------------------------
+   --  TERM_defined_in_environment
+   --------------------------------------------------------------------------------------------
+   function TERM_defined_in_environment return Boolean
+   is
+      defined : constant Boolean := Unix.env_variable_defined ("TERM");
+   begin
+      if not defined then
+         TIO.Put_Line ("Please define TERM in environment first and retry.");
+      end if;
+      return defined;
+   end TERM_defined_in_environment;
+
+
+   --------------------------------------------------------------------------------------------
+   --  launch_clash_detected
+   --------------------------------------------------------------------------------------------
+   function launch_clash_detected return Boolean
+   is
+      cwd        : constant String := DIR.Current_Directory;
+      sysroot    : constant String := HT.USS (PM.configuration.dir_system);
+      portsdir   : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      distfiles  : constant String := HT.USS (PM.configuration.dir_distfiles);
+      packages   : constant String := HT.USS (PM.configuration.dir_packages);
+      logs       : constant String := HT.USS (PM.configuration.dir_logs);
+      ccache     : constant String := HT.USS (PM.configuration.dir_ccache);
+      repository : constant String := HT.USS (PM.configuration.dir_repository);
+      buildbase  : constant String := HT.USS (PM.configuration.dir_buildbase) & "/";
+
+   begin
+      if HT.leads (cwd, sysroot) or else
+        HT.leads (cwd, portsdir) or else
+        HT.leads (cwd, distfiles) or else
+        HT.leads (cwd, packages) or else
+        HT.leads (cwd, logs) or else
+        HT.leads (cwd, ccache) or else
+        HT.leads (cwd, repository) or else
+        HT.leads (cwd, buildbase)
+      then
+         TIO.Put_Line ("Please change the current directory; " &
+                         "ravenadm is unable to launch from here.");
+         return True;
+      else
+         return False;
+      end if;
+   end launch_clash_detected;
+
+
+   --------------------------------------------------------------------------------------------
+   --  insufficient_privileges
+   --------------------------------------------------------------------------------------------
+   function insufficient_privileges return Boolean
+   is
+      status  : Integer;
+      command : constant String := "/usr/bin/id -u";
+      result  : String := HT.USS (Unix.piped_command (command, status));
+   begin
+      if status /= 0 then
+         TIO.Put_Line ("command '" & command & "' failed.  Output=" & result);
+         return True;
+      end if;
+      declare
+         resint : constant Integer := Integer'Value (HT.first_line (result));
+      begin
+         if resint = 0 then
+            return False;
+         else
+            TIO.Put_Line ("Only the root user can execute ravenadm.");
+            return True;
+         end if;
+      end;
+   end insufficient_privileges;
+
+
+   --------------------------------------------------------------------------------------------
+   --  already_running
+   --------------------------------------------------------------------------------------------
+   function already_running return Boolean is
+   begin
+      if DIR.Exists (pidfile) then
+         declare
+            textpid : constant String := FOP.head_n1 (pidfile);
+            command : constant String := "/bin/ps -p " & textpid;
+            pid     : Integer;
+            comres  : HT.Text;
+            status  : Integer;
+         begin
+            --  test if valid by converting it (exception if fails)
+            pid := Integer'Value (textpid);
+
+            --  exception raised by line below if pid not found.
+            comres := Unix.piped_command (command, status);
+            if status = 0 and then
+              HT.contains (comres, "ravenadm")
+            then
+               TIO.Put_Line ("ravenadm is already running on this system.");
+               return True;
+            else
+               --  pidfile is obsolete, remove it.
+               DIR.Delete_File (pidfile);
+               return False;
+            end if;
+         exception
+            when others =>
+               --  pidfile contains garbage, remove it
+               DIR.Delete_File (pidfile);
+               return False;
+         end;
+      end if;
+      return False;
+   end already_running;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_pidfile
+   --------------------------------------------------------------------------------------------
+   procedure create_pidfile is
+   begin
+      FOP.create_pidfile (pidfile);
+   end create_pidfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  destroy_pidfile
+   --------------------------------------------------------------------------------------------
+   procedure destroy_pidfile is
+   begin
+      FOP.destroy_pidfile (pidfile);
+   end destroy_pidfile;
 
 end Pilot;

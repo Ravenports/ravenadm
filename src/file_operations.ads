@@ -21,4 +21,17 @@ package File_Operations is
      (extraction_directory : String;
       subdirectory         : String);
 
+   --  generic function to return first line of file.
+   function head_n1 (filename : String) return String;
+
+   --  Create a pidfile on major actions and remove it when complete.
+   procedure create_pidfile (pidfile : String);
+   procedure destroy_pidfile (pidfile : String);
+
+private
+
+   --  helper for create_pidfile
+   function Get_PID return Integer;
+   pragma Import (C, Get_PID, "getpid");
+
 end File_Operations;

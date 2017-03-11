@@ -9,6 +9,7 @@ package Parameters is
 
    package HT renames HelperText;
 
+   no_ccache     : constant String := "disabled";
    raven_confdir : constant String := host_localbase & "/etc/ravenadm";
 
    type configuration_record is
@@ -32,5 +33,10 @@ package Parameters is
 
    configuration  : configuration_record;
    active_profile : HT.Text;
+
+   --  Maybe a previously valid directory path has been removed.  This
+   --  function returns true when all the paths still work.
+   --  The configuration must be loaded before it's run, of course.
+   function all_paths_valid return Boolean;
 
 end Parameters;

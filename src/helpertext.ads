@@ -111,6 +111,9 @@ package HelperText is
       offset     : Natural;
       end_marker : String) return String;
 
+   --  returns first character through (not including) the first line feed (if it exists)
+   function first_line (S : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);
