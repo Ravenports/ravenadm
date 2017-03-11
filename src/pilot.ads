@@ -1,6 +1,8 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Definitions; use Definitions;
+
 package Pilot is
 
    procedure display_usage;
@@ -53,10 +55,22 @@ package Pilot is
 
 private
 
+   subtype logname_field is String (1 .. 19);
+   type dim_logname  is array (count_type) of logname_field;
+   type verdiff is (newbuild, rebuild, change);
+
    specfile  : constant String := "specification";
    errprefix : constant String := "Error : ";
    pidfile   : constant String := "/var/run/ravenadm.pid";
    bailing   : constant String := "  (ravenadm must exit)";
+   shutreq   : constant String := "Graceful shutdown requested, exiting ...";
+   brkname   : constant String := "ENTERAFTER";
+
+   logname   : constant dim_logname := ("00_last_results.log",
+                                        "01_success_list.log",
+                                        "02_failure_list.log",
+                                        "03_ignored_list.log",
+                                        "04_skipped_list.log");
 
    procedure DNE (filename : String);
 

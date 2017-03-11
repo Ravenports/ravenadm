@@ -12,7 +12,7 @@ procedure Ravenadm is
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
 
-   type mandate_type is (unset, help, dev, build, test, status);
+   type mandate_type is (unset, help, dev, build, test, status, configure);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, explode);
 
    procedure scan_first_command_word;
@@ -35,6 +35,8 @@ procedure Ravenadm is
          mandate := test;
       elsif first = "status" then
          mandate := status;
+      elsif first = "configure" then
+         mandate := configure
       end if;
    end scan_first_command_word;
 
@@ -85,19 +87,20 @@ begin
    --  Validation block start
    --------------------------------------------------------------------------------------------
 
-   if not Parameters.all_paths_valid then
-      return;
-   end if;
-
    if not Pilot.TERM_defined_in_environment then
       return;
    end if;
 
    if Pilot.launch_clash_detected then
+      return;  --  Really only affects commands involving slaves
+   end if;
+
+   --  Load configuration here
+
+    if not Parameters.all_paths_valid then
       return;
    end if;
 
-   --  TODO: store origins check
 
    if Pilot.insufficient_privileges then
       return;
@@ -119,11 +122,19 @@ begin
       return;
    end if;
 
-   --  TODO: ravenexec existence check
+--     if Pilot.ravenexec_missing then
+--        return
+--     end if;
+
+      --  TODO: store origins check
+
 
    Pilot.create_pidfile;
    Unix.ignore_background_tty;
-   Unix.cone_of_silence (deploy => True);
+
+   if mandate /= configure then
+      Unix.cone_of_silence (deploy => True);
+   end if;
 
    --------------------------------------------------------------------------------------------
    --  Validation block end

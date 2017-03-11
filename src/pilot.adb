@@ -15,8 +15,6 @@ with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
 
-with Definitions; use Definitions;
-
 package body Pilot is
 
    package REP renames Replicant;
