@@ -3,11 +3,13 @@
 
 with File_Operations;
 with Ada.Characters.Latin_1;
+with Ada.Directories;
 with Ada.Text_IO;
 
 package body INI_File_Manager is
 
    package LAT renames Ada.Characters.Latin_1;
+   package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
    package FOP renames File_Operations;
 
@@ -306,5 +308,85 @@ package body INI_File_Manager is
       return "";
    end section_name;
 
+
+   --------------------------------------------------------------------------------------------
+   --  scan_file
+   --------------------------------------------------------------------------------------------
+   procedure scan_file (directory, filename : String)
+   is
+      procedure insert (Key : HT.Text; Element : in out group_list);
+
+      fullpath : String := directory & "/" & filename;
+      name_text  : HT.Text;
+      value_text : HT.Text;
+
+      procedure insert (Key : HT.Text; Element : in out group_list) is
+      begin
+         Element.list.Insert (name_text, value_text);
+      end insert;
+   begin
+      if not DIR.Exists (fullpath) then
+         raise ini_file_nonexistent;
+      end if;
+      declare
+         contents     : String := FOP.get_file_contents (fullpath);
+         markers      : HT.Line_Markers;
+         last_section : HT.Text := HT.blank;
+         linenum      : Natural := 0;
+      begin
+         INI_sections.Clear;
+         HT.initialize_markers (contents, markers);
+         loop
+            exit when not HT.next_line_present (contents, markers);
+            linenum := linenum + 1;
+            declare
+               line : constant String := HT.trim (HT.extract_line (contents, markers));
+               LN   : constant String := "Line" & linenum'Img & ": ";
+            begin
+               if not (line = "") and then line (line'First) /= LAT.Semicolon then
+                  if line (line'First) = LAT.Left_Square_Bracket then
+                     if line (line'Last) = LAT.Right_Square_Bracket then
+                        last_section := HT.SUS (HT.partial_search (line, 1, "]"));
+                        if HT.SU.Length (last_section) /= line'Length - 2 then
+                           raise bad_ini_format with LN & "heading contains ']'";
+                        end if;
+                        if INI_sections.Contains (last_section) then
+                           raise bad_ini_format with LN & "duplicate heading found";
+                        end if;
+                        declare
+                           initial_rec  : group_list;
+                        begin
+                           initial_rec.section := last_section;
+                           initial_rec.index   := 0;
+                           INI_sections.Insert (last_section, initial_rec);
+                        end;
+                     else
+                        raise bad_ini_format with LN & "heading not terminated with ']'";
+                     end if;
+                  end if;
+                  if not HT.contains (line, "=") then
+                     raise bad_ini_format with LN & "missing '=', so not a name-value pair";
+                  end if;
+                  if HT.equivalent (last_section, HT.blank) then
+                     raise bad_ini_format with LN & "name-value pair found before section set";
+                  end if;
+
+                  name_text := HT.SUS (HT.trim (HT.part_1 (line, "=")));
+                  value_text := HT.SUS (HT.trim (HT.part_2 (line, "=")));
+                  if INI_sections.Element (last_section).list.Contains (name_text) then
+                     raise bad_ini_format with LN & "duplicate key '" & HT.USS (name_text)
+                       & "' found in section '" & HT.USS (last_section) & "'";
+                  else
+                     INI_sections.Update_Element (Position => INI_sections.Find (last_section),
+                                                  Process  => insert'Access);
+                  end if;
+               end if;
+            end;
+         end loop;
+      exception
+         when others =>
+            raise file_operation_failed;
+      end;
+   end scan_file;
 
 end INI_File_Manager;

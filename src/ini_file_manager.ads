@@ -8,8 +8,9 @@ private with HelperText;
 
 package INI_File_Manager is
 
-   directory_nonexistent : exception;
+   ini_file_nonexistent  : exception;
    file_operation_failed : exception;
+   bad_ini_format        : exception;
 
    --  Create new INI File or overwrite existing one.
    --  Throws exception if writing failed
@@ -29,7 +30,8 @@ package INI_File_Manager is
    procedure delete_nv_pair (section, name : String);
 
    --  Scans an existing INI file.
-   --  Throws exception if directory does not exist, or if reading file fails
+   --  Throws exception if file does not exist, or if reading file fails
+   --  Throws bad_ini_format exception if parser hits something it doesn't like
    procedure scan_file (directory, filename : String);
 
    --  Returns number of sections present
