@@ -36,7 +36,7 @@ procedure Ravenadm is
       elsif first = "status" then
          mandate := status;
       elsif first = "configure" then
-         mandate := configure
+         mandate := configure;
       end if;
    end scan_first_command_word;
 
@@ -97,7 +97,7 @@ begin
 
    --  Load configuration here
 
-    if not Parameters.all_paths_valid then
+   if not Parameters.all_paths_valid then
       return;
    end if;
 
@@ -192,6 +192,12 @@ begin
       when test =>
          --------------------------------
          --  test command
+         --------------------------------
+         null; --  tbw
+
+      when configure =>
+         --------------------------------
+         --  configure
          --------------------------------
          null; --  tbw
 
