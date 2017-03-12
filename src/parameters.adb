@@ -6,6 +6,7 @@ with Ada.Characters.Latin_1;
 with Ada.Exceptions;
 with Ada.Text_IO;
 with INI_File_Manager;
+with GNAT.OS_Lib;
 with Unix;
 
 package body Parameters is
@@ -14,6 +15,7 @@ package body Parameters is
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
    package TIO renames Ada.Text_IO;
+   package OSL renames GNAT.OS_Lib;
    package IFM renames INI_File_Manager;
 
    --------------------------------------------------------------------------------------------
@@ -64,8 +66,8 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    --  load_configuration
    --------------------------------------------------------------------------------------------
-   function load_configuration (num_cores : cpu_range) return Boolean
-   is
+   function load_configuration (num_cores : cpu_range) return Boolean is
+   begin
       if DIR.Exists (conf_location) then
          begin
             IFM.scan_file (raven_confdir, ravenadm_ini);
@@ -74,11 +76,30 @@ package body Parameters is
                TIO.Put_Line (ravenadm_ini & " parse issue: " & EX.Exception_Message (ini));
                return False;
          end;
+         declare
+            selected_profile : String := IFM.show_value (master_section, global_01);
+            envprofile       : String := OSL.Getenv ("SYNTHPROFILE").all;
+         begin
+            if envprofile /= "" and then IFM.section_exists (envprofile) then
+               change_active_profile (envprofile);
+            else
+               if selected_profile = "" then
+                  TIO.Put_Line (ravenadm_ini & ": missing global profile_selected field.");
+                  return False;
+               end if;
+               if not IFM.section_exists (selected_profile) then
+                  TIO.Put_Line (ravenadm_ini & ": profile_selected set to non-existent profile.");
+                  return False;
+               end if;
+            end if;
+         end;
       else
-
+         insert_profile (default_profile (first_profile, num_cores));
+         change_active_profile (first_profile);
+         rewrite_configuration;
       end if;
-   begin
-
+      transfer_configuration (num_cores);
+      return True;
    end load_configuration;
 
    --------------------------------------------------------------------------------------------
@@ -303,11 +324,194 @@ package body Parameters is
       result.dir_logs       := HT.SUS (pri_logs);
       result.num_builders   := builders (def_builders);
       result.jobs_limit     := builders (def_jlimit);
-      result.avoid_tmpfs    := not enough_memory (result.num_builders);
+      result.avoid_tmpfs    := not enough_memory (builders (def_builders));
       result.avec_ncurses   := True;
       result.defer_prebuilt := False;
+      result.record_options := False;
 
       return result;
    end default_profile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  insert_profile
+   --------------------------------------------------------------------------------------------
+   procedure insert_profile (confrec : configuration_record)
+   is
+      function may_be_disabled (directory : HT.Text; disabled_value : String) return String;
+      function set_builder (X : builders) return String;
+      function set_boolean (value : Boolean) return String;
+
+      profile_name : constant String := HT.USS (confrec.profile);
+
+      function may_be_disabled (directory : HT.Text; disabled_value : String) return String is
+      begin
+         if HT.equivalent (directory, HT.blank) then
+            return disabled_value;
+         else
+            return HT.USS (directory);
+         end if;
+      end may_be_disabled;
+
+      function set_builder (X : builders) return String is
+      begin
+         return HT.int2str (Integer (X));
+      end set_builder;
+
+      function set_boolean (value : Boolean) return String is
+      begin
+         case value is
+            when True  => return "true";
+            when False => return "false";
+         end case;
+      end set_boolean;
+   begin
+      IFM.delete_section (profile_name);
+      IFM.insert_or_update (profile_name, Field_01, HT.USS (confrec.dir_sysroot));
+      IFM.insert_or_update (profile_name, Field_02, HT.USS (confrec.dir_localbase));
+      IFM.insert_or_update (profile_name, Field_03, HT.USS (confrec.dir_conspiracy));
+      IFM.insert_or_update (profile_name, Field_04,
+                            may_be_disabled (confrec.dir_unkindness, no_unkindness));
+      IFM.insert_or_update (profile_name, Field_05, HT.USS (confrec.dir_distfiles));
+      IFM.insert_or_update (profile_name, Field_06, HT.USS (confrec.dir_packages));
+      IFM.insert_or_update (profile_name, Field_07,
+                            may_be_disabled (confrec.dir_ccache, no_ccache));
+      IFM.insert_or_update (profile_name, Field_08, HT.USS (confrec.dir_buildbase));
+      IFM.insert_or_update (profile_name, Field_09, HT.USS (confrec.dir_logs));
+      IFM.insert_or_update (profile_name, Field_10, set_builder (confrec.num_builders));
+      IFM.insert_or_update (profile_name, Field_11, set_builder (confrec.jobs_limit));
+      IFM.insert_or_update (profile_name, Field_12, set_boolean (confrec.avoid_tmpfs));
+      IFM.insert_or_update (profile_name, Field_13, set_boolean (confrec.record_options));
+      IFM.insert_or_update (profile_name, Field_14, set_boolean (confrec.avec_ncurses));
+      IFM.insert_or_update (profile_name, Field_15, set_boolean (confrec.defer_prebuilt));
+   end insert_profile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  change_active_profile
+   --------------------------------------------------------------------------------------------
+   procedure change_active_profile (new_active_profile : String) is
+   begin
+      IFM.insert_or_update (master_section, global_01, new_active_profile);
+   end change_active_profile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  rewrite_configuration
+   --------------------------------------------------------------------------------------------
+   procedure rewrite_configuration
+   is
+      comment : String := "This ravenadm configuration file is automatically generated";
+   begin
+      IFM.scribe_file (directory     => raven_confdir,
+                       filename      => ravenadm_ini,
+                       first_comment => comment);
+   end rewrite_configuration;
+
+
+   --------------------------------------------------------------------------------------------
+   --  transfer_configuration
+   --------------------------------------------------------------------------------------------
+   procedure transfer_configuration (num_cores : cpu_range)
+   is
+      function default_string  (field_name : String; default : String) return HT.Text;
+      function default_builder (field_name : String; default : Integer) return builders;
+      function default_boolean (field_name : String; default : Boolean) return Boolean;
+      function tmpfs_transfer return Boolean;
+
+      def_builders : Integer;
+      def_jlimit   : Integer;
+      profile      : constant String := IFM.show_value (section => master_section,
+                                                        name    => global_01);
+
+      function default_string (field_name : String; default : String) return HT.Text
+      is
+         value : String := IFM.show_value (profile, field_name);
+      begin
+         if value = "" then
+            return HT.SUS (default);
+         else
+            return HT.SUS (value);
+         end if;
+      end default_string;
+
+      function default_builder (field_name : String; default : Integer) return builders
+      is
+         value     : String := IFM.show_value (profile, field_name);
+         converted : Integer;
+      begin
+         if value = "" then
+            return builders (default);
+         else
+            converted := Integer'Value (value);
+            return builders (converted);
+         end if;
+      exception
+         when others =>
+            return builders (default);
+      end default_builder;
+
+      function default_boolean (field_name : String; default : Boolean) return Boolean
+      is
+         value       : String := IFM.show_value (profile, field_name);
+         lower_value : String := HT.lowercase (value);
+      begin
+         if value = "" then
+            return default;
+         else
+            if lower_value = "true" then
+               return True;
+            elsif lower_value = "false" then
+               return False;
+            else
+               return default;
+            end if;
+         end if;
+      end default_boolean;
+
+      function tmpfs_transfer return Boolean
+      is
+         value       : String := IFM.show_value (profile, Field_12);
+         lower_value : String := HT.lowercase (value);
+      begin
+         if value = "" then
+            return not enough_memory (builders (def_builders));
+         else
+            if lower_value = "true" then
+               return True;
+            elsif lower_value = "false" then
+               return False;
+            else
+               return not enough_memory (builders (def_builders));
+            end if;
+         end if;
+      end tmpfs_transfer;
+   begin
+      if profile = "" then
+         raise profile_DNE;
+      end if;
+
+      default_parallelism (num_cores        => num_cores,
+                           num_builders     => def_builders,
+                           jobs_per_builder => def_jlimit);
+
+      active_profile := HT.SUS (profile);
+      configuration.dir_sysroot    := default_string (Field_01, std_sysroot);
+      configuration.dir_localbase  := default_string (Field_02, std_localbase);
+      configuration.dir_conspiracy := default_string (Field_03, std_conspiracy);
+      configuration.dir_unkindness := default_string (Field_04, no_unkindness);
+      configuration.dir_distfiles  := default_string (Field_05, std_distfiles);
+      configuration.dir_packages   := default_string (Field_06, pri_packages);
+      configuration.dir_ccache     := default_string (Field_07, no_ccache);
+      configuration.dir_buildbase  := default_string (Field_08, pri_buildbase);
+      configuration.dir_logs       := default_string (Field_09, pri_logs);
+      configuration.num_builders   := default_builder (Field_10, def_builders);
+      configuration.num_builders   := default_builder (Field_11, def_jlimit);
+      configuration.avoid_tmpfs    := tmpfs_transfer;
+      configuration.avec_ncurses   := default_boolean (Field_13, True);
+      configuration.defer_prebuilt := default_boolean (Field_14, False);
+      configuration.record_options := default_boolean (Field_15, False);
+
+   end transfer_configuration;
 
 end Parameters;

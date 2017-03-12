@@ -389,4 +389,15 @@ package body INI_File_Manager is
       end;
    end scan_file;
 
+
+   --------------------------------------------------------------------------------------------
+   --  section_exists
+   --------------------------------------------------------------------------------------------
+   function section_exists (section : String) return Boolean
+   is
+      section_text : HT.Text := HT.SUS (section);
+   begin
+      return INI_sections.Contains (section_text);
+   end section_exists;
+
 end INI_File_Manager;

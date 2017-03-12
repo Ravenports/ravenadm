@@ -58,6 +58,9 @@ package INI_File_Manager is
    --  Return value of field identified by "name" within given section
    function show_value (section, name : String) return String;
 
+   --  Return True if section exists
+   function section_exists (section : String) return Boolean;
+
 private
 
    package HT  renames HelperText;

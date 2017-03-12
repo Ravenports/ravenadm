@@ -10,7 +10,7 @@ package Parameters is
 
    package HT renames HelperText;
 
-   basic_profile : constant String := "primary";
+   first_profile : constant String := "primary";
    no_ccache     : constant String := "disabled";
    no_unkindness : constant String := "disabled";
    raven_confdir : constant String := host_localbase & "/etc/ravenadm";
@@ -30,6 +30,7 @@ package Parameters is
          num_builders    : builders;
          jobs_limit      : builders;
          avoid_tmpfs     : Boolean;
+         record_options  : Boolean;
          avec_ncurses    : Boolean;
          defer_prebuilt  : Boolean;
       end record;
@@ -53,11 +54,22 @@ package Parameters is
      (new_profile : String;
       num_cores   : cpu_range) return configuration_record;
 
+   --  Delete any existing profile data and create a new profile.
+   --  Typically a save operation follows.
+   procedure insert_profile (confrec : configuration_record);
+
+   --  Updates the global section to indicate active profile
+   procedure change_active_profile (new_active_profile : String);
+
+   --  Create or overwrite a complete ravenadm.ini file using internal data at IFM
+   procedure rewrite_configuration;
+
 private
 
    package UTL renames Utilities;
 
    memory_probe : exception;
+   profile_DNE  : exception;
 
    memory_megs   : Natural := 0;
 
@@ -82,11 +94,13 @@ private
    Field_10 : constant String := "number_of_builders";
    Field_11 : constant String := "max_jobs_per_builder";
    Field_12 : constant String := "avoid_tmpfs";
-   Field_13 : constant String := "display_with_ncurses";
-   Field_14 : constant String := "leverage_prebuilt";
+   Field_13 : constant String := "record_default_options";
+   Field_14 : constant String := "display_with_ncurses";
+   Field_15 : constant String := "leverage_prebuilt";
 
    global_01 : constant String := "profile_selected";
 
+   master_section : constant String := "Global Configuration";
    pri_packages   : constant String := "/var/ravenports/primary_packages";
    pri_logs       : constant String := "/var/log/ravenports";
    pri_buildbase  : constant String := "/usr/obj/ravenports";
@@ -107,5 +121,10 @@ private
      (num_cores        : cpu_range;
       num_builders     : out Integer;
       jobs_per_builder : out Integer);
+
+   --  Copy from IFM to configuration record, updating type as necessary.
+   --  If values are missing, use default values.
+   --  If profile in global does not exist, throw exception
+   procedure transfer_configuration (num_cores : cpu_range);
 
 end Parameters;
