@@ -33,6 +33,9 @@ package Parameters is
          record_options  : Boolean;
          avec_ncurses    : Boolean;
          defer_prebuilt  : Boolean;
+
+         --  Computed, not saved
+         number_cores    : cpu_range;
       end record;
 
    configuration  : configuration_record;
@@ -42,7 +45,7 @@ package Parameters is
    --  does not already exist, otherwise it will it load it.  In every case,
    --  the "configuration" record will be populated after this is run.
    --  returns "True" on success
-   function load_configuration (num_cores : cpu_range) return Boolean;
+   function load_configuration return Boolean;
 
    --  Maybe a previously valid directory path has been removed.  This
    --  function returns true when all the paths still work.
@@ -50,9 +53,7 @@ package Parameters is
    function all_paths_valid return Boolean;
 
    --  Return a profile record filled with dynamic defaults.
-   function default_profile
-     (new_profile : String;
-      num_cores   : cpu_range) return configuration_record;
+   function default_profile (new_profile : String) return configuration_record;
 
    --  Delete any existing profile data and create a new profile.
    --  Typically a save operation follows.
@@ -125,6 +126,13 @@ private
    --  Copy from IFM to configuration record, updating type as necessary.
    --  If values are missing, use default values.
    --  If profile in global does not exist, throw exception
-   procedure transfer_configuration (num_cores : cpu_range);
+   procedure transfer_configuration;
+
+   --  Determine and store number of cores.  It's needed for dynamic configuration and
+   --  the value is used in the build cycle as well.
+   procedure set_cores;
+
+   --  Platform-specific routines to determine ncpu
+   function get_number_cpus return Positive;
 
 end Parameters;

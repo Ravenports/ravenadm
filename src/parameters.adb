@@ -66,8 +66,9 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    --  load_configuration
    --------------------------------------------------------------------------------------------
-   function load_configuration (num_cores : cpu_range) return Boolean is
+   function load_configuration return Boolean is
    begin
+      set_cores;
       if DIR.Exists (conf_location) then
          begin
             IFM.scan_file (raven_confdir, ravenadm_ini);
@@ -94,11 +95,11 @@ package body Parameters is
             end if;
          end;
       else
-         insert_profile (default_profile (first_profile, num_cores));
+         insert_profile (default_profile (first_profile));
          change_active_profile (first_profile);
          rewrite_configuration;
       end if;
-      transfer_configuration (num_cores);
+      transfer_configuration;
       return True;
    end load_configuration;
 
@@ -300,15 +301,13 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    --  default_profile
    --------------------------------------------------------------------------------------------
-   function default_profile
-     (new_profile : String;
-      num_cores   : cpu_range) return configuration_record
+   function default_profile (new_profile : String) return configuration_record
    is
       result       : configuration_record;
       def_builders : Integer;
       def_jlimit   : Integer;
    begin
-      default_parallelism (num_cores        => num_cores,
+      default_parallelism (num_cores        => configuration.number_cores,
                            num_builders     => def_builders,
                            jobs_per_builder => def_jlimit);
 
@@ -412,7 +411,7 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    --  transfer_configuration
    --------------------------------------------------------------------------------------------
-   procedure transfer_configuration (num_cores : cpu_range)
+   procedure transfer_configuration
    is
       function default_string  (field_name : String; default : String) return HT.Text;
       function default_builder (field_name : String; default : Integer) return builders;
@@ -491,7 +490,7 @@ package body Parameters is
          raise profile_DNE;
       end if;
 
-      default_parallelism (num_cores        => num_cores,
+      default_parallelism (num_cores        => configuration.number_cores,
                            num_builders     => def_builders,
                            jobs_per_builder => def_jlimit);
 
@@ -513,5 +512,69 @@ package body Parameters is
       configuration.record_options := default_boolean (Field_15, False);
 
    end transfer_configuration;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_cores
+   --------------------------------------------------------------------------------------------
+   procedure set_cores
+   is
+      number : constant Positive := get_number_cpus;
+   begin
+      if number > Positive (cpu_range'Last) then
+         configuration.number_cores := cpu_range'Last;
+      else
+         configuration.number_cores := cpu_range (number);
+      end if;
+   end set_cores;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_number_cpus
+   --------------------------------------------------------------------------------------------
+   function get_number_cpus return Positive
+   is
+      bsd_cmd : constant String := "/sbin/sysctl hw.ncpu";
+      lin_cmd : constant String := "/usr/bin/nproc";
+      sol_cmd : constant String := "/usr/sbin/psrinfo -p";
+      comres  : HT.Text;
+      status  : Integer;
+      start   : Positive;
+   begin
+      --  DF/Free: expected output: "hw.ncpu: C" where C is integer
+      --  NetBSD:  expected output: "hw.ncpu = C"
+      --  OpenBSD: expected output: "hw.ncpu=C"
+      --  Linux:   expected output: "C"
+      --  Solaris: expected output: "C"
+
+      case platform_type is
+         when dragonfly | freebsd | macos | netbsd | openbsd =>
+            comres := Unix.piped_command (bsd_cmd, status);
+         when linux =>
+            comres := Unix.piped_command (lin_cmd, status);
+         when sunos =>
+            comres := Unix.piped_command (sol_cmd, status);
+      end case;
+
+      case platform_type is
+         when dragonfly | freebsd | macos => start := 10;
+         when sunos | linux               => start := 1;
+         when netbsd                      => start := 11;
+         when openbsd                     => start := 9;
+      end case;
+
+      if status /= 0 then
+         return 1;
+      end if;
+      declare
+         resstr : String := HT.USS (comres);
+         ncpu   : String := resstr (start .. resstr'Last - 1);
+         number : Positive := Integer'Value (ncpu);
+      begin
+         return number;
+      exception
+         when others => return 1;
+      end;
+   end get_number_cpus;
 
 end Parameters;
