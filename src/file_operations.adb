@@ -137,4 +137,15 @@ package body File_Operations is
    end destroy_pidfile;
 
 
+   --------------------------------------------------------------------------------------------
+   --  mkdirp_from_filename
+   --------------------------------------------------------------------------------------------
+   procedure mkdirp_from_filename (filename : String)
+   is
+      condir : String := DIR.Containing_Directory (Name => filename);
+   begin
+      DIR.Create_Path (New_Directory => condir);
+   end mkdirp_from_file;
+
+
 end File_Operations;

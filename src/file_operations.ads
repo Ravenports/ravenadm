@@ -28,6 +28,10 @@ package File_Operations is
    procedure create_pidfile (pidfile : String);
    procedure destroy_pidfile (pidfile : String);
 
+   --  Equivalent to "mkdir -p <path/to/final/directory>
+   --  May throw exeption
+   procedure mkdirp_from_filename (filename : String);
+
 private
 
    --  helper for create_pidfile
