@@ -1,6 +1,8 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with GNAT.SHA1;
+
 package body Utilities is
 
    --------------------------------------------------------------------------------------------
@@ -76,5 +78,16 @@ package body Utilities is
       end loop;
       return False;
    end valid_cpu_arch;
+
+
+   --------------------------------------------------------------------------------------------
+   --  bucket
+   --------------------------------------------------------------------------------------------
+   function bucket (palabra : String) return string
+   is
+      hashstr : String := GNAT.SHA1.Digest (palabra);
+   begin
+      return HT.uppercase (hashstr (hashstr'First .. hashstr'First + 1));
+   end bucket;
 
 end Utilities;
