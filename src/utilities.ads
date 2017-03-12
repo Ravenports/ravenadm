@@ -21,6 +21,6 @@ package Utilities is
    function valid_cpu_arch (candidate : String) return Boolean;
 
    --  Returns first two hexidecimal digits (uppercase) from sha1 digest
-   function bucket (palabra : String) return string;
+   function bucket (palabra : String) return String;
 
 end Utilities;

@@ -311,13 +311,12 @@ package body Pilot is
    function launch_clash_detected return Boolean
    is
       cwd        : constant String := DIR.Current_Directory;
-      sysroot    : constant String := HT.USS (PM.configuration.dir_system);
+      sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
       portsdir   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       distfiles  : constant String := HT.USS (PM.configuration.dir_distfiles);
       packages   : constant String := HT.USS (PM.configuration.dir_packages);
       logs       : constant String := HT.USS (PM.configuration.dir_logs);
       ccache     : constant String := HT.USS (PM.configuration.dir_ccache);
-      repository : constant String := HT.USS (PM.configuration.dir_repository);
       buildbase  : constant String := HT.USS (PM.configuration.dir_buildbase) & "/";
 
    begin
@@ -327,7 +326,6 @@ package body Pilot is
         HT.leads (cwd, packages) or else
         HT.leads (cwd, logs) or else
         HT.leads (cwd, ccache) or else
-        HT.leads (cwd, repository) or else
         HT.leads (cwd, buildbase)
       then
          TIO.Put_Line ("Please change the current directory; " &

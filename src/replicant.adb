@@ -21,7 +21,6 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure initialize
      (testmode  : Boolean;
-      num_cores : cpu_range;
       localbase : String)
    is
       mm     : constant String := get_master_mount;
@@ -32,7 +31,6 @@ package body Replicant is
       pwd    : constant String := "/pwd.db";
       rcconf : constant String := "/rc.conf";
    begin
-      smp_cores      := num_cores;
       developer_mode := testmode;
       ravenbase      := HT.SUS (localbase);
 
@@ -732,7 +730,7 @@ package body Replicant is
       function clean_mount_point (point : folder) return String;
       slave_base  : constant String := get_slave_mount (id);
       slave_local : constant String := slave_base & "_localbase";
-      dir_system  : constant String := HT.USS (PM.configuration.dir_system);
+      dir_system  : constant String := HT.USS (PM.configuration.dir_sysroot);
       localbase   : constant String := HT.USS (PM.configuration.dir_localbase);
 
       function clean_mount_point (point : folder) return String is
@@ -804,7 +802,7 @@ package body Replicant is
    is
       slave_base  : constant String := get_slave_mount (id);
       slave_local : constant String := slave_base & "_localbase";
-      dir_system  : constant String := HT.USS (PM.configuration.dir_system);
+      dir_system  : constant String := HT.USS (PM.configuration.dir_sysroot);
       localbase   : constant String := HT.USS (PM.configuration.dir_localbase);
    begin
 

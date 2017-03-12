@@ -145,7 +145,7 @@ package body File_Operations is
       condir : String := DIR.Containing_Directory (Name => filename);
    begin
       DIR.Create_Path (New_Directory => condir);
-   end mkdirp_from_file;
+   end mkdirp_from_filename;
 
 
 end File_Operations;

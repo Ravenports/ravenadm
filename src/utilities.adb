@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with GNAT.SHA1;
+with HelperText;
 
 package body Utilities is
 
@@ -83,11 +84,11 @@ package body Utilities is
    --------------------------------------------------------------------------------------------
    --  bucket
    --------------------------------------------------------------------------------------------
-   function bucket (palabra : String) return string
+   function bucket (palabra : String) return String
    is
       hashstr : String := GNAT.SHA1.Digest (palabra);
    begin
-      return HT.uppercase (hashstr (hashstr'First .. hashstr'First + 1));
+      return HelperText.uppercase (hashstr (hashstr'First .. hashstr'First + 1));
    end bucket;
 
 end Utilities;

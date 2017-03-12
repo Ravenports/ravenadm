@@ -16,7 +16,6 @@ package Replicant is
    --  It also creates the password database
    procedure initialize
      (testmode  : Boolean;
-      num_cores : cpu_range;
       localbase : String);
 
    --  This removes the password database
