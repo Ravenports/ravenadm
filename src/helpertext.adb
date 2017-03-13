@@ -29,6 +29,15 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  int2text
+   --------------------------------------------------------------------------------------------
+   function int2text (A : Integer) return Text is
+   begin
+      return SUS (int2str (A));
+   end int2text;
+
+
+   --------------------------------------------------------------------------------------------
    --  trim
    --------------------------------------------------------------------------------------------
    function trim (S : String) return String is
@@ -504,5 +513,49 @@ package body HelperText is
       end if;
    end first_line;
 
+
+   --------------------------------------------------------------------------------------------
+   --  bool2str
+   --------------------------------------------------------------------------------------------
+   function bool2str  (A : Boolean) return String is
+   begin
+      if A then
+         return "true";
+      end if;
+      return "false";
+   end bool2str;
+
+
+   --------------------------------------------------------------------------------------------
+   --  bool2text
+   --------------------------------------------------------------------------------------------
+   function bool2text (A : Boolean) return Text is
+   begin
+      return SUS (bool2str (A));
+   end bool2text;
+
+
+   --------------------------------------------------------------------------------------------
+   --  specific_line
+   --------------------------------------------------------------------------------------------
+   function specific_line (S : String; line_number : Positive) return String
+   is
+      back  : Integer;
+      front : Integer := S'First;
+   begin
+      for line in 1 .. line_number - 1 loop
+         back := AS.Fixed.Index (Source => S, Pattern => single_LF, From => front);
+         if back <= 0 then
+            return "";
+         end if;
+         front := back + 1;
+      end loop;
+      back := AS.Fixed.Index (Source => S, Pattern => single_LF, From => front);
+      if back > 0 then
+         return S (front .. back - 1);
+      else
+         return S (front .. S'Last);
+      end if;
+   end specific_line;
 
 end HelperText;

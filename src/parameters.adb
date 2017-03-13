@@ -103,6 +103,16 @@ package body Parameters is
       return True;
    end load_configuration;
 
+
+   --------------------------------------------------------------------------------------------
+   --  query_physical_memory
+   --------------------------------------------------------------------------------------------
+   function alternative_profiles_exist return Boolean is
+   begin
+      return IFM.section_count > 2;
+   end alternative_profiles_exist;
+
+
    --------------------------------------------------------------------------------------------
    --  query_physical_memory
    --------------------------------------------------------------------------------------------
@@ -317,10 +327,10 @@ package body Parameters is
       result.dir_conspiracy := HT.SUS (std_conspiracy);
       result.dir_unkindness := HT.SUS (no_unkindness);
       result.dir_distfiles  := HT.SUS (std_distfiles);
-      result.dir_packages   := HT.SUS (pri_packages);
+      result.dir_packages   := HT.replace_substring (HT.SUS (pri_packages), "[X]", new_profile);
       result.dir_ccache     := HT.SUS (no_ccache);
       result.dir_buildbase  := HT.SUS (pri_buildbase);
-      result.dir_logs       := HT.SUS (pri_logs);
+      result.dir_logs       := HT.replace_substring (HT.SUS (pri_logs), "[X]", new_profile);
       result.num_builders   := builders (def_builders);
       result.jobs_limit     := builders (def_jlimit);
       result.avoid_tmpfs    := not enough_memory (builders (def_builders));
@@ -576,5 +586,46 @@ package body Parameters is
          when others => return 1;
       end;
    end get_number_cpus;
+
+
+   --------------------------------------------------------------------------------------------
+   --  list_profiles
+   --------------------------------------------------------------------------------------------
+   function list_profiles return String
+   is
+      result : HT.Text;
+      total_sections : Natural := IFM.section_count;
+   begin
+      for index in Positive range 1 .. total_sections loop
+         declare
+            section : String := IFM.section_name (index);
+         begin
+            if section /= master_section then
+               HT.SU.Append (result, section & LAT.LF);
+            end if;
+         end;
+      end loop;
+      return HT.USS (result);
+   end list_profiles;
+
+
+   --------------------------------------------------------------------------------------------
+   --  delete_profile
+   --------------------------------------------------------------------------------------------
+   procedure delete_profile (profile : String) is
+   begin
+      IFM.delete_section (profile);
+      rewrite_configuration;
+   end delete_profile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  switch_profile
+   --------------------------------------------------------------------------------------------
+   procedure switch_profile (to_profile : String) is
+   begin
+      change_active_profile (new_active_profile => to_profile);
+      transfer_configuration;
+   end switch_profile;
 
 end Parameters;

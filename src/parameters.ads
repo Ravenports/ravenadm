@@ -10,7 +10,6 @@ package Parameters is
 
    package HT renames HelperText;
 
-   first_profile : constant String := "primary";
    no_ccache     : constant String := "disabled";
    no_unkindness : constant String := "disabled";
    raven_confdir : constant String := host_localbase & "/etc/ravenadm";
@@ -59,11 +58,20 @@ package Parameters is
    --  Typically a save operation follows.
    procedure insert_profile (confrec : configuration_record);
 
-   --  Updates the global section to indicate active profile
-   procedure change_active_profile (new_active_profile : String);
-
    --  Create or overwrite a complete ravenadm.ini file using internal data at IFM
    procedure rewrite_configuration;
+
+   --  Return True if 3 or more sections exist (1 is global, the rest must be profiles)
+   function alternative_profiles_exist return Boolean;
+
+   --  Return a LF-delimited list of profiles contained in ravenadm.ini
+   function list_profiles return String;
+
+   --  Remove an entire profile from the configuration and save it.
+   procedure delete_profile (profile : String);
+
+   --  Updates master section with new profile name and initiates a transfer
+   procedure switch_profile (to_profile : String);
 
 private
 
@@ -100,16 +108,20 @@ private
    Field_15 : constant String := "leverage_prebuilt";
 
    global_01 : constant String := "profile_selected";
+   global_02 : constant String := "url_conspiracy";
+
+   first_profile : constant String := "primary";
+   raven_var     : constant String := "/var/ravenports";
 
    master_section : constant String := "Global Configuration";
-   pri_packages   : constant String := "/var/ravenports/primary_packages";
-   pri_logs       : constant String := "/var/log/ravenports";
+   pri_packages   : constant String := raven_var & "/[X]_packages";
+   pri_logs       : constant String := raven_var & "/logs/[X]";
    pri_buildbase  : constant String := "/usr/obj/ravenports";
    ravenadm_ini   : constant String := "ravenadm.ini";
    conf_location  : constant String := raven_confdir & "/" & ravenadm_ini;
    std_localbase  : constant String := "/raven";
-   std_distfiles  : constant String := std_localbase & "/distfiles";
-   std_conspiracy : constant String := std_localbase & "/share/conspiracy";
+   std_distfiles  : constant String := raven_var & "/distfiles";
+   std_conspiracy : constant String := raven_var & "/conspiracy";
    std_sysroot    : constant String := std_localbase & "/share/raven-sysroot/" &
                                        UTL.mixed_opsys (platform_type);
 
@@ -134,5 +146,8 @@ private
 
    --  Platform-specific routines to determine ncpu
    function get_number_cpus return Positive;
+
+   --  Updates the global section to indicate active profile
+   procedure change_active_profile (new_active_profile : String);
 
 end Parameters;

@@ -15,7 +15,8 @@ package HelperText is
    blank : constant Text := SU.Null_Unbounded_String;
 
    --  unpadded numeric image
-   function int2str (A : Integer) return String;
+   function int2str  (A : Integer) return String;
+   function int2text (A : Integer) return Text;
 
    --  Trim both sides
    function trim (S : String) return String;
@@ -113,6 +114,13 @@ package HelperText is
 
    --  returns first character through (not including) the first line feed (if it exists)
    function first_line (S : String) return String;
+
+   --  convert boolean to lowercase string
+   function bool2str  (A : Boolean) return String;
+   function bool2text (A : Boolean) return Text;
+
+   --  Return contents of exact line given a block of lines (delimited by LF) and a line number
+   function specific_line (S : String; line_number : Positive) return String;
 
 private
 
