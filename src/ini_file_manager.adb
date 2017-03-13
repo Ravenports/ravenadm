@@ -4,10 +4,12 @@
 with File_Operations;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Text_IO;
 
 package body INI_File_Manager is
 
+   package EX  renames Ada.Exceptions;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
@@ -304,9 +306,10 @@ package body INI_File_Manager is
    is
       position : list_crate.Cursor;
       tracker  : Positive := 1;
+      numsec   : constant Natural := Natural (INI_sections.Length);
    begin
       if not INI_sections.Is_Empty and then
-        Natural (INI_sections.Length) <= index
+        index <= numsec
       then
          position := list_crate.First (INI_sections);
          loop
@@ -316,7 +319,7 @@ package body INI_File_Manager is
          end loop;
          return HT.USS (list_crate.Element (position).section);
       end if;
-      return "";
+      return "?";
    end section_name;
 
 
@@ -374,29 +377,32 @@ package body INI_File_Manager is
                      else
                         raise bad_ini_format with LN & "heading not terminated with ']'";
                      end if;
-                  end if;
-                  if not HT.contains (line, "=") then
-                     raise bad_ini_format with LN & "missing '=', so not a name-value pair";
-                  end if;
-                  if HT.equivalent (last_section, HT.blank) then
-                     raise bad_ini_format with LN & "name-value pair found before section set";
-                  end if;
-
-                  name_text := HT.SUS (HT.trim (HT.part_1 (line, "=")));
-                  value_text := HT.SUS (HT.trim (HT.part_2 (line, "=")));
-                  if INI_sections.Element (last_section).list.Contains (name_text) then
-                     raise bad_ini_format with LN & "duplicate key '" & HT.USS (name_text)
-                       & "' found in section '" & HT.USS (last_section) & "'";
                   else
-                     INI_sections.Update_Element (Position => INI_sections.Find (last_section),
-                                                  Process  => insert'Access);
+                     if not HT.contains (line, "=") then
+                        raise bad_ini_format with LN & "missing '=', so not a name-value pair";
+                     end if;
+                     if HT.equivalent (last_section, HT.blank) then
+                        raise bad_ini_format with LN & "name-value pair found before section set";
+                     end if;
+
+                     name_text := HT.SUS (HT.trim (HT.part_1 (line, "=")));
+                     value_text := HT.SUS (HT.trim (HT.part_2 (line, "=")));
+                     if INI_sections.Element (last_section).list.Contains (name_text) then
+                        raise bad_ini_format with LN & "duplicate key '" & HT.USS (name_text)
+                          & "' found in section '" & HT.USS (last_section) & "'";
+                     else
+                        INI_sections.Update_Element (Position => INI_sections.Find (last_section),
+                                                     Process  => insert'Access);
+                     end if;
                   end if;
                end if;
             end;
          end loop;
       exception
-         when others =>
-            raise file_operation_failed;
+         when why : bad_ini_format =>
+            EX.Reraise_Occurrence (why);
+         when dunno : others =>
+            raise file_operation_failed with EX.Exception_Message (dunno);
       end;
    end scan_file;
 

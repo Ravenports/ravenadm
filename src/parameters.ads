@@ -10,8 +10,8 @@ package Parameters is
 
    package HT renames HelperText;
 
-   no_ccache     : constant String := "disabled";
-   no_unkindness : constant String := "disabled";
+   no_ccache     : constant String := "none";
+   no_unkindness : constant String := "none";
    raven_confdir : constant String := host_localbase & "/etc/ravenadm";
 
    type configuration_record is

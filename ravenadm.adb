@@ -87,7 +87,7 @@ begin
    --  Validation block start
    --------------------------------------------------------------------------------------------
 
-   if not Pilot.TERM_defined_in_environment then
+   if Pilot.already_running then
       return;
    end if;
 
@@ -95,21 +95,40 @@ begin
       return;
    end if;
 
-   if Pilot.launch_clash_detected then
-      return;  --  Really only affects commands involving slaves
-   end if;
+   case mandate is
+      when build | test | status =>
+         --  All commands involving replicant slaves
+         if Pilot.launch_clash_detected then
+            return;
+         end if;
+      when others => null;
+   end case;
 
-   if not Parameters.all_paths_valid then
-      return;
-   end if;
+   case mandate is
+      when build | test =>
+         if Parameters.configuration.avec_ncurses and then
+           not Pilot.TERM_defined_in_environment
+         then
+            return;
+         end if;
+      when others => null;
+   end case;
 
-   if Pilot.insufficient_privileges then
-      return;
-   end if;
+   case mandate is
+      when configure | help => null;
+      when others =>
+         if not Parameters.all_paths_valid then
+            return;
+         end if;
+   end case;
 
-   if Pilot.already_running then
-      return;
-   end if;
+   case mandate is
+      when help => null;
+      when others =>
+         if Pilot.insufficient_privileges then
+            return;
+         end if;
+   end case;
 
    if Pilot.previous_run_mounts_detected and then
      not Pilot.old_mounts_successfully_removed
@@ -200,7 +219,7 @@ begin
          --------------------------------
          --  configure
          --------------------------------
-         null; --  tbw
+         Pilot.launch_configure_menu;
 
       when unset => null;
 

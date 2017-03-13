@@ -27,6 +27,8 @@ package body Parameters is
 
       use type DIR.File_Kind;
 
+      localbase : String := HT.USS (configuration.dir_localbase);
+
       function invalid_directory (folder : HT.Text; desc : String) return Boolean
       is
          dossier : constant String := HT.USS (folder);
@@ -41,25 +43,38 @@ package body Parameters is
       end invalid_directory;
    begin
       if HT.USS (configuration.dir_sysroot) = "/" then
-         TIO.Put_Line ("[G] System root cannot be " & LAT.Quotation & "/" & LAT.Quotation);
+         TIO.Put_Line ("[A] System root cannot be " & LAT.Quotation & "/" & LAT.Quotation);
          return False;
-      elsif invalid_directory (configuration.dir_sysroot, "[G] System root") then
+      elsif HT.leads (localbase, "/usr") and then localbase /= "/usr/local" then
+         TIO.Put_Line ("[B] Localbase cannot be in '/usr' with the exception of '/usr/local'");
          return False;
-      elsif invalid_directory (configuration.dir_packages, "[B] Packages") then
+      elsif invalid_directory (configuration.dir_sysroot, "[A] System root") then
          return False;
-      elsif invalid_directory (configuration.dir_conspiracy, "[A] Conspiracy") then
+      elsif invalid_directory (configuration.dir_localbase, "[B] Localbase") then
          return False;
-      elsif invalid_directory (configuration.dir_distfiles, "[C] Distfiles") then
+      elsif invalid_directory (configuration.dir_conspiracy, "[C] Conspiracy") then
          return False;
-      elsif invalid_directory (configuration.dir_logs, "[E] Build logs") then
+      elsif invalid_directory (configuration.dir_distfiles, "[E] Distfiles") then
+         return False;
+      elsif invalid_directory (configuration.dir_packages, "[F] Packages") then
+         return False;
+      elsif invalid_directory (configuration.dir_logs, "[I] Build logs") then
          return False;
       end if;
 
-      if HT.USS (configuration.dir_ccache) = no_ccache then
-         return True;
-      else
-         return not invalid_directory (configuration.dir_ccache, "[H] Compiler cache");
+      if not (HT.USS (configuration.dir_ccache) = no_ccache) and then
+        invalid_directory (configuration.dir_ccache, "[G] Compiler cache")
+      then
+         return False;
       end if;
+
+      if (HT.USS (configuration.dir_unkindness) = no_unkindness) and then
+        invalid_directory (configuration.dir_unkindness, "[D] Custom ports")
+      then
+         return False;
+      end if;
+
+      return True;
    end all_paths_valid;
 
 
@@ -505,6 +520,7 @@ package body Parameters is
                            jobs_per_builder => def_jlimit);
 
       active_profile := HT.SUS (profile);
+      configuration.profile        := active_profile;
       configuration.dir_sysroot    := default_string (Field_01, std_sysroot);
       configuration.dir_localbase  := default_string (Field_02, std_localbase);
       configuration.dir_conspiracy := default_string (Field_03, std_conspiracy);
@@ -515,11 +531,11 @@ package body Parameters is
       configuration.dir_buildbase  := default_string (Field_08, pri_buildbase);
       configuration.dir_logs       := default_string (Field_09, pri_logs);
       configuration.num_builders   := default_builder (Field_10, def_builders);
-      configuration.num_builders   := default_builder (Field_11, def_jlimit);
+      configuration.jobs_limit     := default_builder (Field_11, def_jlimit);
       configuration.avoid_tmpfs    := tmpfs_transfer;
-      configuration.avec_ncurses   := default_boolean (Field_13, True);
-      configuration.defer_prebuilt := default_boolean (Field_14, False);
-      configuration.record_options := default_boolean (Field_15, False);
+      configuration.record_options := default_boolean (Field_13, False);
+      configuration.avec_ncurses   := default_boolean (Field_14, True);
+      configuration.defer_prebuilt := default_boolean (Field_15, False);
 
    end transfer_configuration;
 

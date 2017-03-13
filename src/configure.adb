@@ -49,7 +49,7 @@ package body Configure is
                when 'J' .. 'K' =>
                   change_positive_option (option (ascii - 64), pristine);
                   exit;
-               when 'j' .. 'K' =>
+               when 'j' .. 'k' =>
                   change_positive_option (option (ascii - 96), pristine);
                   exit;
                when 'L' .. 'O' =>
@@ -97,8 +97,11 @@ package body Configure is
       success    : Boolean;
       cmd_output : HT.Text;
    begin
-      --  Assume it works, don't even check success/cmd_output.
       success := Unix.piped_mute_command (command, cmd_output);
+      if success then
+         --  The output string is what actually clears the screen
+         TIO.Put (HT.USS (cmd_output));
+      end if;
    end clear_screen;
 
 
@@ -109,7 +112,7 @@ package body Configure is
    is
       dashes : constant String (1 .. 79) := (others => LAT.Equals_Sign);
    begin
-      TIO.Put_Line ("Raven configuration profile: " & HT.USS (PM.configuration.profile));
+      TIO.Put_Line ("ravenadm configuration profile: " & HT.USS (PM.configuration.profile));
       TIO.Put_Line (dashes);
    end print_header;
 
@@ -166,9 +169,9 @@ package body Configure is
          when 10 => nextn := dupe.num_builders;    orign := PM.configuration.num_builders;
          when 11 => nextn := dupe.jobs_limit;      orign := PM.configuration.jobs_limit;
          when 12 => nextb := dupe.avoid_tmpfs;     origb := PM.configuration.avoid_tmpfs;
-         when 13 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
-         when 14 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
-         when 15 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
+         when 13 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
+         when 14 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
+         when 15 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
       end case;
       case opt is
          when 1 .. 9   =>
@@ -195,10 +198,9 @@ package body Configure is
    --------------------------------------------------------------------------------------------
    procedure change_directory_option (opt : option; pristine : in out Boolean)
    is
-      continue : Boolean;
+      continue : Boolean := False;
    begin
       loop
-         continue := False;
          clear_screen;
          print_header;
          print_opt (opt, pristine);
@@ -224,7 +226,6 @@ package body Configure is
                   else
                      case opt is
                         when 1 => dupe.dir_sysroot    := utp;
-                        when 2 => dupe.dir_localbase  := utp;
                         when 3 => dupe.dir_conspiracy := utp;
                         when 4 => dupe.dir_unkindness := utp;
                         when 5 => dupe.dir_distfiles  := utp;
@@ -232,12 +233,21 @@ package body Configure is
                         when 7 => dupe.dir_ccache     := utp;
                         when 8 => dupe.dir_buildbase  := utp;
                         when 9 => dupe.dir_logs       := utp;
+                        when 2 =>
+                           if HT.leads (stp, "/usr") and then
+                             stp = "/usr/local"
+                           then
+                              continue := True;
+                              dupe.dir_localbase := utp;
+                           end if;
                         when others => raise menu_error
                              with "Illegal value : " & opt'Img;
                      end case;
                   end if;
                end;
-               continue := True;
+               if opt /= 2 then
+                  continue := True;
+               end if;
             elsif opt = 4 then
                dupe.dir_unkindness := HT.SUS (PM.no_unkindness);
                continue := True;
@@ -280,9 +290,9 @@ package body Configure is
       end loop;
       case opt is
          when 12 => dupe.avoid_tmpfs    := new_value;
-         when 13 => dupe.avec_ncurses   := new_value;
-         when 14 => dupe.defer_prebuilt := new_value;
-         when 15 => dupe.record_options := new_value;
+         when 13 => dupe.record_options := new_value;
+         when 14 => dupe.avec_ncurses   := new_value;
+         when 15 => dupe.defer_prebuilt := new_value;
          when others =>
             raise menu_error with "Illegal value : " & opt'Img;
       end case;
@@ -483,6 +493,7 @@ package body Configure is
                nextprofile : String := HT.specific_line (all_profiles, number);
             begin
                PM.switch_profile (to_profile => nextprofile);
+               PM.rewrite_configuration;
                dupe := PM.configuration;
             end;
             continue := True;

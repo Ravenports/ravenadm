@@ -10,6 +10,7 @@ with Information;
 with HelperText;
 with Parameters;
 with Replicant;
+with Configure;
 with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
@@ -494,5 +495,14 @@ package body Pilot is
       TIO.Put_Line (ravenexec & " missing!" & bailing);
       return True;
    end ravenexec_missing;
+
+
+   --------------------------------------------------------------------------------------------
+   --  launch_configure_menu
+   --------------------------------------------------------------------------------------------
+   procedure launch_configure_menu is
+   begin
+      Configure.launch_configure_menu;
+   end launch_configure_menu;
 
 end Pilot;

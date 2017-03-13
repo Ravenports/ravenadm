@@ -36,9 +36,9 @@ private
           "[J] Num. concurrent builders  ",
           "[K] Max. jobs per builder     ",
           "[L] Avoid use of tmpfs        ",
-          "[M] Display using ncurses     ",
-          "[N] Fetch prebuilt packages   ",
-          "[O] Always record options     "
+          "[M] Always record options     ",
+          "[N] Display using ncurses     ",
+          "[O] Fetch prebuilt packages   "
          );
 
    optX1A : constant String := "[>]   Switch/create profiles (changes discarded)";

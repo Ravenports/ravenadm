@@ -53,6 +53,9 @@ package Pilot is
    --  libexec/ravenexec is required, make sure it's installed!
    function ravenexec_missing return Boolean;
 
+   --  pass-through for configure package
+   procedure launch_configure_menu;
+
 private
 
    subtype logname_field is String (1 .. 19);
