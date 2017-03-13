@@ -27,24 +27,35 @@ package body INI_File_Manager is
       fullpath : String := directory & "/" & filename;
       ini_file : TIO.File_Type;
       sections : string_crate.Vector;
+      secitems : string_crate.Vector;
 
       procedure write_section (section_name : HT.Text)
       is
-         procedure write_item (position : nvpair_crate.Cursor);
+         procedure write_item (position : string_crate.Cursor);
+         procedure save_item_name (position : nvpair_crate.Cursor);
 
          section : String := HT.USS (section_name);
 
-         procedure write_item (position : nvpair_crate.Cursor)
+         procedure write_item (position : string_crate.Cursor)
          is
-            name  : String := HT.USS (nvpair_crate.Key (position));
-            value : String := HT.USS (nvpair_crate.Element (position));
+            name  : HT.Text renames string_crate.Element (position);
+            value : String := HT.USS (INI_sections.Element (section_name).list.Element (name));
          begin
-            TIO.Put_Line (name & "= " & value);
+            TIO.Put_Line (ini_file, HT.USS (name) & "= " & value);
          end write_item;
+
+         procedure save_item_name (position : nvpair_crate.Cursor) is
+         begin
+            secitems.Append (nvpair_crate.Key (position));
+         end save_item_name;
       begin
+         secitems.Clear;
+         INI_sections.Element (section_name).list.Iterate (save_item_name'Access);
+         sorter.Sort (Container => secitems);
+
          TIO.Put_Line (ini_file, LAT.LF & LAT.Left_Square_Bracket & section &
                          LAT.Right_Square_Bracket);
-         INI_sections.Element (section_name).list.Iterate (write_item'Access);
+         secitems.Iterate (write_item'Access);
       end write_section;
 
       procedure save_section_name (position : list_crate.Cursor) is

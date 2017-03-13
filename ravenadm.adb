@@ -91,16 +91,17 @@ begin
       return;
    end if;
 
+   if not Parameters.load_configuration then
+      return;
+   end if;
+
    if Pilot.launch_clash_detected then
       return;  --  Really only affects commands involving slaves
    end if;
 
-   --  Load configuration here
-
    if not Parameters.all_paths_valid then
       return;
    end if;
-
 
    if Pilot.insufficient_privileges then
       return;
