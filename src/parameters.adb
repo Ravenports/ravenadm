@@ -45,8 +45,8 @@ package body Parameters is
       if HT.USS (configuration.dir_sysroot) = "/" then
          TIO.Put_Line ("[A] System root cannot be " & LAT.Quotation & "/" & LAT.Quotation);
          return False;
-      elsif HT.leads (localbase, "/usr") and then localbase /= "/usr/local" then
-         TIO.Put_Line ("[B] Localbase cannot be in '/usr' with the exception of '/usr/local'");
+      elsif forbidden_localbase (localbase) then
+         TIO.Put_Line ("[B] Localbase set to standard system folder '" & localbase & "'");
          return False;
       elsif invalid_directory (configuration.dir_sysroot, "[A] System root") then
          return False;
@@ -68,7 +68,7 @@ package body Parameters is
          return False;
       end if;
 
-      if (HT.USS (configuration.dir_unkindness) = no_unkindness) and then
+      if not (HT.USS (configuration.dir_unkindness) = no_unkindness) and then
         invalid_directory (configuration.dir_unkindness, "[D] Custom ports")
       then
          return False;
@@ -117,6 +117,46 @@ package body Parameters is
       transfer_configuration;
       return True;
    end load_configuration;
+
+
+   --------------------------------------------------------------------------------------------
+   --  forbidden_localbase
+   --------------------------------------------------------------------------------------------
+   function forbidden_localbase (candidate : String) return Boolean
+   is
+      function downstream (path : String) return Boolean;
+
+      function downstream (path : String) return Boolean is
+      begin
+         return candidate = path or else HT.leads (candidate, path & "/");
+      end downstream;
+   begin
+      return
+        downstream ("/bin") or else
+        downstream ("/boot") or else
+        downstream ("/dev") or else
+        downstream ("/etc") or else
+        downstream ("/lib") or else
+        downstream ("/libexec") or else
+        downstream ("/proc") or else
+        downstream ("/sbin") or else
+        downstream ("/sys") or else
+        downstream ("/tmp") or else
+        downstream ("/var") or else
+        downstream ("/usr/bin") or else
+        downstream ("/usr/dports") or else
+        downstream ("/usr/games") or else
+        downstream ("/usr/include") or else
+        downstream ("/usr/lib") or else
+        downstream ("/usr/libdata") or else
+        downstream ("/usr/libexec") or else
+        downstream ("/usr/obj") or else
+        downstream ("/usr/pkgsrc") or else
+        downstream ("/usr/ports") or else
+        downstream ("/usr/sbin") or else
+        downstream ("/usr/share") or else
+        downstream ("/usr/src");
+   end forbidden_localbase;
 
 
    --------------------------------------------------------------------------------------------

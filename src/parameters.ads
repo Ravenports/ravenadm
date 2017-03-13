@@ -51,6 +51,9 @@ package Parameters is
    --  The configuration must be loaded before it's run, of course.
    function all_paths_valid return Boolean;
 
+   --  Return true if the localbase is set to someplace it really shouldn't be
+   function forbidden_localbase (candidate : String) return Boolean;
+
    --  Return a profile record filled with dynamic defaults.
    function default_profile (new_profile : String) return configuration_record;
 

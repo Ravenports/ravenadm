@@ -234,9 +234,7 @@ package body Configure is
                         when 8 => dupe.dir_buildbase  := utp;
                         when 9 => dupe.dir_logs       := utp;
                         when 2 =>
-                           if HT.leads (stp, "/usr") and then
-                             stp = "/usr/local"
-                           then
+                           if not PM.forbidden_localbase (stp) then
                               continue := True;
                               dupe.dir_localbase := utp;
                            end if;
