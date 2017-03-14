@@ -12,7 +12,8 @@ package Pilot is
    --  These are just a placeholders
    procedure generate_makefile (optional_directory : String;
                                 optional_variant : String);
-   procedure generate_buildsheet (optional_directory : String);
+   procedure generate_buildsheet (sourcedir    : String;
+                                  save_command : String);
 
    procedure explode_buildsheet (extract_to_directory : String;
                                  optional_variant : String);
@@ -55,6 +56,12 @@ package Pilot is
 
    --  pass-through for configure package
    procedure launch_configure_menu;
+
+   --  Returns the conspiracy location for candidate.  The wording changes bases on if the
+   --  buildsheet exists or not.
+   procedure locate (candidate : String);
+
+   function proof_of_concept return Boolean;
 
 private
 

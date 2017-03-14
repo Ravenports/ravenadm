@@ -50,8 +50,6 @@ package body Parameters is
          return False;
       elsif invalid_directory (configuration.dir_sysroot, "[A] System root") then
          return False;
-      elsif invalid_directory (configuration.dir_localbase, "[B] Localbase") then
-         return False;
       elsif invalid_directory (configuration.dir_conspiracy, "[C] Conspiracy") then
          return False;
       elsif invalid_directory (configuration.dir_distfiles, "[E] Distfiles") then
@@ -131,6 +129,9 @@ package body Parameters is
          return candidate = path or else HT.leads (candidate, path & "/");
       end downstream;
    begin
+      if candidate (candidate'First) /= LAT.Solidus then
+         return True;
+      end if;
       return
         downstream ("/bin") or else
         downstream ("/boot") or else

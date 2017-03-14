@@ -215,7 +215,13 @@ package body Configure is
          declare
             testpath : constant String := TIO.Get_Line;
          begin
-            if DIR.Exists (testpath) then
+            if opt = 2 then
+               --  ravenbase doesn't have to exist, but there are limits to what it can be
+               if not PM.forbidden_localbase (testpath) then
+                  dupe.dir_localbase := HT.SUS (testpath);
+                  continue := True;
+               end if;
+            elsif DIR.Exists (testpath) then
                declare
                   stp : constant String := Unix.true_path (testpath);
                   utp : HT.Text := HT.SUS (stp);
@@ -233,19 +239,12 @@ package body Configure is
                         when 7 => dupe.dir_ccache     := utp;
                         when 8 => dupe.dir_buildbase  := utp;
                         when 9 => dupe.dir_logs       := utp;
-                        when 2 =>
-                           if not PM.forbidden_localbase (stp) then
-                              continue := True;
-                              dupe.dir_localbase := utp;
-                           end if;
                         when others => raise menu_error
                              with "Illegal value : " & opt'Img;
                      end case;
                   end if;
                end;
-               if opt /= 2 then
-                  continue := True;
-               end if;
+               continue := True;
             elsif opt = 4 then
                dupe.dir_unkindness := HT.SUS (PM.no_unkindness);
                continue := True;

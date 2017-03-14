@@ -1444,6 +1444,15 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_namebase
+   --------------------------------------------------------------------------------------------
+   function get_namebase (specs  : Portspecs) return String is
+   begin
+      return HT.USS (specs.namebase);
+   end get_namebase;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean

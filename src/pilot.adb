@@ -11,6 +11,7 @@ with HelperText;
 with Parameters;
 with Replicant;
 with Configure;
+with Utilities;
 with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
@@ -18,6 +19,7 @@ with Port_Specification.Transform;
 
 package body Pilot is
 
+   package UTL renames Utilities;
    package REP renames Replicant;
    package HT  renames HelperText;
    package PM  renames Parameters;
@@ -176,46 +178,60 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    --  generate_buildsheet
    --------------------------------------------------------------------------------------------
-   procedure generate_buildsheet (optional_directory : String)
+   procedure generate_buildsheet (sourcedir    : String;
+                                  save_command : String)
    is
-      directory_specified : constant Boolean := (optional_directory /= "");
-      successful : Boolean;
-
-      use_opsys : supported_opsys := dragonfly;
+      save_it     : Boolean := False;
+      successful  : Boolean;
+      ravensrcdir : constant String := Unix.true_path (sourcedir);
+      filename    : constant String := ravensrcdir & "/" & specfile;
    begin
-      if directory_specified then
-         declare
-            filename : String := optional_directory & "/" & specfile;
-         begin
-            if DIR.Exists (filename) then
-               PAR.parse_specification_file (dossier         => filename,
-                                             opsys_focus     => use_opsys,
-                                             success         => successful,
-                                             stop_at_targets => False);
-            else
-               DNE (filename);
-               return;
-            end if;
-         end;
-      else
-         if DIR.Exists (specfile) then
-            PAR.parse_specification_file (dossier         => specfile,
-                                          opsys_focus     => use_opsys,
-                                          success         => successful,
-                                          stop_at_targets => False);
-         else
-            DNE (specfile);
-            return;
-         end if;
+      if save_command = "save" then
+         save_it := True;
+      elsif save_command /= "" then
+         TIO.Put_Line (errprefix & "fourth argument can only be 'save'");
+         return;
       end if;
-      if successful then
-         PSB.generator (specs       => PAR.specification,
-                        ravensrcdir => optional_directory,
-                        output_file => "");
+      if ravensrcdir = "" then
+         TIO.Put_Line (errprefix & "not a valid directory: " & sourcedir);
+         return;
+      end if;
+
+      if DIR.Exists (filename) then
+         PAR.parse_specification_file (dossier         => filename,
+                                       opsys_focus     => platform_type,  --  unused
+                                       success         => successful,
+                                       stop_at_targets => False);
       else
+         DNE (filename);
+         return;
+      end if;
+
+      if not successful then
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (PAR.get_parse_error);
+         return;
       end if;
+
+      declare
+         namebase    : String := PAR.specification.get_namebase;
+         output_file : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
+                                 UTL.bucket (palabra => namebase) & "/" & namebase;
+      begin
+         if save_it then
+            FOP.mkdirp_from_filename (output_file);
+            PSB.generator (specs       => PAR.specification,
+                           ravensrcdir => ravensrcdir,
+                           output_file => output_file);
+            TIO.Put_Line (namebase & " buildsheet created at:");
+            TIO.Put_Line (output_file);
+         else
+            PSB.generator (specs       => PAR.specification,
+                           ravensrcdir => ravensrcdir,
+                           output_file => "");
+         end if;
+      end;
+
    end generate_buildsheet;
 
 
@@ -504,5 +520,40 @@ package body Pilot is
    begin
       Configure.launch_configure_menu;
    end launch_configure_menu;
+
+
+   --------------------------------------------------------------------------------------------
+   --  locate
+   --------------------------------------------------------------------------------------------
+   procedure locate (candidate : String)
+   is
+      should_be : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
+        UTL.bucket (candidate) & LAT.Solidus & candidate;
+   begin
+      if candidate = "" then
+         TIO.Put_Line ("The locate command requires the port's name base as an argument");
+         return;
+      end if;
+      if DIR.Exists (should_be) then
+         TIO.Put_Line ("Found at " & should_be);
+      else
+         TIO.Put_Line ("Does not exist at " & should_be);
+      end if;
+   end locate;
+
+
+   function proof_of_concept return Boolean
+   is
+   begin
+      REP.initialize (testmode  => False);
+      REP.launch_slave (9);
+      TIO.Put_Line ("run here");
+--      REP.destroy_slave (9);
+      return True;
+
+   end proof_of_concept;
+
+
+
 
 end Pilot;

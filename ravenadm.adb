@@ -12,7 +12,7 @@ procedure Ravenadm is
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
 
-   type mandate_type is (unset, help, dev, build, test, status, configure);
+   type mandate_type is (unset, help, dev, build, test, status, configure, locate);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, explode);
 
    procedure scan_first_command_word;
@@ -37,6 +37,8 @@ procedure Ravenadm is
          mandate := status;
       elsif first = "configure" then
          mandate := configure;
+      elsif first = "locate" then
+         mandate := locate;
       end if;
    end scan_first_command_word;
 
@@ -186,7 +188,7 @@ begin
                   when distinfo =>
                      null;
                   when buildsheet =>
-                     Pilot.generate_buildsheet (get_arg (3));
+                     Pilot.generate_buildsheet (get_arg (3), get_arg (4));
                   when makefile =>
                      Pilot.generate_makefile (get_arg (3), get_arg (4));
                   when explode =>
@@ -213,13 +215,23 @@ begin
          --------------------------------
          --  test command
          --------------------------------
-         null; --  tbw
+         declare
+            result : Boolean;
+         begin
+            result := Pilot.proof_of_concept;
+         end;
 
       when configure =>
          --------------------------------
          --  configure
          --------------------------------
          Pilot.launch_configure_menu;
+
+      when locate =>
+         --------------------------------
+         --  locate
+         --------------------------------
+         Pilot.locate (get_arg (2));
 
       when unset => null;
 

@@ -252,6 +252,9 @@ package body Unix is
       result : ICS.chars_ptr;
       path   : IC.char_array := IC.To_C (provided_path);
    begin
+      if provided_path = "" then
+         return "";
+      end if;
       result := realpath (pathname => path, resolved_path => buffer);
       if result = ICS.Null_Ptr then
          return "";

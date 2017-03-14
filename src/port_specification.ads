@@ -153,6 +153,9 @@ package Port_Specification is
       field  : spec_option;
       option : String) return Boolean;
 
+   --  After parsing, this is used to return the port name
+   function get_namebase (specs  : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;
