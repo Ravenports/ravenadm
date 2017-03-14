@@ -82,6 +82,23 @@ package body Utilities is
 
 
    --------------------------------------------------------------------------------------------
+   --  convert_cpu_arch
+   --------------------------------------------------------------------------------------------
+   function convert_cpu_arch (archstr : String) return supported_arch is
+   begin
+      if archstr = "x86_64" then
+         return x86_64;
+      elsif archstr = "i386" then
+         return i386;
+      elsif archstr = "aarch64" then
+         return aarch64;
+      else
+         raise bad_input;
+      end if;
+   end convert_cpu_arch;
+
+
+   --------------------------------------------------------------------------------------------
    --  bucket
    --------------------------------------------------------------------------------------------
    function bucket (palabra : String) return String

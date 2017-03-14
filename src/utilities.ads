@@ -5,6 +5,8 @@ with Definitions; use Definitions;
 
 package Utilities is
 
+   bad_input : exception;
+
    --  Return lower case version of supported operating systems
    function lower_opsys (opsys : supported_opsys) return String;
 
@@ -19,6 +21,9 @@ package Utilities is
 
    --  Return True if candidate matches any supported cpu arch
    function valid_cpu_arch (candidate : String) return Boolean;
+
+   --  Converted validated string to supported arch
+   function convert_cpu_arch (archstr : String) return supported_arch;
 
    --  Returns first two hexidecimal digits (uppercase) from sha1 digest
    function bucket (palabra : String) return String;
