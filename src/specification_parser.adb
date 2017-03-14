@@ -22,11 +22,14 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure parse_specification_file
      (dossier         : String;
-      opsys_focus     : supported_opsys;
+      specification   : out PSP.Portspecs;
       success         : out Boolean;
+      opsys_focus     : supported_opsys;
       stop_at_targets : Boolean;
       extraction_dir  : String := "")
    is
+      spec : PSP.Portspecs renames specification;
+
       contents      : constant String  := FOP.get_file_contents (dossier);
       stop_at_files : constant Boolean := (extraction_dir = "");
       match_opsys   : constant String  := UTL.lower_opsys (opsys_focus);
@@ -87,7 +90,7 @@ package body Specification_Parser is
                goto line_done;
             end if;
 
-            line_target := determine_target (line, last_seen);
+            line_target := determine_target (specification, line, last_seen);
             if line_target = bad_target then
                last_parse_error := HT.SUS (LN & "Make target detected, but not recognized");
                exit;
@@ -251,16 +254,19 @@ package body Specification_Parser is
                                                             dlgroup_none & "'");
                               exit;
                            else
-                              build_group_list (field => PSP.sp_dl_sites,
+                              build_group_list (spec  => specification,
+                                                field => PSP.sp_dl_sites,
                                                 key   => tkey,
                                                 value => tvalue);
                            end if;
                         when spkgs =>
-                           build_group_list (field => PSP.sp_subpackages,
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_subpackages,
                                              key   => tkey,
                                              value => tvalue);
                         when vopts =>
-                           build_group_list (field => PSP.sp_vopts,
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_vopts,
                                              key   => tkey,
                                              value => tvalue);
                         when ext_head =>
@@ -278,7 +284,8 @@ package body Specification_Parser is
                              UTL.valid_lower_opsys (tkey) or else
                              UTL.valid_cpu_arch (tkey)
                            then
-                              build_group_list (field => PSP.sp_options_on,
+                              build_group_list (spec  => specification,
+                                                field => PSP.sp_options_on,
                                                 key   => tkey,
                                                 value => tvalue);
                            else
@@ -313,71 +320,71 @@ package body Specification_Parser is
                   case line_singlet is
                      when namebase =>
                         seen_namebase := True;
-                        build_string (PSP.sp_namebase, line);
-                     when version          => build_string (PSP.sp_version, line);
-                     when dist_subdir      => build_string (PSP.sp_distsubdir, line);
-                     when distname         => build_string (PSP.sp_distname, line);
-                     when build_wrksrc     => build_string (PSP.sp_build_wrksrc, line);
-                     when patch_wrksrc     => build_string (PSP.sp_patch_wrksrc, line);
-                     when configure_wrksrc => build_string (PSP.sp_config_wrksrc, line);
-                     when install_wrksrc   => build_string (PSP.sp_install_wrksrc, line);
-                     when makefile         => build_string (PSP.sp_makefile, line);
-                     when destdirname      => build_string (PSP.sp_destdirname, line);
-                     when homepage         => build_string (PSP.sp_homepage, line);
-                     when configure_script => build_string (PSP.sp_config_script, line);
-                     when gnu_cfg_prefix   => build_string (PSP.sp_gnu_cfg_prefix, line);
-                     when must_configure   => build_string (PSP.sp_must_config, line);
-                     when deprecated       => build_string (PSP.sp_deprecated, line);
-                     when expiration       => build_string (PSP.sp_expiration, line);
-                     when revision         => set_natural (PSP.sp_revision, line);
-                     when epoch            => set_natural (PSP.sp_epoch, line);
-                     when opt_level        => set_natural (PSP.sp_opt_level, line);
-                     when skip_build       => set_boolean (PSP.sp_skip_build, line);
-                     when skip_install     => set_boolean (PSP.sp_skip_install, line);
-                     when single_job       => set_boolean (PSP.sp_single_job, line);
-                     when destdir_env      => set_boolean (PSP.sp_destdir_env, line);
-                     when config_outsource => set_boolean (PSP.sp_cfg_outsrc, line);
-                     when keywords         => build_list (PSP.sp_keywords, line);
-                     when variants         => build_list (PSP.sp_variants, line);
-                     when contacts         => build_list (PSP.sp_contacts, line);
-                     when dl_groups        => build_list (PSP.sp_dl_groups, line);
-                     when df_index         => build_list (PSP.sp_df_index, line);
-                     when opt_avail        => build_list (PSP.sp_opts_avail, line);
-                     when opt_standard     => build_list (PSP.sp_opts_standard, line);
-                     when exc_opsys        => build_list (PSP.sp_exc_opsys, line);
-                     when inc_opsys        => build_list (PSP.sp_inc_opsys, line);
-                     when exc_arch         => build_list (PSP.sp_exc_arch, line);
-                     when ext_only         => build_list (PSP.sp_ext_only, line);
-                     when ext_zip          => build_list (PSP.sp_ext_zip, line);
-                     when ext_7z           => build_list (PSP.sp_ext_7z, line);
-                     when ext_lha          => build_list (PSP.sp_ext_lha, line);
-                     when ext_dirty        => build_list (PSP.sp_ext_dirty, line);
-                     when make_args        => build_list (PSP.sp_make_args, line);
-                     when make_env         => build_list (PSP.sp_make_env, line);
-                     when build_target     => build_list (PSP.sp_build_target, line);
-                     when cflags           => build_list (PSP.sp_cflags, line);
-                     when cxxflags         => build_list (PSP.sp_cxxflags, line);
-                     when cppflags         => build_list (PSP.sp_cppflags, line);
-                     when ldflags          => build_list (PSP.sp_ldflags, line);
-                     when patchfiles       => build_list (PSP.sp_patchfiles, line);
-                     when uses             => build_list (PSP.sp_uses, line);
-                     when sub_files        => build_list (PSP.sp_sub_files, line);
-                     when sub_list         => build_list (PSP.sp_sub_list, line);
-                     when config_args      => build_list (PSP.sp_config_args, line);
-                     when config_env       => build_list (PSP.sp_config_env, line);
-                     when configure_target => build_list (PSP.sp_config_target, line);
-                     when build_deps       => build_list (PSP.sp_build_deps, line);
-                     when lib_deps         => build_list (PSP.sp_lib_deps, line);
-                     when run_deps         => build_list (PSP.sp_run_deps, line);
-                     when cmake_args       => build_list (PSP.sp_cmake_args, line);
-                     when qmake_args       => build_list (PSP.sp_qmake_args, line);
-                     when info             => build_list (PSP.sp_info, line);
-                     when install_tgt      => build_list (PSP.sp_install_tgt, line);
-                     when apply_10_fix     => build_list (PSP.sp_apply_f10_fix, line);
-                     when patch_strip      => build_list (PSP.sp_patch_strip, line);
-                     when extra_patches    => build_list (PSP.sp_extra_patches, line);
-                     when patchfiles_strip => build_list (PSP.sp_pfiles_strip, line);
-                     when plist_sub        => build_list (PSP.sp_plist_sub, line);
+                        build_string (spec, PSP.sp_namebase, line);
+                     when version          => build_string (spec, PSP.sp_version, line);
+                     when dist_subdir      => build_string (spec, PSP.sp_distsubdir, line);
+                     when distname         => build_string (spec, PSP.sp_distname, line);
+                     when build_wrksrc     => build_string (spec, PSP.sp_build_wrksrc, line);
+                     when patch_wrksrc     => build_string (spec, PSP.sp_patch_wrksrc, line);
+                     when configure_wrksrc => build_string (spec, PSP.sp_config_wrksrc, line);
+                     when install_wrksrc   => build_string (spec, PSP.sp_install_wrksrc, line);
+                     when makefile         => build_string (spec, PSP.sp_makefile, line);
+                     when destdirname      => build_string (spec, PSP.sp_destdirname, line);
+                     when homepage         => build_string (spec, PSP.sp_homepage, line);
+                     when configure_script => build_string (spec, PSP.sp_config_script, line);
+                     when gnu_cfg_prefix   => build_string (spec, PSP.sp_gnu_cfg_prefix, line);
+                     when must_configure   => build_string (spec, PSP.sp_must_config, line);
+                     when deprecated       => build_string (spec, PSP.sp_deprecated, line);
+                     when expiration       => build_string (spec, PSP.sp_expiration, line);
+                     when revision         => set_natural (spec, PSP.sp_revision, line);
+                     when epoch            => set_natural (spec, PSP.sp_epoch, line);
+                     when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
+                     when skip_build       => set_boolean (spec, PSP.sp_skip_build, line);
+                     when skip_install     => set_boolean (spec, PSP.sp_skip_install, line);
+                     when single_job       => set_boolean (spec, PSP.sp_single_job, line);
+                     when destdir_env      => set_boolean (spec, PSP.sp_destdir_env, line);
+                     when config_outsource => set_boolean (spec, PSP.sp_cfg_outsrc, line);
+                     when keywords         => build_list (spec, PSP.sp_keywords, line);
+                     when variants         => build_list (spec, PSP.sp_variants, line);
+                     when contacts         => build_list (spec, PSP.sp_contacts, line);
+                     when dl_groups        => build_list (spec, PSP.sp_dl_groups, line);
+                     when df_index         => build_list (spec, PSP.sp_df_index, line);
+                     when opt_avail        => build_list (spec, PSP.sp_opts_avail, line);
+                     when opt_standard     => build_list (spec, PSP.sp_opts_standard, line);
+                     when exc_opsys        => build_list (spec, PSP.sp_exc_opsys, line);
+                     when inc_opsys        => build_list (spec, PSP.sp_inc_opsys, line);
+                     when exc_arch         => build_list (spec, PSP.sp_exc_arch, line);
+                     when ext_only         => build_list (spec, PSP.sp_ext_only, line);
+                     when ext_zip          => build_list (spec, PSP.sp_ext_zip, line);
+                     when ext_7z           => build_list (spec, PSP.sp_ext_7z, line);
+                     when ext_lha          => build_list (spec, PSP.sp_ext_lha, line);
+                     when ext_dirty        => build_list (spec, PSP.sp_ext_dirty, line);
+                     when make_args        => build_list (spec, PSP.sp_make_args, line);
+                     when make_env         => build_list (spec, PSP.sp_make_env, line);
+                     when build_target     => build_list (spec, PSP.sp_build_target, line);
+                     when cflags           => build_list (spec, PSP.sp_cflags, line);
+                     when cxxflags         => build_list (spec, PSP.sp_cxxflags, line);
+                     when cppflags         => build_list (spec, PSP.sp_cppflags, line);
+                     when ldflags          => build_list (spec, PSP.sp_ldflags, line);
+                     when patchfiles       => build_list (spec, PSP.sp_patchfiles, line);
+                     when uses             => build_list (spec, PSP.sp_uses, line);
+                     when sub_files        => build_list (spec, PSP.sp_sub_files, line);
+                     when sub_list         => build_list (spec, PSP.sp_sub_list, line);
+                     when config_args      => build_list (spec, PSP.sp_config_args, line);
+                     when config_env       => build_list (spec, PSP.sp_config_env, line);
+                     when configure_target => build_list (spec, PSP.sp_config_target, line);
+                     when build_deps       => build_list (spec, PSP.sp_build_deps, line);
+                     when lib_deps         => build_list (spec, PSP.sp_lib_deps, line);
+                     when run_deps         => build_list (spec, PSP.sp_run_deps, line);
+                     when cmake_args       => build_list (spec, PSP.sp_cmake_args, line);
+                     when qmake_args       => build_list (spec, PSP.sp_qmake_args, line);
+                     when info             => build_list (spec, PSP.sp_info, line);
+                     when install_tgt      => build_list (spec, PSP.sp_install_tgt, line);
+                     when apply_10_fix     => build_list (spec, PSP.sp_apply_f10_fix, line);
+                     when patch_strip      => build_list (spec, PSP.sp_patch_strip, line);
+                     when extra_patches    => build_list (spec, PSP.sp_extra_patches, line);
+                     when patchfiles_strip => build_list (spec, PSP.sp_pfiles_strip, line);
+                     when plist_sub        => build_list (spec, PSP.sp_plist_sub, line);
                      when not_singlet      => null;
                   end case;
                   last_singlet := line_singlet;
@@ -414,7 +421,7 @@ package body Specification_Parser is
 
                if line_option /= PSP.not_helper_format then
                   declare
-                     option_name : String := extract_option_name (line, last_optindex);
+                     option_name : String := extract_option_name (spec, line, last_optindex);
                   begin
                      if option_name = "" then
                         last_parse_error :=
@@ -431,7 +438,7 @@ package body Specification_Parser is
                           HT.SUS (LN & "option helper previously defined (use quadruple tab)");
                         exit;
                      end if;
-                     build_list (line_option, option_name, line);
+                     build_list (specification, line_option, option_name, line);
                      last_optindex := HT.SUS (option_name);
                   end;
                   last_option := line_option;
@@ -534,7 +541,7 @@ package body Specification_Parser is
          end;
       end loop;
       if HT.IsBlank (last_parse_error) then
-         last_parse_error := late_validity_check_error;
+         last_parse_error := late_validity_check_error (specification);
          if HT.IsBlank (last_parse_error) then
             specification.adjust_defaults_port_parse;
             success := True;
@@ -1181,12 +1188,12 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  set_boolean
    --------------------------------------------------------------------------------------------
-   procedure set_boolean (field : PSP.spec_field; line : String)
+   procedure set_boolean (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String)
    is
       value : String := retrieve_single_value (line);
    begin
       if value = boolean_yes then
-         specification.set_boolean (field, True);
+         spec.set_boolean (field, True);
       else
          raise PSP.wrong_value with "boolean variables may only be set to '" & boolean_yes
            & "' (was given '" & value & "')";
@@ -1197,25 +1204,25 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  set_natural
    --------------------------------------------------------------------------------------------
-   procedure set_natural (field : PSP.spec_field; line : String) is
+   procedure set_natural (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String) is
    begin
-       specification.set_natural_integer (field, retrieve_single_integer (line));
+       spec.set_natural_integer (field, retrieve_single_integer (line));
    end set_natural;
 
 
    --------------------------------------------------------------------------------------------
    --  build_string
    --------------------------------------------------------------------------------------------
-   procedure build_string (field : PSP.spec_field; line : String) is
+   procedure build_string (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String) is
    begin
-      specification.set_single_string (field, retrieve_single_value (line));
+      spec.set_single_string (field, retrieve_single_value (line));
    end build_string;
 
 
    --------------------------------------------------------------------------------------------
    --  build_list
    --------------------------------------------------------------------------------------------
-   procedure build_list (field : PSP.spec_field; line : String)
+   procedure build_list (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String)
    is
       procedure insert_item (data : String);
 
@@ -1230,15 +1237,15 @@ package body Specification_Parser is
       begin
          case field is
             when PSP.sp_dl_groups =>
-               specification.establish_group (field, data);
+               spec.establish_group (field, data);
             when PSP.sp_variants =>
-               specification.append_list (field, data);
-               specification.establish_group (PSP.sp_subpackages, data);
+               spec.append_list (field, data);
+               spec.establish_group (PSP.sp_subpackages, data);
                if data /= variant_standard then
-                  specification.establish_group (PSP.sp_vopts, data);
+                  spec.establish_group (PSP.sp_vopts, data);
                end if;
             when others =>
-               specification.append_list (field, data);
+               spec.append_list (field, data);
          end case;
       end insert_item;
    begin
@@ -1285,9 +1292,11 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  build_group_list
    --------------------------------------------------------------------------------------------
-   procedure build_group_list (field : PSP.spec_field;
-                               key   : String;
-                               value : String)
+   procedure build_group_list
+     (spec  : in out PSP.Portspecs;
+      field : PSP.spec_field;
+      key   : String;
+      value : String)
    is
       procedure insert_item (data : String);
 
@@ -1298,7 +1307,7 @@ package body Specification_Parser is
 
       procedure insert_item (data : String) is
       begin
-         specification.append_array (field        => field,
+         spec.append_array (field        => field,
                                      key          => key,
                                      value        => data,
                                      allow_spaces => False);
@@ -1347,16 +1356,16 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  passed_late_validity_checks
    --------------------------------------------------------------------------------------------
-   function late_validity_check_error return HT.Text
+   function late_validity_check_error (spec : PSP.Portspecs) return HT.Text
    is
-      variant_check_result : String := specification.check_variants;
+      variant_check_result : String := spec.check_variants;
    begin
       if variant_check_result /= "" then
          return HT.SUS ("Variant '" & HT.part_1 (variant_check_result, ":") &
                           "' is missing the required '" & HT.part_2 (variant_check_result, ":") &
                           "' option configuration.");
       end if;
-      if not specification.deprecation_valid then
+      if not spec.deprecation_valid then
          return HT.SUS ("DEPRECATED and EXPIRATION must both be set");
       end if;
       return HT.blank;
@@ -1367,8 +1376,9 @@ package body Specification_Parser is
    --  determine_target
    --------------------------------------------------------------------------------------------
    function determine_target
-     (line      : String;
-      last_seen : type_category) return spec_target
+      (spec      : PSP.Portspecs;
+       line      : String;
+       last_seen : type_category) return spec_target
    is
       function active_prefix return String;
       function extract_option (prefix, line : String) return String;
@@ -1506,7 +1516,7 @@ package body Specification_Parser is
          declare
             option_name : String := extract_option (prefix, line);
          begin
-            if specification.option_exists (option_name) then
+            if spec.option_exists (option_name) then
                return target_title;
             else
                return bad_target;
@@ -1519,7 +1529,10 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  extract_option_name
    --------------------------------------------------------------------------------------------
-   function extract_option_name (line : String; last_name : HT.Text) return String
+   function extract_option_name
+     (spec      : PSP.Portspecs;
+      line      : String;
+      last_name : HT.Text) return String
    is
       --  Already known: first character = "]" and there's "]." present
       candidate : String := HT.partial_search (fullstr    => line,
@@ -1534,7 +1547,7 @@ package body Specification_Parser is
          return HT.USS (last_name);
       end if;
 
-      if specification.option_exists (candidate) then
+      if spec.option_exists (candidate) then
          return candidate;
       else
          return "";
@@ -1545,7 +1558,11 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  build_list
    --------------------------------------------------------------------------------------------
-   procedure build_list (field : PSP.spec_option; option : String; line : String)
+   procedure build_list
+     (spec   : in out PSP.Portspecs;
+      field  : PSP.spec_option;
+      option : String;
+      line   : String)
    is
       procedure insert_item (data : String);
 
@@ -1558,7 +1575,7 @@ package body Specification_Parser is
 
       procedure insert_item (data : String) is
       begin
-         specification.build_option_helper (field  => field,
+         spec.build_option_helper (field  => field,
                                             option => option,
                                             value  => data);
       end insert_item;
@@ -1566,7 +1583,7 @@ package body Specification_Parser is
       use type PSP.spec_option;
    begin
       if field = PSP.broken_on then
-         specification.build_option_helper (field  => field,
+         spec.build_option_helper (field  => field,
                                             option => option,
                                             value  => strvalue);
          return;

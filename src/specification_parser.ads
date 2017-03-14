@@ -12,13 +12,12 @@ package Specification_Parser is
 
    package PSP renames Port_Specification;
 
-   specification : PSP.Portspecs;
-
    --  Parse the port specification file and extract the data into the specification record.
    procedure parse_specification_file
      (dossier         : String;
-      opsys_focus     : supported_opsys;
+      specification   : out PSP.Portspecs;
       success         : out Boolean;
+      opsys_focus     : supported_opsys;
       stop_at_targets : Boolean;
       extraction_dir  : String := "");
 
@@ -92,13 +91,17 @@ private
 
    --  Returns empty string if it's not a recognized option, otherwise it returns
    --  The option name.  If 5-tabs detected, return previous name (given).
-   function extract_option_name (line : String; last_name : HT.Text) return String;
+   function extract_option_name
+     (spec      : PSP.Portspecs;
+      line      : String;
+      last_name : HT.Text) return String;
 
    --  If the line represents the makefile target definition or it's following body,
    --  return which one, otherwise return "not_target".
    --  Exception: if formatted as a target def. which is not recognized, return "bad_target"
    function determine_target
-     (line      : String;
+     (spec      : PSP.Portspecs;
+      line      : String;
       last_seen : type_category) return spec_target;
 
    --  Returns true if the given line indicates a package containing a file follows
@@ -126,29 +129,34 @@ private
 
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters.
-   procedure build_list (field : PSP.spec_field; line : String);
+   procedure build_list (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String);
 
    --  Same as build_list but for options.
    --  Handles all valid options (since only one isn't a list)
-   procedure build_list (field : PSP.spec_option; option : String; line : String);
+   procedure build_list
+     (spec   : in out PSP.Portspecs;
+      field  : PSP.spec_option;
+      option : String;
+      line   : String);
 
    --  Line may contain spaces and they are considered part of an entire string
-   procedure build_string (field : PSP.spec_field; line : String);
+   procedure build_string (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String);
 
    --  For boolean variables, ensure "yes" was defined and pass to specification record.
-   procedure set_boolean (field : PSP.spec_field; line : String);
+   procedure set_boolean (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String);
 
    --  Pass integer variables to specification record
-   procedure set_natural (field : PSP.spec_field; line : String);
+   procedure set_natural (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String);
 
    --  Line may contain spaces, and each space is considered a single item on a list.
    --  This iterates through the value with space delimiters to build a group list.
    procedure build_group_list
-     (field : PSP.spec_field;
+     (spec  : in out PSP.Portspecs;
+      field : PSP.spec_field;
       key   : String;
       value : String);
 
    --  Return true if all final validity checks pass
-   function late_validity_check_error return HT.Text;
+   function late_validity_check_error (spec : PSP.Portspecs) return HT.Text;
 
 end Specification_Parser;
