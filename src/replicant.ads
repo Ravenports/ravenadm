@@ -14,9 +14,7 @@ package Replicant is
    --  This procedure needs to be run once and sets key variables.
    --  It creates a set of files that each slave will copy in during launch.
    --  It also creates the password database
-   procedure initialize
-     (testmode  : Boolean;
-      localbase : String);
+   procedure initialize (testmode  : Boolean);
 
    --  This removes the password database
    procedure finalize;

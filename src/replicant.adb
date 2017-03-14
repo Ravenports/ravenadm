@@ -19,9 +19,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------
-   procedure initialize
-     (testmode  : Boolean;
-      localbase : String)
+   procedure initialize (testmode  : Boolean)
    is
       mm     : constant String := get_master_mount;
       sretc  : constant String := raven_sysroot & "/usr/share";
@@ -32,7 +30,7 @@ package body Replicant is
       rcconf : constant String := "/rc.conf";
    begin
       developer_mode := testmode;
-      ravenbase      := HT.SUS (localbase);
+      ravenbase      := PM.configuration.dir_localbase;
 
       start_abnormal_logging;
 
@@ -855,9 +853,9 @@ package body Replicant is
       suffix       : String := "SL00";
    begin
       if id < 10 then
-         suffix (4) := id_image (1);
+         suffix (4) := id_image (id_image'First);
       else
-         suffix (3 .. 4) := id_image (1 .. 2);
+         suffix (3 .. 4) := id_image (id_image'First .. id_image'First + 1);
       end if;
       return suffix;
    end slave_name;
