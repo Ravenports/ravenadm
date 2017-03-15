@@ -46,28 +46,30 @@ package body Parameters is
          TIO.Put_Line ("[A] System root cannot be " & LAT.Quotation & "/" & LAT.Quotation);
          return False;
       elsif forbidden_localbase (localbase) then
-         TIO.Put_Line ("[B] Localbase set to standard system folder '" & localbase & "'");
+         TIO.Put_Line ("[C] Localbase set to standard system folder '" & localbase & "'");
          return False;
       elsif invalid_directory (configuration.dir_sysroot, "[A] System root") then
          return False;
-      elsif invalid_directory (configuration.dir_conspiracy, "[C] Conspiracy") then
+      elsif invalid_directory (configuration.dir_toolchain, "[B] Toolchain directory") then
          return False;
-      elsif invalid_directory (configuration.dir_distfiles, "[E] Distfiles") then
+      elsif invalid_directory (configuration.dir_conspiracy, "[D] Conspiracy") then
          return False;
-      elsif invalid_directory (configuration.dir_packages, "[F] Packages") then
+      elsif invalid_directory (configuration.dir_distfiles, "[F] Distfiles") then
          return False;
-      elsif invalid_directory (configuration.dir_logs, "[I] Build logs") then
+      elsif invalid_directory (configuration.dir_packages, "[G] Packages") then
+         return False;
+      elsif invalid_directory (configuration.dir_logs, "[J] Build logs") then
          return False;
       end if;
 
       if not (HT.USS (configuration.dir_ccache) = no_ccache) and then
-        invalid_directory (configuration.dir_ccache, "[G] Compiler cache")
+        invalid_directory (configuration.dir_ccache, "[H] Compiler cache")
       then
          return False;
       end if;
 
       if not (HT.USS (configuration.dir_unkindness) = no_unkindness) and then
-        invalid_directory (configuration.dir_unkindness, "[D] Custom ports")
+        invalid_directory (configuration.dir_unkindness, "[E] Custom ports")
       then
          return False;
       end if;
@@ -379,6 +381,7 @@ package body Parameters is
 
       result.profile        := HT.SUS (new_profile);
       result.dir_sysroot    := HT.SUS (std_sysroot);
+      result.dir_toolchain  := HT.SUS (std_toolchain);
       result.dir_localbase  := HT.SUS (std_localbase);
       result.dir_conspiracy := HT.SUS (std_conspiracy);
       result.dir_unkindness := HT.SUS (no_unkindness);
@@ -433,6 +436,7 @@ package body Parameters is
    begin
       IFM.delete_section (profile_name);
       IFM.insert_or_update (profile_name, Field_01, HT.USS (confrec.dir_sysroot));
+      IFM.insert_or_update (profile_name, Field_16, HT.USS (confrec.dir_toolchain));
       IFM.insert_or_update (profile_name, Field_02, HT.USS (confrec.dir_localbase));
       IFM.insert_or_update (profile_name, Field_03, HT.USS (confrec.dir_conspiracy));
       IFM.insert_or_update (profile_name, Field_04,
@@ -563,6 +567,7 @@ package body Parameters is
       active_profile := HT.SUS (profile);
       configuration.profile        := active_profile;
       configuration.dir_sysroot    := default_string (Field_01, std_sysroot);
+      configuration.dir_toolchain  := default_string (Field_16, std_toolchain);
       configuration.dir_localbase  := default_string (Field_02, std_localbase);
       configuration.dir_conspiracy := default_string (Field_03, std_conspiracy);
       configuration.dir_unkindness := default_string (Field_04, no_unkindness);

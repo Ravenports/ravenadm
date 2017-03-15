@@ -18,6 +18,7 @@ package Parameters is
       record
          profile         : HT.Text;
          dir_sysroot     : HT.Text;
+         dir_toolchain   : HT.Text;
          dir_localbase   : HT.Text;
          dir_conspiracy  : HT.Text;
          dir_unkindness  : HT.Text;
@@ -95,6 +96,7 @@ private
    --    12+ CPU :: floor (75% * CPU), 5 jobs per builder
 
    Field_01 : constant String := "directory_sysroot";
+   Field_16 : constant String := "directory_toolchain";
    Field_02 : constant String := "directory_localbase";
    Field_03 : constant String := "directory_conspiracy";
    Field_04 : constant String := "directory_unkindness";
@@ -127,6 +129,7 @@ private
    std_conspiracy : constant String := raven_var & "/conspiracy";
    std_sysroot    : constant String := std_localbase & "/share/raven-sysroot/" &
                                        UTL.mixed_opsys (platform_type);
+   std_toolchain  : constant String := std_localbase & "/toolchain";
 
    procedure query_physical_memory;
    procedure query_physical_memory_linux;

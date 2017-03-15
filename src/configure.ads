@@ -18,27 +18,28 @@ private
 
    indent : constant String (1 ..  3) := (others => LAT.Space);
 
-   type option is range 1 .. 15;
+   type option is range 1 .. 16;
    subtype ofield is String (1 .. 30);
    type desc_type is array (option) of ofield;
 
    descriptions : constant desc_type :=
          (
           "[A] System root directory     ",
-          "[B] Localbase directory       ",
-          "[C] Conspiracy directory      ",
-          "[D] Custom ports directory    ",
-          "[E] Distfiles directory       ",
-          "[F] Packages directory        ",
-          "[G] Compiler cache directory  ",
-          "[H] Build base directory      ",
-          "[I] Build logs directory      ",
-          "[J] Num. concurrent builders  ",
-          "[K] Max. jobs per builder     ",
-          "[L] Avoid use of tmpfs        ",
-          "[M] Always record options     ",
-          "[N] Display using ncurses     ",
-          "[O] Fetch prebuilt packages   "
+          "[B] Toolchain directory       ",
+          "[C] Localbase directory       ",
+          "[D] Conspiracy directory      ",
+          "[E] Custom ports directory    ",
+          "[F] Distfiles directory       ",
+          "[G] Packages directory        ",
+          "[H] Compiler cache directory  ",
+          "[I] Build base directory      ",
+          "[J] Build logs directory      ",
+          "[K] Num. concurrent builders  ",
+          "[L] Max. jobs per builder     ",
+          "[M] Avoid use of tmpfs        ",
+          "[N] Always record options     ",
+          "[O] Display using ncurses     ",
+          "[P] Fetch prebuilt packages   "
          );
 
    optX1A : constant String := "[>]   Switch/create profiles (changes discarded)";

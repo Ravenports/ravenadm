@@ -40,22 +40,22 @@ package body Configure is
             TIO.Get_Immediate (answer);
             ascii := Character'Pos (answer);
             case answer is
-               when 'A' .. 'I' =>
+               when 'A' .. 'J' =>
                   change_directory_option (option (ascii - 64), pristine);
                   exit;
-               when 'a' .. 'i' =>
+               when 'a' .. 'j' =>
                   change_directory_option (option (ascii - 96), pristine);
                   exit;
-               when 'J' .. 'K' =>
+               when 'K' .. 'L' =>
                   change_positive_option (option (ascii - 64), pristine);
                   exit;
-               when 'j' .. 'k' =>
+               when 'k' .. 'l' =>
                   change_positive_option (option (ascii - 96), pristine);
                   exit;
-               when 'L' .. 'O' =>
+               when 'M' .. 'P' =>
                   change_boolean_option (option (ascii - 64), pristine);
                   exit;
-               when 'l' .. 'o' =>
+               when 'm' .. 'p' =>
                   change_boolean_option (option (ascii - 96), pristine);
                   exit;
                when '>' =>
@@ -158,29 +158,30 @@ package body Configure is
       TIO.Put (indent & descriptions (opt));
       case opt is
          when  1 => nextt := dupe.dir_sysroot;     origt := PM.configuration.dir_sysroot;
-         when  2 => nextt := dupe.dir_localbase;   origt := PM.configuration.dir_localbase;
-         when  3 => nextt := dupe.dir_conspiracy;  origt := PM.configuration.dir_conspiracy;
-         when  4 => nextt := dupe.dir_unkindness;  origt := PM.configuration.dir_unkindness;
-         when  5 => nextt := dupe.dir_distfiles;   origt := PM.configuration.dir_distfiles;
-         when  6 => nextt := dupe.dir_packages;    origt := PM.configuration.dir_packages;
-         when  7 => nextt := dupe.dir_ccache;      origt := PM.configuration.dir_ccache;
-         when  8 => nextt := dupe.dir_buildbase;   origt := PM.configuration.dir_buildbase;
-         when  9 => nextt := dupe.dir_logs;        origt := PM.configuration.dir_logs;
-         when 10 => nextn := dupe.num_builders;    orign := PM.configuration.num_builders;
-         when 11 => nextn := dupe.jobs_limit;      orign := PM.configuration.jobs_limit;
-         when 12 => nextb := dupe.avoid_tmpfs;     origb := PM.configuration.avoid_tmpfs;
-         when 13 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
-         when 14 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
-         when 15 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
+         when  2 => nextt := dupe.dir_toolchain;   origt := PM.configuration.dir_toolchain;
+         when  3 => nextt := dupe.dir_localbase;   origt := PM.configuration.dir_localbase;
+         when  4 => nextt := dupe.dir_conspiracy;  origt := PM.configuration.dir_conspiracy;
+         when  5 => nextt := dupe.dir_unkindness;  origt := PM.configuration.dir_unkindness;
+         when  6 => nextt := dupe.dir_distfiles;   origt := PM.configuration.dir_distfiles;
+         when  7 => nextt := dupe.dir_packages;    origt := PM.configuration.dir_packages;
+         when  8 => nextt := dupe.dir_ccache;      origt := PM.configuration.dir_ccache;
+         when  9 => nextt := dupe.dir_buildbase;   origt := PM.configuration.dir_buildbase;
+         when 10 => nextt := dupe.dir_logs;        origt := PM.configuration.dir_logs;
+         when 11 => nextn := dupe.num_builders;    orign := PM.configuration.num_builders;
+         when 12 => nextn := dupe.jobs_limit;      orign := PM.configuration.jobs_limit;
+         when 13 => nextb := dupe.avoid_tmpfs;     origb := PM.configuration.avoid_tmpfs;
+         when 14 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
+         when 15 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
+         when 16 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
       end case;
       case opt is
-         when 1 .. 9   =>
+         when  1 .. 10 =>
             equivalent := HT.equivalent (origt, nextt);
             show := nextt;
-         when 10 .. 11  =>
+         when 11 .. 12 =>
             equivalent := (orign = nextn);
             show := HT.int2text (Integer (nextn));
-         when 12 .. 15 =>
+         when 13 .. 16 =>
             equivalent := (origb = nextb);
             show := HT.bool2text (nextb);
       end case;
@@ -205,9 +206,9 @@ package body Configure is
          print_header;
          print_opt (opt, pristine);
          TIO.Put (LAT.LF & "Set valid path for directory");
-         if opt = 4 then
+         if opt = 5 then
             TIO.Put (" (or 'none' to indicate no custom ports): ");
-         elsif opt = 7 then
+         elsif opt = 8 then
             TIO.Put (" (or 'none' to disable ccache): ");
          else
             TIO.Put (": ");
@@ -215,7 +216,7 @@ package body Configure is
          declare
             testpath : constant String := TIO.Get_Line;
          begin
-            if opt = 2 then
+            if opt = 3 then
                --  ravenbase doesn't have to exist, but there are limits to what it can be
                if not PM.forbidden_localbase (testpath) then
                   dupe.dir_localbase := HT.SUS (testpath);
@@ -231,24 +232,25 @@ package body Configure is
                        with "Does not resolve: " & testpath;
                   else
                      case opt is
-                        when 1 => dupe.dir_sysroot    := utp;
-                        when 3 => dupe.dir_conspiracy := utp;
-                        when 4 => dupe.dir_unkindness := utp;
-                        when 5 => dupe.dir_distfiles  := utp;
-                        when 6 => dupe.dir_packages   := utp;
-                        when 7 => dupe.dir_ccache     := utp;
-                        when 8 => dupe.dir_buildbase  := utp;
-                        when 9 => dupe.dir_logs       := utp;
+                        when  1 => dupe.dir_sysroot    := utp;
+                        when  2 => dupe.dir_toolchain  := utp;
+                        when  4 => dupe.dir_conspiracy := utp;
+                        when  5 => dupe.dir_unkindness := utp;
+                        when  6 => dupe.dir_distfiles  := utp;
+                        when  7 => dupe.dir_packages   := utp;
+                        when  8 => dupe.dir_ccache     := utp;
+                        when  9 => dupe.dir_buildbase  := utp;
+                        when 10 => dupe.dir_logs       := utp;
                         when others => raise menu_error
                              with "Illegal value : " & opt'Img;
                      end case;
                   end if;
                end;
                continue := True;
-            elsif opt = 4 then
+            elsif opt = 5 then
                dupe.dir_unkindness := HT.SUS (PM.no_unkindness);
                continue := True;
-            elsif opt = 7 then
+            elsif opt = 8 then
                dupe.dir_ccache := HT.SUS (PM.no_ccache);
                continue := True;
             end if;
@@ -286,10 +288,10 @@ package body Configure is
          end case;
       end loop;
       case opt is
-         when 12 => dupe.avoid_tmpfs    := new_value;
-         when 13 => dupe.record_options := new_value;
-         when 14 => dupe.avec_ncurses   := new_value;
-         when 15 => dupe.defer_prebuilt := new_value;
+         when 13 => dupe.avoid_tmpfs    := new_value;
+         when 14 => dupe.record_options := new_value;
+         when 15 => dupe.avec_ncurses   := new_value;
+         when 16 => dupe.defer_prebuilt := new_value;
          when others =>
             raise menu_error with "Illegal value : " & opt'Img;
       end case;
@@ -323,7 +325,7 @@ package body Configure is
          print_header;
          print_opt (opt, pristine);
          case opt is
-            when 10 .. 11 => max_value := Integer (builders'Last);
+            when 11 .. 12 => max_value := Integer (builders'Last);
             when others => raise menu_error with "Illegal value : " & opt'Img;
          end case;
          TIO.Put (LAT.LF & "Set parameter value (1 to" & max_value'Img & "): ");
@@ -334,8 +336,8 @@ package body Configure is
             continue := False;
          else
             case opt is
-               when 10 => dupe.num_builders := builders (given_value);
-               when 11 => dupe.jobs_limit   := builders (given_value);
+               when 11 => dupe.num_builders := builders (given_value);
+               when 12 => dupe.jobs_limit   := builders (given_value);
                when others => null;
             end case;
             exit;
