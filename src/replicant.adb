@@ -903,7 +903,7 @@ package body Replicant is
    is
       original : constant String := "/etc/resolv.conf";
    begin
-      if not DIR.Exists (original) then
+      if DIR.Exists (original) then
          DIR.Copy_File (Source_Name => original,
                         Target_Name => path_to_etc & "/resolv.conf");
       end if;
@@ -1000,7 +1000,7 @@ package body Replicant is
            "RAVENBASE=" & HT.USS (PM.configuration.dir_localbase) & LAT.LF &
            "WRKDIRPREFIX=/construction" & LAT.LF &
            "DISTDIR=/distfiles" & LAT.LF &
-           "NUMBER_CPUS=" & HT.int2str (Integer (smp_cores)) &
+           "NUMBER_CPUS=" & HT.int2str (Integer (smp_cores)) & LAT.LF &
            "MAKE_JOBS_NUMBER_LIMIT=" & HT.int2str (mjnum));
 
       if developer_mode then

@@ -7,7 +7,6 @@ with Ada.Characters.Latin_1;
 with Specification_Parser;
 with File_Operations;
 with Information;
-with HelperText;
 with Parameters;
 with Replicant;
 with Configure;
@@ -21,7 +20,6 @@ package body Pilot is
 
    package UTL renames Utilities;
    package REP renames Replicant;
-   package HT  renames HelperText;
    package PM  renames Parameters;
    package NFO renames Information;
    package FOP renames File_Operations;
@@ -67,7 +65,7 @@ package body Pilot is
       directory_specified : constant Boolean := (optional_directory /= "");
       successful : Boolean;
 
-      use_opsys : supported_opsys := dragonfly;
+      specification : Port_Specification.Portspecs;
    begin
       if directory_specified then
          declare
@@ -75,7 +73,8 @@ package body Pilot is
          begin
             if DIR.Exists (filename) then
                PAR.parse_specification_file (dossier         => filename,
-                                             opsys_focus     => use_opsys,
+                                             specification   => specification,
+                                             opsys_focus     => platform_type,
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -86,7 +85,8 @@ package body Pilot is
       else
          if DIR.Exists (specfile) then
             PAR.parse_specification_file (dossier         => specfile,
-                                          opsys_focus     => use_opsys,
+                                          specification   => specification,
+                                          opsys_focus     => platform_type,
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -95,7 +95,7 @@ package body Pilot is
          end if;
       end if;
       if successful then
-         PAR.specification.dump_specification;
+         specification.dump_specification;
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (PAR.get_parse_error);
@@ -114,6 +114,8 @@ package body Pilot is
       directory_specified : constant Boolean := (optional_directory /= "");
       successful : Boolean;
 
+      specification : Port_Specification.Portspecs;
+
       function get_variant return String is
       begin
          if optional_variant = "" then
@@ -123,7 +125,6 @@ package body Pilot is
          end if;
       end get_variant;
 
-      use_opsys : supported_opsys := dragonfly;
    begin
       if directory_specified then
          declare
@@ -131,7 +132,8 @@ package body Pilot is
          begin
             if DIR.Exists (filename) then
                PAR.parse_specification_file (dossier         => filename,
-                                             opsys_focus     => use_opsys,
+                                             specification   => specification,
+                                             opsys_focus     => platform_type,
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -142,7 +144,8 @@ package body Pilot is
       else
          if DIR.Exists (specfile) then
             PAR.parse_specification_file (dossier         => specfile,
-                                          opsys_focus     => use_opsys,
+                                          specification   => specification,
+                                          opsys_focus     => platform_type,
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -151,22 +154,22 @@ package body Pilot is
          end if;
       end if;
       if successful then
-         PST.set_option_defaults (specs         => PAR.specification,
+         PST.set_option_defaults (specs         => specification,
                                   variant       => get_variant,
-                                  opsys         => use_opsys,
+                                  opsys         => platform_type,
                                   arch_standard => x86_64,
                                   osrelease     => "4.7");
-         PST.set_option_to_default_values (specs => PAR.specification);
-         PST.set_outstanding_ignore (specs         => PAR.specification,
+         PST.set_option_to_default_values (specs => specification);
+         PST.set_outstanding_ignore (specs         => specification,
                                      variant       => get_variant,
-                                     opsys         => use_opsys,
+                                     opsys         => platform_type,
                                      arch_standard => x86_64,
                                      osrelease     => "4.7",
                                      osmajor       => "4.7");
-         PST.apply_directives (specs => PAR.specification);
-         PSM.generator (specs         => PAR.specification,
+         PST.apply_directives (specs => specification);
+         PSM.generator (specs         => specification,
                         variant       => get_variant,
-                        opsys         => use_opsys,
+                        opsys         => platform_type,
                         output_file   => "");
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
@@ -181,10 +184,11 @@ package body Pilot is
    procedure generate_buildsheet (sourcedir    : String;
                                   save_command : String)
    is
-      save_it     : Boolean := False;
-      successful  : Boolean;
-      ravensrcdir : constant String := Unix.true_path (sourcedir);
-      filename    : constant String := ravensrcdir & "/" & specfile;
+      save_it       : Boolean := False;
+      successful    : Boolean;
+      ravensrcdir   : constant String := Unix.true_path (sourcedir);
+      filename      : constant String := ravensrcdir & "/" & specfile;
+      specification : Port_Specification.Portspecs;
    begin
       if save_command = "save" then
          save_it := True;
@@ -199,6 +203,7 @@ package body Pilot is
 
       if DIR.Exists (filename) then
          PAR.parse_specification_file (dossier         => filename,
+                                       specification   => specification,
                                        opsys_focus     => platform_type,  --  unused
                                        success         => successful,
                                        stop_at_targets => False);
@@ -214,88 +219,25 @@ package body Pilot is
       end if;
 
       declare
-         namebase    : String := PAR.specification.get_namebase;
+         namebase    : String := specification.get_namebase;
          output_file : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
                                  UTL.bucket (palabra => namebase) & "/" & namebase;
       begin
          if save_it then
             FOP.mkdirp_from_filename (output_file);
-            PSB.generator (specs       => PAR.specification,
+            PSB.generator (specs       => specification,
                            ravensrcdir => ravensrcdir,
                            output_file => output_file);
             TIO.Put_Line (namebase & " buildsheet created at:");
             TIO.Put_Line (output_file);
          else
-            PSB.generator (specs       => PAR.specification,
+            PSB.generator (specs       => specification,
                            ravensrcdir => ravensrcdir,
                            output_file => "");
          end if;
       end;
 
    end generate_buildsheet;
-
-
-   --------------------------------------------------------------------------------------------
-   --  explode_buildsheet
-   --------------------------------------------------------------------------------------------
-   procedure explode_buildsheet (extract_to_directory : String;
-                                 optional_variant : String)
-   is
-      function get_variant return String;
-
-      successful : Boolean;
-
-      function get_variant return String is
-      begin
-         if optional_variant = "" then
-            return variant_standard;
-         else
-            return optional_variant;
-         end if;
-      end get_variant;
-
-      use_opsys : supported_opsys := dragonfly;
-      specfile : constant String := "buildsheet";
-   begin
-      if extract_to_directory = "" then
-         TIO.Put_Line (errprefix & "extraction sheet can't be empty");
-         return;
-      end if;
-
-      if DIR.Exists (specfile) then
-         PAR.parse_specification_file (dossier         => specfile,
-                                       opsys_focus     => use_opsys,
-                                       success         => successful,
-                                       stop_at_targets => False,
-                                       extraction_dir  => extract_to_directory);
-      else
-         DNE (specfile);
-         return;
-      end if;
-
-      if successful then
-         PST.set_option_defaults (specs         => PAR.specification,
-                                  variant       => get_variant,
-                                  opsys         => use_opsys,
-                                  arch_standard => x86_64,
-                                  osrelease     => "4.7");
-         PST.set_option_to_default_values (specs => PAR.specification);
-         PST.set_outstanding_ignore (specs         => PAR.specification,
-                                     variant       => get_variant,
-                                     opsys         => use_opsys,
-                                     arch_standard => x86_64,
-                                     osrelease     => "4.7",
-                                     osmajor       => "4.7");
-         PST.apply_directives (specs => PAR.specification);
-         PSM.generator (specs         => PAR.specification,
-                        variant       => get_variant,
-                        opsys         => use_opsys,
-                        output_file   => extract_to_directory & "/Makefile");
-      else
-         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
-         TIO.Put_Line (PAR.get_parse_error);
-      end if;
-   end explode_buildsheet;
 
 
    --------------------------------------------------------------------------------------------
@@ -542,11 +484,96 @@ package body Pilot is
    end locate;
 
 
+   --------------------------------------------------------------------------------------------
+   --  locate
+   --------------------------------------------------------------------------------------------
+   function slave_platform_determined return Boolean
+   is
+      base : String := HT.USS (PM.configuration.dir_sysroot) & "/usr/share/";
+      F1   : String := base & "OSRELEASE";
+      F2   : String := base & "OSMAJOR";
+      F3   : String := base & "OSVERSION";
+      F4   : String := base & "STDARCH";
+   begin
+      if not DIR.Exists (F1) or else
+        not DIR.Exists (F2) or else
+        not DIR.Exists (F3) or else
+        not DIR.Exists (F4)
+      then
+         return False;
+      end if;
+      sl_release := HT.SUS (FOP.head_n1 (F1));
+      sl_major   := HT.SUS (FOP.head_n1 (F2));
+      sl_version := HT.SUS (FOP.head_n1 (F3));
+      declare
+         candidate : String := FOP.head_n1 (F4);
+      begin
+         if UTL.valid_cpu_arch (candidate) then
+            sl_arch := UTL.convert_cpu_arch (candidate);
+         else
+            return False;
+         end if;
+      end;
+      return True;
+   end slave_platform_determined;
+
+
+
    function proof_of_concept return Boolean
    is
+      variant    : String := variant_standard;
+      namebase   : String := "nawk";
+      buildsheet : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
+                             UTL.bucket (namebase) & "/" & namebase;
+      portloc    : String := HT.USS (PM.configuration.dir_buildbase) & ss_base &
+                             "/construction/" & namebase;
+      makefile   : String := portloc & "/Makefile";
+      successful : Boolean;
+
+      specification : Port_Specification.Portspecs;
    begin
+
+      if not slave_platform_determined then
+         return False;
+      end if;
+
+      if not DIR.Exists (buildsheet) then
+         return False;
+      end if;
+
       REP.initialize (testmode  => False);
-      REP.launch_slave (9);
+      REP.launch_slave (scan_slave);
+
+      FOP.mkdirp_from_filename (makefile);
+      PAR.parse_specification_file (dossier         => buildsheet,
+                                    specification   => specification,
+                                    opsys_focus     => platform_type,
+                                    success         => successful,
+                                    stop_at_targets => False,
+                                    extraction_dir  => portloc);
+      if not successful then
+         return False;
+      end if;
+
+      PST.set_option_defaults (specs         => specification,
+                               variant       => variant,
+                               opsys         => platform_type,
+                               arch_standard => sl_arch,
+                               osrelease     => HT.USS (sl_release));
+      PST.set_option_to_default_values (specs => specification);
+      PST.set_outstanding_ignore (specs         => specification,
+                                  variant       => variant,
+                                  opsys         => platform_type,
+                                  arch_standard => sl_arch,
+                                  osrelease     => HT.USS (sl_release),
+                                  osmajor       => HT.USS (sl_major));
+      PST.apply_directives (specs => specification);
+
+      PSM.generator (specs       => specification,
+                     variant     => variant,
+                     opsys       => platform_type,
+                     output_file => makefile);
+
       TIO.Put_Line ("run here");
 --      REP.destroy_slave (9);
       return True;

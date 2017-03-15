@@ -142,6 +142,10 @@ package body Port_Specification.Transform is
             end if;
          end handle_broken;
       begin
+         if HT.equivalent (rec.option_name, options_none) then
+            return;
+         end if;
+
          if rec.currently_set_ON then
 
             handle_broken;

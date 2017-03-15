@@ -3,6 +3,8 @@
 
 with Definitions; use Definitions;
 
+private with HelperText;
+
 package Pilot is
 
    procedure display_usage;
@@ -14,9 +16,6 @@ package Pilot is
                                 optional_variant : String);
    procedure generate_buildsheet (sourcedir    : String;
                                   save_command : String);
-
-   procedure explode_buildsheet (extract_to_directory : String;
-                                 optional_variant : String);
 
    --  Return True when TERM is defined in environment (required)
    function TERM_defined_in_environment return Boolean;
@@ -61,20 +60,33 @@ package Pilot is
    --  buildsheet exists or not.
    procedure locate (candidate : String);
 
+   --  Scan sysroot to get exact OS versions, return False if anything fails
+   function slave_platform_determined return Boolean;
+
    function proof_of_concept return Boolean;
 
 private
+
+   package HT renames HelperText;
 
    subtype logname_field is String (1 .. 19);
    type dim_logname  is array (count_type) of logname_field;
    type verdiff is (newbuild, rebuild, change);
 
-   specfile  : constant String := "specification";
-   errprefix : constant String := "Error : ";
-   pidfile   : constant String := "/var/run/ravenadm.pid";
-   bailing   : constant String := "  (ravenadm must exit)";
-   shutreq   : constant String := "Graceful shutdown requested, exiting ...";
-   brkname   : constant String := "ENTERAFTER";
+   specfile   : constant String := "specification";
+   errprefix  : constant String := "Error : ";
+   pidfile    : constant String := "/var/run/ravenadm.pid";
+   bailing    : constant String := "  (ravenadm must exit)";
+   shutreq    : constant String := "Graceful shutdown requested, exiting ...";
+   brkname    : constant String := "ENTERAFTER";
+
+   scan_slave : constant builders := 9;
+   ss_base    : constant String := "/SL09";
+
+   sl_major   : HT.Text;
+   sl_release : HT.Text;
+   sl_version : HT.Text;
+   sl_arch    : supported_arch;
 
    logname   : constant dim_logname := ("00_last_results.log",
                                         "01_success_list.log",

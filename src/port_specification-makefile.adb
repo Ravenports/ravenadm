@@ -481,8 +481,7 @@ package body Port_Specification.Makefile is
          end loop;
       end;
 
-      --  TODO: This is not correct, placeholder.  rethink.
-      send (LAT.LF & ".include " & LAT.Quotation & "/usr/raven/share/mk/raven.mk" & LAT.Quotation);
+      send (LAT.LF & ".include " & LAT.Quotation & "/xports/Mk/raven.mk" & LAT.Quotation);
 
       if write_to_file then
          TIO.Close (makefile_handle);
