@@ -16,4 +16,8 @@ package Port_Specification.Makefile is
       output_file   : String
      );
 
+private
+
+   dev_error : exception;
+
 end Port_Specification.Makefile;

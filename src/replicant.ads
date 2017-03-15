@@ -58,7 +58,7 @@ private
    type folder is (bin, libexec, usr,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, home,
-                   proc, root, tmp, var, wrkdirs, localbase, ccache);
+                   proc, root, tmp, var, wrkdirs, port, localbase, ccache);
    subtype subfolder is folder range bin .. usr;
    subtype filearch is String (1 .. 11);
 
@@ -76,6 +76,7 @@ private
    root_home        : constant String := "/home";
    root_root        : constant String := "/root";
    root_proc        : constant String := "/proc";
+   root_port        : constant String := "/port";
    root_xports      : constant String := "/xports";
    root_libexec     : constant String := "/libexec";
    root_wrkdirs     : constant String := "/construction";

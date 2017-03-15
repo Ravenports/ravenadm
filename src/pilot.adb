@@ -525,8 +525,7 @@ package body Pilot is
       namebase   : String := "nawk";
       buildsheet : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
                              UTL.bucket (namebase) & "/" & namebase;
-      portloc    : String := HT.USS (PM.configuration.dir_buildbase) & ss_base &
-                             "/construction/" & namebase;
+      portloc    : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
       makefile   : String := portloc & "/Makefile";
       successful : Boolean;
 
@@ -552,6 +551,8 @@ package body Pilot is
                                     stop_at_targets => False,
                                     extraction_dir  => portloc);
       if not successful then
+         TIO.Put_Line (errprefix & "Failed to parse " & buildsheet);
+         TIO.Put_Line (PAR.get_parse_error);
          return False;
       end if;
 

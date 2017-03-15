@@ -630,6 +630,7 @@ package body Replicant is
          when proc        => return mount_base & root_proc;
          when root        => return mount_base & root_root;
          when xports      => return mount_base & root_xports;
+         when port        => return mount_base & root_port;
          when libexec     => return mount_base & root_libexec;
          when packages    => return mount_base & root_packages;
          when distfiles   => return mount_base & root_distfiles;

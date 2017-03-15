@@ -24,8 +24,8 @@ package body Port_Specification.Makefile is
       procedure send (data : String; use_put : Boolean := False);
       procedure send (varname, value : String);
       procedure send (varname : String; value : HT.Text);
-      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive := 1);
-      procedure send (varname : String; crate : list_crate.Map; flavor : Positive := 1);
+      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive);
+      procedure send (varname : String; crate : list_crate.Map; flavor : Positive);
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send (varname : String; value, default : Integer);
       procedure print_item (position : string_crate.Cursor);
@@ -90,7 +90,7 @@ package body Port_Specification.Makefile is
          end if;
       end send;
 
-      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive := 1) is
+      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive) is
       begin
          if crate.Is_Empty then
             return;
@@ -112,17 +112,18 @@ package body Port_Specification.Makefile is
             when 7 =>
                crate.Iterate (Process => dump_dirty_extract'Access);
             when others =>
-               null;
+               raise dev_error;
          end case;
       end send;
 
-      procedure send (varname : String; crate : list_crate.Map; flavor : Positive := 1) is
+      procedure send (varname : String; crate : list_crate.Map; flavor : Positive) is
       begin
          varname_prefix := HT.SUS (varname);
          case flavor is
             when 1 => crate.Iterate (Process => dump_list'Access);
             when 6 => crate.Iterate (Process => dump_extract_head_tail'Access);
-            when others => null;
+            when others =>
+               raise dev_error;
          end case;
       end send;
 
@@ -399,12 +400,12 @@ package body Port_Specification.Makefile is
       send ("REVISION",         specs.revision, 0);
       send ("EPOCH",            specs.epoch, 0);
       send ("VARIANT",          variant);
-      send ("DL_SITES",         specs.dl_sites);
+      send ("DL_SITES",         specs.dl_sites, 1);
       send ("DISTFILE",         specs.distfiles, 2);
       send ("DIST_SUBDIR",      specs.dist_subdir);
       send ("DISTNAME",         specs.distname);
-      send ("DF_INDEX",         specs.df_index);
-      send ("EXTRACT_ONLY",     specs.extract_only);
+      send ("DF_INDEX",         specs.df_index, 1);
+      send ("EXTRACT_ONLY",     specs.extract_only, 1);
       send ("DIRTY_EXTRACT",    specs.extract_dirty, 7);
       send ("ZIP-EXTRACT",      specs.extract_zip, 3);
       send ("7Z-EXTRACT",       specs.extract_7z, 4);
@@ -420,25 +421,25 @@ package body Port_Specification.Makefile is
       send ("CONFIGURE_WRKSRC",     specs.config_wrksrc);
       send ("CONFIGURE_SCRIPT",     specs.config_script);
       send ("CONFIGURE_TARGET",     specs.config_target);
-      send ("CONFIGURE_ARGS",       specs.config_args);
-      send ("CONFIGURE_ENV",        specs.config_env);
+      send ("CONFIGURE_ARGS",       specs.config_args, 1);
+      send ("CONFIGURE_ENV",        specs.config_env, 1);
       send ("APPLY_F10_FIX",        specs.apply_f10_fix, True);
 
       send ("NO_BUILD",         specs.skip_build, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
-      send ("BUILD_TARGET",     specs.build_target);
+      send ("BUILD_TARGET",     specs.build_target, 1);
       send ("NO_INSTALL",       specs.skip_install, True);
       send ("INSTALL_WRKSRC",   specs.install_wrksrc);
-      send ("INSTALL_TARGET",   specs.install_tgt);
-      send ("PLIST_SUB",        specs.plist_sub);
+      send ("INSTALL_TARGET",   specs.install_tgt, 1);
+      send ("PLIST_SUB",        specs.plist_sub, 1);
       send ("MAKEFILE",         specs.makefile);
-      send ("MAKE_ENV",         specs.make_env);
-      send ("MAKE_ARGS",        specs.make_args);
+      send ("MAKE_ENV",         specs.make_env, 1);
+      send ("MAKE_ARGS",        specs.make_args, 1);
       send ("OPTIMIZER_LEVEL",  specs.optimizer_lvl, 2);
-      send ("CFLAGS",           specs.cflags);
-      send ("CXXFLAGS",         specs.cxxflags);
-      send ("CPPFLAGS",         specs.cppflags);
-      send ("LDFLAGS",          specs.ldflags);
+      send ("CFLAGS",           specs.cflags, 1);
+      send ("CXXFLAGS",         specs.cxxflags, 1);
+      send ("CPPFLAGS",         specs.cppflags, 1);
+      send ("LDFLAGS",          specs.ldflags, 1);
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("DESTDIRNAME",      specs.destdirname);

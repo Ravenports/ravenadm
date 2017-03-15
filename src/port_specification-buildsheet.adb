@@ -542,7 +542,7 @@ package body Port_Specification.Buildsheet is
       send ("USES",                 specs.uses, 2);
       blank_line;
       send ("DISTNAME",             specs.distname);
-      send ("DIRTY_EXTRACT",        specs.extract_lha, 2);
+      send ("EXTRACT_DIRTY",        specs.extract_dirty, 2);
       send ("EXTRACT_ONLY",         specs.extract_only, 2);
       send ("EXTRACT_WITH_UNZIP",   specs.extract_zip, 2);
       send ("EXTRACT_WITH_7Z",      specs.extract_7z, 2);
