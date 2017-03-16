@@ -633,6 +633,7 @@ package body Replicant is
          when port        => return mount_base & root_port;
          when libexec     => return mount_base & root_libexec;
          when packages    => return mount_base & root_packages;
+         when toolchain   => return mount_base & root_toolchain;
          when distfiles   => return mount_base & root_distfiles;
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
@@ -649,6 +650,7 @@ package body Replicant is
       case point is
          when xports    => return HT.USS (PM.configuration.dir_conspiracy);
          when packages  => return HT.USS (PM.configuration.dir_packages);
+         when toolchain => return HT.USS (PM.configuration.dir_toolchain);
          when distfiles => return HT.USS (PM.configuration.dir_distfiles);
          when ccache    => return HT.USS (PM.configuration.dir_ccache);
          when others    => return "ERROR";
@@ -756,6 +758,7 @@ package body Replicant is
       folder_access (location (slave_base, root), lock);
 
       mount_nullfs (mount_target (xports),    location (slave_base, xports));
+      mount_nullfs (mount_target (toolchain), location (slave_base, toolchain));
       mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
@@ -826,6 +829,10 @@ package body Replicant is
       unmount (location (slave_base, packages));
       unmount (location (slave_base, xports));
 
+      if DIR.Exists (location (slave_base, toolchain) & "/bin") then
+         unmount (location (slave_base, toolchain));
+      end if;
+
       folder_access (location (slave_base, root), unlock);
       folder_access (location (slave_base, home), unlock);
       folder_access (location (slave_base, var) & "/empty", unlock);
@@ -843,6 +850,17 @@ package body Replicant is
       when hiccup : others =>
          EX.Reraise_Occurrence (hiccup);
    end destroy_slave;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unhook_toolchain
+   --------------------------------------------------------------------------------------------
+   procedure unhook_toolchain (id : builders)
+   is
+      slave_base : constant String := get_slave_mount (id);
+   begin
+      unmount (location (slave_base, toolchain));
+   end unhook_toolchain;
 
 
    --------------------------------------------------------------------------------------------

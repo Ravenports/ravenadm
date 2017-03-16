@@ -36,6 +36,10 @@ package Replicant is
    procedure launch_slave  (id : builders; need_procfs : Boolean := False);
    procedure destroy_slave (id : builders; need_procfs : Boolean := False);
 
+   --  After the build phase, the toolchain is removed.  This detects building during
+   --  installation phases.  Sequence: launch_slave, unhook_toolchain, destroy_slave
+   procedure unhook_toolchain (id : builders);
+
 private
 
    package HT  renames HelperText;
@@ -58,7 +62,7 @@ private
    type folder is (bin, libexec, usr,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, home,
-                   proc, root, tmp, var, wrkdirs, port, localbase, ccache);
+                   proc, root, tmp, var, toolchain, wrkdirs, port, localbase, ccache);
    subtype subfolder is folder range bin .. usr;
    subtype filearch is String (1 .. 11);
 
@@ -79,6 +83,7 @@ private
    root_port        : constant String := "/port";
    root_xports      : constant String := "/xports";
    root_libexec     : constant String := "/libexec";
+   root_toolchain   : constant String := "/toolchain";
    root_wrkdirs     : constant String := "/construction";
    root_packages    : constant String := "/packages";
    root_distfiles   : constant String := "/distfiles";
