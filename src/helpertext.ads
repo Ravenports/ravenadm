@@ -68,6 +68,9 @@ package HelperText is
    function part_1 (S : String; separator : String := "/") return String;
    function part_2 (S : String; separator : String := "/") return String;
 
+   --  Numeric image with left-padded zeros
+   function zeropad (N : Natural; places : Positive) return String;
+
    --  Returns index of first character of fragment (0 if not found)
    function start_index (S : String; fragment : String) return Natural;
 

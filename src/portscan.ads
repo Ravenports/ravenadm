@@ -1,4 +1,3 @@
-
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
@@ -8,7 +7,6 @@ with Ada.Text_IO;
 private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Ordered_Sets;
 private with Ada.Containers.Vectors;
-private with Ada.Calendar;
 private with HelperText;
 
 --  GCC 6.0 only
@@ -19,19 +17,16 @@ package PortScan is
    package TIO renames Ada.Text_IO;
 
    type count_type is (total, success, failure, ignored, skipped);
-   type dim_handlers is array (count_type) of TIO.File_Type;
 
    type port_id is private;
 
 private
 
-   package CAL renames Ada.Calendar;
    package CON renames Ada.Containers;
    package HT  renames HelperText;
 
    max_ports  : constant := 2000;
 
-   type dim_counters is array (count_type) of Natural;
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;
 
@@ -137,13 +132,6 @@ private
    last_port    : port_index := 0;
    prescanned   : Boolean    := False;
 
-   --  bulk run variables
-
-   Flog        : dim_handlers;
-   start_time  : CAL.Time;
-   stop_time   : CAL.Time;
-   scan_start  : CAL.Time;
-   scan_stop   : CAL.Time;
-   bld_counter : dim_counters := (0, 0, 0, 0, 0);
+   function get_port_variant (PR : port_record) return String;
 
 end PortScan;

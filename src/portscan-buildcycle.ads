@@ -1,0 +1,78 @@
+--  This file is covered by the Internet Software Consortium (ISC) License
+--  Reference: ../License.txt
+
+with Display;
+
+package PortScan.Buildcycle is
+
+   function build_package (id          : builders;
+                           sequence_id : port_id;
+                           interactive : Boolean := False;
+                           interphase  : String  := "") return Boolean;
+
+   --  Compile status of builder for the curses display
+   function builder_status (id       : builders;
+                            shutdown : Boolean := False;
+                            idle     : Boolean := False)
+                            return Display.builder_rec;
+
+   function last_build_phase (id : builders) return String;
+
+private
+
+   type phases is (blr_depends, fetch, checksum, extract, patch,
+                   configure, build, stage, test, check_plist, pkg_package,
+                   install_mtree, install, deinstall);
+
+   type trackrec is
+      record
+         seq_id     : port_id;
+         head_time  : CAL.Time;
+         tail_time  : CAL.Time;
+         log_handle : aliased TIO.File_Type;
+         dynlink    : string_crate.Vector;
+         loglines   : Natural := 0;
+      end record;
+
+   type dim_trackers       is array (builders) of trackrec;
+   type dim_phase_trackers is array (builders) of phases;
+   type execution_limit    is range 1 .. 720;
+
+   phase_trackers : dim_phase_trackers;
+
+   trackers  : dim_trackers;
+   testing   : Boolean;
+   uselog    : constant Boolean := True;
+   selftest  : constant String := "SELFTEST";
+
+
+   --  If the afterphase string matches a legal phase name then that phase
+   --  is returned, otherwise the value of blr_depends is returned.  Allowed
+   --  phases are: extract/patch/configure/build/stage/test/install/deinstall.
+   --  blr_depends is considered a negative response
+   --  stage includes check-plist
+
+   function  valid_test_phase (afterphase : String) return phases;
+   function  valid_test_phase (afterphase : String) return Boolean;
+
+   function  exec_phase (id : builders; phase : phases;
+                         time_limit    : execution_limit;
+                         phaseenv      : String := "";
+                         depends_phase : Boolean := False;
+                         skip_header   : Boolean := False;
+                         skip_footer   : Boolean := False)
+                         return Boolean;
+
+   procedure mark_file_system (id : builders; action : String);
+   procedure interact_with_builder (id : builders);
+   function  exec_phase_generic (id : builders; phase : phases) return Boolean;
+   function  exec_phase_depends (id : builders; phase : phases) return Boolean;
+   function  exec_phase_deinstall (id : builders) return Boolean;
+   function  exec_phase_build (id : builders) return Boolean;
+   function  phase2str (phase : phases) return String;
+   function  max_time_without_output (phase : phases) return execution_limit;
+   function  timeout_multiplier_x10 return Positive;
+   function  detect_leftovers_and_MIA (id : builders; action : String;
+                                       description : String) return Boolean;
+
+end PortScan.Buildcycle;
