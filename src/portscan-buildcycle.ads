@@ -2,8 +2,13 @@
 --  Reference: ../License.txt
 
 with Display;
+private with Ada.Calendar;
 
 package PortScan.Buildcycle is
+
+   cycle_cmd_error : exception;
+
+   procedure initialize (test_mode : Boolean; jail_env : String);
 
    function build_package (id          : builders;
                            sequence_id : port_id;
@@ -19,6 +24,8 @@ package PortScan.Buildcycle is
    function last_build_phase (id : builders) return String;
 
 private
+
+   package CAL renames Ada.Calendar;
 
    type phases is (blr_depends, fetch, checksum, extract, patch,
                    configure, build, stage, test, check_plist, pkg_package,
@@ -42,6 +49,9 @@ private
 
    trackers  : dim_trackers;
    testing   : Boolean;
+   uname_mrv : HT.Text;
+   customenv : HT.Text;
+   slave_env : HT.Text;
    uselog    : constant Boolean := True;
    selftest  : constant String := "SELFTEST";
 
@@ -65,6 +75,10 @@ private
 
    procedure mark_file_system (id : builders; action : String);
    procedure interact_with_builder (id : builders);
+   procedure set_uname_mrv;
+   procedure obtain_custom_environment;
+   procedure stack_linked_libraries (id : builders; base, filename : String);
+   procedure log_linked_libraries (id : builders);
    function  exec_phase_generic (id : builders; phase : phases) return Boolean;
    function  exec_phase_depends (id : builders; phase : phases) return Boolean;
    function  exec_phase_deinstall (id : builders) return Boolean;
@@ -74,5 +88,12 @@ private
    function  timeout_multiplier_x10 return Positive;
    function  detect_leftovers_and_MIA (id : builders; action : String;
                                        description : String) return Boolean;
+   function  get_environment (id : builders) return String;
+   function  get_port_variables (id : builders) return String;
+   function  get_options_configuration (id : builders) return String;
+   function  generic_system_command (command : String) return String;
+   function  get_root (id : builders) return String;
+   function  environment_override (enable_tty : Boolean := False) return String;
+   function  dynamically_linked (base, filename : String) return Boolean;
 
 end PortScan.Buildcycle;

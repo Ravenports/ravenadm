@@ -400,4 +400,5 @@ package body PortScan.Log is
       return True;
 
    end initialize_log;
+
 end PortScan.Log;

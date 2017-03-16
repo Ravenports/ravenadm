@@ -16,6 +16,8 @@ package PortScan is
 
    package TIO renames Ada.Text_IO;
 
+   scan_log_error : exception;
+
    type count_type is (total, success, failure, ignored, skipped);
 
    type port_id is private;
@@ -113,6 +115,7 @@ private
          blocks        : block_crate.Map;
          all_reverse   : block_crate.Map;
          options       : package_crate.Map;
+         subpackages   : string_crate.Vector;
       end record;
    type port_record_access is access all port_record;
 
@@ -131,6 +134,9 @@ private
    lot_counter  : port_index := 0;
    last_port    : port_index := 0;
    prescanned   : Boolean    := False;
+
+   discerr      : constant String := "Discovery error";
+   chroot       : constant String := "/usr/sbin/chroot ";
 
    function get_port_variant (PR : port_record) return String;
 

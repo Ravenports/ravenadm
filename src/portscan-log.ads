@@ -7,8 +7,6 @@ package PortScan.Log is
 
    package CAL renames Ada.Calendar;
 
-   scan_log_error : exception;
-
    --  Open log, dump diagnostic data and stop timer.
    function initialize_log
      (log_handle : in out TIO.File_Type;
@@ -49,8 +47,6 @@ private
    function split_collection (line : String; title : String) return String;
 
    procedure dump_port_variables (log_handle : TIO.File_Type; contents : String);
-
-   discerr : constant String := "Discovery error";
 
    --  bulk run variables
 
