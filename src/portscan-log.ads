@@ -33,6 +33,12 @@ package PortScan.Log is
    --  Format end of build phase in log
    procedure log_phase_end (log_handle : TIO.File_Type);
 
+   --  Standard log name based on port origin and variant.
+   function log_name (sid : port_id) return String;
+
+   --  Returns formatted difference in seconds between two times
+   function elapsed_HH_MM_SS (start, stop : CAL.Time) return String;
+
 private
 
    type dim_handlers is array (count_type) of TIO.File_Type;
@@ -41,9 +47,7 @@ private
    function log_duration (start, stop : CAL.Time) return String;
    function elapsed_now return String;
    function elapsed_build (head_time, tail_time : CAL.Time) return String;
-   function elapsed_HH_MM_SS (start, stop : CAL.Time) return String;
    function timestamp (hack : CAL.Time; www_format : Boolean := False) return String;
-   function log_name (sid : port_id) return String;
    function split_collection (line : String; title : String) return String;
 
    procedure dump_port_variables (log_handle : TIO.File_Type; contents : String);

@@ -164,10 +164,11 @@ package body Display is
                                                     attribute => bright,
                                                     pen_color => c_dashes);
       headtxt : constant appline :=
-        custom_message (message   => " ID  Duration  Build Phase      Origin  " &
-                                     "                                 Lines ",
-                        attribute => normal,
-                        pen_color => c_tableheader);
+        custom_message
+          (message =>
+             " ID  Duration  Build Phase   Origin                                      Lines ",
+           attribute => normal,
+           pen_color => c_tableheader);
    begin
       Scrawl (builder, dashes, 0);
       Scrawl (builder, dashes, 2);
@@ -343,7 +344,7 @@ package body Display is
       print_id;
       colorado (BR.Elapsed, c_standard,  5, row, True);
       colorado (BR.phase,   c_bldphase, 15, row, True);
-      colorado (BR.origin,  c_origin,   32, row, False);
+      colorado (BR.origin,  c_origin,   29, row, False);
       colorado (BR.LLines,  c_standard, 71, row, True);
    end update_builder;
 
@@ -666,8 +667,8 @@ package body Display is
    ------------------------------------------------------------------------
    function shutdown_message return appline
    is
-      data : constant String := "        Graceful shutdown in progress, " &
-                                "so no new tasks will be started.        ";
+      data : constant String :=
+        "        Graceful shutdown in progress, so no new tasks will be started.        ";
       product : appline := custom_message (message   => data,
                                            attribute => bright,
                                            pen_color => c_advisory);

@@ -27,9 +27,8 @@ private
 
    package CAL renames Ada.Calendar;
 
-   type phases is (blr_depends, fetch, checksum, extract, patch,
-                   configure, build, stage, test, check_plist, pkg_package,
-                   install_mtree, install, deinstall);
+   type phases is (blr_depends, fetch, checksum, extract, patch, configure, build, stage,
+                   test, check_plist, pkg_package, install, deinstall);
 
    type trackrec is
       record
@@ -54,7 +53,7 @@ private
    slave_env : HT.Text;
    uselog    : constant Boolean := True;
    selftest  : constant String := "SELFTEST";
-
+   chroot_make_program : constant String := "/usr/bin/make -m /xports/Mk";
 
    --  If the afterphase string matches a legal phase name then that phase
    --  is returned, otherwise the value of blr_depends is returned.  Allowed
@@ -95,5 +94,12 @@ private
    function  get_root (id : builders) return String;
    function  environment_override (enable_tty : Boolean := False) return String;
    function  dynamically_linked (base, filename : String) return Boolean;
+   function  format_loglines (numlines : Natural) return String;
+   function  load_core (instant_load : Boolean) return Float;
+   function  generic_execute
+     (id         : builders;
+      command    : String;
+      dogbite    : out Boolean;
+      time_limit : execution_limit) return Boolean;
 
 end PortScan.Buildcycle;

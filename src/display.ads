@@ -12,6 +12,10 @@ package Display is
    subtype history_elapsed is String (1 .. 8);
    subtype history_action  is String (1 .. 8);
    subtype fivelong        is String (1 .. 5);
+   subtype fld_phase       is String (1 .. 12);
+   subtype fld_origin      is String (1 .. 40);
+   subtype fld_lines       is String (1 .. 7);
+   subtype fld_slavid      is String (1 .. 2);
    type history_rec is
       record
          id          : builders;
@@ -42,11 +46,11 @@ package Display is
          id        : builders;
          shutdown  : Boolean;
          idle      : Boolean;
-         slavid    : String (1 .. 2);
+         slavid    : fld_slavid;
          Elapsed   : history_elapsed;
-         LLines    : String (1 .. 7);
-         phase     : String (1 .. 15);
-         origin    : String (1 .. 37);
+         LLines    : fld_lines;
+         phase     : fld_phase;
+         origin    : fld_origin;
       end record;
 
    action_shutdown : constant history_action := "shutdown";
