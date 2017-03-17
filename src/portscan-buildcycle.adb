@@ -316,7 +316,6 @@ package body PortScan.Buildcycle is
          command : constant String := chroot & root & environment_override &
            phaseenv & chroot_make_program & " -C /port " & phase2str (phase);
       begin
-         TIO.Put_Line (trackers (id).log_handle, command);
          result := generic_execute (id, command, timed_out, time_limit);
       end;
 
@@ -427,8 +426,7 @@ package body PortScan.Buildcycle is
 
       localbase : constant String := HT.USS (PM.configuration.dir_localbase);
 
-      PATH : constant String := "PATH=/bin:/usr/bin:"
-        & localbase & "/toolchain/gcc6/bin:"
+      PATH : constant String := "PATH=/bin:/usr/bin:/toolchain/gcc6/bin:"
         & localbase & "/sbin:"
         & localbase & "/bin ";
 

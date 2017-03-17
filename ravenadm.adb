@@ -142,9 +142,9 @@ begin
       return;
    end if;
 
---     if Pilot.ravenexec_missing then
---        return
---     end if;
+   if Pilot.ravenexec_missing then
+      return;
+   end if;
 
       --  TODO: store origins check
 
