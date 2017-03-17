@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with Unix;
+with Replicant;
 with Parameters;
 with PortScan.Log;
 with File_Operations;
@@ -15,6 +16,7 @@ package body PortScan.Buildcycle is
    package FOP renames File_Operations;
    package LOG renames PortScan.Log;
    package PM  renames Parameters;
+   package REP renames Replicant;
 
    --------------------------------------------------------------------------------------------
    --  build_package
@@ -50,9 +52,9 @@ package body PortScan.Buildcycle is
          phase_trackers (id) := phase;
          case phase is
             when blr_depends =>
-               R := exec_phase_depends (id, phase);
+               R := exec_phase_depends (id);
 
-            when  fetch | checksum | extract | patch | pkg_package =>
+            when  fetch | checksum | extract | patch =>
                R := exec_phase_generic (id, phase);
 
             when configure =>
@@ -73,9 +75,18 @@ package body PortScan.Buildcycle is
                if testing then
                   mark_file_system (id, "prestage");
                end if;
+               REP.unhook_toolchain (id);
                R := exec_phase_generic (id, phase);
 
-            when install | check_plist =>
+            when pkg_package =>
+               R := exec_phase_package (id);
+
+            when install =>
+               if testing then
+                  R := exec_phase_install (id);
+               end if;
+
+            when check_plist =>
                if testing then
                   R := exec_phase_generic (id, phase);
                end if;
@@ -242,12 +253,34 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  exec_phase_depends
    --------------------------------------------------------------------------------------------
-   function exec_phase_depends (id : builders; phase : phases) return Boolean
+   function exec_phase_depends (id : builders) return Boolean
    is
       --  TODO: implement
    begin
       return True;
    end exec_phase_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  exec_phase_package
+   --------------------------------------------------------------------------------------------
+   function exec_phase_package (id : builders) return Boolean
+   is
+      --  TODO: implement
+   begin
+      return False;
+   end exec_phase_package;
+
+
+   --------------------------------------------------------------------------------------------
+   --  exec_phase_install
+   --------------------------------------------------------------------------------------------
+   function exec_phase_install (id : builders) return Boolean
+   is
+      --  TODO: implement
+   begin
+      return False;
+   end exec_phase_install;
 
 
    --------------------------------------------------------------------------------------------
@@ -283,6 +316,7 @@ package body PortScan.Buildcycle is
          command : constant String := chroot & root & environment_override &
            phaseenv & chroot_make_program & " -C /port " & phase2str (phase);
       begin
+         TIO.Put_Line (trackers (id).log_handle, command);
          result := generic_execute (id, command, timed_out, time_limit);
       end;
 
@@ -405,9 +439,8 @@ package body PortScan.Buildcycle is
       PKG8 : constant String := "PKG_DBDIR=/var/db/pkg8 " &
                                 "PKG_CACHEDIR=/var/cache/pkg8 ";
       CENV : constant String := HT.USS (customenv);
-      JENV : constant String := HT.USS (slave_env);
    begin
-      return " /usr/bin/env -i " & USER & HOME & LANG & PKG8 & TERM & PATH & JENV & CENV;
+      return " /usr/bin/env -i " & CENV & LANG & TERM & USER & HOME & PKG8 & PATH;
    end environment_override;
 
 
@@ -446,11 +479,10 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------
-   procedure initialize (test_mode : Boolean; jail_env : String) is
+   procedure initialize (test_mode : Boolean) is
    begin
       set_uname_mrv;
       testing   := test_mode;
-      slave_env := HT.SUS (jail_env);
       declare
          logdir : constant String := HT.USS (PM.configuration.dir_logs);
       begin
@@ -792,9 +824,6 @@ package body PortScan.Buildcycle is
       path_sm  : String := HT.USS (PM.configuration.dir_buildbase) & "/SL" &
                            HT.zeropad (Natural (id), 2);
       mtfile   : constant String := path_mm & "/mtree." & action & ".exclude";
-      command  : constant String := "/usr/sbin/mtree -X " & mtfile &
-                          " -cn -k " & attributes (action) & " -p " & path_sm;
-      filename : constant String := path_sm & "/tmp/mtree." & action;
       resfile  : TIO.File_Type;
 
       function attributes (action : String) return String
@@ -807,6 +836,10 @@ package body PortScan.Buildcycle is
             return core;
          end if;
       end attributes;
+
+      command  : constant String := "/usr/sbin/mtree -X " & mtfile &
+                 " -cn -k " & attributes (action) & " -p " & path_sm;
+      filename : constant String := path_sm & "/tmp/mtree." & action;
 
    begin
       TIO.Create (File => resfile, Mode => TIO.Out_File, Name => filename);

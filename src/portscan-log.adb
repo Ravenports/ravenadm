@@ -228,7 +228,7 @@ package body PortScan.Log is
       meatstr : String (1 .. linelen);
    begin
       loop
-         exit when counter > linelen;
+         exit when counter = linelen;
          keepit  := True;
          onechar := line (line'First + counter);
 

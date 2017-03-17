@@ -8,7 +8,7 @@ package PortScan.Buildcycle is
 
    cycle_cmd_error : exception;
 
-   procedure initialize (test_mode : Boolean; jail_env : String);
+   procedure initialize (test_mode : Boolean);
 
    function build_package (id          : builders;
                            sequence_id : port_id;
@@ -50,7 +50,6 @@ private
    testing   : Boolean;
    uname_mrv : HT.Text;
    customenv : HT.Text;
-   slave_env : HT.Text;
    uselog    : constant Boolean := True;
    selftest  : constant String := "SELFTEST";
    chroot_make_program : constant String := "/usr/bin/make -m /xports/Mk";
@@ -79,8 +78,10 @@ private
    procedure stack_linked_libraries (id : builders; base, filename : String);
    procedure log_linked_libraries (id : builders);
    function  exec_phase_generic (id : builders; phase : phases) return Boolean;
-   function  exec_phase_depends (id : builders; phase : phases) return Boolean;
+   function  exec_phase_depends (id : builders) return Boolean;
    function  exec_phase_deinstall (id : builders) return Boolean;
+   function  exec_phase_install (id : builders) return Boolean;
+   function  exec_phase_package (id : builders) return Boolean;
    function  exec_phase_build (id : builders) return Boolean;
    function  phase2str (phase : phases) return String;
    function  max_time_without_output (phase : phases) return execution_limit;
