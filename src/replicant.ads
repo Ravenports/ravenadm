@@ -62,8 +62,9 @@ private
    type folder is (bin, libexec, usr,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, home,
-                   proc, root, tmp, var, toolchain, wrkdirs, port, localbase, ccache);
+                   proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain);
    subtype subfolder is folder range bin .. usr;
+   subtype safefolders is folder range bin .. ccache;
    subtype filearch is String (1 .. 11);
 
    --  home and root need to be set readonly
@@ -83,12 +84,12 @@ private
    root_port        : constant String := "/port";
    root_xports      : constant String := "/xports";
    root_libexec     : constant String := "/libexec";
-   root_toolchain   : constant String := "/toolchain";
    root_wrkdirs     : constant String := "/construction";
    root_packages    : constant String := "/packages";
    root_distfiles   : constant String := "/distfiles";
    root_ccache      : constant String := "/ccache";
    bsd_localbase    : constant String := "/usr/local";
+   toolchain_dir    : constant String := "/toolchain";
 
    chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
 
@@ -107,6 +108,7 @@ private
 
    --  Wrapper for rm -rf <directory>
    procedure annihilate_directory_tree (tree : String);
+   procedure annihilate_directory_tree_contents (tree : String);
 
    --  Used to generic mtree exclusion files
    procedure create_mtree_exc_preconfig (path_to_mm : String);
@@ -169,7 +171,10 @@ private
     --  create /etc/make.conf in slave
    procedure create_make_conf (path_to_etc : String);
 
-      --  Concatentation used for per-profile make.conf fragments (if they exist)
+   --  Concatentation used for per-profile make.conf fragments (if they exist)
    procedure concatenate_makeconf (makeconf_handle : TIO.File_Type; target_name : String);
+
+   --  Returns true if mount point has a nullfs or tmpfs mount on it.
+   function specific_mount_exists (mount_point : String) return Boolean;
 
 end Replicant;

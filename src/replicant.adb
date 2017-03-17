@@ -146,12 +146,38 @@ package body Replicant is
    procedure annihilate_directory_tree (tree : String)
    is
       command : constant String := "/bin/rm -rf " & tree;
+      retry   : Boolean := False;
    begin
       silent_exec (command);
    exception
-      when others => null;
+      when others =>
+         --  Only can occur when tmpfs is avoided
+         if DIR.Exists (tree & "/home") then
+            folder_access (tree & "/home", unlock);
+            retry := True;
+         end if;
+         if DIR.Exists (tree & "/root") then
+            folder_access (tree & "/root", unlock);
+            retry := True;
+         end if;
+         if retry then
+            silent_exec (command);
+         else
+            raise scenario_unexpected with "annihilate_directory_tree " & tree & " failed";
+         end if;
    end annihilate_directory_tree;
 
+
+   --------------------------------------------------------------------------------------------
+   --  annihilate_directory_tree_contents
+   --------------------------------------------------------------------------------------------
+   procedure annihilate_directory_tree_contents (tree : String)
+   is
+      command : constant String := "/usr/bin/find -s " & tree &
+                                   " -depth 1 -maxdepth 1 -exec /bin/rm -rf {} \;";
+   begin
+      silent_exec (command);
+   end annihilate_directory_tree_contents;
 
    --------------------------------------------------------------------------------------------
    --  execute
@@ -205,6 +231,32 @@ package body Replicant is
       end if;
       return content;
    end internal_system_command;
+
+
+   --------------------------------------------------------------------------------------------
+   --  specific_mount_exists
+   --------------------------------------------------------------------------------------------
+   function specific_mount_exists (mount_point : String) return Boolean
+   is
+      comres  : constant String := HT.USS (internal_system_command (df_command));
+      markers : HT.Line_Markers;
+   begin
+      HT.initialize_markers (comres, markers);
+      loop
+         exit when not HT.next_line_present (comres, markers);
+         declare
+            line : constant String := HT.extract_line (comres, markers);
+         begin
+            if HT.contains (line, mount_point) then
+               return True;
+            end if;
+         end;
+      end loop;
+      return False;
+   exception
+      when others =>
+         return True;
+   end specific_mount_exists;
 
 
    --------------------------------------------------------------------------------------------
@@ -298,10 +350,11 @@ package body Replicant is
       if not DIR.Exists (buildbase) then
          return False;
       end if;
+      --  SLXX may be present if tmpfs is avoided
       DIR.Start_Search (Search    => Search,
                         Directory => buildbase,
                         Filter    => (DIR.Directory => True, others => False),
-                        Pattern   => "SL*_*");
+                        Pattern   => "SL*");
 
       result := DIR.More_Entries (Search => Search);
       DIR.End_Search (Search);
@@ -318,10 +371,11 @@ package body Replicant is
       Dir_Ent   : DIR.Directory_Entry_Type;
       buildbase : constant String := HT.USS (PM.configuration.dir_buildbase);
    begin
+      --  SLXX may be present if tmpfs is avoided
       DIR.Start_Search (Search    => Search,
                        Directory => buildbase,
                        Filter    => (DIR.Directory => True, others => False),
-                       Pattern   => "SL*_*");
+                       Pattern   => "SL*");
       while DIR.More_Entries (Search => Search) loop
          DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
          declare
@@ -443,7 +497,7 @@ package body Replicant is
               freebsd   |
               macos     |
               netbsd    |
-              openbsd   => return "/bin/df -h";
+              openbsd   => return "/bin/df -h -t null,tmpfs";
          when sunos     => return "/usr/sbin/df -h";
          when linux     => return "/usr/bin/df -h";
       end case;
@@ -633,11 +687,12 @@ package body Replicant is
          when port        => return mount_base & root_port;
          when libexec     => return mount_base & root_libexec;
          when packages    => return mount_base & root_packages;
-         when toolchain   => return mount_base & root_toolchain;
          when distfiles   => return mount_base & root_distfiles;
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
          when localbase   => return mount_base & HT.USS (PM.configuration.dir_localbase);
+         when toolchain   => return mount_base & HT.USS (PM.configuration.dir_localbase) &
+                                    toolchain_dir;
       end case;
    end location;
 
@@ -729,23 +784,38 @@ package body Replicant is
    procedure launch_slave  (id : builders; need_procfs : Boolean := False)
     is
       function clean_mount_point (point : folder) return String;
+
       slave_base  : constant String := get_slave_mount (id);
       slave_local : constant String := slave_base & "_localbase";
       dir_system  : constant String := HT.USS (PM.configuration.dir_sysroot);
-      localbase   : constant String := HT.USS (PM.configuration.dir_localbase);
+      lbase       : constant String := HT.USS (PM.configuration.dir_localbase);
+      etc_path    : constant String := location (slave_base, etc);
 
       function clean_mount_point (point : folder) return String is
       begin
          return location (dir_system, point);
       end clean_mount_point;
+
    begin
       forge_directory (slave_base);
-      if not PM.configuration.avoid_tmpfs then
+
+      if PM.configuration.avoid_tmpfs then
+         if lbase = bsd_localbase then
+            forge_directory (location (slave_local, toolchain));
+            mount_nullfs (slave_local, slave_base & lbase, readwrite);
+         else
+            forge_directory (location (slave_base, toolchain));
+         end if;
+      else
          --  Limit slave to 16Gb, covers localbase + construction mainly
          mount_tmpfs (slave_base, 16 * 1024);
+         if lbase = bsd_localbase then
+            mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
+         end if;
+         forge_directory (location (slave_base, toolchain));
       end if;
 
-      for mnt in folder'Range loop
+      for mnt in safefolders'Range loop
          forge_directory (location (slave_base, mnt));
       end loop;
 
@@ -762,15 +832,6 @@ package body Replicant is
       mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
-      if localbase = bsd_localbase then
-         if PM.configuration.avoid_tmpfs then
-            forge_directory (slave_local);
-            mount_nullfs (slave_local, slave_base & bsd_localbase, readwrite);
-         else
-            mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
-         end if;
-      end if;
-
       if need_procfs then
          mount_procfs (path_to_proc => location (slave_base, proc));
       end if;
@@ -780,16 +841,16 @@ package body Replicant is
                        mode => readwrite);
       end if;
 
-       mount_devices (location (slave_base, dev));
+      mount_devices (location (slave_base, dev));
 
       populate_var_folder      (location (slave_base, var));
 --      copy_mtree_files    (location (slave_base, etc_mtree));
-      copy_rc_default          (location (slave_base, etc));
-      copy_resolv_conf         (location (slave_base, etc));
-      create_make_conf         (location (slave_base, etc));
-      install_passwd_and_group (location (slave_base, etc));
-      create_etc_services      (location (slave_base, etc));
-      create_etc_shells        (location (slave_base, etc));
+      copy_rc_default          (etc_path);
+      copy_resolv_conf         (etc_path);
+      create_make_conf         (etc_path);
+      install_passwd_and_group (etc_path);
+      create_etc_services      (etc_path);
+      create_etc_shells        (etc_path);
 
    exception
       when hiccup : others =>
@@ -805,7 +866,8 @@ package body Replicant is
       slave_base  : constant String := get_slave_mount (id);
       slave_local : constant String := slave_base & "_localbase";
       dir_system  : constant String := HT.USS (PM.configuration.dir_sysroot);
-      localbase   : constant String := HT.USS (PM.configuration.dir_localbase);
+      lbase       : constant String := HT.USS (PM.configuration.dir_localbase);
+      counter     : Natural := 0;
    begin
 
        unmount_devices (location (slave_base, dev));
@@ -816,13 +878,6 @@ package body Replicant is
 
       if need_procfs then
          unmount_procfs (location (slave_base, proc));
-      end if;
-
-      if localbase = bsd_localbase then
-         unmount (slave_base & bsd_localbase);
-         if PM.configuration.avoid_tmpfs then
-            annihilate_directory_tree (slave_local);
-         end if;
       end if;
 
       unmount (location (slave_base, distfiles));
@@ -841,7 +896,13 @@ package body Replicant is
          unmount (location (slave_base, mnt));
       end loop;
 
-      if not PM.configuration.avoid_tmpfs then
+      if PM.configuration.avoid_tmpfs then
+         unmount (slave_base & lbase);
+         annihilate_directory_tree (slave_local);
+      else
+         if lbase = bsd_localbase then
+            unmount (slave_base & lbase);
+         end if;
          unmount (slave_base);
       end if;
       annihilate_directory_tree (slave_base);

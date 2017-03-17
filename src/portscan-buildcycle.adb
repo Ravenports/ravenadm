@@ -426,7 +426,8 @@ package body PortScan.Buildcycle is
 
       localbase : constant String := HT.USS (PM.configuration.dir_localbase);
 
-      PATH : constant String := "PATH=/bin:/usr/bin:/toolchain/gcc6/bin:"
+      PATH : constant String := "PATH=/bin:/usr/bin:"
+        & localbase & "/toolchain/gcc6/bin:"
         & localbase & "/sbin:"
         & localbase & "/bin ";
 
@@ -844,7 +845,6 @@ package body PortScan.Buildcycle is
       TIO.Put (resfile, generic_system_command (command));
       TIO.Close (resfile);
    exception
-      when cycle_cmd_error => null;
       when others =>
          if TIO.Is_Open (resfile) then
             TIO.Close (resfile);
