@@ -98,6 +98,11 @@ package body Port_Specification is
       specs.config_must    := HT.blank;
       specs.expire_date    := HT.blank;
       specs.deprecated     := HT.blank;
+      specs.prefix         := HT.blank;
+
+      specs.licenses.Clear;
+      specs.users.Clear;
+      specs.groups.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -210,6 +215,9 @@ package body Port_Specification is
          when sp_install_wrksrc =>
             verify_entry_is_post_options;
             specs.install_wrksrc := text_value;
+         when sp_prefix =>
+            verify_entry_is_post_options;
+            specs.prefix := text_value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -509,6 +517,15 @@ package body Port_Specification is
          when sp_plist_sub =>
             verify_entry_is_post_options;
             specs.plist_sub.Append (text_value);
+         when sp_licenses =>
+            verify_entry_is_post_options;
+            specs.licenses.Append (text_value);
+         when sp_users =>
+            verify_entry_is_post_options;
+            specs.users.Append (text_value);
+         when sp_groups =>
+            verify_entry_is_post_options;
+            specs.groups.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1453,6 +1470,82 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_field_value
+   --------------------------------------------------------------------------------------------
+   function get_field_value (specs : Portspecs; field : spec_field) return String
+   is
+      procedure concat (position : string_crate.Cursor);
+      procedure dump_option (position : option_crate.Cursor);
+
+      joined : HT.Text;
+
+      procedure concat (position : string_crate.Cursor) is
+      begin
+         if not HT.IsBlank (joined) then
+            HT.SU.Append (joined, ", ");
+         end if;
+         HT.SU.Append (joined, string_crate.Element (position));
+      end concat;
+
+      procedure dump_option (position : option_crate.Cursor)
+      is
+         rec : Option_Helper renames option_crate.Element (position);
+      begin
+         if rec.currently_set_ON then
+            HT.SU.Append (joined, " " & HT.USS (rec.option_name) & ": on,");
+         else
+            HT.SU.Append (joined, " " & HT.USS (rec.option_name) & ": off,");
+         end if;
+      end dump_option;
+   begin
+      case field is
+         when sp_namebase   => return HT.USS (specs.namebase);
+         when sp_version    => return HT.USS (specs.version);
+         when sp_revision   => return HT.int2str (specs.revision);
+         when sp_epoch      => return HT.int2str (specs.epoch);
+         when sp_homepage   => return HT.USS (specs.homepage);
+         when sp_distsubdir => return HT.USS (specs.dist_subdir);
+         when sp_prefix     => return HT.USS (specs.prefix);
+         when sp_contacts   =>
+            specs.contacts.Iterate (concat'Access);
+            return HT.USS (joined);
+         when sp_keywords   =>
+            specs.keywords.Iterate (concat'Access);
+            return HT.USS (joined);
+         when sp_licenses   =>
+            specs.licenses.Iterate (concat'Access);
+            return HT.USS (joined);
+         when sp_users   =>
+            specs.users.Iterate (concat'Access);
+            return HT.USS (joined);
+         when sp_groups   =>
+            specs.groups.Iterate (concat'Access);
+            return HT.USS (joined);
+         when sp_opt_helper =>
+            specs.ops_helpers.Iterate (dump_option'Access);
+            return HT.USS (joined);
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+   end get_field_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_tagline
+   --------------------------------------------------------------------------------------------
+   function get_tagline (specs : Portspecs; variant : String) return String
+   is
+      key : HT.Text := HT.SUS (variant);
+   begin
+      if specs.taglines.Contains (key) then
+         return HT.USS (specs.taglines.Element (key));
+      else
+         return "";
+      end if;
+   end get_tagline;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
@@ -1742,6 +1835,9 @@ package body Port_Specification is
             when sp_pfiles_strip  => specs.pfiles_strip.Iterate (Process => print_item'Access);
             when sp_extra_patches => specs.extra_patches.Iterate (Process => print_item'Access);
             when sp_plist_sub     => specs.plist_sub.Iterate (Process => print_item'Access);
+            when sp_licenses      => specs.licenses.Iterate (Process => print_item'Access);
+            when sp_users         => specs.users.Iterate (Process => print_item'Access);
+            when sp_groups        => specs.groups.Iterate (Process => print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -1795,6 +1891,7 @@ package body Port_Specification is
             when sp_expiration     => TIO.Put_Line (HT.USS (specs.expire_date));
             when sp_deprecated     => TIO.Put_Line (HT.USS (specs.deprecated));
             when sp_install_wrksrc => TIO.Put_Line (HT.USS (specs.install_wrksrc));
+            when sp_prefix         => TIO.Put_Line (HT.USS (specs.prefix));
             when others => null;
          end case;
       end print_single;
@@ -1864,6 +1961,7 @@ package body Port_Specification is
       print_group_list  ("EXTRACT_HEAD", sp_ext_head);
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);
 
+      print_single      ("PREFIX", sp_prefix);
       print_single      ("PATCH_WRKSRC", sp_patch_wrksrc);
       print_vector_list ("EXTRA_PATCHES", sp_extra_patches);
       print_vector_list ("PATCH_STRIP", sp_patch_strip);
@@ -1900,6 +1998,9 @@ package body Port_Specification is
       print_vector_list ("INSTALL_TARGET", sp_install_tgt);
       print_single      ("INSTALL_WRKSRC", sp_install_wrksrc);
       print_vector_list ("PLIST_SUB", sp_plist_sub);
+      print_vector_list ("LICENSES", sp_licenses);
+      print_vector_list ("USERS", sp_users);
+      print_vector_list ("GROUPS", sp_groups);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

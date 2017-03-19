@@ -34,7 +34,7 @@ package Port_Specification is
                        sp_patch_wrksrc, sp_extra_patches, sp_apply_f10_fix, sp_must_config,
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
-                       sp_plist_sub);
+                       sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -154,7 +154,13 @@ package Port_Specification is
       option : String) return Boolean;
 
    --  After parsing, this is used to return the port name
-   function get_namebase (specs  : Portspecs) return String;
+   function get_namebase (specs : Portspecs) return String;
+
+   --  Generic retrieve data function
+   function get_field_value (specs : Portspecs; field : spec_field) return String;
+
+   --  Retrieve the tagline on a given variant
+   function get_tagline (specs : Portspecs; variant : String) return String;
 
 private
 
@@ -304,6 +310,7 @@ private
          skip_install  : Boolean;
          destdir_env   : Boolean;
          single_job    : Boolean;
+         prefix        : HT.Text;
          build_wrksrc  : HT.Text;
          makefile      : HT.Text;
          destdirname   : HT.Text;
@@ -326,6 +333,9 @@ private
          plist_sub     : string_crate.Vector;
 
          make_targets  : list_crate.Map;
+         licenses      : string_crate.Vector;
+         users         : string_crate.Vector;
+         groups        : string_crate.Vector;
       end record;
 
    --  Compares given keyword against known values
