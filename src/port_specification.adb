@@ -1490,11 +1490,15 @@ package body Port_Specification is
       procedure dump_option (position : option_crate.Cursor)
       is
          rec : Option_Helper renames option_crate.Element (position);
+         optname : String := HT.USS (rec.option_name);
       begin
+         if optname = "none" then
+            return;
+         end if;
          if rec.currently_set_ON then
-            HT.SU.Append (joined, " " & HT.USS (rec.option_name) & ": on,");
+            HT.SU.Append (joined, " " & optname & ": on,");
          else
-            HT.SU.Append (joined, " " & HT.USS (rec.option_name) & ": off,");
+            HT.SU.Append (joined, " " & optname & ": off,");
          end if;
       end dump_option;
    begin

@@ -31,6 +31,7 @@ private
      (spec       : PSP.Portspecs;
       subpackage : String;
       variant    : String;
+      pkgversion : String;
       filename   : String);
 
    --  Alert if port is deprecated

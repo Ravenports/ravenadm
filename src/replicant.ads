@@ -159,6 +159,9 @@ private
    --  copy host's /etc/resolv.conf to slave
    procedure copy_resolv_conf (path_to_etc : String);
 
+   --  copy ldconfig hints to /var/run (for pkg-static)
+   procedure copy_ldconfig_hints (path_to_varrun : String);
+
    --  Install user and group databases
    procedure install_passwd_and_group (path_to_etc : String);
 

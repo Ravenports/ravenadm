@@ -28,17 +28,15 @@ package body Replicant is
       spwd   : constant String := "/spwd.db";
       pwd    : constant String := "/pwd.db";
       rcconf : constant String := "/rc.conf";
+      hints  : constant String := "/ld-elf.so.hints";
+      nhints : constant String := "/ld.so.hints";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
 
       start_abnormal_logging;
 
-      if DIR.Exists (mm) then
-         annihilate_directory_tree (mm);
-      end if;
-
-      DIR.Create_Path (mm & "/etc");
+      DIR.Create_Path (mm);
       case platform_type is
          when dragonfly |
               freebsd   |
@@ -70,6 +68,17 @@ package body Replicant is
          when linux     |
               macos     |
               sunos     => null;  --  rc.conf not used
+      end case;
+      case platform_type is
+         when dragonfly |
+              freebsd   =>
+            DIR.Copy_File (sretc & hints, mm & hints);
+         when netbsd    |
+              openbsd   =>
+            DIR.Copy_File (sretc & nhints, mm & nhints);
+         when linux     |
+              macos     |
+              sunos     => null;
       end case;
       create_mtree_exc_preinst (mm);
       create_mtree_exc_preconfig (mm);
@@ -350,6 +359,9 @@ package body Replicant is
       if not DIR.Exists (buildbase) then
          return False;
       end if;
+      if DIR.Exists (buildbase & "/Base") then
+         return True;
+      end if;
       --  SLXX may be present if tmpfs is avoided
       DIR.Start_Search (Search    => Search,
                         Directory => buildbase,
@@ -370,7 +382,11 @@ package body Replicant is
       Search    : DIR.Search_Type;
       Dir_Ent   : DIR.Directory_Entry_Type;
       buildbase : constant String := HT.USS (PM.configuration.dir_buildbase);
+      base      : constant String := buildbase & "/Base";
    begin
+      if DIR.Exists (base) then
+         annihilate_directory_tree (base);
+      end if;
       --  SLXX may be present if tmpfs is avoided
       DIR.Start_Search (Search    => Search,
                        Directory => buildbase,
@@ -497,7 +513,7 @@ package body Replicant is
               freebsd   |
               macos     |
               netbsd    |
-              openbsd   => return "/bin/df -h -t null,tmpfs";
+              openbsd   => return "/bin/df -h -t null,tmpfs,devfs";
          when sunos     => return "/usr/sbin/df -h";
          when linux     => return "/usr/bin/df -h";
       end case;
@@ -844,9 +860,9 @@ package body Replicant is
       mount_devices (location (slave_base, dev));
 
       populate_var_folder      (location (slave_base, var));
---      copy_mtree_files    (location (slave_base, etc_mtree));
       copy_rc_default          (etc_path);
       copy_resolv_conf         (etc_path);
+      copy_ldconfig_hints      (slave_base & "/var/run");
       create_make_conf         (etc_path);
       install_passwd_and_group (etc_path);
       create_etc_services      (etc_path);
@@ -959,6 +975,25 @@ package body Replicant is
       forge_directory (path & "/spool");
       forge_directory (path & "/tmp");
    end populate_var_folder;
+
+
+   --------------------------------------------------------------------------------------------
+   --  copy_ldconfig_hints
+   --------------------------------------------------------------------------------------------
+   procedure copy_ldconfig_hints (path_to_varrun : String)
+   is
+      mm     : constant String := get_master_mount;
+      hints  : constant String := "/ld-elf.so.hints";
+      nhints : constant String := "/ld.so.hints";
+   begin
+      case platform_type is
+         when dragonfly | freebsd =>
+            DIR.Copy_File (mm & hints, path_to_varrun & hints);
+         when netbsd | openbsd =>
+            DIR.Copy_File (mm & nhints, path_to_varrun & nhints);
+         when macos | linux | sunos => null;
+      end case;
+   end copy_ldconfig_hints;
 
 
    --------------------------------------------------------------------------------------------

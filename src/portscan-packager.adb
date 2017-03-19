@@ -33,11 +33,12 @@ package body PortScan.Packager is
       procedure package_it (position : string_crate.Cursor);
 
       namebase   : String  := HT.USS (all_ports (seq_id).port_namebase);
+      conbase    : String  := "/construction/" & namebase;
       spkgdir    : String  := rootdir & "/construction/metadata/";
-      wrkdir     : String  := rootdir & "/construction/" & namebase;
+      wrkdir     : String  := rootdir & conbase;
       chspkgdir  : String  := "/construction/metadata/";
       newpkgdir  : String  := "/construction/new_packages";
-      stagedir   : String  := "/construction/" & namebase & "/stage";
+      stagedir   : String  := conbase & "/stage";
       display    : String := "/+DISPLAY";
       pkgvers    : String  := get_pkg_version (specification);
       still_good : Boolean := True;
@@ -100,13 +101,14 @@ package body PortScan.Packager is
          write_package_manifest (spec       => specification,
                                  subpackage => subpackage,
                                  variant    => HT.USS (all_ports (seq_id).port_variant),
+                                 pkgversion => pkgvers,
                                  filename   => spkgdir & subpackage & manifest);
       end metadata;
 
       procedure package_it (position : string_crate.Cursor)
       is
          subpackage   : constant String := HT.USS (string_crate.Element (position));
-         package_list : constant String := wrkdir & "/manifest." & subpackage & ".mktmp";
+         package_list : constant String := conbase & "/.manifest." & subpackage & ".mktmp";
          FORCE_POST_PATTERNS : constant String := "rmdir mkfontscale mkfontdir fc-cache " &
            "fonts.dir fonts.scale gtk-update-icon-cache gio-querymodules gtk-query-immodules " &
            "load-octave-pkg ocamlfind update-desktop-database update-mime-database " &
@@ -114,35 +116,39 @@ package body PortScan.Packager is
          MORE_ENV : constant String :=
            " PKG_DBDIR=/var/db/pkg8" &
            " PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
-         PKG_CREATE : constant String := HT.USS (PM.configuration.dir_localbase) &
-           "/sbin/pkg-static create";
+         PKG_CREATE : constant String := "/usr/bin/pkg-static create";
          PKG_CREATE_ARGS : constant String :=
            " --root-dir " & stagedir &
            " --metadata " & chspkgdir & subpackage &
            " --plist " & package_list &
            " --format txz" &
-           " --out-dir " & newpkgdir;
+           " --out-dir " & newpkgdir &
+           " --verbose ";
          namebase : constant String := specification.get_namebase;
          pkgname : String := namebase & "-" & subpackage & "-" &
            HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers;
          package_cmd : constant String := chroot & rootdir & " /usr/bin/env FORCE_POST=" &
            LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
-           PKG_CREATE & PKG_CREATE_ARGS & LAT.Space & pkgname;
+           PKG_CREATE & PKG_CREATE_ARGS & pkgname;
          move_cmd : constant String := chroot & rootdir & " /bin/mv " & newpkgdir & "/" &
            pkgname & ".txz /packages/All/";
          link_cmd : constant String := chroot & rootdir & " /bin/ln -sf /packages/All/" &
            pkgname & ".txz /packages/Latest/" & pkgname & ".txz";
       begin
          if still_good then
-            dump_pkg_message_to_log (display_file => spkgdir & subpackage & display,
-                                     log_handle   => log_handle);
+            if DIR.Exists (spkgdir & subpackage & display) then
+               dump_pkg_message_to_log (display_file => spkgdir & subpackage & display,
+                                        log_handle   => log_handle);
+            end if;
 
-            if not DIR.Exists (package_list) then
+            if not DIR.Exists (rootdir & package_list) then
                still_good := False;
                TIO.Put_Line
                  (log_handle, "=> The package list " & package_list & " for the " &
                     subpackage & " subpackage does not exist.");
             end if;
+            TIO.Put_Line (log_handle, "===>  Building " & pkgname & " subpackage");
+            TIO.Close (log_handle);
 
             still_good := execute_command (package_cmd, log_name);
             if still_good then
@@ -151,6 +157,10 @@ package body PortScan.Packager is
             if still_good and then namebase = "pkg" then
                still_good := execute_command (link_cmd, log_name);
             end if;
+
+            TIO.Open (File => log_handle,
+                      Mode => TIO.Append_File,
+                      Name => log_name);
          end if;
       end package_it;
    begin
@@ -165,13 +175,8 @@ package body PortScan.Packager is
          return False;
       end if;
 
-      DIR.Create_Directory (newpkgdir);
-      TIO.Close (log_handle);
+      DIR.Create_Directory (rootdir & newpkgdir);
       all_ports (seq_id).subpackages.Iterate (package_it'Access);
-
-      TIO.Open (File => log_handle,
-                Mode => TIO.Append_File,
-                Name => log_name);
       LOG.log_phase_end (log_handle);
 
       return still_good;
@@ -266,6 +271,7 @@ package body PortScan.Packager is
      (spec       : PSP.Portspecs;
       subpackage : String;
       variant    : String;
+      pkgversion : String;
       filename   : String)
    is
       function quote (thetext : String) return String;
@@ -318,7 +324,8 @@ package body PortScan.Packager is
         (file_handle,
          LAT.Left_Curly_Bracket & LAT.LF &
            "name: " & name & LAT.LF &
-           "version: " & origin & LAT.LF &
+           "version: " & quote (pkgversion) & LAT.LF &
+           "origin: " & origin & LAT.LF &
            "comment: <<EOD" & LAT.LF &
            spec.get_tagline (variant) & LAT.LF &
            "EOD" & LAT.LF &
@@ -382,6 +389,9 @@ package body PortScan.Packager is
    end get_pkg_version;
 
 
+   --------------------------------------------------------------------------------------------
+   --  execute_command
+   --------------------------------------------------------------------------------------------
    function execute_command (command : String; name_of_log : String) return Boolean
    is
       use type Unix.process_exit;

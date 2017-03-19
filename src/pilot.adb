@@ -592,7 +592,7 @@ package body Pilot is
                                        specification => specification,
                                        sequence_id   => PortScan.first_port,
                                        interactive   => True,
-                                       interphase    => "stage");
+                                       interphase    => "deinstall");
 
       REP.destroy_slave (scan_slave);
       REP.finalize;
