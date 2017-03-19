@@ -32,6 +32,7 @@ package body PortScan.Buildcycle is
       R : Boolean;
       break_phase  : constant phases := valid_test_phase (interphase);
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
+      pkgversion   : constant String := PKG.get_pkg_version (specification);
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
@@ -89,7 +90,7 @@ package body PortScan.Buildcycle is
 
             when install =>
                if testing then
-                  R := exec_phase_install (id);
+                  R := exec_phase_install (id, pkgversion);
                end if;
 
             when check_plist =>
@@ -99,7 +100,7 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
-                  R := exec_phase_deinstall (id);
+                  R := exec_phase_deinstall (id, pkgversion);
                end if;
          end case;
          exit when R = False;
@@ -266,11 +267,43 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  exec_phase_install
    --------------------------------------------------------------------------------------------
-   function exec_phase_install (id : builders) return Boolean
+   function exec_phase_install (id : builders; pkgversion : String) return Boolean
    is
-      --  TODO: implement
+      procedure install_it (position : string_crate.Cursor);
+
+      time_limit : execution_limit := max_time_without_output (install);
+      root       : constant String := get_root (id);
+      namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
+      PKG_ADD    : constant String := "/usr/bin/pkg-static add -f ";
+      still_good : Boolean := True;
+      timed_out  : Boolean;
+
+      procedure install_it (position : string_crate.Cursor)
+      is
+         subpackage : constant String := HT.USS (string_crate.Element (position));
+         pkgname    : String := namebase & "-" & subpackage & "-" &
+                      HT.USS (all_ports (trackers (id).seq_id).port_variant) & "-" & pkgversion;
+         PKG_FILE   : constant String := "/packages/All/" & pkgname & ".txz";
+         command    : constant String := chroot & root & environment_override &
+                      PKG_ADD & PKG_FILE;
+      begin
+         if still_good then
+            TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
+            TIO.Close (trackers (id).log_handle);
+            still_good := generic_execute (id, command, timed_out, time_limit);
+            TIO.Open (File => trackers (id).log_handle,
+                      Mode => TIO.Append_File,
+                      Name => LOG.log_name (trackers (id).seq_id));
+            if timed_out then
+               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+            end if;
+         end if;
+      end install_it;
    begin
-      return False;
+      LOG.log_phase_begin (trackers (id).log_handle, phase2str (install));
+      all_ports (trackers (id).seq_id).subpackages.Iterate (install_it'Access);
+      LOG.log_phase_end (trackers (id).log_handle);
+      return still_good;
    end exec_phase_install;
 
 
@@ -315,9 +348,7 @@ package body PortScan.Buildcycle is
                 Mode => TIO.Append_File,
                 Name => LOG.log_name (trackers (id).seq_id));
       if timed_out then
-         TIO.Put_Line (trackers (id).log_handle,
-                       "###  Watchdog killed runaway process!  (no activity for" &
-                         time_limit'Img & " minutes)  ###");
+         TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
       end if;
       if not skip_footer then
          LOG.log_phase_end (trackers (id).log_handle);
@@ -487,28 +518,47 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------
-   function exec_phase_deinstall (id : builders) return Boolean
+   function exec_phase_deinstall (id : builders; pkgversion : String) return Boolean
    is
+      procedure deinstall_it (position : string_crate.Cursor);
+
       time_limit : execution_limit := max_time_without_output (deinstall);
-      result     : Boolean;
+      root       : constant String := get_root (id);
+      namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
+      PKG_DELETE : constant String := "/usr/bin/pkg-static delete -f -y ";
+      still_good : Boolean := True;
+      timed_out  : Boolean;
+
+      procedure deinstall_it (position : string_crate.Cursor)
+      is
+         subpackage : constant String := HT.USS (string_crate.Element (position));
+         pkgname    : String := namebase & "-" & subpackage & "-" &
+                      HT.USS (all_ports (trackers (id).seq_id).port_variant) & "-" & pkgversion;
+         command    : constant String := chroot & root & environment_override &
+                      PKG_DELETE & pkgname;
+      begin
+         if still_good then
+            TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
+            TIO.Close (trackers (id).log_handle);
+            still_good := generic_execute (id, command, timed_out, time_limit);
+            TIO.Open (File => trackers (id).log_handle,
+                      Mode => TIO.Append_File,
+                      Name => LOG.log_name (trackers (id).seq_id));
+            if timed_out then
+               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+            end if;
+         end if;
+      end deinstall_it;
    begin
-      --  This is only run during "testing" so assume that.
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
-      log_linked_libraries (id);
-      result := False;
---        result := exec_phase (id          => id,
---                              phase       => deinstall,
---                              time_limit  => time_limit,
---                              skip_header => True,
---                              skip_footer => True);
-      if not result then
-         LOG.log_phase_end (trackers (id).log_handle);
-         return False;
+      log_linked_libraries (id, pkgversion);
+      all_ports (trackers (id).seq_id).subpackages.Iterate (deinstall_it'Access);
+      if still_good then
+         still_good := detect_leftovers_and_MIA (id, "prestage",
+                                             "between staging and package deinstallation");
       end if;
-      result := detect_leftovers_and_MIA
-        (id, "prestage", "between staging and package deinstallation");
       LOG.log_phase_end (trackers (id).log_handle);
-      return result;
+      return still_good;
    end exec_phase_deinstall;
 
 
@@ -517,8 +567,8 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    procedure stack_linked_libraries (id : builders; base, filename : String)
    is
-      command : String := chroot & base & " " & HT.USS (PM.configuration.dir_localbase) &
-                          "/toolchain/bin/objdump -p " & filename;
+      objdump : String := HT.USS (PM.configuration.dir_localbase) & "/toolchain/bin/objdump";
+      command : String := chroot & base & environment_override & objdump & " -p " & filename;
       comres  : String :=  generic_system_command (command);
       markers : HT.Line_Markers;
    begin
@@ -547,12 +597,13 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  log_linked_libraries
    --------------------------------------------------------------------------------------------
-   procedure log_linked_libraries (id : builders)
+   procedure log_linked_libraries (id : builders; pkgversion : String)
    is
       procedure log_dump (position : string_crate.Cursor);
       procedure check_package (position : string_crate.Cursor);
 
-      root : constant String := get_root (id);
+      root     : constant String := get_root (id);
+      namebase : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
 
       procedure log_dump (position : string_crate.Cursor)
       is
@@ -563,10 +614,11 @@ package body PortScan.Buildcycle is
 
       procedure check_package (position : string_crate.Cursor)
       is
-         pkgfile : String := HT.USS (string_crate.Element (position));
-         pkgname : constant String := pkgfile (pkgfile'First .. pkgfile'Last - 4);
-         command : constant String := chroot & root & environment_override &
-           HT.USS (PM.configuration.dir_localbase) & "/sbin/pkg-static query %Fp " & pkgname;
+         subpackage : constant String := HT.USS (string_crate.Element (position));
+         pkgname    : String := namebase & "-" & subpackage & "-" &
+                      HT.USS (all_ports (trackers (id).seq_id).port_variant) & "-" & pkgversion;
+         command    : constant String := chroot & root & environment_override &
+                      "/usr/bin/pkg-static query %Fp " & pkgname;
          comres  : String :=  generic_system_command (command);
          markers : HT.Line_Markers;
       begin
@@ -1149,6 +1201,16 @@ package body PortScan.Buildcycle is
    begin
       return "";
    end get_options_configuration;
+
+
+   --------------------------------------------------------------------------------------------
+   --  watchdog_message
+   --------------------------------------------------------------------------------------------
+   function watchdog_message (minutes : execution_limit) return String is
+   begin
+      return "###  Watchdog killed runaway process!  (no activity for" &
+                               minutes'Img & " minutes)  ###";
+   end watchdog_message;
 
 
 end PortScan.Buildcycle;

@@ -79,11 +79,11 @@ private
    procedure set_uname_mrv;
    procedure obtain_custom_environment;
    procedure stack_linked_libraries (id : builders; base, filename : String);
-   procedure log_linked_libraries (id : builders);
+   procedure log_linked_libraries (id : builders; pkgversion : String);
    function  exec_phase_generic (id : builders; phase : phases) return Boolean;
    function  exec_phase_depends (id : builders) return Boolean;
-   function  exec_phase_deinstall (id : builders) return Boolean;
-   function  exec_phase_install (id : builders) return Boolean;
+   function  exec_phase_deinstall (id : builders; pkgversion : String) return Boolean;
+   function  exec_phase_install   (id : builders; pkgversion : String) return Boolean;
    function  exec_phase_build (id : builders) return Boolean;
    function  phase2str (phase : phases) return String;
    function  max_time_without_output (phase : phases) return execution_limit;
@@ -99,6 +99,7 @@ private
    function  dynamically_linked (base, filename : String) return Boolean;
    function  format_loglines (numlines : Natural) return String;
    function  load_core (instant_load : Boolean) return Float;
+   function  watchdog_message (minutes : execution_limit) return String;
    function  generic_execute
      (id         : builders;
       command    : String;
