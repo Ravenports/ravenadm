@@ -15,6 +15,7 @@ with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
+with PortScan.Buildcycle;
 
 package body Pilot is
 
@@ -27,6 +28,7 @@ package body Pilot is
    package PSB renames Port_Specification.Buildsheet;
    package PSM renames Port_Specification.Makefile;
    package PST renames Port_Specification.Transform;
+   package CYC renames PortScan.Buildcycle;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
@@ -75,6 +77,7 @@ package body Pilot is
                PAR.parse_specification_file (dossier         => filename,
                                              specification   => specification,
                                              opsys_focus     => platform_type,
+                                             arch_focus      => sl_arch,
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -87,6 +90,7 @@ package body Pilot is
             PAR.parse_specification_file (dossier         => specfile,
                                           specification   => specification,
                                           opsys_focus     => platform_type,
+                                          arch_focus      => sl_arch,
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -134,6 +138,7 @@ package body Pilot is
                PAR.parse_specification_file (dossier         => filename,
                                              specification   => specification,
                                              opsys_focus     => platform_type,
+                                             arch_focus      => sl_arch,
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -146,6 +151,7 @@ package body Pilot is
             PAR.parse_specification_file (dossier         => specfile,
                                           specification   => specification,
                                           opsys_focus     => platform_type,
+                                          arch_focus      => sl_arch,
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -205,6 +211,7 @@ package body Pilot is
          PAR.parse_specification_file (dossier         => filename,
                                        specification   => specification,
                                        opsys_focus     => platform_type,  --  unused
+                                       arch_focus      => sl_arch,
                                        success         => successful,
                                        stop_at_targets => False);
       else
@@ -434,7 +441,7 @@ package body Pilot is
          return True;
       end if;
       TIO.Put_Line ("The attempt to remove the work directories located at ");
-      TIO.Put_Line (HT.USS (PM.configuration.dir_buildbase) & "failed.");
+      TIO.Put_Line (HT.USS (PM.configuration.dir_buildbase) & " failed.");
       TIO.Put_Line ("Please remove them manually before continuing.");
       return False;
    end old_realfs_work_successfully_removed;
@@ -530,6 +537,7 @@ package body Pilot is
       successful : Boolean;
 
       specification : Port_Specification.Portspecs;
+
    begin
 
       if not slave_platform_determined then
@@ -547,6 +555,7 @@ package body Pilot is
       PAR.parse_specification_file (dossier         => buildsheet,
                                     specification   => specification,
                                     opsys_focus     => platform_type,
+                                    arch_focus      => sl_arch,
                                     success         => successful,
                                     stop_at_targets => False,
                                     extraction_dir  => portloc);
@@ -575,8 +584,18 @@ package body Pilot is
                      opsys       => platform_type,
                      output_file => makefile);
 
-      TIO.Put_Line ("run here");
---      REP.destroy_slave (9);
+      CYC.initialize (test_mode => True);
+
+      PortScan.crash_test_dummy;
+
+      successful := CYC.build_package (id            => scan_slave,
+                                       specification => specification,
+                                       sequence_id   => PortScan.first_port,
+                                       interactive   => True,
+                                       interphase    => "stage");
+
+      REP.destroy_slave (scan_slave);
+      REP.finalize;
       return True;
 
    end proof_of_concept;
