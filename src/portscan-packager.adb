@@ -2,7 +2,9 @@
 --  Reference: ../License.txt
 
 with File_Operations;
+with PortScan.Log;
 with Parameters;
+with Unix;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Text_IO;
@@ -10,6 +12,7 @@ with Ada.Text_IO;
 package body PortScan.Packager is
 
    package FOP renames File_Operations;
+   package LOG renames PortScan.Log;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
@@ -20,15 +23,24 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    function exec_phase_package
      (specification : PSP.Portspecs;
-      log_handle    : TIO.File_Type;
+      log_handle    : in out TIO.File_Type;
+      log_name      : String;
+      phase_name    : String;
       seq_id        : port_id;
       rootdir       : String) return Boolean
    is
-      procedure metadata (position : string_crate.Cursor);
+      procedure metadata   (position : string_crate.Cursor);
+      procedure package_it (position : string_crate.Cursor);
 
-      namebase : String := HT.USS (all_ports (seq_id).port_namebase);
-      spkgdir : String := rootdir & "/construction/subpackages/";
-      wrkdir  : String := rootdir & "/construction/" & namebase;
+      namebase   : String  := HT.USS (all_ports (seq_id).port_namebase);
+      spkgdir    : String  := rootdir & "/construction/metadata/";
+      wrkdir     : String  := rootdir & "/construction/" & namebase;
+      chspkgdir  : String  := "/construction/metadata/";
+      newpkgdir  : String  := "/construction/new_packages";
+      stagedir   : String  := "/construction/" & namebase & "/stage";
+      display    : String := "/+DISPLAY";
+      pkgvers    : String  := get_pkg_version (specification);
+      still_good : Boolean := True;
 
       procedure metadata (position : string_crate.Cursor)
       is
@@ -38,7 +50,6 @@ package body PortScan.Packager is
          subpackage    : constant String := HT.USS (string_crate.Element (position));
          message_file  : constant String := wrkdir & "/PKG_DISPLAY." & subpackage;
          descript_file : constant String := wrkdir & "/PKG_DESC." & subpackage;
-         display  : String := "/+DISPLAY";
          descript : String := "/+DESC";
          manifest : String := "/+MANIFEST";
 
@@ -91,13 +102,161 @@ package body PortScan.Packager is
                                  variant    => HT.USS (all_ports (seq_id).port_variant),
                                  filename   => spkgdir & subpackage & manifest);
       end metadata;
+
+      procedure package_it (position : string_crate.Cursor)
+      is
+         subpackage   : constant String := HT.USS (string_crate.Element (position));
+         package_list : constant String := wrkdir & "/manifest." & subpackage & ".mktmp";
+         FORCE_POST_PATTERNS : constant String := "rmdir mkfontscale mkfontdir fc-cache " &
+           "fonts.dir fonts.scale gtk-update-icon-cache gio-querymodules gtk-query-immodules " &
+           "load-octave-pkg ocamlfind update-desktop-database update-mime-database " &
+           "gdk-pixbuf-query-loaders catalog.ports glib-compile-schemas ccache-update-links";
+         MORE_ENV : constant String :=
+           " PKG_DBDIR=/var/db/pkg8" &
+           " PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
+         PKG_CREATE : constant String := HT.USS (PM.configuration.dir_localbase) &
+           "/sbin/pkg-static create";
+         PKG_CREATE_ARGS : constant String :=
+           " --root-dir " & stagedir &
+           " --metadata " & chspkgdir & subpackage &
+           " --plist " & package_list &
+           " --format txz" &
+           " --out-dir " & newpkgdir;
+         namebase : constant String := specification.get_namebase;
+         pkgname : String := namebase & "-" & subpackage & "-" &
+           HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers;
+         package_cmd : constant String := chroot & rootdir & " /usr/bin/env FORCE_POST=" &
+           LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
+           PKG_CREATE & PKG_CREATE_ARGS & LAT.Space & pkgname;
+         move_cmd : constant String := chroot & rootdir & " /bin/mv " & newpkgdir & "/" &
+           pkgname & ".txz /packages/All/";
+         link_cmd : constant String := chroot & rootdir & " /bin/ln -sf /packages/All/" &
+           pkgname & ".txz /packages/Latest/" & pkgname & ".txz";
+      begin
+         if still_good then
+            dump_pkg_message_to_log (display_file => spkgdir & subpackage & display,
+                                     log_handle   => log_handle);
+
+            if not DIR.Exists (package_list) then
+               still_good := False;
+               TIO.Put_Line
+                 (log_handle, "=> The package list " & package_list & " for the " &
+                    subpackage & " subpackage does not exist.");
+            end if;
+
+            still_good := execute_command (package_cmd, log_name);
+            if still_good then
+               still_good := execute_command (move_cmd, log_name);
+            end if;
+            if still_good and then namebase = "pkg" then
+               still_good := execute_command (link_cmd, log_name);
+            end if;
+         end if;
+      end package_it;
    begin
+      LOG.log_phase_begin (log_handle, phase_name);
 
       all_ports (seq_id).subpackages.Iterate (metadata'Access);
 
-      return False;
+      check_deprecation (specification, log_handle);
+      if not create_package_directory_if_necessary (log_handle) or else
+        not create_latest_package_directory_too (log_handle)
+      then
+         return False;
+      end if;
 
+      DIR.Create_Directory (newpkgdir);
+      TIO.Close (log_handle);
+      all_ports (seq_id).subpackages.Iterate (package_it'Access);
+
+      TIO.Open (File => log_handle,
+                Mode => TIO.Append_File,
+                Name => log_name);
+      LOG.log_phase_end (log_handle);
+
+      return still_good;
+
+   exception
+      when others =>
+         return False;
    end exec_phase_package;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_package_directory_if_necessary
+   --------------------------------------------------------------------------------------------
+   function create_package_directory_if_necessary (log_handle : TIO.File_Type) return Boolean
+   is
+      packagedir : String := HT.USS (PM.configuration.dir_packages) & "/All";
+   begin
+      if DIR.Exists (packagedir) then
+         return True;
+      end if;
+      DIR.Create_Directory (packagedir);
+      return True;
+   exception
+      when others =>
+         TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir);
+         return False;
+   end create_package_directory_if_necessary;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_package_directory_if_necessary
+   --------------------------------------------------------------------------------------------
+   function create_latest_package_directory_too (log_handle : TIO.File_Type) return Boolean
+   is
+      packagedir : String := HT.USS (PM.configuration.dir_packages) & "/Latest";
+   begin
+      if DIR.Exists (packagedir) then
+         return True;
+      end if;
+      DIR.Create_Directory (packagedir);
+      return True;
+   exception
+      when others =>
+         TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir);
+         return False;
+   end create_latest_package_directory_too;
+
+
+   --------------------------------------------------------------------------------------------
+   --  dump_pkg_message_to_log
+   --------------------------------------------------------------------------------------------
+   procedure dump_pkg_message_to_log (display_file : String; log_handle : TIO.File_Type)
+   is
+      File_Size : Natural := Natural (DIR.Size (display_file));
+   begin
+      if File_Size = 0 then
+         DIR.Delete_File (display_file);
+      else
+         declare
+            contents : String := FOP.get_file_contents (display_file);
+         begin
+            TIO.Put_Line (log_handle, contents);
+         end;
+      end if;
+   end dump_pkg_message_to_log;
+
+
+   --------------------------------------------------------------------------------------------
+   --  check_deprecation
+   --------------------------------------------------------------------------------------------
+   procedure check_deprecation (spec : PSP.Portspecs; log_handle : TIO.File_Type)
+   is
+      deprecated  : String := spec.get_field_value (PSP.sp_deprecated);
+      expire_date : String := spec.get_field_value (PSP.sp_expiration);
+   begin
+      if deprecated /= "" then
+         TIO.Put_Line
+           (log_handle,
+            "===>   NOTICE:" & LAT.LF & LAT.LF &
+              "This port is deprecated; you may wish to consider avoiding its packages." & LAT.LF &
+              LAT.LF & deprecated & LAT.Full_Stop & LAT.LF &
+              "It is scheduled to be removed on or after " & expire_date & LAT.LF
+           );
+      end if;
+   end check_deprecation;
 
 
    --------------------------------------------------------------------------------------------
@@ -148,8 +307,8 @@ package body PortScan.Packager is
          end if;
       end array_if_defined;
 
-      name    : String := quote (spec.get_namebase) & "-" & subpackage & "-" & variant;
-      origin  : String := quote (spec.get_namebase) & ":" & subpackage & ":" & variant;
+      name    : String := quote (spec.get_namebase & "-" & subpackage & "-" & variant);
+      origin  : String := quote (spec.get_namebase & ":" & subpackage & ":" & variant);
 
    begin
       TIO.Create (File => file_handle,
@@ -184,6 +343,69 @@ package body PortScan.Packager is
             TIO.Close (file_handle);
          end if;
    end write_package_manifest;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_pkg_version
+   --------------------------------------------------------------------------------------------
+   function get_pkg_version (spec : PSP.Portspecs) return String
+   is
+      function suf1 return String;
+      function suf2 return String;
+
+      revision     : String := spec.get_field_value (PSP.sp_revision);
+      epoch        : String := spec.get_field_value (PSP.sp_epoch);
+      VERA         : String := spec.get_field_value (PSP.sp_version);
+      VERB         : String := HT.replace_all (VERA, LAT.Hyphen, LAT.Full_Stop);
+      VERC         : String := HT.replace_all (VERB, LAT.Comma, LAT.Full_Stop);
+      VERD         : String := HT.replace_all (VERC, LAT.Low_Line, LAT.Full_Stop);
+
+      function suf1 return String is
+      begin
+         if revision = "0" then
+            return "";
+         else
+            return "_" & revision;
+         end if;
+      end suf1;
+
+      function suf2 return String is
+      begin
+         if epoch = "0" then
+            return "";
+         else
+            return "," & epoch;
+         end if;
+      end suf2;
+   begin
+      return VERD & suf1 & suf2;
+   end get_pkg_version;
+
+
+   function execute_command (command : String; name_of_log : String) return Boolean
+   is
+      use type Unix.process_exit;
+      pid         : Unix.pid_t;
+      status      : Unix.process_exit;
+      hangmonitor : constant Boolean := True;
+      ravenexec   : constant String := host_localbase & "/libexec/ravenexec";
+      truecommand : constant String := ravenexec & " " & name_of_log & " " & command;
+   begin
+      pid := Unix.launch_process (truecommand);
+      if Unix.fork_failed (pid) then
+         return False;
+      end if;
+      loop
+         delay 0.25;
+         status := Unix.process_status (pid);
+         if status = Unix.exited_normally then
+            return True;
+         end if;
+         if status = Unix.exited_with_error then
+            return False;
+         end if;
+      end loop;
+   end execute_command;
 
 
    --------------------------------------------------------------------------------------------

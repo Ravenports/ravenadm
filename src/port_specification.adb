@@ -1506,6 +1506,8 @@ package body Port_Specification is
          when sp_homepage   => return HT.USS (specs.homepage);
          when sp_distsubdir => return HT.USS (specs.dist_subdir);
          when sp_prefix     => return HT.USS (specs.prefix);
+         when sp_deprecated => return HT.USS (specs.deprecated);
+         when sp_expiration => return HT.USS (specs.expire_date);
          when sp_contacts   =>
             specs.contacts.Iterate (concat'Access);
             return HT.USS (joined);
