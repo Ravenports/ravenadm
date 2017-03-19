@@ -572,4 +572,39 @@ package body HelperText is
       end if;
    end specific_line;
 
+
+   --------------------------------------------------------------------------------------------
+   --  replace
+   --------------------------------------------------------------------------------------------
+   function replace (S : String; reject, shiny : Character) return String
+   is
+      rejectstr : constant String (1 .. 1) := (1 => reject);
+      focus     : constant Natural :=
+                           AS.Fixed.Index (Source => S, Pattern => rejectstr);
+      returnstr : String := S;
+   begin
+      if focus > 0 then
+        returnstr (focus) := shiny;
+      end if;
+      return returnstr;
+   end replace;
+
+
+   --------------------------------------------------------------------------------------------
+   --  replace_all
+   --------------------------------------------------------------------------------------------
+   function replace_all (S : String; reject, shiny : Character) return String
+   is
+      rejectstr : constant String (1 .. 1) := (1 => reject);
+      returnstr : String := S;
+      focus     : Natural;
+   begin
+      loop
+         focus := AS.Fixed.Index (Source => returnstr, Pattern => rejectstr);
+         exit when focus = 0;
+         returnstr (focus) := shiny;
+      end loop;
+      return returnstr;
+   end replace_all;
+
 end HelperText;

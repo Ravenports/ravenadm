@@ -125,6 +125,12 @@ package HelperText is
    --  Return contents of exact line given a block of lines (delimited by LF) and a line number
    function specific_line (S : String; line_number : Positive) return String;
 
+   --  Replace a single character with another single character (first found)
+   function replace (S : String; reject, shiny : Character) return String;
+
+   --  Replace single character with another single character (all found)
+   function replace_all (S : String; reject, shiny : Character) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);
