@@ -2,18 +2,22 @@
 --  Reference: ../License.txt
 
 with Display;
+with Port_Specification;
 private with Ada.Calendar;
 
 package PortScan.Buildcycle is
+
+   package PSP renames Port_Specification;
 
    cycle_cmd_error : exception;
 
    procedure initialize (test_mode : Boolean);
 
-   function build_package (id          : builders;
-                           sequence_id : port_id;
-                           interactive : Boolean := False;
-                           interphase  : String  := "") return Boolean;
+   function build_package (id            : builders;
+                           sequence_id   : port_id;
+                           specification : PSP.Portspecs;
+                           interactive   : Boolean := False;
+                           interphase    : String  := "") return Boolean;
 
    --  Compile status of builder for the curses display
    function builder_status (id       : builders;
@@ -81,7 +85,6 @@ private
    function  exec_phase_depends (id : builders) return Boolean;
    function  exec_phase_deinstall (id : builders) return Boolean;
    function  exec_phase_install (id : builders) return Boolean;
-   function  exec_phase_package (id : builders) return Boolean;
    function  exec_phase_build (id : builders) return Boolean;
    function  phase2str (phase : phases) return String;
    function  max_time_without_output (phase : phases) return execution_limit;

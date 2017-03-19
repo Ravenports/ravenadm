@@ -5,6 +5,7 @@ with Unix;
 with Replicant;
 with Parameters;
 with PortScan.Log;
+with PortScan.Packager;
 with File_Operations;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
@@ -15,16 +16,18 @@ package body PortScan.Buildcycle is
    package DIR renames Ada.Directories;
    package FOP renames File_Operations;
    package LOG renames PortScan.Log;
+   package PKG renames PortScan.Packager;
    package PM  renames Parameters;
    package REP renames Replicant;
 
    --------------------------------------------------------------------------------------------
    --  build_package
    --------------------------------------------------------------------------------------------
-   function build_package (id          : builders;
-                           sequence_id : port_id;
-                           interactive : Boolean := False;
-                           interphase  : String  := "") return Boolean
+   function build_package (id            : builders;
+                           sequence_id   : port_id;
+                           specification : PSP.Portspecs;
+                           interactive   : Boolean := False;
+                           interphase    : String  := "") return Boolean
    is
       R : Boolean;
       break_phase  : constant phases := valid_test_phase (interphase);
@@ -79,7 +82,10 @@ package body PortScan.Buildcycle is
                R := exec_phase_generic (id, phase);
 
             when pkg_package =>
-               R := exec_phase_package (id);
+               R := PKG.exec_phase_package (specification => specification,
+                                            log_handle    => trackers (id).log_handle,
+                                            seq_id        => trackers (id).seq_id,
+                                            rootdir       => get_root (id));
 
             when install =>
                if testing then
@@ -88,7 +94,7 @@ package body PortScan.Buildcycle is
 
             when check_plist =>
                if testing then
-                  R := exec_phase_generic (id, phase);
+                  R := PKG.exec_check_plist (trackers (id).log_handle, trackers (id).seq_id);
                end if;
 
             when deinstall =>
@@ -259,17 +265,6 @@ package body PortScan.Buildcycle is
    begin
       return True;
    end exec_phase_depends;
-
-
-   --------------------------------------------------------------------------------------------
-   --  exec_phase_package
-   --------------------------------------------------------------------------------------------
-   function exec_phase_package (id : builders) return Boolean
-   is
-      --  TODO: implement
-   begin
-      return False;
-   end exec_phase_package;
 
 
    --------------------------------------------------------------------------------------------
@@ -836,7 +831,7 @@ package body PortScan.Buildcycle is
          end if;
       end attributes;
 
-      command  : constant String := "/usr/sbin/mtree -X " & mtfile &
+      command  : constant String := "/usr/bin/mtree -X " & mtfile &
                  " -cn -k " & attributes (action) & " -p " & path_sm;
       filename : constant String := path_sm & "/tmp/mtree." & action;
 
@@ -887,7 +882,7 @@ package body PortScan.Buildcycle is
                             HT.zeropad (Natural (id), 2);
       mtfile    : constant String := path_mm & "/mtree." & action & ".exclude";
       filename  : constant String := path_sm & "/tmp/mtree." & action;
-      command   : constant String := "/usr/sbin/mtree -X " & mtfile & " -f " &
+      command   : constant String := "/usr/bin/mtree -X " & mtfile & " -f " &
                                      filename & " -p " & path_sm;
       lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
       lbase     : constant String := lbasewrk (lbasewrk'First + 1 .. lbasewrk'Last);
