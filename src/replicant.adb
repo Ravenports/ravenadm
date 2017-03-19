@@ -439,7 +439,24 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  write_common_mtree_exclude_base
    --------------------------------------------------------------------------------------------
-   procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type) is
+   procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type)
+   is
+      function write_usr return String;
+
+      RB : String := LAT.Full_Stop & HT.USS (ravenbase);
+
+      function write_usr return String is
+      begin
+         if HT.equivalent (ravenbase, bsd_localbase) then
+            return "./usr/bin" & LAT.LF
+              & "./usr/include" & LAT.LF
+              & "./usr/lib" & LAT.LF
+              & "./usr/lib32" & LAT.LF
+              & "./usr/share" & LAT.LF;
+         else
+            return "./usr" & LAT.LF;
+         end if;
+      end write_usr;
    begin
       TIO.Put_Line
         (mtreefile,
@@ -448,21 +465,19 @@ package body Replicant is
          & "./construction" & LAT.LF
          & "./dev" & LAT.LF
          & "./distfiles" & LAT.LF
-         & "./libexec" & LAT.LF
          & "./home" & LAT.LF
+         & "./libexec" & LAT.LF
          & "./packages" & LAT.LF
+         & "./port" & LAT.LF
          & "./proc" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
-         & "./usr/bin" & LAT.LF
-         & "./usr/include" & LAT.LF
-         & "./usr/lib" & LAT.LF
-         & "./usr/lib32" & LAT.LF
-         & "./usr/share" & LAT.LF
+         & write_usr
          & "./var/db/rvnfontconfig" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
-         & "./xports"
+         & "./xports" & LAT.LF
+         & RB & "/toolchain"
         );
    end write_common_mtree_exclude_base;
 
@@ -1038,6 +1053,8 @@ package body Replicant is
       spwd   : constant String := "/spwd.db";
       pwd    : constant String := "/pwd.db";
       group  : constant String := "/group";
+      mtree1 : constant String := "/mtree.preconfig.exclude";
+      mtree2 : constant String := "/mtree.prestage.exclude";
 
       procedure install (filename : String) is
       begin
@@ -1052,6 +1069,8 @@ package body Replicant is
       install (spwd);
       install (pwd);
       install (group);
+      install (mtree1);
+      install (mtree2);
    end install_passwd_and_group;
 
 

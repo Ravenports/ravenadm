@@ -73,10 +73,10 @@ package body PortScan.Buildcycle is
                end if;
 
             when stage =>
+               REP.unhook_toolchain (id);
                if testing then
                   mark_file_system (id, "prestage");
                end if;
-               REP.unhook_toolchain (id);
                R := exec_phase_generic (id, phase);
 
             when pkg_package =>
@@ -800,15 +800,13 @@ package body PortScan.Buildcycle is
    is
       function attributes (action : String) return String;
 
-      path_mm  : String := HT.USS (PM.configuration.dir_buildbase) & "/Base";
-      path_sm  : String := HT.USS (PM.configuration.dir_buildbase) & "/SL" &
-                           HT.zeropad (Natural (id), 2);
-      mtfile   : constant String := path_mm & "/mtree." & action & ".exclude";
+      root     : constant String := get_root (id);
+      mtfile   : constant String := "/etc/mtree." & action & ".exclude";
       resfile  : TIO.File_Type;
 
       function attributes (action : String) return String
       is
-         core : constant String := "uid,gid,mode,md5digest";
+         core : constant String := "uid,gid,mode,sha1digest";
       begin
          if action = "preconfig" then
             return core & ",time";
@@ -817,9 +815,9 @@ package body PortScan.Buildcycle is
          end if;
       end attributes;
 
-      command  : constant String := "/usr/bin/mtree -X " & mtfile &
-                 " -cn -k " & attributes (action) & " -p " & path_sm;
-      filename : constant String := path_sm & "/tmp/mtree." & action;
+      command  : constant String := chroot & root & environment_override  & " /usr/bin/mtree -X "
+                 & mtfile & " -cn -k " & attributes (action) & " -p /";
+      filename : constant String := root & "/tmp/mtree." & action;
 
    begin
       TIO.Create (File => resfile, Mode => TIO.Out_File, Name => filename);
@@ -863,13 +861,11 @@ package body PortScan.Buildcycle is
       procedure print (cursor : crate.Cursor);
       procedure close_active_modifications;
 
-      path_mm   : String := HT.USS (PM.configuration.dir_buildbase) & "/Base";
-      path_sm   : String := HT.USS (PM.configuration.dir_buildbase) & "/SL" &
-                            HT.zeropad (Natural (id), 2);
-      mtfile    : constant String := path_mm & "/mtree." & action & ".exclude";
-      filename  : constant String := path_sm & "/tmp/mtree." & action;
-      command   : constant String := "/usr/bin/mtree -X " & mtfile & " -f " &
-                                     filename & " -p " & path_sm;
+      root      : constant String := get_root (id);
+      mtfile    : constant String := "/etc/mtree." & action & ".exclude";
+      filename  : constant String := root & "/tmp/mtree." & action;
+      command   : constant String := chroot & root & environment_override & "/usr/bin/mtree -X " &
+                                     mtfile & " -f " & filename & " -p /";
       lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
       lbase     : constant String := lbasewrk (lbasewrk'First + 1 .. lbasewrk'Last);
       lblen     : constant Natural := lbase'Length;
