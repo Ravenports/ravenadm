@@ -25,6 +25,7 @@ package body Specification_Parser is
       specification   : out PSP.Portspecs;
       success         : out Boolean;
       opsys_focus     : supported_opsys;
+      arch_focus      : supported_arch;
       stop_at_targets : Boolean;
       extraction_dir  : String := "")
    is
@@ -33,6 +34,7 @@ package body Specification_Parser is
       contents      : constant String  := FOP.get_file_contents (dossier);
       stop_at_files : constant Boolean := (extraction_dir = "");
       match_opsys   : constant String  := UTL.lower_opsys (opsys_focus);
+      match_arch    : constant String  := UTL.cpu_arch (arch_focus);
       markers       : HT.Line_Markers;
       linenum       : Natural := 0;
       seen_namebase : Boolean := False;
@@ -336,6 +338,7 @@ package body Specification_Parser is
                      when must_configure   => build_string (spec, PSP.sp_must_config, line);
                      when deprecated       => build_string (spec, PSP.sp_deprecated, line);
                      when expiration       => build_string (spec, PSP.sp_expiration, line);
+                     when prefix           => build_string (spec, PSP.sp_prefix, line);
                      when revision         => set_natural (spec, PSP.sp_revision, line);
                      when epoch            => set_natural (spec, PSP.sp_epoch, line);
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
@@ -385,6 +388,9 @@ package body Specification_Parser is
                      when extra_patches    => build_list (spec, PSP.sp_extra_patches, line);
                      when patchfiles_strip => build_list (spec, PSP.sp_pfiles_strip, line);
                      when plist_sub        => build_list (spec, PSP.sp_plist_sub, line);
+                     when licenses         => build_list (spec, PSP.sp_licenses, line);
+                     when users            => build_list (spec, PSP.sp_users, line);
+                     when groups           => build_list (spec, PSP.sp_groups, line);
                      when not_singlet      => null;
                   end case;
                   last_singlet := line_singlet;
@@ -463,12 +469,26 @@ package body Specification_Parser is
                   begin
                      if subdir = "" or else
                        subdir = "patches" or else
-                       subdir = "files" or else
                        subdir = "scripts" or else
                        subdir = "descriptions"
                      then
                         FOP.create_subdirectory (extraction_dir, subdir);
                         FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & filename);
+                     elsif subdir = "files" then
+                        FOP.create_subdirectory (extraction_dir, subdir);
+                        declare
+                           newname : constant String :=
+                             tranform_pkg_message (filename, match_opsys, match_arch);
+                        begin
+                           if newname = "" then
+                              FOP.dump_contents_to_file (fileguts,
+                                                         extraction_dir & "/" & filename);
+                           elsif newname = "skip" then
+                              null;
+                           else
+                              FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & newname);
+                           end if;
+                        end;
                      elsif subdir = match_opsys then
                         FOP.create_subdirectory (extraction_dir, "opsys");
                         declare
@@ -863,7 +883,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 65;
+      total_singlets : constant Positive := 69;
 
       type singlet_pair is
          record
@@ -906,6 +926,7 @@ package body Specification_Parser is
          ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
          ("EXTRA_PATCHES         ", 13, extra_patches),
          ("GNU_CONFIGURE_PREFIX  ", 20, gnu_cfg_prefix),
+         ("GROUPS                ",  6, groups),
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
          ("INSTALL_TARGET        ", 14, install_tgt),
@@ -913,6 +934,7 @@ package body Specification_Parser is
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
          ("LIB_DEPENDS           ", 11, lib_deps),
+         ("LICENSE               ",  7, licenses),
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
@@ -929,6 +951,7 @@ package body Specification_Parser is
          ("PATCH_STRIP           ", 11, patch_strip),
          ("PATCH_WRKSRC          ", 12, patch_wrksrc),
          ("PLIST_SUB             ",  9, plist_sub),
+         ("PREFIX                ",  6, prefix),
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),
@@ -937,6 +960,7 @@ package body Specification_Parser is
          ("SKIP_INSTALL          ", 12, skip_install),
          ("SUB_FILES             ",  9, sub_files),
          ("SUB_LIST              ",  8, sub_list),
+         ("USERS                 ",  5, users),
          ("USES                  ",  4, uses),
          ("VARIANTS              ",  8, variants),
          ("VERSION               ",  7, version)
@@ -1734,6 +1758,41 @@ package body Specification_Parser is
    begin
       return HT.part_2 (HT.partial_search (capsule_label, 6, "]"), ":");
    end retrieve_file_name;
+
+
+   --------------------------------------------------------------------------------------------
+   --  tranform_pkg_message
+   --------------------------------------------------------------------------------------------
+   function tranform_pkg_message (filename, match_opsys, match_arch : String) return String
+   is
+      pm    : constant String := "pkg-message-";
+      sub   : constant String := ".in";
+      sys   : constant String := "opsys";
+      arc   : constant String := "arch";
+      pmlen : constant Natural := pm'Length;
+   begin
+      if filename'Length < pmlen + 4 or else
+        filename (filename'First .. filename'First + pmlen - 1) /= pm
+      then
+         return "";
+      end if;
+
+      if filename = pm & match_opsys then
+         return pm & sys;
+      elsif filename = pm & match_opsys & sub then
+         return pm & sys & sub;
+      elsif filename = pm & match_opsys & LAT.Hyphen & match_arch then
+         return pm & sys & LAT.Hyphen & arc;
+      elsif filename = pm & match_opsys & LAT.Hyphen & match_arch & sub then
+         return pm & sys & LAT.Hyphen & arc & sub;
+      elsif filename = pm & match_arch then
+         return pm & arc;
+      elsif filename = pm & match_arch & sub then
+         return pm & arc & sub;
+      else
+         return "skip";
+      end if;
+   end tranform_pkg_message;
 
 
 end Specification_Parser;

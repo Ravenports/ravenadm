@@ -18,6 +18,7 @@ package Specification_Parser is
       specification   : out PSP.Portspecs;
       success         : out Boolean;
       opsys_focus     : supported_opsys;
+      arch_focus      : supported_arch;
       stop_at_targets : Boolean;
       extraction_dir  : String := "");
 
@@ -49,7 +50,7 @@ private
                          install_tgt, patch_wrksrc, patch_strip, patchfiles_strip, extra_patches,
                          must_configure, configure_wrksrc, configure_script, gnu_cfg_prefix,
                          configure_target, config_outsource, apply_10_fix, deprecated,
-                         expiration, install_wrksrc, plist_sub);
+                         expiration, install_wrksrc, plist_sub, prefix, licenses, users, groups);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
@@ -158,5 +159,8 @@ private
 
    --  Return true if all final validity checks pass
    function late_validity_check_error (spec : PSP.Portspecs) return HT.Text;
+
+   --  Returns new filename if it matches dynamic pkg-message filename, otherwise return blank
+   function tranform_pkg_message (filename, match_opsys, match_arch : String) return String;
 
 end Specification_Parser;
