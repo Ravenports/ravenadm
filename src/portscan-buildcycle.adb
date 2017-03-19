@@ -35,21 +35,19 @@ package body PortScan.Buildcycle is
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
-      if uselog then
-         if not LOG.initialize_log (log_handle => trackers (id).log_handle,
-                                    head_time  => trackers (id).head_time,
-                                    seq_id     => trackers (id).seq_id,
-                                    slave_root => get_root (id),
-                                    UNAME      => HT.USS (uname_mrv),
-                                    BENV       => get_environment (id),
-                                    COPTS      => get_options_configuration (id),
-                                    PTVAR      => get_port_variables (id))
-         then
-            LOG.finalize_log (trackers (id).log_handle,
-                              trackers (id).head_time,
-                              trackers (id).tail_time);
-            return False;
-         end if;
+      if not LOG.initialize_log (log_handle => trackers (id).log_handle,
+                                 head_time  => trackers (id).head_time,
+                                 seq_id     => trackers (id).seq_id,
+                                 slave_root => get_root (id),
+                                 UNAME      => HT.USS (uname_mrv),
+                                 BENV       => get_environment (id),
+                                 COPTS      => get_options_configuration (id),
+                                 PTVAR      => get_port_variables (id))
+      then
+         LOG.finalize_log (trackers (id).log_handle,
+                           trackers (id).head_time,
+                           trackers (id).tail_time);
+         return False;
       end if;
       for phase in phases'Range loop
          phase_trackers (id) := phase;
@@ -84,6 +82,8 @@ package body PortScan.Buildcycle is
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
                                             log_handle    => trackers (id).log_handle,
+                                            log_name      => LOG.log_name (trackers (id).seq_id),
+                                            phase_name    => phase2str (phase),
                                             seq_id        => trackers (id).seq_id,
                                             rootdir       => get_root (id));
 
@@ -105,11 +105,9 @@ package body PortScan.Buildcycle is
          exit when R = False;
          exit when interactive and then phase = break_phase;
       end loop;
-      if uselog then
-         LOG.finalize_log (trackers (id).log_handle,
-                           trackers (id).head_time,
-                           trackers (id).tail_time);
-      end if;
+      LOG.finalize_log (trackers (id).log_handle,
+                        trackers (id).head_time,
+                        trackers (id).tail_time);
       if interactive then
          interact_with_builder (id);
       end if;
@@ -249,9 +247,7 @@ package body PortScan.Buildcycle is
       if testing and then passed then
          passed := detect_leftovers_and_MIA (id, "preconfig", "between port configure and build");
       end if;
-      if uselog then
-         LOG.log_phase_end (trackers (id).log_handle);
-      end if;
+      LOG.log_phase_end (trackers (id).log_handle);
       return passed;
    end exec_phase_build;
 
@@ -300,12 +296,10 @@ package body PortScan.Buildcycle is
       --  Descriptors.  I can't find a safe way to get the File Descriptor
       --  out of the File type.
 
-      if uselog then
-         if not skip_header then
-            LOG.log_phase_begin (trackers (id).log_handle, phase2str (phase));
-         end if;
-         TIO.Close (trackers (id).log_handle);
+      if not skip_header then
+         LOG.log_phase_begin (trackers (id).log_handle, phase2str (phase));
       end if;
+      TIO.Close (trackers (id).log_handle);
 
       declare
          command : constant String := chroot & root & environment_override &
@@ -317,18 +311,16 @@ package body PortScan.Buildcycle is
       --  Reopen the log.  I guess we can leave off the exception check
       --  since it's been passing before
 
-      if uselog then
-         TIO.Open (File => trackers (id).log_handle,
-                   Mode => TIO.Append_File,
-                   Name => LOG.log_name (trackers (id).seq_id));
-         if timed_out then
-            TIO.Put_Line (trackers (id).log_handle,
-                          "###  Watchdog killed runaway process!  (no activity for" &
-                            time_limit'Img & " minutes)  ###");
-         end if;
-         if not skip_footer then
-            LOG.log_phase_end (trackers (id).log_handle);
-         end if;
+      TIO.Open (File => trackers (id).log_handle,
+                Mode => TIO.Append_File,
+                Name => LOG.log_name (trackers (id).seq_id));
+      if timed_out then
+         TIO.Put_Line (trackers (id).log_handle,
+                       "###  Watchdog killed runaway process!  (no activity for" &
+                         time_limit'Img & " minutes)  ###");
+      end if;
+      if not skip_footer then
+         LOG.log_phase_end (trackers (id).log_handle);
       end if;
 
       return result;
@@ -501,10 +493,8 @@ package body PortScan.Buildcycle is
       result     : Boolean;
    begin
       --  This is only run during "testing" so assume that.
-      if uselog then
-         LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
-         log_linked_libraries (id);
-      end if;
+      LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
+      log_linked_libraries (id);
       result := False;
 --        result := exec_phase (id          => id,
 --                              phase       => deinstall,
@@ -512,16 +502,12 @@ package body PortScan.Buildcycle is
 --                              skip_header => True,
 --                              skip_footer => True);
       if not result then
-         if uselog then
-            LOG.log_phase_end (trackers (id).log_handle);
-         end if;
+         LOG.log_phase_end (trackers (id).log_handle);
          return False;
       end if;
-      if uselog then
-         result := detect_leftovers_and_MIA
-           (id, "prestage", "between staging and package deinstallation");
-         LOG.log_phase_end (trackers (id).log_handle);
-      end if;
+      result := detect_leftovers_and_MIA
+        (id, "prestage", "between staging and package deinstallation");
+      LOG.log_phase_end (trackers (id).log_handle);
       return result;
    end exec_phase_deinstall;
 

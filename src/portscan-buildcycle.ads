@@ -54,7 +54,6 @@ private
    testing   : Boolean;
    uname_mrv : HT.Text;
    customenv : HT.Text;
-   uselog    : constant Boolean := True;
    selftest  : constant String := "SELFTEST";
    chroot_make_program : constant String := "/usr/bin/make -m /xports/Mk";
 
