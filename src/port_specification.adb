@@ -1752,6 +1752,65 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  aggregated_ignore_reason
+   --------------------------------------------------------------------------------------------
+   function aggregated_ignore_reason (specs : Portspecs) return String
+   is
+      procedure precheck (position : list_crate.Cursor);
+      procedure scribe   (position : list_crate.Cursor);
+
+      result      : HT.Text;
+      num_reasons : Natural := 0;
+      curnum      : Natural := 1;
+
+      procedure precheck (position : list_crate.Cursor)
+      is
+         procedure precheck_list (position : string_crate.Cursor);
+
+         broken_Key : String := HT.USS (list_crate.Element (position).group);
+
+         procedure precheck_list (position : string_crate.Cursor) is
+         begin
+            if broken_Key = broken_all then
+               num_reasons := num_reasons + 1;
+            end if;
+         end precheck_list;
+      begin
+         list_crate.Element (position).list.Iterate (Process => precheck_list'Access);
+      end precheck;
+
+      procedure scribe (position : list_crate.Cursor)
+      is
+         procedure check_list (position : string_crate.Cursor);
+
+         broken_Key : String := HT.USS (list_crate.Element (position).group);
+
+         procedure check_list (position : string_crate.Cursor)
+         is
+            reason : String  := HT.USS (string_crate.Element (position));
+            used   : Boolean := False;
+         begin
+            if broken_Key = broken_all then
+               if num_reasons > 1 then
+                  HT.SU.Append (result, "[Reason " & HT.int2str (curnum) & "] ");
+               end if;
+               HT.SU.Append (result, reason);
+               curnum := curnum + 1;
+            end if;
+         end check_list;
+      begin
+         list_crate.Element (position).list.Iterate (Process => check_list'Access);
+      end scribe;
+   begin
+      specs.broken.Iterate (Process => precheck'Access);
+      if num_reasons > 0 then
+         specs.broken.Iterate (Process => scribe'Access);
+      end if;
+      return HT.USS (result);
+   end aggregated_ignore_reason;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean

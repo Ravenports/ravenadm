@@ -458,11 +458,10 @@ package body PortScan.Scan is
 
       PST.apply_directives (specs => thespec);
 
-      --  TODO: same ignore handling as PSM
---      rec.ignore_reason
-      rec.pkgversion := HT.SUS (thespec.calculate_pkgversion);
-      rec.ignored    := thespec.ignored;
-      rec.scanned    := True;
+      rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
+      rec.ignore_reason := HT.SUS (thespec.aggregated_ignore_reason);
+      rec.ignored       := not HT.IsBlank (rec.ignore_reason);
+      rec.scanned       := True;
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
          populate_set_depends (target, thespec.get_list_item (PSP.sp_build_deps, item), build);
       end loop;
@@ -493,7 +492,6 @@ package body PortScan.Scan is
             end;
          end loop;
       end if;
-
    end populate_port_data;
 
 

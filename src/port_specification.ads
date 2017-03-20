@@ -168,9 +168,6 @@ package Port_Specification is
    --  Return count on variants list
    function get_number_of_variants (specs : Portspecs) return Natural;
 
-   --  Return true if there are any broken reasons defined
-   function ignored (specs : Portspecs) return Boolean;
-
    --  Return the list length of the data indicated by field
    function get_list_length (specs : Portspecs; field : spec_field) return Natural;
 
@@ -185,6 +182,9 @@ package Port_Specification is
      (specs   : Portspecs;
       variant : String;
       item    : Natural) return String;
+
+   --  Return aggregate and formatted reason(s) for ignoring the port.
+   function aggregated_ignore_reason (specs : Portspecs) return String;
 
 private
 
