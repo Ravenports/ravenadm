@@ -574,6 +574,34 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  specific_field
+   --------------------------------------------------------------------------------------------
+   function specific_field
+     (S            : String;
+      field_number : Positive;
+      delimiter    : String := " ") return String
+   is
+      back  : Integer;
+      dsize : Natural := delimiter'Length;
+      front : Integer := S'First;
+   begin
+      for field in 1 .. field_number - 1 loop
+         back := AS.Fixed.Index (Source => S, Pattern => delimiter, From => front);
+         if back <= 0 then
+            return "";
+         end if;
+         front := back + dsize;
+      end loop;
+      back := AS.Fixed.Index (Source => S, Pattern => delimiter, From => front);
+      if back > 0 then
+         return S (front .. back - 1);
+      else
+         return S (front .. S'Last);
+      end if;
+   end specific_field;
+
+
+   --------------------------------------------------------------------------------------------
    --  replace
    --------------------------------------------------------------------------------------------
    function replace (S : String; reject, shiny : Character) return String

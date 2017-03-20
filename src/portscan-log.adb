@@ -401,4 +401,22 @@ package body PortScan.Log is
 
    end initialize_log;
 
+
+   --------------------------------------------------------------------------------------------
+   --  set_scan_start_time
+   --------------------------------------------------------------------------------------------
+   procedure set_scan_start_time (mark : CAL.Time) is
+   begin
+      scan_start := mark;
+   end set_scan_start_time;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_scan_complete
+   --------------------------------------------------------------------------------------------
+   procedure set_scan_complete (mark : CAL.Time) is
+   begin
+      scan_stop := mark;
+   end set_scan_complete;
+
 end PortScan.Log;

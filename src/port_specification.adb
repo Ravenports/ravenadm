@@ -1528,20 +1528,23 @@ package body Port_Specification is
          when sp_contacts   =>
             specs.contacts.Iterate (concat'Access);
             return HT.USS (joined);
-         when sp_keywords   =>
+         when sp_keywords =>
             specs.keywords.Iterate (concat'Access);
             return HT.USS (joined);
-         when sp_licenses   =>
+         when sp_licenses =>
             specs.licenses.Iterate (concat'Access);
             return HT.USS (joined);
-         when sp_users   =>
+         when sp_users =>
             specs.users.Iterate (concat'Access);
             return HT.USS (joined);
-         when sp_groups   =>
+         when sp_groups =>
             specs.groups.Iterate (concat'Access);
             return HT.USS (joined);
          when sp_opt_helper =>
             specs.ops_helpers.Iterate (dump_option'Access);
+            return HT.USS (joined);
+         when sp_variants =>
+            specs.variants.Iterate (concat'Access);
             return HT.USS (joined);
          when others =>
             raise wrong_type with field'Img;
@@ -1626,6 +1629,15 @@ package body Port_Specification is
    begin
       return VERD & suf1 & suf2;
    end calculate_pkgversion;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_number_of_variants
+   --------------------------------------------------------------------------------------------
+   function get_number_of_variants (specs : Portspecs) return Natural is
+   begin
+      return Natural (specs.variants.Length);
+   end get_number_of_variants;
 
 
    --------------------------------------------------------------------------------------------

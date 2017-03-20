@@ -22,6 +22,10 @@ package PortScan is
 
    type port_id is private;
 
+   --  DELETE-ME-LATER
+   first_port : constant port_id;
+   procedure crash_test_dummy;
+
 private
 
    package CON renames Ada.Containers;
@@ -32,9 +36,13 @@ private
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;
 
+   --  DELETE-ME-LATER
+   first_port : constant port_id := port_index'First;
+
    port_match_failed : constant port_id := port_id'First;
 
-   type dependency_type is (build, library, runtime);
+   type dependency_type is (build, buildrun, runtime);
+   subtype bucket_code is String (1 .. 2);
 
    bmake_execution  : exception;
    pkgng_execution  : exception;
@@ -90,13 +98,16 @@ private
       Hash            => block_hash,
       Equivalent_Keys => block_ekey);
 
-      type port_record is
+   type port_record is
       record
          sequence_id   : port_index           := 0;
          key_cursor    : portkey_crate.Cursor := portkey_crate.No_Element;
          ignore_reason : HT.Text              := HT.blank;
-         port_version  : HT.Text              := HT.blank;
+         pkgversion    : HT.Text              := HT.blank;
          port_variant  : HT.Text              := HT.blank;
+         port_namebase : HT.Text              := HT.blank;
+         bucket        : bucket_code          := "00";
+         unkind_custom : Boolean              := False;
          ignored       : Boolean              := False;
          scanned       : Boolean              := False;
          rev_scanned   : Boolean              := False;
@@ -129,11 +140,7 @@ private
    make_queue   : dim_make_queue;
    mq_progress  : dim_progress := (others => 0);
    rank_queue   : ranking_crate.Set;
-   number_cores : cpu_range  := cpu_range'First;
-   lot_number   : scanners   := 1;
-   lot_counter  : port_index := 0;
    last_port    : port_index := 0;
-   prescanned   : Boolean    := False;
 
    discerr      : constant String := "Discovery error";
    chroot       : constant String := "/usr/sbin/chroot ";

@@ -125,6 +125,13 @@ package HelperText is
    --  Return contents of exact line given a block of lines (delimited by LF) and a line number
    function specific_line (S : String; line_number : Positive) return String;
 
+   --  Given a single line (presumably no line feeds) with data separated by <delimited>,
+   --  return the field given by field_number (starts counting at 1).
+   function specific_field
+     (S            : String;
+      field_number : Positive;
+      delimiter    : String := " ") return String;
+
    --  Replace a single character with another single character (first found)
    function replace (S : String; reject, shiny : Character) return String;
 

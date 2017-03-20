@@ -39,6 +39,10 @@ package PortScan.Log is
    --  Returns formatted difference in seconds between two times
    function elapsed_HH_MM_SS (start, stop : CAL.Time) return String;
 
+   --  Establish times before the start and upon completion of a scan.
+   procedure set_scan_start_time (mark : CAL.Time);
+   procedure set_scan_complete   (mark : CAL.Time);
+
 private
 
    type dim_handlers is array (count_type) of TIO.File_Type;

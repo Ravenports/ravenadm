@@ -165,6 +165,9 @@ package Port_Specification is
    --  Calculate the surprisingly complex pkgversion string
    function calculate_pkgversion (specs : Portspecs) return String;
 
+   --  Return count on variants list
+   function get_number_of_variants (specs : Portspecs) return Natural;
+
 private
 
    package HT  renames HelperText;
