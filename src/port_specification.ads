@@ -168,6 +168,24 @@ package Port_Specification is
    --  Return count on variants list
    function get_number_of_variants (specs : Portspecs) return Natural;
 
+   --  Return true if there are any broken reasons defined
+   function ignored (specs : Portspecs) return Boolean;
+
+   --  Return the list length of the data indicated by field
+   function get_list_length (specs : Portspecs; field : spec_field) return Natural;
+
+   --  Return item given by number when the list is indicated by the field
+   function get_list_item (specs : Portspecs; field : spec_field; item : Natural) return String;
+
+   --  Return number of subpackage for a given variant
+   function get_subpackage_length (specs : Portspecs; variant : String) return Natural;
+
+   --  Return subpackage given a variant and index
+   function get_subpackage_item
+     (specs   : Portspecs;
+      variant : String;
+      item    : Natural) return String;
+
 private
 
    package HT  renames HelperText;

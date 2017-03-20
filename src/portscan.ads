@@ -2,12 +2,12 @@
 --  Reference: ../License.txt
 
 with Definitions; use Definitions;
+with HelperText;
 with Ada.Text_IO;
 
 private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Ordered_Sets;
 private with Ada.Containers.Vectors;
-private with HelperText;
 
 --  GCC 6.0 only
 --  pragma Suppress (Tampering_Check);
@@ -15,12 +15,21 @@ private with HelperText;
 package PortScan is
 
    package TIO renames Ada.Text_IO;
+   package HT  renames HelperText;
 
    scan_log_error : exception;
 
    type count_type is (total, success, failure, ignored, skipped);
 
    type port_id is private;
+
+   type sysroot_characteristics is
+      record
+         major   : HT.Text;
+         release : HT.Text;
+         version : HT.Text;
+         arch    : supported_arch;
+      end record;
 
    --  DELETE-ME-LATER
    first_port : constant port_id;
@@ -29,7 +38,6 @@ package PortScan is
 private
 
    package CON renames Ada.Containers;
-   package HT  renames HelperText;
 
    max_ports  : constant := 2000;
 
@@ -41,7 +49,6 @@ private
 
    port_match_failed : constant port_id := port_id'First;
 
-   type dependency_type is (build, buildrun, runtime);
    subtype bucket_code is String (1 .. 2);
 
    bmake_execution  : exception;
@@ -120,8 +127,7 @@ private
          deletion_due  : Boolean              := False;
          use_procfs    : Boolean              := False;
          reverse_score : port_index           := 0;
-         min_librun    : Natural              := 0;
-         librun        : block_crate.Map;
+         run_deps      : block_crate.Map;
          blocked_by    : block_crate.Map;
          blocks        : block_crate.Map;
          all_reverse   : block_crate.Map;

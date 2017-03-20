@@ -4,6 +4,7 @@
 with Definitions; use Definitions;
 
 private with HelperText;
+private with PortScan;
 
 package Pilot is
 
@@ -83,10 +84,7 @@ private
    scan_slave : constant builders := 9;
    ss_base    : constant String := "/SL09";
 
-   sl_major   : HT.Text;
-   sl_release : HT.Text;
-   sl_version : HT.Text;
-   sl_arch    : supported_arch;
+   sysrootver : PortScan.sysroot_characteristics;
 
    logname   : constant dim_logname := ("00_last_results.log",
                                         "01_success_list.log",

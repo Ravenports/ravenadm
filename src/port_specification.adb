@@ -531,6 +531,12 @@ package body Port_Specification is
             if not valid_dependency_format (value) then
                raise wrong_value with "invalid dependency format '" & value & "'";
             end if;
+            if specs.build_deps.Contains (text_value) or else
+              specs.buildrun_deps.Contains (text_value) or else
+              specs.run_deps.Contains (text_value)
+            then
+               raise wrong_value with "Duplicate dependency '" & value & "'";
+            end if;
             case field is
                when sp_build_deps    => specs.build_deps.Append (text_value);
                when sp_buildrun_deps => specs.buildrun_deps.Append (text_value);
@@ -1638,6 +1644,111 @@ package body Port_Specification is
    begin
       return Natural (specs.variants.Length);
    end get_number_of_variants;
+
+
+   --------------------------------------------------------------------------------------------
+   --  ignored
+   --------------------------------------------------------------------------------------------
+   function ignored (specs : Portspecs) return Boolean is
+   begin
+      return (Natural (specs.broken.Length) > 0);
+   end ignored;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_list_length
+   --------------------------------------------------------------------------------------------
+   function get_list_length (specs : Portspecs; field : spec_field) return Natural is
+   begin
+      case field is
+         when sp_build_deps    => return Natural (specs.build_deps.Length);
+         when sp_buildrun_deps => return Natural (specs.buildrun_deps.Length);
+         when sp_run_deps      => return Natural (specs.run_deps.Length);
+         when sp_opts_standard => return Natural (specs.ops_standard.Length);
+         when sp_opts_avail    => return Natural (specs.ops_avail.Length);
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+   end get_list_length;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_list_item
+   --------------------------------------------------------------------------------------------
+   function get_list_item (specs : Portspecs; field : spec_field; item : Natural) return String
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      counter : Natural := 0;
+      result  : HT.Text;
+
+      procedure scan (position : string_crate.Cursor) is
+      begin
+         if HT.IsBlank (result) then
+            counter := counter + 1;
+            if counter = item then
+               result := string_crate.Element (position);
+            end if;
+         end if;
+      end scan;
+   begin
+      case field is
+         when sp_build_deps    => specs.build_deps.Iterate (scan'Access);
+         when sp_buildrun_deps => specs.buildrun_deps.Iterate (scan'Access);
+         when sp_run_deps      => specs.run_deps.Iterate (scan'Access);
+         when sp_opts_standard => specs.ops_standard.Iterate (scan'Access);
+         when sp_opts_avail    => specs.ops_avail.Iterate (scan'Access);
+         when others =>
+            raise wrong_type with field'Img;
+      end case;
+      return HT.USS (result);
+   end get_list_item;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_subpackage_length
+   --------------------------------------------------------------------------------------------
+   function get_subpackage_length (specs : Portspecs; variant : String) return Natural
+   is
+      variant_text : HT.Text := HT.SUS (variant);
+   begin
+      if specs.subpackages.Contains (variant_text) then
+         return Natural (specs.subpackages.Element (variant_text).list.Length);
+      else
+         return 0;
+      end if;
+   end get_subpackage_length;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_subpackage_item
+   --------------------------------------------------------------------------------------------
+   function get_subpackage_item
+     (specs   : Portspecs;
+      variant : String;
+      item    : Natural) return String
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      variant_text : HT.Text := HT.SUS (variant);
+      counter : Natural := 0;
+      result  : HT.Text;
+
+      procedure scan (position : string_crate.Cursor) is
+      begin
+         if HT.IsBlank (result) then
+            counter := counter + 1;
+            if counter = item then
+               result := string_crate.Element (position);
+            end if;
+         end if;
+      end scan;
+   begin
+      if specs.subpackages.Contains (variant_text) then
+         specs.subpackages.Element (variant_text).list.Iterate (scan'Access);
+      end if;
+      return HT.USS (result);
+   end get_subpackage_item;
 
 
    --------------------------------------------------------------------------------------------

@@ -1,13 +1,16 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Ada.Characters.Latin_1;
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Calendar;
 with File_Operations;
-with Port_Specification;
+with Port_Specification.Transform;
 with Specification_Parser;
 with PortScan.Log;
 with Parameters;
+with Signals;
 with Unix;
 
 package body PortScan.Scan is
@@ -16,26 +19,35 @@ package body PortScan.Scan is
    package LOG renames PortScan.Log;
    package FOP renames File_Operations;
    package PAR renames Specification_Parser;
+   package PST renames Port_Specification.Transform;
    package PSP renames Port_Specification;
+   package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
+   package EX  renames Ada.Exceptions;
    package CAL renames Ada.Calendar;
 
    --------------------------------------------------------------------------------------------
    --  scan_entire_ports_tree
    --------------------------------------------------------------------------------------------
-   function scan_entire_ports_tree (conspiracy, unkindness : String) return Boolean
+   function scan_entire_ports_tree
+     (conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics) return Boolean
    is
       good_scan    : Boolean;
       using_screen : constant Boolean := Unix.screen_attached;
    begin
-      --  tree must be already mounted in the scan slave.
-      --  However, prescan works on the real ports tree, not the mount.
+      --  All scanning done on host system (no need to mount in a slave)
       if not prescanned then
-         prescan_ports_tree (conspiracy, unkindness);
+         prescan_ports_tree (conspiracy, unkindness, sysrootver);
       end if;
       prescan_unkindness (unkindness);
       LOG.set_scan_start_time (CAL.Clock);
-      parallel_deep_scan (success => good_scan, show_progress => using_screen);
+      parallel_deep_scan (conspiracy    => conspiracy,
+                          unkindness    => unkindness,
+                          sysrootver    => sysrootver,
+                          success       => good_scan,
+                          show_progress => using_screen);
       LOG.set_scan_complete (CAL.Clock);
 
       return good_scan;
@@ -45,7 +57,10 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  prescan_ports_tree
    --------------------------------------------------------------------------------------------
-   procedure prescan_ports_tree (conspiracy, unkindness : String)
+   procedure prescan_ports_tree
+     (conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics)
    is
       conspindex      : constant String := "conspiracy_index";
       conspindex_path : constant String := conspiracy & "/Mk/" & conspindex;
@@ -112,6 +127,7 @@ package body PortScan.Scan is
                         all_ports (lot_counter).key_cursor    := kc;
                         all_ports (lot_counter).port_namebase := HT.SUS (namebase);
                         all_ports (lot_counter).port_variant  := HT.SUS (varxname);
+                        all_ports (lot_counter).bucket        := bucket_code (bucket);
                         all_ports (lot_counter).unkind_custom := False;
 
                         make_queue (lot_number).Append (lot_counter);
@@ -135,13 +151,18 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  prescan_custom
    --------------------------------------------------------------------------------------------
-   procedure prescan_custom (unkindness, buildsheet : String; max_lots : scanners)
+   procedure prescan_custom
+     (unkindness    : String;
+      bucket        : bucket_code;
+      namebase      : String;
+      max_lots      : scanners)
    is
       --  Assume buildsheet exists (has already been validated)
       --  Assume it starts with directory separator
       successful : Boolean;
       customspec : PSP.Portspecs;
       arch_focus : supported_arch := x86_64;  -- unused, pick one
+      buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
    begin
       PAR.parse_specification_file (dossier         => unkindness & buildsheet,
                                     specification   => customspec,
@@ -156,7 +177,6 @@ package body PortScan.Scan is
       declare
          varcount : Natural := customspec.get_number_of_variants;
          varlist  : String  := customspec.get_field_value (PSP.sp_variants);
-         namebase : String  := customspec.get_namebase;
       begin
          for varx in Integer range 1 .. varcount loop
             declare
@@ -174,6 +194,7 @@ package body PortScan.Scan is
                all_ports (lot_counter).key_cursor    := kc;
                all_ports (lot_counter).port_namebase := HT.SUS (namebase);
                all_ports (lot_counter).port_variant  := HT.SUS (varxname);
+               all_ports (lot_counter).bucket        := bucket;
                all_ports (lot_counter).unkind_custom := True;
 
                make_queue (lot_number).Append (lot_counter);
@@ -190,7 +211,7 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
-   --  walk_the_bucket
+   --  prescan_unkindness
    --------------------------------------------------------------------------------------------
    procedure prescan_unkindness (unkindness : String)
    is
@@ -212,6 +233,7 @@ package body PortScan.Scan is
          DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
          declare
             bucketdir    : constant String := DIR.Simple_Name (Dir_Ent);
+            bucket       : bucket_code := bucketdir (bucketdir'Last - 1 .. bucketdir'Last);
             Inner_Search : DIR.Search_Type;
             Inner_Dirent : DIR.Directory_Entry_Type;
          begin
@@ -222,16 +244,18 @@ package body PortScan.Scan is
             while DIR.More_Entries (Inner_Search) loop
                DIR.Get_Next_Entry (Search => Inner_Search, Directory_Entry => Inner_Dirent);
                declare
-                  bsheet : constant String := "/" & bucketdir & DIR.Simple_Name (Inner_Dirent);
+                  namebase : String := DIR.Simple_Name (Inner_Dirent);
                begin
-                  prescan_custom (unkindness, bsheet, max_lots);
+                  prescan_custom (unkindness => unkindness,
+                                  bucket     => bucket,
+                                  namebase   => namebase,
+                                  max_lots   => max_lots);
                end;
             end loop;
             DIR.End_Search (Inner_Search);
          end;
       end loop;
       DIR.End_Search (Search);
-
    end prescan_unkindness;
 
 
@@ -248,5 +272,288 @@ package body PortScan.Scan is
          return scanners (first_try);
       end if;
    end get_max_lots;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scan_progress
+   --------------------------------------------------------------------------------------------
+   function scan_progress return String
+   is
+      type percent is delta 0.01 digits 5;
+      complete : port_index := 0;
+      pc : percent;
+   begin
+      for k in scanners'Range loop
+         complete := complete + mq_progress (k);
+      end loop;
+      pc := percent (100.0 * Float (complete) / Float (last_port));
+      return " progress:" & pc'Img & "%              " & LAT.CR;
+   end scan_progress;
+
+
+   --------------------------------------------------------------------------------------------
+   --  parallel_deep_scan
+   --------------------------------------------------------------------------------------------
+   procedure parallel_deep_scan
+     (conspiracy    : String;
+      unkindness    : String;
+      sysrootver    : sysroot_characteristics;
+      success       : out Boolean;
+      show_progress : Boolean)
+   is
+      finished : array (scanners) of Boolean := (others => False);
+      combined_wait : Boolean := True;
+      aborted : Boolean := False;
+
+      task type scan (lot : scanners);
+      task body scan
+      is
+         procedure populate (cursor : subqueue.Cursor);
+         procedure populate (cursor : subqueue.Cursor)
+         is
+            target_port : port_index := subqueue.Element (cursor);
+         begin
+            if not aborted then
+               populate_port_data (conspiracy, unkindness, target_port, sysrootver);
+               mq_progress (lot) := mq_progress (lot) + 1;
+            end if;
+         exception
+            when issue : others =>
+               TIO.Put_Line (LAT.LF & "culprit: " & get_port_variant (all_ports (target_port)));
+               EX.Reraise_Occurrence (issue);
+         end populate;
+      begin
+         make_queue (lot).Iterate (populate'Access);
+         finished (lot) := True;
+      exception
+         when issue : nonexistent_port =>
+            aborted := True;
+            TIO.Put_Line ("Scan aborted because dependency could " &
+                            "not be located.");
+            TIO.Put_Line (EX.Exception_Message (issue));
+         when issue : bmake_execution =>
+            aborted := True;
+            TIO.Put_Line ("Scan aborted because 'make' encounted " &
+                            "an error in the Makefile.");
+            TIO.Put_Line (EX.Exception_Message (issue));
+         when issue : make_garbage =>
+            aborted := True;
+            TIO.Put_Line ("Scan aborted because dependency is malformed.");
+            TIO.Put_Line (EX.Exception_Message (issue));
+         when issue : others =>
+            aborted := True;
+            TIO.Put_Line ("Scan aborted for an unknown reason.");
+            TIO.Put_Line (EX.Exception_Message (issue));
+      end scan;
+
+      scan_01 : scan (lot => 1);
+      scan_02 : scan (lot => 2);
+      scan_03 : scan (lot => 3);
+      scan_04 : scan (lot => 4);
+      scan_05 : scan (lot => 5);
+      scan_06 : scan (lot => 6);
+      scan_07 : scan (lot => 7);
+      scan_08 : scan (lot => 8);
+      scan_09 : scan (lot => 9);
+      scan_10 : scan (lot => 10);
+      scan_11 : scan (lot => 11);
+      scan_12 : scan (lot => 12);
+      scan_13 : scan (lot => 13);
+      scan_14 : scan (lot => 14);
+      scan_15 : scan (lot => 15);
+      scan_16 : scan (lot => 16);
+      scan_17 : scan (lot => 17);
+      scan_18 : scan (lot => 18);
+      scan_19 : scan (lot => 19);
+      scan_20 : scan (lot => 20);
+      scan_21 : scan (lot => 21);
+      scan_22 : scan (lot => 22);
+      scan_23 : scan (lot => 23);
+      scan_24 : scan (lot => 24);
+      scan_25 : scan (lot => 25);
+      scan_26 : scan (lot => 26);
+      scan_27 : scan (lot => 27);
+      scan_28 : scan (lot => 28);
+      scan_29 : scan (lot => 29);
+      scan_30 : scan (lot => 30);
+      scan_31 : scan (lot => 31);
+      scan_32 : scan (lot => 32);
+
+   begin
+      TIO.Put_Line ("Scanning entire ports tree.");
+      while combined_wait loop
+         delay 1.0;
+         if show_progress then
+            TIO.Put (scan_progress);
+         end if;
+         combined_wait := False;
+         for j in scanners'Range loop
+            if not finished (j) then
+               combined_wait := True;
+               exit;
+            end if;
+         end loop;
+         if Signals.graceful_shutdown_requested then
+            aborted := True;
+         end if;
+      end loop;
+      success := not aborted;
+   end parallel_deep_scan;
+
+
+   --------------------------------------------------------------------------------------------
+   --  populate_port_data
+   --------------------------------------------------------------------------------------------
+   procedure populate_port_data
+     (conspiracy    : String;
+      unkindness    : String;
+      target        : port_index;
+      sysrootver    : sysroot_characteristics)
+   is
+      rec : port_record renames all_ports (target);
+      function calc_dossier return String;
+
+      thespec    : PSP.Portspecs;
+      successful : Boolean;
+      variant    : constant String := HT.USS (rec.port_variant);
+      osrelease  : constant String := HT.USS (sysrootver.release);
+
+      function calc_dossier return String
+      is
+         buildsheet : String := "/bucket_" & rec.bucket & "/" & HT.USS (rec.port_namebase);
+      begin
+         if rec.unkind_custom then
+            return unkindness & buildsheet;
+         else
+            return conspiracy & buildsheet;
+         end if;
+      end calc_dossier;
+   begin
+      PAR.parse_specification_file (dossier         => calc_dossier,
+                                    specification   => thespec,
+                                    opsys_focus     => platform_type,
+                                    arch_focus      => sysrootver.arch,
+                                    success         => successful,
+                                    stop_at_targets => True);
+      if not successful then
+         raise bsheet_parsing
+           with calc_dossier & "-> " & PAR.get_parse_error;
+      end if;
+
+      PST.set_option_defaults (specs         => thespec,
+                               variant       => variant,
+                               opsys         => platform_type,
+                               arch_standard => sysrootver.arch,
+                               osrelease     => osrelease);
+
+      --  TODO: implement option caching and determination (changes next line)
+      PST.set_option_to_default_values (specs => thespec);
+
+      PST.set_outstanding_ignore (specs         => thespec,
+                                  variant       => variant,
+                                  opsys         => platform_type,
+                                  arch_standard => sysrootver.arch,
+                                  osrelease     => osrelease,
+                                  osmajor       => HT.USS (sysrootver.major));
+
+      PST.apply_directives (specs => thespec);
+
+      --  TODO: same ignore handling as PSM
+--      rec.ignore_reason
+      rec.pkgversion := HT.SUS (thespec.calculate_pkgversion);
+      rec.ignored    := thespec.ignored;
+      rec.scanned    := True;
+      for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
+         populate_set_depends (target, thespec.get_list_item (PSP.sp_build_deps, item), build);
+      end loop;
+      for item in Positive range 1 .. thespec.get_list_length (PSP.sp_buildrun_deps) loop
+         populate_set_depends (target, thespec.get_list_item (PSP.sp_buildrun_deps, item),
+                               buildrun);
+      end loop;
+      for item in Positive range 1 .. thespec.get_list_length (PSP.sp_run_deps) loop
+         populate_set_depends (target, thespec.get_list_item (PSP.sp_run_deps, item), runtime);
+      end loop;
+      for item in Positive range 1 .. thespec.get_subpackage_length (variant) loop
+         rec.subpackages.Append (HT.SUS (thespec.get_subpackage_item (variant, item)));
+      end loop;
+      if variant = variant_standard then
+         for item in Positive range 1 .. thespec.get_list_length (PSP.sp_opts_standard) loop
+            declare
+               optname : String := thespec.get_list_item (PSP.sp_opts_standard, item);
+            begin
+               populate_option (target, optname, thespec.option_current_setting (optname));
+            end;
+         end loop;
+      else
+         for item in Positive range 1 .. thespec.get_list_length (PSP.sp_opts_avail) loop
+            declare
+               optname : String := thespec.get_list_item (PSP.sp_opts_avail, item);
+            begin
+               populate_option (target, optname, thespec.option_current_setting (optname));
+            end;
+         end loop;
+      end if;
+
+   end populate_port_data;
+
+
+   --------------------------------------------------------------------------------------------
+   --  populate_option
+   --------------------------------------------------------------------------------------------
+   procedure populate_option (target : port_index; option_name : String; setting : Boolean)
+   is
+      optname_text : HT.Text := HT.SUS (option_name);
+   begin
+      if not all_ports (target).options.Contains (optname_text) then
+         all_ports (target).options.Insert (Key => optname_text, New_Item => setting);
+      end if;
+   end populate_option;
+
+
+   --------------------------------------------------------------------------------------------
+   --  populate_set_depends
+   --------------------------------------------------------------------------------------------
+   procedure populate_set_depends (target : port_index;
+                                   tuple  : String;
+                                   dtype  : dependency_type)
+   is
+      portkey  : HT.Text := HT.SUS (convert_tuple_to_portkey (tuple));
+      depindex : port_index;
+   begin
+      if not ports_keys.Contains (portkey) then
+         raise populate_error with "dependency on non-existent port " & tuple;
+      end if;
+      depindex := ports_keys.Element (portkey);
+      if not all_ports (target).blocked_by.Contains (depindex) then
+         all_ports (target).blocked_by.Insert (Key => depindex, New_Item => depindex);
+      end if;
+      if dtype in LR_set and then
+        not all_ports (target).run_deps.Contains (depindex)
+      then
+         all_ports (target).run_deps.Insert (Key => depindex, New_Item => depindex);
+      end if;
+
+   end populate_set_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  convert_tuple_to_portkey
+   --------------------------------------------------------------------------------------------
+   function convert_tuple_to_portkey (tuple : String) return String
+   is
+      --  tuple   format is <namebase>:<subpackage>:<variant>
+      --  portkey format is <namebase>-<variant>
+   begin
+      if HT.count_char (tuple, LAT.Colon) /= 2 then
+         raise populate_error with "tuple has invalid format: " & tuple;
+      end if;
+      declare
+         namebase : String := HT.specific_field (tuple, 1, ":");
+         variant  : String := HT.specific_field (tuple, 3, ":");
+      begin
+         return namebase & LAT.Hyphen & variant;
+      end;
+   end convert_tuple_to_portkey;
+
 
 end PortScan.Scan;

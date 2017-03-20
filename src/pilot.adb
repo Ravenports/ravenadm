@@ -77,7 +77,7 @@ package body Pilot is
                PAR.parse_specification_file (dossier         => filename,
                                              specification   => specification,
                                              opsys_focus     => platform_type,
-                                             arch_focus      => sl_arch,
+                                             arch_focus      => sysrootver.arch,
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -90,7 +90,7 @@ package body Pilot is
             PAR.parse_specification_file (dossier         => specfile,
                                           specification   => specification,
                                           opsys_focus     => platform_type,
-                                          arch_focus      => sl_arch,
+                                          arch_focus      => sysrootver.arch,
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -138,7 +138,7 @@ package body Pilot is
                PAR.parse_specification_file (dossier         => filename,
                                              specification   => specification,
                                              opsys_focus     => platform_type,
-                                             arch_focus      => sl_arch,
+                                             arch_focus      => sysrootver.arch,
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -151,7 +151,7 @@ package body Pilot is
             PAR.parse_specification_file (dossier         => specfile,
                                           specification   => specification,
                                           opsys_focus     => platform_type,
-                                          arch_focus      => sl_arch,
+                                          arch_focus      => sysrootver.arch,
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -211,7 +211,7 @@ package body Pilot is
          PAR.parse_specification_file (dossier         => filename,
                                        specification   => specification,
                                        opsys_focus     => platform_type,  --  unused
-                                       arch_focus      => sl_arch,
+                                       arch_focus      => sysrootver.arch,
                                        success         => successful,
                                        stop_at_targets => False);
       else
@@ -509,14 +509,14 @@ package body Pilot is
       then
          return False;
       end if;
-      sl_release := HT.SUS (FOP.head_n1 (F1));
-      sl_major   := HT.SUS (FOP.head_n1 (F2));
-      sl_version := HT.SUS (FOP.head_n1 (F3));
+      sysrootver.release := HT.SUS (FOP.head_n1 (F1));
+      sysrootver.major   := HT.SUS (FOP.head_n1 (F2));
+      sysrootver.version := HT.SUS (FOP.head_n1 (F3));
       declare
          candidate : String := FOP.head_n1 (F4);
       begin
          if UTL.valid_cpu_arch (candidate) then
-            sl_arch := UTL.convert_cpu_arch (candidate);
+            sysrootver.arch := UTL.convert_cpu_arch (candidate);
          else
             return False;
          end if;
@@ -555,7 +555,7 @@ package body Pilot is
       PAR.parse_specification_file (dossier         => buildsheet,
                                     specification   => specification,
                                     opsys_focus     => platform_type,
-                                    arch_focus      => sl_arch,
+                                    arch_focus      => sysrootver.arch,
                                     success         => successful,
                                     stop_at_targets => False,
                                     extraction_dir  => portloc);
@@ -568,15 +568,15 @@ package body Pilot is
       PST.set_option_defaults (specs         => specification,
                                variant       => variant,
                                opsys         => platform_type,
-                               arch_standard => sl_arch,
-                               osrelease     => HT.USS (sl_release));
+                               arch_standard => sysrootver.arch,
+                               osrelease     => HT.USS (sysrootver.release));
       PST.set_option_to_default_values (specs => specification);
       PST.set_outstanding_ignore (specs         => specification,
                                   variant       => variant,
                                   opsys         => platform_type,
-                                  arch_standard => sl_arch,
-                                  osrelease     => HT.USS (sl_release),
-                                  osmajor       => HT.USS (sl_major));
+                                  arch_standard => sysrootver.arch,
+                                  osrelease     => HT.USS (sysrootver.release),
+                                  osmajor       => HT.USS (sysrootver.major));
       PST.apply_directives (specs => specification);
 
       PSM.generator (specs       => specification,
