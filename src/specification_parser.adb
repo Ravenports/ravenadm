@@ -377,7 +377,7 @@ package body Specification_Parser is
                      when config_env       => build_list (spec, PSP.sp_config_env, line);
                      when configure_target => build_list (spec, PSP.sp_config_target, line);
                      when build_deps       => build_list (spec, PSP.sp_build_deps, line);
-                     when lib_deps         => build_list (spec, PSP.sp_lib_deps, line);
+                     when buildrun_deps    => build_list (spec, PSP.sp_buildrun_deps, line);
                      when run_deps         => build_list (spec, PSP.sp_run_deps, line);
                      when cmake_args       => build_list (spec, PSP.sp_cmake_args, line);
                      when qmake_args       => build_list (spec, PSP.sp_qmake_args, line);
@@ -896,6 +896,7 @@ package body Specification_Parser is
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
          ("APPLY_F10_FIX         ", 13, apply_10_fix),
+         ("BUILDRUN_DEPENDS      ", 16, buildrun_deps),
          ("BUILD_DEPENDS         ", 13, build_deps),
          ("BUILD_TARGET          ", 12, build_target),
          ("BUILD_WRKSRC          ", 12, build_wrksrc),
@@ -933,7 +934,6 @@ package body Specification_Parser is
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
-         ("LIB_DEPENDS           ", 11, lib_deps),
          ("LICENSE               ",  7, licenses),
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
@@ -1031,6 +1031,7 @@ package body Specification_Parser is
       all_helpers : constant array (1 .. total_helpers) of helper_pair :=
         (
          ("BROKEN_ON            ", PSP.broken_on),
+         ("BUILDRUN_DEPENDS_ON  ", PSP.buildrun_depends_on),
          ("BUILD_DEPENDS_ON     ", PSP.build_depends_on),
          ("BUILD_TARGET_ON      ", PSP.build_target_on),
          ("CFLAGS_ON            ", PSP.cflags_on),
@@ -1057,7 +1058,6 @@ package body Specification_Parser is
          ("INSTALL_TARGET_ON    ", PSP.install_target_on),
          ("KEYWORDS_ON          ", PSP.keywords_on),
          ("LDFLAGS_ON           ", PSP.ldflags_on),
-         ("LIB_DEPENDS_ON       ", PSP.lib_depends_on),
          ("MAKE_ARGS_ON         ", PSP.make_args_on),
          ("MAKE_ENV_ON          ", PSP.make_env_on),
          ("PATCHFILES_ON        ", PSP.patchfiles_on),

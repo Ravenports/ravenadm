@@ -50,7 +50,7 @@ package body Port_Specification.Transform is
                   when install_target_on      => specs.install_tgt.Append (item);
                   when keywords_on            => specs.keywords.Append (item);
                   when ldflags_on             => specs.ldflags.Append (item);
-                  when lib_depends_on         => specs.lib_deps.Append (item);
+                  when buildrun_depends_on    => specs.buildrun_deps.Append (item);
                   when make_args_on           => specs.make_args.Append (item);
                   when make_env_on            => specs.make_env.Append (item);
                   when patchfiles_on          => specs.patchfiles.Append (item);
@@ -149,31 +149,31 @@ package body Port_Specification.Transform is
          if rec.currently_set_ON then
 
             handle_broken;
-            augment (build_depends_on,   rec.BUILD_DEPENDS_ON);
-            augment (build_target_on,    rec.BUILD_TARGET_ON);
-            augment (cflags_on,          rec.CFLAGS_ON);
-            augment (cmake_args_on,      rec.CMAKE_ARGS_ON);
-            augment (configure_args_on,  rec.CONFIGURE_ARGS_ON);
-            augment (configure_args_on,  rec.CONFIGURE_ENV_ON);
-            augment (cppflags_on,        rec.CPPFLAGS_ON);
-            augment (cxxflags_on,        rec.CXXFLAGS_ON);
-            augment (df_index_on,        rec.DF_INDEX_ON);
-            augment (extra_patches_on,   rec.EXTRA_PATCHES_ON);
+            augment (build_depends_on,    rec.BUILD_DEPENDS_ON);
+            augment (build_target_on,     rec.BUILD_TARGET_ON);
+            augment (cflags_on,           rec.CFLAGS_ON);
+            augment (cmake_args_on,       rec.CMAKE_ARGS_ON);
+            augment (configure_args_on,   rec.CONFIGURE_ARGS_ON);
+            augment (configure_args_on,   rec.CONFIGURE_ENV_ON);
+            augment (cppflags_on,         rec.CPPFLAGS_ON);
+            augment (cxxflags_on,         rec.CXXFLAGS_ON);
+            augment (df_index_on,         rec.DF_INDEX_ON);
+            augment (extra_patches_on,    rec.EXTRA_PATCHES_ON);
 --              --  GH stuff (rethink)
-            augment (install_target_on,  rec.INSTALL_TARGET_ON);
-            augment (keywords_on,        rec.KEYWORDS_ON);
-            augment (ldflags_on,         rec.LDFLAGS_ON);
-            augment (lib_depends_on,     rec.LIB_DEPENDS_ON);
-            augment (make_args_on,       rec.MAKE_ARGS_ON);
-            augment (make_env_on,        rec.MAKE_ENV_ON);
-            augment (patchfiles_on,      rec.PATCHFILES_ON);
-            augment (plist_sub_on,       rec.PLIST_SUB_ON);
-            augment (qmake_on,           rec.QMAKE_ON);
-            augment (run_depends_on,     rec.RUN_DEPENDS_ON);
-            augment (sub_files_on,       rec.SUB_FILES_ON);
-            augment (sub_list_on,        rec.SUB_LIST_ON);
+            augment (install_target_on,   rec.INSTALL_TARGET_ON);
+            augment (keywords_on,         rec.KEYWORDS_ON);
+            augment (ldflags_on,          rec.LDFLAGS_ON);
+            augment (buildrun_depends_on, rec.BUILDRUN_DEPENDS_ON);
+            augment (make_args_on,        rec.MAKE_ARGS_ON);
+            augment (make_env_on,         rec.MAKE_ENV_ON);
+            augment (patchfiles_on,       rec.PATCHFILES_ON);
+            augment (plist_sub_on,        rec.PLIST_SUB_ON);
+            augment (qmake_on,            rec.QMAKE_ON);
+            augment (run_depends_on,      rec.RUN_DEPENDS_ON);
+            augment (sub_files_on,        rec.SUB_FILES_ON);
+            augment (sub_list_on,         rec.SUB_LIST_ON);
 --              --  test-target on
-            augment (uses_on,            rec.USES_ON);
+            augment (uses_on,             rec.USES_ON);
          else
             augment (cmake_args_off,     rec.CMAKE_ARGS_OFF);
             augment (configure_args_off, rec.CONFIGURE_ARGS_OFF);

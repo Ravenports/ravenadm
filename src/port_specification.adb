@@ -69,7 +69,7 @@ package body Port_Specification is
       specs.make_args.Clear;
       specs.build_target.Clear;
       specs.build_deps.Clear;
-      specs.lib_deps.Clear;
+      specs.buildrun_deps.Clear;
       specs.run_deps.Clear;
       specs.cflags.Clear;
       specs.cxxflags.Clear;
@@ -921,8 +921,8 @@ package body Port_Specification is
                Element.KEYWORDS_ON.Append (value_text);
             when ldflags_on =>
                Element.LDFLAGS_ON.Append (value_text);
-            when lib_depends_on =>
-               Element.LIB_DEPENDS_ON.Append (value_text);
+            when buildrun_depends_on =>
+               Element.BUILDRUN_DEPENDS_ON.Append (value_text);
             when make_args_on =>
                Element.MAKE_ARGS_ON.Append (value_text);
             when make_env_on =>
@@ -959,7 +959,7 @@ package body Port_Specification is
          when build_target_on | cmake_bool_f_both | cmake_bool_t_both | configure_enable_both |
               configure_with_both | df_index_on | extra_patches_on | extract_only_on |
               gh_subdir_on | gh_project_on | gh_account_on | gh_tagname_on | gh_tuple_on |
-              implies_on | info_on | install_target_on | keywords_on  | lib_depends_on |
+              implies_on | info_on | install_target_on | keywords_on  | buildrun_depends_on |
               patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
               uses_on =>
             allow_spaces := False;
@@ -987,7 +987,7 @@ package body Port_Specification is
               qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on =>
             --  No validation required
             null;
-         when build_depends_on | lib_depends_on | run_depends_on =>
+         when build_depends_on | buildrun_depends_on | run_depends_on =>
             null; --  TODO: Add validation
          when df_index_on =>
             if not specs.dist_index_is_valid (value) then
@@ -1079,7 +1079,7 @@ package body Port_Specification is
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
             when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
             when ldflags_on            => return rec.LDFLAGS_ON.Is_Empty;
-            when lib_depends_on        => return rec.LIB_DEPENDS_ON.Is_Empty;
+            when buildrun_depends_on   => return rec.BUILDRUN_DEPENDS_ON.Is_Empty;
             when make_args_on          => return rec.MAKE_ARGS_ON.Is_Empty;
             when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
@@ -1764,7 +1764,7 @@ package body Port_Specification is
          print_opt_vector (rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          print_opt_vector (rec.KEYWORDS_ON, "KEYWORDS_ON");
          print_opt_vector (rec.LDFLAGS_ON, "LDFLAGS_ON");
-         print_opt_vector (rec.LIB_DEPENDS_ON, "LIB_DEPENDS_ON");
+         print_opt_vector (rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
          print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
          print_opt_vector (rec.PATCHFILES_ON, "PATCHFILES_ON");
@@ -1831,7 +1831,7 @@ package body Port_Specification is
             when sp_config_args   => specs.config_args.Iterate (Process => print_item'Access);
             when sp_config_env    => specs.config_env.Iterate (Process => print_item'Access);
             when sp_build_deps    => specs.build_deps.Iterate (Process => print_item'Access);
-            when sp_lib_deps      => specs.lib_deps.Iterate (Process => print_item'Access);
+            when sp_buildrun_deps => specs.buildrun_deps.Iterate (Process => print_item'Access);
             when sp_run_deps      => specs.run_deps.Iterate (Process => print_item'Access);
             when sp_cmake_args    => specs.cmake_args.Iterate (Process => print_item'Access);
             when sp_qmake_args    => specs.qmake_args.Iterate (Process => print_item'Access);
@@ -1951,7 +1951,7 @@ package body Port_Specification is
       print_single      ("DEPRECATED", sp_deprecated);
       print_single      ("EXPIRATION_DATE", sp_expiration);
       print_vector_list ("BUILD_DEPENDS", sp_build_deps);
-      print_vector_list ("LIB_DEPENDS", sp_lib_deps);
+      print_vector_list ("BUILDRUN_DEPENDS", sp_buildrun_deps);
       print_vector_list ("RUN_DEPENDS", sp_run_deps);
       print_vector_list ("USES", sp_uses);
       print_vector_list ("SUB_LIST", sp_sub_list);

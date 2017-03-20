@@ -1199,7 +1199,7 @@ package body PortScan.Buildcycle is
    is
       --  TODO: this comes from prescan (eventually)
    begin
-      return "";
+      return "" & LAT.LF;
    end get_options_configuration;
 
 

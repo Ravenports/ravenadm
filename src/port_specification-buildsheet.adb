@@ -300,7 +300,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          dump_helper (name, rec.KEYWORDS_ON, "KEYWORDS_ON");
          dump_helper (name, rec.LDFLAGS_ON, "LDFLAGS_ON");
-         dump_helper (name, rec.LIB_DEPENDS_ON, "LIB_DEPENDS_ON");
+         dump_helper (name, rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
          dump_helper (name, rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          dump_helper (name, rec.MAKE_ENV_ON, "MAKE_ENV_ON");
          dump_helper (name, rec.PATCHFILES_ON, "PATCHFILES_ON");
@@ -538,7 +538,7 @@ package body Port_Specification.Buildsheet is
       send ("EXPIRATION_DATE",      specs.expire_date);
       blank_line;
       send ("BUILD_DEPENDS",        specs.build_deps, 1);
-      send ("LIB_DEPENDS",          specs.lib_deps, 1);
+      send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, 1);
       send ("RUN_DEPENDS",          specs.run_deps, 1);
       send ("USES",                 specs.uses, 2);
       blank_line;

@@ -29,7 +29,7 @@ package Port_Specification is
                        sp_cppflags, sp_ldflags, sp_makefile_targets, sp_skip_install,
                        sp_opt_level, sp_options_on, sp_broken, sp_opt_helper, sp_patchfiles,
                        sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_env,
-                       sp_build_deps, sp_lib_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
+                       sp_build_deps, sp_buildrun_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
                        sp_info, sp_install_tgt, sp_patch_strip, sp_pfiles_strip,
                        sp_patch_wrksrc, sp_extra_patches, sp_apply_f10_fix, sp_must_config,
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
@@ -43,7 +43,7 @@ package Port_Specification is
                          configure_with_both, cppflags_on, cxxflags_on, df_index_on,
                          extra_patches_on, extract_only_on, gh_account_on, gh_project_on,
                          gh_subdir_on, gh_tagname_on, gh_tuple_on, implies_on, info_on,
-                         install_target_on, keywords_on, ldflags_on, lib_depends_on,
+                         install_target_on, keywords_on, ldflags_on, buildrun_depends_on,
                          make_args_on, make_env_on, patchfiles_on, plist_sub_on, prevents_on,
                          qmake_off, qmake_on, run_depends_on, sub_files_on, sub_list_on,
                          test_target_on, uses_on);
@@ -202,6 +202,7 @@ private
          currently_set_ON      : Boolean := False;
          set_ON_by_default     : Boolean := False;
          BROKEN_ON             : HT.Text;
+         BUILDRUN_DEPENDS_ON   : string_crate.Vector;
          BUILD_DEPENDS_ON      : string_crate.Vector;
          BUILD_TARGET_ON       : string_crate.Vector;
          CFLAGS_ON             : string_crate.Vector;
@@ -229,7 +230,6 @@ private
          INSTALL_TARGET_ON     : string_crate.Vector;
          KEYWORDS_ON           : string_crate.Vector;
          LDFLAGS_ON            : string_crate.Vector;
-         LIB_DEPENDS_ON        : string_crate.Vector;
          MAKE_ARGS_ON          : string_crate.Vector;
          MAKE_ENV_ON           : string_crate.Vector;
          PATCHFILES_ON         : string_crate.Vector;
@@ -318,7 +318,7 @@ private
          make_args     : string_crate.Vector;
          build_target  : string_crate.Vector;
          build_deps    : string_crate.Vector;
-         lib_deps      : string_crate.Vector;
+         buildrun_deps : string_crate.Vector;
          run_deps      : string_crate.Vector;
          cflags        : string_crate.Vector;
          cxxflags      : string_crate.Vector;

@@ -528,7 +528,7 @@ package body Replicant is
               freebsd   |
               macos     |
               netbsd    |
-              openbsd   => return "/bin/df -h -t null,tmpfs,devfs";
+              openbsd   => return "/bin/df -h -t null,tmpfs,devfs,procfs";
          when sunos     => return "/usr/sbin/df -h";
          when linux     => return "/usr/bin/df -h";
       end case;

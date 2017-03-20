@@ -46,7 +46,7 @@ private
                          makefile, destdirname, make_args, make_env, build_target, cflags,
                          cxxflags, cppflags, ldflags, homepage, skip_install, opt_level,
                          patchfiles, uses, sub_list, sub_files, config_args, config_env,
-                         build_deps, lib_deps, run_deps, cmake_args, qmake_args, info,
+                         build_deps, buildrun_deps, run_deps, cmake_args, qmake_args, info,
                          install_tgt, patch_wrksrc, patch_strip, patchfiles_strip, extra_patches,
                          must_configure, configure_wrksrc, configure_script, gnu_cfg_prefix,
                          configure_target, config_outsource, apply_10_fix, deprecated,
