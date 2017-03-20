@@ -31,6 +31,9 @@ package PortScan is
          arch    : supported_arch;
       end record;
 
+   --  Wipe out all scan data so new scan can be performed
+   procedure reset_ports_tree;
+
    --  DELETE-ME-LATER
    first_port : constant port_id;
    procedure crash_test_dummy;
@@ -51,10 +54,7 @@ private
 
    subtype bucket_code is String (1 .. 2);
 
-   bmake_execution  : exception;
    pkgng_execution  : exception;
-   make_garbage     : exception;
-   nonexistent_port : exception;
    circular_logic   : exception;
    seek_failure     : exception;
    unknown_format   : exception;
@@ -134,11 +134,10 @@ private
          options       : package_crate.Map;
          subpackages   : string_crate.Vector;
       end record;
-   type port_record_access is access all port_record;
 
    type dim_make_queue is array (scanners) of subqueue.Vector;
    type dim_progress   is array (scanners) of port_index;
-   type dim_all_ports  is array (port_index) of aliased port_record;
+   type dim_all_ports  is array (port_index) of port_record;
 
    all_ports    : dim_all_ports;
    ports_keys   : portkey_crate.Map;
@@ -147,10 +146,14 @@ private
    mq_progress  : dim_progress := (others => 0);
    rank_queue   : ranking_crate.Set;
    last_port    : port_index := 0;
+   lot_number   : scanners   := 1;
+   lot_counter  : port_index := 0;
+   prescanned   : Boolean    := False;
 
    discerr      : constant String := "Discovery error";
    chroot       : constant String := "/usr/sbin/chroot ";
 
    function get_port_variant (PR : port_record) return String;
+   procedure wipe_make_queue;
 
 end PortScan;

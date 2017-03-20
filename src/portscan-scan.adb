@@ -29,13 +29,12 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  scan_entire_ports_tree
    --------------------------------------------------------------------------------------------
-   function scan_entire_ports_tree
-     (conspiracy : String;
-      unkindness : String;
-      sysrootver : sysroot_characteristics) return Boolean
+   function scan_entire_ports_tree (sysrootver : sysroot_characteristics) return Boolean
    is
       good_scan    : Boolean;
       using_screen : constant Boolean := Unix.screen_attached;
+      conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
    begin
       --  All scanning done on host system (no need to mount in a slave)
       if not prescanned then
@@ -326,19 +325,9 @@ package body PortScan.Scan is
          make_queue (lot).Iterate (populate'Access);
          finished (lot) := True;
       exception
-         when issue : nonexistent_port =>
+         when issue : populate_error =>
             aborted := True;
-            TIO.Put_Line ("Scan aborted because dependency could " &
-                            "not be located.");
-            TIO.Put_Line (EX.Exception_Message (issue));
-         when issue : bmake_execution =>
-            aborted := True;
-            TIO.Put_Line ("Scan aborted because 'make' encounted " &
-                            "an error in the Makefile.");
-            TIO.Put_Line (EX.Exception_Message (issue));
-         when issue : make_garbage =>
-            aborted := True;
-            TIO.Put_Line ("Scan aborted because dependency is malformed.");
+            TIO.Put_Line ("Scan aborted during port data population.");
             TIO.Put_Line (EX.Exception_Message (issue));
          when issue : others =>
             aborted := True;
@@ -553,5 +542,203 @@ package body PortScan.Scan is
       end;
    end convert_tuple_to_portkey;
 
+
+   --------------------------------------------------------------------------------------------
+   --  scan_single_port
+   --------------------------------------------------------------------------------------------
+   function scan_single_port
+     (namebase     : String;
+      variant      : String;
+      always_build : Boolean;
+      sysrootver   : sysroot_characteristics;
+      fatal        : out Boolean) return Boolean
+   is
+      procedure dig (cursor : block_crate.Cursor);
+
+      conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
+
+      two_partid : constant String := namebase & LAT.Hyphen & variant;
+      portkey    : HT.Text := HT.SUS (two_partid);
+      target     : port_index;
+      aborted    : Boolean := False;
+      indy500    : Boolean := False;
+
+      procedure dig (cursor : block_crate.Cursor)
+      is
+         new_target : port_index := block_crate.Element (cursor);
+      begin
+         if not aborted then
+            if all_ports (new_target).scan_locked then
+               --  We've already seen this (circular dependency)
+               raise circular_logic;
+            end if;
+            if not all_ports (new_target).scanned then
+               populate_port_data (conspiracy, unkindness, new_target, sysrootver);
+               all_ports (new_target).scan_locked := True;
+               all_ports (new_target).blocked_by.Iterate (dig'Access);
+               all_ports (new_target).scan_locked := False;
+               if indy500 then
+                  TIO.Put_Line ("... backtrace " & get_port_variant (all_ports (new_target)));
+               end if;
+            end if;
+         end if;
+      exception
+         when issue : circular_logic =>
+            aborted := True;
+            indy500 := True;
+            TIO.Put_Line (LAT.LF & two_partid & " scan aborted because a circular dependency on " &
+                            get_port_variant (all_ports (new_target)) & " was detected.");
+         when issue : populate_error =>
+            aborted := True;
+            TIO.Put_Line ("Scan aborted during port data population.");
+            TIO.Put_Line (EX.Exception_Message (issue));
+         when issue : others =>
+            aborted := True;
+            TIO.Put_Line ("Scan aborted for an unknown reason.");
+            TIO.Put_Line (EX.Exception_Message (issue));
+      end dig;
+   begin
+      fatal := False;
+      if not prescanned then
+         prescan_ports_tree (conspiracy, unkindness, sysrootver);
+      end if;
+      if ports_keys.Contains (portkey) then
+         target := ports_keys.Element (portkey);
+      else
+         return False;
+      end if;
+      begin
+         populate_port_data (conspiracy, unkindness, target, sysrootver);
+         all_ports (target).never_remote := always_build;
+      exception
+         when issue : others =>
+            TIO.Put_Line ("Encountered issue with " & two_partid & " or its dependencies" &
+                            LAT.LF & "  => " & EX.Exception_Message (issue));
+            return False;
+      end;
+      all_ports (target).scan_locked := True;
+      all_ports (target).blocked_by.Iterate (dig'Access);
+      all_ports (target).scan_locked := False;
+      if indy500 then
+         TIO.Put_Line ("... backtrace " & two_partid);
+         fatal := True;
+      end if;
+      return not aborted;
+   end scan_single_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_build_priority
+   --------------------------------------------------------------------------------------------
+   procedure set_build_priority is
+   begin
+      iterate_reverse_deps;
+      iterate_drill_down;
+   end set_build_priority;
+
+
+   --------------------------------------------------------------------------------------------
+   --  iterate_reverse_deps
+   --------------------------------------------------------------------------------------------
+   procedure iterate_reverse_deps
+   is
+      procedure set_reverse (cursor : block_crate.Cursor);
+
+      madre : port_index;
+
+      procedure set_reverse (cursor : block_crate.Cursor) is
+      begin
+         --  Using conditional insert here causes a finalization error when
+         --  the program exists.  Reluctantly, do the condition check manually
+         if not all_ports (block_crate.Element (cursor)).blocks.Contains (Key => madre) then
+            all_ports (block_crate.Element (cursor)).blocks.Insert (madre, madre);
+         end if;
+      end set_reverse;
+
+   begin
+      for port in port_index'First .. last_port loop
+         if all_ports (port).scanned then
+            madre := port;
+            all_ports (port).blocked_by.Iterate (set_reverse'Access);
+         end if;
+      end loop;
+   end iterate_reverse_deps;
+
+
+   --------------------------------------------------------------------------------------------
+   --  iterate_reverse_deps
+   --------------------------------------------------------------------------------------------
+   procedure iterate_drill_down is
+   begin
+      rank_queue.Clear;
+      for port in port_index'First .. last_port loop
+         if all_ports (port).scanned then
+            drill_down (next_target => port, original_target => port);
+            declare
+               ndx : constant port_index   := port_index (all_ports (port).reverse_score);
+               QR  : constant queue_record := (ap_index      => port,
+                                               reverse_score => ndx);
+            begin
+               rank_queue.Insert (New_Item => QR);
+            end;
+         end if;
+      end loop;
+   end iterate_drill_down;
+
+   --------------------------------------------------------------------------------------------
+   --  drill_down
+   --------------------------------------------------------------------------------------------
+   procedure drill_down (next_target : port_index; original_target : port_index)
+   is
+      procedure stamp_and_drill (cursor : block_crate.Cursor);
+      procedure slurp_scanned (cursor : block_crate.Cursor);
+
+      rec : port_record renames all_ports (next_target);
+
+      procedure slurp_scanned (cursor : block_crate.Cursor)
+      is
+         rev_id  : port_index := block_crate.Element (Position => cursor);
+      begin
+         if not all_ports (original_target).all_reverse.Contains (rev_id) then
+            all_ports (original_target).all_reverse.Insert (rev_id, rev_id);
+         end if;
+      end slurp_scanned;
+
+      procedure stamp_and_drill (cursor : block_crate.Cursor)
+      is
+         pmc : port_index := block_crate.Element (Position => cursor);
+      begin
+         if not all_ports (original_target).all_reverse.Contains (pmc) then
+            all_ports (original_target).all_reverse.Insert (pmc, pmc);
+         end if;
+         if pmc = original_target then
+            declare
+               top_port  : constant String := get_port_variant (all_ports (original_target));
+               this_port : constant String := get_port_variant (all_ports (next_target));
+            begin
+               raise circular_logic with top_port & " <=> " & this_port;
+            end;
+         end if;
+
+         if not all_ports (pmc).rev_scanned then
+            drill_down (next_target => pmc, original_target => pmc);
+         end if;
+         all_ports (pmc).all_reverse.Iterate (slurp_scanned'Access);
+      end stamp_and_drill;
+
+   begin
+      if not rec.scanned then
+         return;
+      end if;
+      if rec.rev_scanned then
+         --  It is possible to get here if an earlier port scanned this port
+         --  as a reverse dependencies
+         return;
+      end if;
+      rec.blocks.Iterate (stamp_and_drill'Access);
+      rec.reverse_score := port_index (rec.all_reverse.Length);
+      rec.rev_scanned := True;
+   end drill_down;
 
 end PortScan.Scan;
