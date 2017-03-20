@@ -526,6 +526,17 @@ package body Port_Specification is
          when sp_groups =>
             verify_entry_is_post_options;
             specs.groups.Append (text_value);
+         when sp_build_deps | sp_buildrun_deps | sp_run_deps =>
+            verify_entry_is_post_options;
+            if not valid_dependency_format (value) then
+               raise wrong_value with "invalid dependency format '" & value & "'";
+            end if;
+            case field is
+               when sp_build_deps    => specs.build_deps.Append (text_value);
+               when sp_buildrun_deps => specs.buildrun_deps.Append (text_value);
+               when sp_run_deps      => specs.run_deps.Append (text_value);
+               when others => null;
+            end case;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -988,7 +999,9 @@ package body Port_Specification is
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on =>
-            null; --  TODO: Add validation
+            if not valid_dependency_format (value) then
+               raise wrong_value with "invalid dependency format '" & value & "'";
+            end if;
          when df_index_on =>
             if not specs.dist_index_is_valid (value) then
                raise wrong_value with "distfile index '" & value & "' is not valid";
@@ -1549,6 +1562,34 @@ package body Port_Specification is
          return "";
       end if;
    end get_tagline;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_dependency_format
+   --------------------------------------------------------------------------------------------
+   function valid_dependency_format (value : String) return Boolean is
+   begin
+      if HT.count_char (value, LAT.Colon) /= 2 then
+         return False;
+      end if;
+      declare
+         P1 : String := HT.part_1 (value, ":");
+         P2 : String := HT.part_2 (value, ":");
+      begin
+         if P1'Length = 0 then
+            return False;
+         end if;
+         declare
+            dos  : String := HT.part_1 (P2, ":");
+            tres : String := HT.part_2 (P2, ":");
+         begin
+            if dos'Length = 0 or else tres'Length = 0 then
+               return False;
+            end if;
+         end;
+      end;
+      return True;
+   end valid_dependency_format;
 
 
    --------------------------------------------------------------------------------------------

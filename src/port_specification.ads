@@ -367,4 +367,9 @@ private
    --  and it succesfully converts to a date.
    function ISO8601_format (value : String) return Boolean;
 
+   --  checks for exactly two colons
+   --  checks the three components are not empty strings
+   --  Does not do existence checks on namebase, variants or subpackages.
+   function valid_dependency_format (value : String) return Boolean;
+
 end Port_Specification;
