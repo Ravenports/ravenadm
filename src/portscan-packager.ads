@@ -16,9 +16,6 @@ package PortScan.Packager is
       seq_id        : port_id;
       rootdir       : String) return Boolean;
 
-   --  Calculate the surprisingly complex pkgversion string
-   function get_pkg_version (spec : PSP.Portspecs) return String;
-
    --  check-plist target verifies manifest
    --  It takes into account the manifest for all subpackages (for a given variant).
    --  If any files are left over or unaccounted for according to manifest, return false.

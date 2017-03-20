@@ -162,6 +162,9 @@ package Port_Specification is
    --  Retrieve the tagline on a given variant
    function get_tagline (specs : Portspecs; variant : String) return String;
 
+   --  Calculate the surprisingly complex pkgversion string
+   function calculate_pkgversion (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;

@@ -39,8 +39,8 @@ package body PortScan.Packager is
       chspkgdir  : String  := "/construction/metadata/";
       newpkgdir  : String  := "/construction/new_packages";
       stagedir   : String  := conbase & "/stage";
-      display    : String := "/+DISPLAY";
-      pkgvers    : String  := get_pkg_version (specification);
+      display    : String  := "/+DISPLAY";
+      pkgvers    : String  := HT.USS (all_ports (seq_id).pkgversion);
       still_good : Boolean := True;
 
       procedure metadata (position : string_crate.Cursor)
@@ -350,43 +350,6 @@ package body PortScan.Packager is
             TIO.Close (file_handle);
          end if;
    end write_package_manifest;
-
-
-   --------------------------------------------------------------------------------------------
-   --  get_pkg_version
-   --------------------------------------------------------------------------------------------
-   function get_pkg_version (spec : PSP.Portspecs) return String
-   is
-      function suf1 return String;
-      function suf2 return String;
-
-      revision     : String := spec.get_field_value (PSP.sp_revision);
-      epoch        : String := spec.get_field_value (PSP.sp_epoch);
-      VERA         : String := spec.get_field_value (PSP.sp_version);
-      VERB         : String := HT.replace_all (VERA, LAT.Hyphen, LAT.Full_Stop);
-      VERC         : String := HT.replace_all (VERB, LAT.Comma, LAT.Full_Stop);
-      VERD         : String := HT.replace_all (VERC, LAT.Low_Line, LAT.Full_Stop);
-
-      function suf1 return String is
-      begin
-         if revision = "0" then
-            return "";
-         else
-            return "_" & revision;
-         end if;
-      end suf1;
-
-      function suf2 return String is
-      begin
-         if epoch = "0" then
-            return "";
-         else
-            return "," & epoch;
-         end if;
-      end suf2;
-   begin
-      return VERD & suf1 & suf2;
-   end get_pkg_version;
 
 
    --------------------------------------------------------------------------------------------

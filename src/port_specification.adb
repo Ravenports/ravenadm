@@ -1592,6 +1592,42 @@ package body Port_Specification is
    end valid_dependency_format;
 
 
+
+   --------------------------------------------------------------------------------------------
+   --  calculate_pkgversion
+   --------------------------------------------------------------------------------------------
+   function calculate_pkgversion (specs : Portspecs) return String
+   is
+      function suf1 return String;
+      function suf2 return String;
+
+      VERA : String := HT.USS (specs.version);
+      VERB : String := HT.replace_all (VERA, LAT.Hyphen, LAT.Full_Stop);
+      VERC : String := HT.replace_all (VERB, LAT.Comma, LAT.Full_Stop);
+      VERD : String := HT.replace_all (VERC, LAT.Low_Line, LAT.Full_Stop);
+
+      function suf1 return String is
+      begin
+         if specs.revision = 0 then
+            return "";
+         else
+            return "_" & HT.int2str (specs.revision);
+         end if;
+      end suf1;
+
+      function suf2 return String is
+      begin
+         if specs.epoch = 0 then
+            return "";
+         else
+            return "," & HT.int2str (specs.epoch);
+         end if;
+      end suf2;
+   begin
+      return VERD & suf1 & suf2;
+   end calculate_pkgversion;
+
+
    --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------

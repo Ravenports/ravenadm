@@ -32,7 +32,7 @@ package body PortScan.Buildcycle is
       R : Boolean;
       break_phase  : constant phases := valid_test_phase (interphase);
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
-      pkgversion   : constant String := PKG.get_pkg_version (specification);
+      pkgversion   : constant String := HT.USS (all_ports (trackers (id).seq_id).pkgversion);
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
