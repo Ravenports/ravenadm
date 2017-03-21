@@ -25,18 +25,58 @@ package PortScan.Operations is
    --  Figure package names from portlist and remove all existing packages from that set.
    procedure delete_existing_packages_of_ports_list;
 
+   --  Look in build queue and return the next ignore port in the queue (if it exists).
+   function next_ignored_port return port_id;
+
+   --  Returns true if every port in the queue has all of ports listed in the
+   --  blocks and blocked_by containers are all also present in the queue
+   function integrity_intact return Boolean;
+
+   --  This removes the first reverse dependency port from all_ports that is
+   --  found the complete reverse deps list and return the port_id of the
+   --  deleted port.  If the list is empty, return port_match_failed instead.
+   function skip_next_reverse_dependency (pinnacle : port_id) return port_id;
+
+   --  Exposed for pilot which eliminated ignored ports during the sanity check
+   procedure record_history_ignored
+     (elapsed   : String;
+      origin    : String;
+      reason    : String;
+      skips     : Natural);
+
+   --  The port build failed, so set all reverse dependences as skipped
+   --  Remove the port from the queue when this is done.
+   procedure cascade_failed_build (id : port_id; numskipped : out Natural);
+
+   --  removes processed port from the ranking queue.
+   procedure unlist_port (id : port_id);
+
+   --  After the initial queue is created, and before the limited sanity
+   --  check, we go through each port and check if it has cached options.
+   --  If it does, then it's checked for validity.  If it has too many or
+   --  too few options, or an option's name doesn't match, the port is
+   --  printed to stdout.  The rest of the ports are checked, but at that
+   --  point the function has failed.
+   function limited_cached_options_check return Boolean;
+
+   --  Returns True on success; stores value in global external_repository
+   function located_external_repository return Boolean;
+
+   --  Returns the value of the stored external repository
+   function top_external_repository return String;
+
+   function skip_verified (id : port_id) return Boolean;
+
 private
 
    package PM  renames Parameters;
 
-   type hook_type         is (run_start, run_end, pkg_success, pkg_failure,
-                              pkg_skipped, pkg_ignored);
+   type hook_type    is (run_start, run_end, pkg_success, pkg_failure, pkg_skipped, pkg_ignored);
+   type dim_hooks    is array (hook_type) of Boolean;
+   type dim_hooksloc is array (hook_type) of HT.Text;
 
-   type dim_hooks         is array (hook_type) of Boolean;
-   type dim_hooksloc      is array (hook_type) of HT.Text;
-
-   active_hook     : dim_hooks := (False, False, False, False, False, False);
-   hook_location   : constant dim_hooksloc :=
+   active_hook   : dim_hooks := (False, False, False, False, False, False);
+   hook_location : constant dim_hooksloc :=
                      (HT.SUS (PM.raven_confdir & "/hook_run_start"),
                       HT.SUS (PM.raven_confdir & "/hook_run_end"),
                       HT.SUS (PM.raven_confdir & "/hook_pkg_success"),
@@ -44,10 +84,49 @@ private
                       HT.SUS (PM.raven_confdir & "/hook_pkg_skipped"),
                       HT.SUS (PM.raven_confdir & "/hook_pkg_ignored"));
 
+   --  History log entries average less than 200 bytes.  Allot more than twice this amount.
+   kfile_unit_maxsize : constant Positive := 512;
+
+    --  Each history segment is limited to this many log lines
+   kfile_units_limit : constant Positive := 500;
+
+   subtype impulse_range is Integer range 1 .. 500;
+   subtype kfile_content  is String (1 .. kfile_unit_maxsize * kfile_units_limit);
+
+   type progress_history is
+      record
+         segment       : Natural := 0;
+         segment_count : Natural := 0;
+         log_entry     : Natural := 0;
+         last_index    : Natural := 0;
+         last_written  : Natural := 0;
+         content       : kfile_content;
+      end record;
+
+   history : progress_history;
+
+   external_repository : HT.Text;
+
    --  Return true if file is executable (platform-specific)
    function file_is_executable (filename : String) return Boolean;
 
    procedure run_hook (hook : hook_type; envvar_list : String);
    procedure run_package_hook (hook : hook_type; id : port_id);
+
+   function  nv (name, value : String) return String;
+   function  nv (name : String; value : Integer) return String;
+   procedure assimulate_substring (history : in out progress_history; substring : String);
+   procedure handle_first_history_entry;
+   procedure check_history_segment_capacity;
+   procedure delete_rank (id : port_id);
+   function  still_ranked (id : port_id) return Boolean;
+   function  rank_arrow (id : port_id) return ranking_crate.Cursor;
+
+   procedure write_history_json;
+
+   procedure record_history_skipped
+     (elapsed   : String;
+      origin    : String;
+      reason    : String);
 
 end PortScan.Operations;

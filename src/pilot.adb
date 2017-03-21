@@ -578,20 +578,19 @@ package body Pilot is
          OPS.delete_existing_packages_of_ports_list;
       end if;
 
-      if not PKG.limited_cached_options_check then
+      if not OPS.limited_cached_options_check then
          --  Error messages emitted by function
          return False;
       end if;
 
       if PM.configuration.defer_prebuilt then
          --  Before any remote operations, find the external repo
-         if PKG.located_external_repository then
+         if OPS.located_external_repository then
             block_remote := False;
             --  We're going to use prebuilt packages if available, so let's
             --  prepare for that case by updating the external repository
             TIO.Put ("Stand by, updating external repository catalogs ... ");
-            if not Unix.external_command (update_external_repo &
-                                            PKG.top_external_repository)
+            if not Unix.external_command (update_external_repo & OPS.top_external_repository)
             then
                TIO.Put_Line ("Failed!");
                TIO.Put_Line ("The external repository could not be updated.");
@@ -601,20 +600,20 @@ package body Pilot is
                TIO.Put_Line ("done.");
             end if;
          else
-            TIO.Put_Line ("The external repository does not seem to be " &
-                            "configured.");
+            TIO.Put_Line ("The external repository does not seem to be configured.");
             TIO.Put_Line (no_packages);
          end if;
       end if;
 
       OPS.run_start_hook;
-      PKG.limited_sanity_check
-        (repository => HT.USS (PM.configuration.dir_repository),
-         dry_run    => dry_run, suppress_remote => block_remote);
+      PKG.limited_sanity_check (repository      => HT.USS (PM.configuration.dir_repository),
+                                dry_run         => dry_run,
+                                suppress_remote => block_remote);
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
       if dry_run then
          return True;
       end if;
+
       if Signals.graceful_shutdown_requested then
          TIO.Put_Line (shutreq);
          return False;
@@ -638,8 +637,7 @@ package body Pilot is
          LOG.scribe (PortScan.ignored, LOG.elapsed_now & " " & PortScan.get_port_variant (ptid) &
                          PortScan.ignore_reason (ptid), False);
          OPS.cascade_failed_build (id         => ptid,
-                                   numskipped => num_skipped,
-                                   logs       => Flog);
+                                   numskipped => num_skipped);
          OPS.record_history_ignored (elapsed   => LOG.elapsed_now,
                                      origin    => PortScan.get_port_variant (ptid),
                                      reason    => PortScan.ignore_reason (ptid),

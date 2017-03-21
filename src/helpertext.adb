@@ -635,4 +635,53 @@ package body HelperText is
       return returnstr;
    end replace_all;
 
+
+   --------------------------------------------------------------------------------------------
+   --  replace_char
+   --------------------------------------------------------------------------------------------
+   function replace_char (S : String; focus : Character; substring : String) return String
+   is
+      num_to_replace : constant Natural := count_char (S, focus);
+   begin
+      if num_to_replace = 0 then
+         return S;
+      end if;
+
+      declare
+         ssm1   : constant Natural := substring'Length - 1;
+         strlen : constant Natural := S'Length + (num_to_replace * ssm1);
+         product : String (1 .. strlen);
+         ndx : Positive := 1;
+      begin
+         for x in S'Range loop
+            if S (x) = focus then
+               product (ndx .. ndx + ssm1) := substring;
+               ndx := ndx + substring'Length;
+            else
+               product (ndx) := S (x);
+               ndx := ndx + 1;
+            end if;
+         end loop;
+         return product;
+      end;
+   end replace_char;
+
+
+   --------------------------------------------------------------------------------------------
+   --  strip_control
+   --------------------------------------------------------------------------------------------
+   function strip_control (S : String) return String
+   is
+      product : String (1 .. S'Length);
+      ndx     : Natural := 0;
+   begin
+      for x in S'Range loop
+         if Character'Pos (S (x)) >= 32 then
+            ndx := ndx + 1;
+            product (ndx) := S (x);
+         end if;
+      end loop;
+      return product (1 .. ndx);
+   end strip_control;
+
 end HelperText;

@@ -4,11 +4,15 @@
 with Unix;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
+with PortScan.Log;
+with PortScan.Buildcycle;
 
 package body PortScan.Operations is
 
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
+   package LOG renames PortScan.Log;
+   package CYC renames PortScan.Buildcycle;
 
    --------------------------------------------------------------------------------------------
    --  initialize_hooks
@@ -185,5 +189,407 @@ package body PortScan.Operations is
    begin
       portlist.Iterate (Process => force_delete'Access);
    end delete_existing_packages_of_ports_list;
+
+
+   --------------------------------------------------------------------------------------------
+   --  next_ignored_port
+   --------------------------------------------------------------------------------------------
+   function next_ignored_port return port_id
+   is
+      list_len : constant Integer := Integer (rank_queue.Length);
+      cursor   : ranking_crate.Cursor;
+      QR       : queue_record;
+      result   : port_id := port_match_failed;
+   begin
+      if list_len = 0 then
+         return result;
+      end if;
+      cursor := rank_queue.First;
+      for k in 1 .. list_len loop
+         QR := ranking_crate.Element (Position => cursor);
+         if all_ports (QR.ap_index).ignored then
+            result := QR.ap_index;
+            DPY.insert_history (CYC.assemble_history_record (1, QR.ap_index, DPY.action_ignored));
+            run_package_hook (pkg_ignored, QR.ap_index);
+            exit;
+         end if;
+         cursor := ranking_crate.Next (Position => cursor);
+      end loop;
+      return result;
+   end next_ignored_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  assimulate_substring
+   --------------------------------------------------------------------------------------------
+   procedure assimulate_substring (history : in out progress_history; substring : String)
+   is
+      first : constant Positive := history.last_index + 1;
+      last  : constant Positive := history.last_index + substring'Length;
+   begin
+      --  silently fail (this shouldn't be practically possible)
+      if last < kfile_content'Last then
+         history.content (first .. last) := substring;
+      end if;
+      history.last_index := last;
+   end assimulate_substring;
+
+
+   --------------------------------------------------------------------------------------------
+   --  nv #1
+   --------------------------------------------------------------------------------------------
+   function nv (name, value : String) return String is
+   begin
+      return
+        LAT.Quotation & name & LAT.Quotation & LAT.Colon &
+        LAT.Quotation & value & LAT.Quotation;
+   end nv;
+
+
+   --------------------------------------------------------------------------------------------
+   --  nv #2
+   --------------------------------------------------------------------------------------------
+   function nv (name : String; value : Integer) return String is
+   begin
+      return LAT.Quotation & name & LAT.Quotation & LAT.Colon & HT.int2str (value);
+   end nv;
+
+
+   --------------------------------------------------------------------------------------------
+   --  handle_first_history_entry
+   --------------------------------------------------------------------------------------------
+   procedure handle_first_history_entry is
+   begin
+      if history.segment_count = 1 then
+         assimulate_substring (history, "[" & LAT.LF & " {" & LAT.LF);
+      else
+         assimulate_substring (history, " ,{" & LAT.LF);
+      end if;
+   end handle_first_history_entry;
+
+
+   --------------------------------------------------------------------------------------------
+   --  write_history_json
+   --------------------------------------------------------------------------------------------
+   procedure write_history_json
+   is
+      jsonfile : TIO.File_Type;
+      filename : constant String := HT.USS (PM.configuration.dir_logs) &
+                 "/" & HT.zeropad (history.segment, 2) & "_history.json";
+   begin
+      if history.segment_count = 0 then
+         return;
+      end if;
+      if history.last_written = history.last_index then
+         return;
+      end if;
+      TIO.Create (File => jsonfile,
+                  Mode => TIO.Out_File,
+                  Name => filename);
+      TIO.Put (jsonfile, history.content (1 .. history.last_index));
+      TIO.Put (jsonfile, "]");
+      TIO.Close (jsonfile);
+      history.last_written := history.last_index;
+   exception
+      when others =>
+         if TIO.Is_Open (jsonfile) then
+            TIO.Close (jsonfile);
+         end if;
+   end write_history_json;
+
+
+   --------------------------------------------------------------------------------------------
+   --  check_history_segment_capacity
+   --------------------------------------------------------------------------------------------
+   procedure check_history_segment_capacity is
+   begin
+      if history.segment_count = 1 then
+         history.segment := history.segment + 1;
+         return;
+      end if;
+      if history.segment_count < kfile_units_limit then
+         return;
+      end if;
+      write_history_json;
+
+      history.last_index    := 0;
+      history.last_written  := 0;
+      history.segment_count := 0;
+   end check_history_segment_capacity;
+
+
+   --------------------------------------------------------------------------------------------
+   --  record_history_ignored
+   --------------------------------------------------------------------------------------------
+   procedure record_history_ignored
+     (elapsed   : String;
+      origin    : String;
+      reason    : String;
+      skips     : Natural)
+   is
+      cleantxt : constant String := HT.strip_control (reason);
+      info : constant String :=
+        HT.replace_char
+          (HT.replace_char (cleantxt, LAT.Quotation, "&nbsp;"), LAT.Reverse_Solidus, "&#92;")
+          & ":|:" & HT.int2str (skips);
+   begin
+      history.log_entry := history.log_entry + 1;
+      history.segment_count := history.segment_count + 1;
+      handle_first_history_entry;
+
+      assimulate_substring (history, "   " & nv ("entry", history.log_entry) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("ID", "--") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("result", "ignored") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("info", info) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("duration", "--:--:--") & LAT.LF);
+      assimulate_substring (history, " }" & LAT.LF);
+
+      check_history_segment_capacity;
+   end record_history_ignored;
+
+
+   --------------------------------------------------------------------------------------------
+   --  record_history_skipped
+   --------------------------------------------------------------------------------------------
+   procedure record_history_skipped
+     (elapsed   : String;
+      origin    : String;
+      reason    : String)
+   is
+   begin
+      history.log_entry := history.log_entry + 1;
+      history.segment_count := history.segment_count + 1;
+      handle_first_history_entry;
+
+      assimulate_substring (history, "   " & nv ("entry", history.log_entry) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("ID", "--") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("result", "skipped") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("info", reason) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("duration", "--:--:--") & LAT.LF);
+      assimulate_substring (history, " }" & LAT.LF);
+
+      check_history_segment_capacity;
+   end record_history_skipped;
+
+
+   --------------------------------------------------------------------------------------------
+   --  skip_verified
+   --------------------------------------------------------------------------------------------
+   function skip_verified (id : port_id) return Boolean is
+   begin
+      if id = port_match_failed then
+         return False;
+      end if;
+      return not all_ports (id).unlist_failed;
+   end skip_verified;
+
+
+   --------------------------------------------------------------------------------------------
+   --  delete_rank
+   --------------------------------------------------------------------------------------------
+   procedure delete_rank (id : port_id)
+   is
+      rank_cursor : ranking_crate.Cursor := rank_arrow (id);
+      use type ranking_crate.Cursor;
+   begin
+      if rank_cursor /= ranking_crate.No_Element then
+         rank_queue.Delete (Position => rank_cursor);
+      end if;
+   end delete_rank;
+
+
+   --------------------------------------------------------------------------------------------
+   --  still_ranked
+   --------------------------------------------------------------------------------------------
+   function still_ranked (id : port_id) return Boolean
+   is
+      rank_cursor : ranking_crate.Cursor := rank_arrow (id);
+      use type ranking_crate.Cursor;
+   begin
+      return rank_cursor /= ranking_crate.No_Element;
+   end still_ranked;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unlist_port
+   --------------------------------------------------------------------------------------------
+   procedure unlist_port (id : port_id) is
+   begin
+      if id = port_match_failed then
+         return;
+      end if;
+      if still_ranked (id) then
+         delete_rank (id);
+      else
+         --  don't raise exception.  Since we don't prune all_reverse as
+         --  we go, there's no guarantee the reverse dependency hasn't already
+         --  been removed (e.g. when it is a common reverse dep)
+         all_ports (id).unlist_failed := True;
+      end if;
+   end unlist_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  rank_arrow
+   --------------------------------------------------------------------------------------------
+   function rank_arrow (id : port_id) return ranking_crate.Cursor
+   is
+      rscore : constant port_index := all_ports (id).reverse_score;
+      seek_target : constant queue_record := (ap_index      => id,
+                                              reverse_score => rscore);
+   begin
+      return rank_queue.Find (seek_target);
+   end rank_arrow;
+
+
+   --------------------------------------------------------------------------------------------
+   --  skip_next_reverse_dependency
+   --------------------------------------------------------------------------------------------
+   function skip_next_reverse_dependency (pinnacle : port_id) return port_id
+   is
+      rev_cursor : block_crate.Cursor;
+      next_dep : port_index;
+   begin
+      if all_ports (pinnacle).all_reverse.Is_Empty then
+         return port_match_failed;
+      end if;
+      rev_cursor := all_ports (pinnacle).all_reverse.First;
+      next_dep := block_crate.Element (rev_cursor);
+      unlist_port (id => next_dep);
+      all_ports (pinnacle).all_reverse.Delete (rev_cursor);
+
+      return next_dep;
+   end skip_next_reverse_dependency;
+
+
+   --------------------------------------------------------------------------------------------
+   --  cascade_failed_build
+   --------------------------------------------------------------------------------------------
+   procedure cascade_failed_build (id : port_id; numskipped : out Natural)
+   is
+      purged  : PortScan.port_id;
+      culprit : constant String := get_port_variant (id);
+   begin
+      numskipped := 0;
+      loop
+         purged := skip_next_reverse_dependency (id);
+         exit when purged = port_match_failed;
+         if skip_verified (purged) then
+            numskipped := numskipped + 1;
+            LOG.scribe (PortScan.total, "           Skipped: " & get_port_variant (purged), False);
+            LOG.scribe (PortScan.skipped, get_port_variant (purged) & " by " & culprit, False);
+            DPY.insert_history (CYC.assemble_history_record (1, purged, DPY.action_skipped));
+            record_history_skipped (elapsed => LOG.elapsed_now,
+                                    origin  => get_port_variant (purged),
+                                    reason  => culprit);
+            run_package_hook (pkg_skipped, purged);
+         end if;
+      end loop;
+      unlist_port (id);
+   end cascade_failed_build;
+
+
+   --------------------------------------------------------------------------------------------
+   --  integrity_intact
+   --------------------------------------------------------------------------------------------
+   function integrity_intact return Boolean
+   is
+      procedure check_dep (cursor : block_crate.Cursor);
+      procedure check_rank (cursor : ranking_crate.Cursor);
+
+      intact : Boolean := True;
+      procedure check_dep (cursor : block_crate.Cursor)
+      is
+         did : constant port_index := block_crate.Element (cursor);
+      begin
+         if not still_ranked (did) then
+            intact := False;
+         end if;
+      end check_dep;
+
+      procedure check_rank (cursor : ranking_crate.Cursor)
+      is
+         QR : constant queue_record := ranking_crate.Element (cursor);
+      begin
+         if intact then
+            all_ports (QR.ap_index).blocked_by.Iterate (check_dep'Access);
+         end if;
+      end check_rank;
+   begin
+      rank_queue.Iterate (check_rank'Access);
+      return intact;
+   end integrity_intact;
+
+
+   --------------------------------------------------------------------------------------------
+   --  limited_cached_options_check
+   --------------------------------------------------------------------------------------------
+   function limited_cached_options_check return Boolean
+   is
+      --  TODO: Implement options
+   begin
+      return True;
+   end limited_cached_options_check;
+
+
+   --------------------------------------------------------------------------------------------
+   --  located_external_repository
+   --------------------------------------------------------------------------------------------
+   function located_external_repository return Boolean
+   is
+      command : constant String := host_pkg8 & " -vv";
+      found   : Boolean := False;
+      inspect : Boolean := False;
+      status  : Integer;
+   begin
+      declare
+         dump    : String := HT.USS (Unix.piped_command (command, status));
+         markers : HT.Line_Markers;
+         linenum : Natural := 0;
+      begin
+         if status /= 0 then
+            return False;
+         end if;
+         HT.initialize_markers (dump, markers);
+         loop
+            exit when not HT.next_line_present (dump, markers);
+            declare
+               line : constant String := HT.extract_line (dump, markers);
+               len  : constant Natural := line'Length;
+            begin
+               if inspect then
+                  if len > 7 and then
+                    line (1 .. 2) = "  " and then
+                    line (len - 3 .. len) = ": { " and then
+                    line (3 .. len - 4) /= "ravenadm"
+                  then
+                     found := True;
+                     external_repository := HT.SUS (line (3 .. len - 4));
+                     exit;
+                  end if;
+               else
+                  if line = "Repositories:" then
+                     inspect := True;
+                  end if;
+               end if;
+            end;
+         end loop;
+      end;
+      return found;
+   end located_external_repository;
+
+
+   --------------------------------------------------------------------------------------------
+   --  top_external_repository
+   --------------------------------------------------------------------------------------------
+   function top_external_repository return String is
+   begin
+      return HT.USS (external_repository);
+   end top_external_repository;
+
 
 end PortScan.Operations;

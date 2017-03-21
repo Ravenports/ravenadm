@@ -1213,4 +1213,43 @@ package body PortScan.Buildcycle is
    end watchdog_message;
 
 
+   --------------------------------------------------------------------------------------------
+   --  assemble_history_record
+   --------------------------------------------------------------------------------------------
+   function assemble_history_record (slave  : builders;
+                                     pid    : port_id;
+                                     action : Display.history_action) return Display.history_rec
+   is
+      HR      : Display.history_rec;
+      HOLast  : constant Natural := Display.history_origin'Last;
+      catport : String := get_port_variant (pid);
+      hyphens : constant Display.history_elapsed := "--:--:--";
+   begin
+      HR.id := slave;
+      HR.slavid      := HT.zeropad (Integer (slave), 2);
+      HR.established := True;
+      HR.action      := action;
+      HR.origin      := (others => ' ');
+      HR.run_elapsed := LOG.elapsed_now;
+      if action = Display.action_shutdown then
+         HR.pkg_elapsed := hyphens;
+      else
+         if action = Display.action_skipped or else
+           action = Display.action_ignored
+         then
+            HR.pkg_elapsed := hyphens;
+         else
+            HR.pkg_elapsed := LOG.elapsed_HH_MM_SS (start => trackers (slave).head_time,
+                                                    stop  => trackers (slave).tail_time);
+         end if;
+         if catport'Last > HOLast then
+            HR.origin (1 .. HOLast - 1) := catport (1 .. HOLast - 1);
+            HR.origin (HOLast) := LAT.Asterisk;
+         else
+            HR.origin (1 .. catport'Last) := catport;
+         end if;
+      end if;
+      return HR;
+   end assemble_history_record;
+
 end PortScan.Buildcycle;

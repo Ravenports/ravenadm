@@ -131,15 +131,6 @@ package body PortScan.Log is
 
 
    --------------------------------------------------------------------------------------------
-   --  elapsed_build
-   --------------------------------------------------------------------------------------------
-   function elapsed_build (head_time, tail_time : CAL.Time) return String is
-   begin
-      return elapsed_HH_MM_SS (start => head_time, stop => tail_time);
-   end elapsed_build;
-
-
-   --------------------------------------------------------------------------------------------
    --  elapsed_HH_MM_SS
    --------------------------------------------------------------------------------------------
    function elapsed_HH_MM_SS (start, stop : CAL.Time) return String

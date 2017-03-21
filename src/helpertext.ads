@@ -138,6 +138,12 @@ package HelperText is
    --  Replace single character with another single character (all found)
    function replace_all (S : String; reject, shiny : Character) return String;
 
+   --  Search entire string S for focus character and replace all instances with substring
+   function replace_char (S : String; focus : Character; substring : String) return String;
+
+   --  Filters out control characters from String S
+   function strip_control (S : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);

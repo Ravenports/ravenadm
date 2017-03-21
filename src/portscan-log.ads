@@ -71,7 +71,6 @@ private
    type dim_logname  is array (count_type) of logname_field;
 
    function log_duration (start, stop : CAL.Time) return String;
-   function elapsed_build (head_time, tail_time : CAL.Time) return String;
    function timestamp (hack : CAL.Time; www_format : Boolean := False) return String;
    function split_collection (line : String; title : String) return String;
 

@@ -68,6 +68,15 @@ package Pilot is
    --  If any scan fails, return False.
    function scan_stack_of_single_ports (always_build : Boolean) return Boolean;
 
+   --  Runs post-scan sanity check
+   --  If successful, then scans for all "ignored" ports, failing them
+   --  For each ignored port, cascade the failures (designated "skipped" ports)
+   --  Starts the build log documenting all this.
+   --  Return True if no problems are encountered.
+   function sanity_check_then_prefail
+     (delete_first : Boolean := False;
+      dry_run      : Boolean := False) return Boolean;
+
    function proof_of_concept return Boolean;
 
 private

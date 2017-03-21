@@ -33,5 +33,6 @@ package Definitions is
    --  Modify following with post-patch sed accordingly
    platform_type  : constant supported_opsys := dragonfly;
    host_localbase : constant String := "/usr/local";
+   host_pkg8      : constant String := host_localbase & "/sbin/pkg";
 
 end Definitions;

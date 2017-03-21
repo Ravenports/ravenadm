@@ -27,6 +27,10 @@ package PortScan.Buildcycle is
 
    function last_build_phase (id : builders) return String;
 
+   function assemble_history_record (slave  : builders;
+                                     pid    : port_id;
+                                     action : Display.history_action) return Display.history_rec;
+
 private
 
    package CAL renames Ada.Calendar;
