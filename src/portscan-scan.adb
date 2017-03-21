@@ -686,6 +686,7 @@ package body PortScan.Scan is
       end loop;
    end iterate_drill_down;
 
+
    --------------------------------------------------------------------------------------------
    --  drill_down
    --------------------------------------------------------------------------------------------
@@ -740,5 +741,48 @@ package body PortScan.Scan is
       rec.reverse_score := port_index (rec.all_reverse.Length);
       rec.rev_scanned := True;
    end drill_down;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scan_provided_list_of_ports
+   --------------------------------------------------------------------------------------------
+   function scan_provided_list_of_ports
+     (always_build : Boolean;
+      sysrootver   : sysroot_characteristics) return Boolean
+   is
+      procedure scan (plcursor : portkey_crate.Cursor);
+      successful : Boolean := True;
+      just_stop_now : Boolean;
+
+      procedure scan (plcursor : portkey_crate.Cursor)
+      is
+         origin   : constant String := HT.USS (portkey_crate.Key (plcursor));
+         namebase : constant String := HT.part_1 (origin, ":");
+         variant  : constant String := HT.part_2 (origin, ":");
+      begin
+         if not successful then
+            return;
+         end if;
+         if Signals.graceful_shutdown_requested then
+            successful := False;
+            return;
+         end if;
+         if not scan_single_port (namebase     => namebase,
+                                  variant      => variant,
+                                  always_build => always_build,
+                                  sysrootver   => sysrootver,
+                                  fatal        => just_stop_now)
+         then
+            if just_stop_now then
+               successful := False;
+            else
+               TIO.Put_Line ("Scan of " & origin & " failed, it will not be considered.");
+            end if;
+         end if;
+      end scan;
+   begin
+       portlist.Iterate (Process => scan'Access);
+      return successful;
+   end scan_provided_list_of_ports;
 
 end PortScan.Scan;

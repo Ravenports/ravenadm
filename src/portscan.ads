@@ -34,6 +34,25 @@ package PortScan is
    --  Wipe out all scan data so new scan can be performed
    procedure reset_ports_tree;
 
+   --  Sometimes there is nothing left to do after the sanity check.  Let's provide a way to
+   --  detect that case.
+   function queue_is_empty return Boolean;
+
+   --  Returns the size of the queue before it was pared down.
+   function original_queue_size return Natural;
+
+   --  Returns the current queue size
+   function queue_length return Integer;
+
+   --  Given a port ID, attempt to display the portkey
+   function get_port_variant (id : port_id) return String;
+
+   --  Given a port ID, attempt to display the "ignore" reason
+   function ignore_reason (id : port_id) return String;
+
+   --  Returns true if the given ID is valid (e.g. not port_match_failed)
+   function valid_port_id (id : port_id) return Boolean;
+
    --  DELETE-ME-LATER
    first_port : constant port_id;
    procedure crash_test_dummy;
@@ -149,6 +168,8 @@ private
    lot_number   : scanners   := 1;
    lot_counter  : port_index := 0;
    prescanned   : Boolean    := False;
+
+   original_queue_len : CON.Count_Type;
 
    discerr      : constant String := "Discovery error";
    chroot       : constant String := "/usr/sbin/chroot ";

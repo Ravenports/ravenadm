@@ -48,7 +48,7 @@ package body PortScan is
 
 
    --------------------------------------------------------------------------------------------
-   --  get_port_variant
+   --  get_port_variant #1
    --------------------------------------------------------------------------------------------
    function get_port_variant (PR : port_record) return String
    is
@@ -59,6 +59,39 @@ package body PortScan is
       end if;
       return HT.USS (portkey_crate.Key (PR.key_cursor));
    end get_port_variant;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_port_variant #2
+   --------------------------------------------------------------------------------------------
+   function get_port_variant (id : port_id) return String is
+   begin
+      if id = port_match_failed or else id > last_port then
+         return "Invalid port ID";
+      end if;
+      return get_port_variant (all_ports (id));
+   end get_port_variant;
+
+
+   --------------------------------------------------------------------------------------------
+   --  ignore_reason
+   --------------------------------------------------------------------------------------------
+   function ignore_reason (id : port_id) return String is
+   begin
+      if id = port_match_failed or else id > last_port then
+         return "Invalid port ID";
+      end if;
+      return HT.USS (all_ports (id).ignore_reason);
+   end ignore_reason;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_port_id
+   --------------------------------------------------------------------------------------------
+   function valid_port_id (id : port_id) return Boolean is
+   begin
+      return id /= port_match_failed;
+   end valid_port_id;
 
 
    --------------------------------------------------------------------------------------------
@@ -121,6 +154,34 @@ package body PortScan is
          mq_progress (m) := 0;
       end loop;
    end reset_ports_tree;
+
+
+   --------------------------------------------------------------------------------------------
+   --  queue_is_empty
+   --------------------------------------------------------------------------------------------
+   function queue_is_empty return Boolean is
+   begin
+      return rank_queue.Is_Empty;
+   end queue_is_empty;
+
+
+
+   --------------------------------------------------------------------------------------------
+   --  queue_is_empty
+   --------------------------------------------------------------------------------------------
+   function original_queue_size return Natural is
+   begin
+      return Natural (original_queue_len);
+   end original_queue_size;
+
+
+   --------------------------------------------------------------------------------------------
+   --  queue_length
+   --------------------------------------------------------------------------------------------
+   function queue_length return Integer is
+   begin
+      return Integer (rank_queue.Length);
+   end queue_length;
 
 
    --  DELETE ME

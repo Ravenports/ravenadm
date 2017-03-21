@@ -28,6 +28,12 @@ package PortScan.Scan is
    --  latter sets the build priority.
    procedure set_build_priority;
 
+   --  Iterate through portlist and scan each individual port recursively.
+   --  May be interrupted with a a singal.  Returns False if any port fails scan or if
+   --  the process was interrupted by a signal.
+   function scan_provided_list_of_ports
+     (always_build : Boolean;
+      sysrootver   : sysroot_characteristics) return Boolean;
 
 private
 

@@ -4,6 +4,7 @@
 with Ada.Directories;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
+with Ada.Calendar;
 with Specification_Parser;
 with File_Operations;
 with Information;
@@ -11,11 +12,15 @@ with Parameters;
 with Replicant;
 with Configure;
 with Utilities;
+with Signals;
 with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
+with PortScan.Operations;
 with PortScan.Buildcycle;
+with PortScan.Scan;
+with PortScan.Log;
 
 package body Pilot is
 
@@ -28,9 +33,13 @@ package body Pilot is
    package PSB renames Port_Specification.Buildsheet;
    package PSM renames Port_Specification.Makefile;
    package PST renames Port_Specification.Transform;
+   package OPS renames PortScan.Operations;
    package CYC renames PortScan.Buildcycle;
+   package SCN renames PortScan.Scan;
+   package LOG renames PortScan.Log;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
+   package CAL renames Ada.Calendar;
    package TIO renames Ada.Text_IO;
 
    --------------------------------------------------------------------------------------------
@@ -523,6 +532,140 @@ package body Pilot is
       end;
       return True;
    end slave_platform_determined;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scan_stack_of_single_ports
+   --------------------------------------------------------------------------------------------
+   function scan_stack_of_single_ports (always_build : Boolean) return Boolean
+   is
+      successful : Boolean := SCN.scan_provided_list_of_ports (always_build, sysrootver);
+   begin
+      if successful then
+         SCN.set_build_priority;
+         if PortScan.queue_is_empty then
+            successful := False;
+            TIO.Put_Line ("There are no valid ports to build." & bailing);
+         end if;
+      end if;
+
+      <<clean_exit>>
+      if Signals.graceful_shutdown_requested then
+         successful := False;
+         TIO.Put_Line (shutreq);
+      end if;
+      return successful;
+   end scan_stack_of_single_ports;
+
+
+   --------------------------------------------------------------------------------------------
+   --  sanity_check_then_prefail
+   --------------------------------------------------------------------------------------------
+   function sanity_check_then_prefail
+     (delete_first : Boolean := False;
+      dry_run      : Boolean := False) return Boolean
+   is
+      ptid : PortScan.port_id;
+      num_skipped : Natural;
+      block_remote : Boolean := True;
+      update_external_repo : constant String := host_pkg8 & " update --quiet --repository ";
+      no_packages : constant String := "No prebuilt packages will be used as a result.";
+
+   begin
+      LOG.set_overall_start_time (CAL.Clock);
+
+      if delete_first and then not dry_run then
+         OPS.delete_existing_packages_of_ports_list;
+      end if;
+
+      if not PKG.limited_cached_options_check then
+         --  Error messages emitted by function
+         return False;
+      end if;
+
+      if PM.configuration.defer_prebuilt then
+         --  Before any remote operations, find the external repo
+         if PKG.located_external_repository then
+            block_remote := False;
+            --  We're going to use prebuilt packages if available, so let's
+            --  prepare for that case by updating the external repository
+            TIO.Put ("Stand by, updating external repository catalogs ... ");
+            if not Unix.external_command (update_external_repo &
+                                            PKG.top_external_repository)
+            then
+               TIO.Put_Line ("Failed!");
+               TIO.Put_Line ("The external repository could not be updated.");
+               TIO.Put_Line (no_packages);
+               block_remote := True;
+            else
+               TIO.Put_Line ("done.");
+            end if;
+         else
+            TIO.Put_Line ("The external repository does not seem to be " &
+                            "configured.");
+            TIO.Put_Line (no_packages);
+         end if;
+      end if;
+
+      OPS.run_start_hook;
+      PKG.limited_sanity_check
+        (repository => HT.USS (PM.configuration.dir_repository),
+         dry_run    => dry_run, suppress_remote => block_remote);
+      LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
+      if dry_run then
+         return True;
+      end if;
+      if Signals.graceful_shutdown_requested then
+         TIO.Put_Line (shutreq);
+         return False;
+      end if;
+
+      OPS.delete_existing_web_history_files;
+
+      LOG.start_logging (PortScan.total);
+      LOG.start_logging (PortScan.ignored);
+      LOG.start_logging (PortScan.skipped);
+      LOG.start_logging (PortScan.success);
+      LOG.start_logging (PortScan.failure);
+
+      loop
+         ptid := OPS.next_ignored_port;
+         exit when not PortScan.valid_port_id (ptid);
+         exit when Signals.graceful_shutdown_requested;
+         LOG.increment_build_counter (PortScan.ignored);
+         LOG.scribe (PortScan.total, LOG.elapsed_now & " " & PortScan.get_port_variant (ptid) &
+                     " has been ignored: " & PortScan.ignore_reason (ptid), False);
+         LOG.scribe (PortScan.ignored, LOG.elapsed_now & " " & PortScan.get_port_variant (ptid) &
+                         PortScan.ignore_reason (ptid), False);
+         OPS.cascade_failed_build (id         => ptid,
+                                   numskipped => num_skipped,
+                                   logs       => Flog);
+         OPS.record_history_ignored (elapsed   => LOG.elapsed_now,
+                                     origin    => PortScan.get_port_variant (ptid),
+                                     reason    => PortScan.ignore_reason (ptid),
+                                     skips     => num_skipped);
+         LOG.increment_build_counter (PortScan.skipped, num_skipped);
+      end loop;
+      LOG.stop_logging (PortScan.ignored);
+      LOG.scribe (PortScan.total, LOG.elapsed_now & " Sanity check complete. "
+                  & "Ports remaining to build:" & PortScan.queue_length'Img, True);
+      if Signals.graceful_shutdown_requested then
+         TIO.Put_Line (shutreq);
+      else
+         if OPS.integrity_intact then
+            return True;
+         end if;
+      end if;
+      --  If here, we either got control-C or failed integrity check
+      if not Signals.graceful_shutdown_requested then
+         TIO.Put_Line ("Queue integrity lost! " & bailing);
+      end if;
+      LOG.stop_logging (PortScan.total);
+      LOG.stop_logging (PortScan.skipped);
+      LOG.stop_logging (PortScan.success);
+      LOG.stop_logging (PortScan.failure);
+      return False;
+   end sanity_check_then_prefail;
 
 
 

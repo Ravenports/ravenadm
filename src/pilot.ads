@@ -64,6 +64,10 @@ package Pilot is
    --  Scan sysroot to get exact OS versions, return False if anything fails
    function slave_platform_determined return Boolean;
 
+   --  Iterate through stack of individual build requests and scan each one.
+   --  If any scan fails, return False.
+   function scan_stack_of_single_ports (always_build : Boolean) return Boolean;
+
    function proof_of_concept return Boolean;
 
 private
@@ -82,7 +86,7 @@ private
    brkname    : constant String := "ENTERAFTER";
 
    scan_slave : constant builders := 9;
-   ss_base    : constant String := "/SL09";
+   ss_base    : constant String   := "/SL09";
 
    sysrootver : PortScan.sysroot_characteristics;
 
