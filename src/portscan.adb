@@ -184,6 +184,19 @@ package body PortScan is
    end queue_length;
 
 
+   --------------------------------------------------------------------------------------------
+   --  calculate_package_name
+   --------------------------------------------------------------------------------------------
+   function calculate_package_name (id : port_id; subpackage : String) return String
+   is
+      namebase   : constant String := HT.USS (all_ports (id).port_namebase);
+      variant    : constant String := HT.USS (all_ports (id).port_variant);
+      pkgversion : constant String := HT.USS (all_ports (trackers (id).seq_id).pkgversion);
+   begin
+      return namebase & "-" & subpackage & "-" & variant & "-" & pkgversion;
+   end calculate_package_name;
+
+
    --  DELETE ME
    procedure crash_test_dummy
    is

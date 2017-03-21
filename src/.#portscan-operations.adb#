@@ -800,6 +800,8 @@ package body PortScan.Operations is
 
       procedure check_package (cursor : ranking_crate.Cursor)
       is
+         procedure check_subpackage (position : string_crate.Cursor);
+
          target    : port_id := ranking_crate.Element (cursor).ap_index;
          pkgname   : String  := HT.USS (all_ports (target).package_name);
          available : constant Boolean := all_ports (target).remote_pkg or else

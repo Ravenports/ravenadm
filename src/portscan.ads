@@ -53,6 +53,9 @@ package PortScan is
    --  Returns true if the given ID is valid (e.g. not port_match_failed)
    function valid_port_id (id : port_id) return Boolean;
 
+   --  Given an ID and specifying a subpackage, this function returns the package file name.
+   function calculate_package_name (id : port_id; subpackage : String) return String;
+
    --  DELETE-ME-LATER
    first_port : constant port_id;
    procedure crash_test_dummy;
@@ -61,7 +64,8 @@ private
 
    package CON renames Ada.Containers;
 
-   max_ports  : constant := 2000;
+   max_ports : constant := 2000;
+   arc_ext   : constant String := ".txz";
 
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;

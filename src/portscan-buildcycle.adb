@@ -281,9 +281,8 @@ package body PortScan.Buildcycle is
       procedure install_it (position : string_crate.Cursor)
       is
          subpackage : constant String := HT.USS (string_crate.Element (position));
-         pkgname    : String := namebase & "-" & subpackage & "-" &
-                      HT.USS (all_ports (trackers (id).seq_id).port_variant) & "-" & pkgversion;
-         PKG_FILE   : constant String := "/packages/All/" & pkgname & ".txz";
+         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
+         PKG_FILE   : constant String := "/packages/All/" & pkgname & arc_ext;
          command    : constant String := chroot & root & environment_override &
                       PKG_ADD & PKG_FILE;
       begin
