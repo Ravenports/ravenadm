@@ -84,7 +84,6 @@ private
 
     --  some helper routines
    function get_max_lots return scanners;
-   function scan_progress return String;
    function convert_tuple_to_portkey (tuple : String) return String;
 
 end PortScan.Scan;

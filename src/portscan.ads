@@ -190,5 +190,6 @@ private
 
    function get_port_variant (PR : port_record) return String;
    procedure wipe_make_queue;
+   function scan_progress return String;
 
 end PortScan;

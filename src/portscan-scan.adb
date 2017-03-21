@@ -274,23 +274,6 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
-   --  scan_progress
-   --------------------------------------------------------------------------------------------
-   function scan_progress return String
-   is
-      type percent is delta 0.01 digits 5;
-      complete : port_index := 0;
-      pc : percent;
-   begin
-      for k in scanners'Range loop
-         complete := complete + mq_progress (k);
-      end loop;
-      pc := percent (100.0 * Float (complete) / Float (last_port));
-      return " progress:" & pc'Img & "%              " & LAT.CR;
-   end scan_progress;
-
-
-   --------------------------------------------------------------------------------------------
    --  parallel_deep_scan
    --------------------------------------------------------------------------------------------
    procedure parallel_deep_scan

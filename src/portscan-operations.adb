@@ -914,9 +914,22 @@ package body PortScan.Operations is
 
       procedure print (cursor : subqueue.Cursor)
       is
+         function postinfo return String;
+
          id   : constant port_index := subqueue.Element (cursor);
-         line : constant String := HT.USS (all_ports (id).package_name) &
-                 " (" & get_port_variant (all_ports (id)) & ")";
+
+         function postinfo return String
+         is
+            scount : Natural := Natural (all_ports (id).subpackages.Length);
+         begin
+            if scount = 1 then
+               return " (1 subpackage)";
+            else
+               return " (" & HT.int2str (scount) & " subpackages)";
+            end if;
+         end postinfo;
+
+         line : constant String := get_port_variant (all_ports (id)) & postinfo;
       begin
          TIO.Put_Line ("  => " & line);
          if goodlog then
@@ -993,16 +1006,14 @@ package body PortScan.Operations is
       if dry_run then
          if not fetch_list.Is_Empty then
             begin
-               TIO.Create (File => listlog, Mode => TIO.Out_File,
-                           Name => filename);
+               TIO.Create (File => listlog, Mode => TIO.Out_File, Name => filename);
                goodlog := True;
             exception
                when others => goodlog := False;
             end;
             TIO.Put_Line ("These are the packages that would be fetched:");
             fetch_list.Iterate (print'Access);
-            TIO.Put_Line ("Total packages that would be fetched:" &
-                            fetch_list.Length'Img);
+            TIO.Put_Line ("Total packages that would be fetched:" & fetch_list.Length'Img);
             if goodlog then
                TIO.Close (listlog);
                TIO.Put_Line ("The complete build list can also be found at:"
@@ -1193,6 +1204,442 @@ package body PortScan.Operations is
               EX.Exception_Message (issue));
          return False;
    end passed_dependency_check;
+
+
+   --------------------------------------------------------------------------------------------
+   --  package_scan_progress
+   --------------------------------------------------------------------------------------------
+   function package_scan_progress return String
+   is
+      type percent is delta 0.01 digits 5;
+      complete : port_index := 0;
+      pc : percent;
+      total : constant Float := Float (pkgscan_total);
+   begin
+      for k in scanners'Range loop
+         complete := complete + pkgscan_progress (k);
+      end loop;
+      pc := percent (100.0 * Float (complete) / total);
+      return " progress:" & pc'Img & "%              " & LAT.CR;
+   end package_scan_progress;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_abi_check
+   --------------------------------------------------------------------------------------------
+   function passed_abi_check
+     (repository       : String;
+      id               : port_id;
+      subpackage       : String;
+      skip_exist_check : Boolean := False) return Boolean
+   is
+      rec : port_record renames all_ports (id);
+
+      pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
+      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
+      command  : constant String := pkg8 & " query -F "  & fullpath & " %q";
+      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
+                                    " -U %q " & pkg_base;
+      status : Integer;
+      comres : HT.Text;
+   begin
+      if not skip_exist_check and then not DIR.Exists (Name => fullpath)
+      then
+         return False;
+      end if;
+
+      if repository = "" then
+         comres := Unix.piped_command (remocmd, status);
+      else
+         comres := Unix.piped_command (command, status);
+      end if;
+      if status /= 0 then
+         return False;
+      end if;
+      declare
+         topline : String := HT.first_line (HT.USS (comres));
+      begin
+         if HT.equivalent (abi_formats.calculated_abi, topline) or else
+           HT.equivalent (abi_formats.calculated_alt_abi, topline) or else
+           HT.equivalent (abi_formats.calc_abi_noarch, topline) or else
+           HT.equivalent (abi_formats.calc_alt_abi_noarch, topline)
+         then
+            return True;
+         end if;
+      end;
+      return False;
+   end passed_abi_check;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_option_check
+   --------------------------------------------------------------------------------------------
+   function passed_option_check
+     (repository       : String;
+      id               : port_id;
+      subpackage       : String;
+      skip_exist_check : Boolean := False) return Boolean
+   is
+      rec : port_record renames all_ports (id);
+
+      pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
+      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
+      command  : constant String := pkg8 & " query -F "  & fullpath & " %Ok:%Ov";
+      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
+                                    " -U %Ok:%Ov " & pkg_base;
+      status   : Integer;
+      comres   : HT.Text;
+      counter  : Natural := 0;
+      required : constant Natural := Natural (all_ports (id).options.Length);
+   begin
+      if id = port_match_failed or else
+        not all_ports (id).scanned or else
+        (not skip_exist_check and then not DIR.Exists (fullpath))
+      then
+         return False;
+      end if;
+
+      if repository = "" then
+         comres := Unix.piped_command (remocmd, status);
+      else
+         comres := Unix.piped_command (command, status);
+      end if;
+      if status /= 0 then
+         return False;
+      end if;
+
+      declare
+         command_result : constant String := HT.USS (comres);
+         markers  : HT.Line_Markers;
+      begin
+         HT.initialize_markers (command_result, markers);
+         loop
+            exit when not HT.next_line_present (command_result, markers);
+            declare
+               line     : constant String := HT.extract_line (command_result, markers);
+               namekey  : constant String := HT.part_1 (line, ":");
+               knob     : constant String := HT.part_2 (line, ":");
+               nametext : HT.Text := HT.SUS (namekey);
+               knobval  : Boolean;
+            begin
+               exit when line = "";
+               if HT.count_char (line, LAT.Colon) /= 1 then
+                  raise unknown_format with line;
+               end if;
+               if knob = "on" then
+                  knobval := True;
+               elsif knob = "off" then
+                  knobval := False;
+               else
+                  raise unknown_format with "knob=" & knob & "(" & line & ")";
+               end if;
+
+               counter := counter + 1;
+               if counter > required then
+                  --  package has more options than we are looking for
+                  LOG.obsolete_notice
+                    (write_to_screen => debug_opt_check,
+                     message => "options " & namekey & LAT.LF & pkg_base &
+                       " has more options than required (" & HT.int2str (required) & ")");
+                  return False;
+               end if;
+
+               if all_ports (id).options.Contains (nametext) then
+                  if knobval /= all_ports (id).options.Element (nametext) then
+                     --  port option value doesn't match package option value
+                     if knobval then
+                        LOG.obsolete_notice
+                          (write_to_screen => debug_opt_check,
+                           message => pkg_base & " " & namekey &
+                             " is ON but specifcation says it must be OFF");
+                     else
+                        LOG.obsolete_notice
+                          (write_to_screen => debug_opt_check,
+                           message => pkg_base & " " & namekey &
+                             " is OFF but specifcation says it must be ON");
+                     end if;
+                     return False;
+                  end if;
+               else
+                  --  Name of package option not found in port options
+                  LOG.obsolete_notice
+                    (write_to_screen => debug_opt_check,
+                     message => pkg_base & " option " & namekey &
+                       " is no longer present in the specification");
+                  return False;
+               end if;
+            end;
+         end loop;
+
+         if counter < required then
+            --  The ports tree has more options than the existing package
+            LOG.obsolete_notice
+              (write_to_screen => debug_opt_check,
+               message => pkg_base & " has less options than required (" &
+                 HT.int2str (required) & ")");
+            return False;
+         end if;
+
+         --  If we get this far, the package options must match port options
+         return True;
+      end;
+   exception
+      when issue : others =>
+         LOG.obsolete_notice
+           (write_to_screen => debug_opt_check,
+            message => "option check exception" & LAT.LF & EX.Exception_Message (issue));
+         return False;
+   end passed_option_check;
+
+
+   --------------------------------------------------------------------------------------------
+   --  initial_package_scan
+   --------------------------------------------------------------------------------------------
+   procedure initial_package_scan (repository : String; id : port_id; subpackage : String)
+   is
+      procedure set_position (position : subpackage_crate.Cursor);
+      procedure set_delete   (Element : in out subpackage_record);
+      procedure set_present  (Element : in out subpackage_record);
+      procedure set_query    (Element : in out subpackage_record);
+
+      subpackage_position : subpackage_crate.Cursor := subpackage_crate.No_Element;
+      query_result        : HT.Text;
+
+      procedure set_position (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+      begin
+         if HT.USS (rec.subpackage) = subpackage then
+            subpackage_position := position;
+         end if;
+      end set_position;
+      procedure set_delete (Element : in out subpackage_record) is
+      begin
+         Element.deletion_due := True;
+      end set_delete;
+      procedure set_present (Element : in out subpackage_record) is
+      begin
+         Element.pkg_present := True;
+      end set_present;
+      procedure set_query (Element : in out subpackage_record) is
+      begin
+         Element.pkg_dep_query := query_result;
+      end set_query;
+
+      use type subpackage_crate.Cursor;
+   begin
+      if id = port_match_failed or else
+        not all_ports (id).scanned
+      then
+           return;
+      end if;
+
+      all_ports (id).subpackages.Iterate (set_position'Access);
+      if subpackage_position = subpackage_crate.No_Element then
+         return;
+      end if;
+
+      declare
+         pkgname  : constant String := calculate_package_name (id, subpackage);
+         fullpath : constant String := repository & "/" & pkgname & arc_ext;
+         msg_opt  : constant String := pkgname & " failed option check.";
+         msg_abi  : constant String := pkgname & " failed architecture (ABI) check.";
+      begin
+         if DIR.Exists (fullpath) then
+            all_ports (id).subpackages.Update_Element (subpackage_position, set_present'Access);
+         else
+            return;
+         end if;
+         if not passed_option_check (repository, id, subpackage, True) then
+            LOG.obsolete_notice (msg_opt, True);
+            all_ports (id).subpackages.Update_Element (subpackage_position, set_delete'Access);
+            return;
+         end if;
+         if not passed_abi_check (repository, id, subpackage, True) then
+            LOG.obsolete_notice (msg_abi, True);
+            all_ports (id).subpackages.Update_Element (subpackage_position, set_delete'Access);
+            return;
+         end if;
+      end;
+      query_result := result_of_dependency_query (repository, id, subpackage);
+      all_ports (id).subpackages.Update_Element (subpackage_position, set_query'Access);
+   end initial_package_scan;
+
+
+   --------------------------------------------------------------------------------------------
+   --  remote_package_scan
+   --------------------------------------------------------------------------------------------
+   procedure remote_package_scan (id : port_id; subpackage : String)
+   is
+      procedure set_position   (position : subpackage_crate.Cursor);
+      procedure set_remote_on  (Element : in out subpackage_record);
+      procedure set_remote_off (Element : in out subpackage_record);
+      procedure set_query      (Element : in out subpackage_record);
+
+      subpackage_position : subpackage_crate.Cursor := subpackage_crate.No_Element;
+      query_result        : HT.Text;
+
+      procedure set_position (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+      begin
+         if HT.USS (rec.subpackage) = subpackage then
+            subpackage_position := position;
+         end if;
+      end set_position;
+      procedure set_remote_on (Element : in out subpackage_record) is
+      begin
+         Element.remote_pkg := True;
+      end set_remote_on;
+      procedure set_remote_off (Element : in out subpackage_record) is
+      begin
+         Element.remote_pkg := False;
+      end set_remote_off;
+      procedure set_query (Element : in out subpackage_record) is
+      begin
+         Element.pkg_dep_query := query_result;
+      end set_query;
+
+      use type subpackage_crate.Cursor;
+   begin
+      all_ports (id).subpackages.Iterate (set_position'Access);
+      if subpackage_position = subpackage_crate.No_Element then
+         return;
+      end if;
+
+      if passed_abi_check (repository       => "",
+                           id               => id,
+                           subpackage       => subpackage,
+                           skip_exist_check => True)
+      then
+         all_ports (id).subpackages.Update_Element (subpackage_position, set_remote_on'Access);
+      else
+         return;
+      end if;
+      if not passed_option_check (repository       => "",
+                                  id               => id,
+                                  subpackage       => subpackage,
+                                  skip_exist_check => True)
+      then
+         all_ports (id).subpackages.Update_Element (subpackage_position, set_remote_off'Access);
+         return;
+      end if;
+      query_result := result_of_dependency_query ("", id, subpackage);
+      all_ports (id).subpackages.Update_Element (subpackage_position, set_query'Access);
+   end remote_package_scan;
+
+
+   --------------------------------------------------------------------------------------------
+   --  parallel_package_scan
+   --------------------------------------------------------------------------------------------
+   procedure parallel_package_scan
+     (repository    : String;
+      remote_scan   : Boolean;
+      show_progress : Boolean)
+   is
+      task type scan (lot : scanners);
+      finished : array (scanners) of Boolean := (others => False);
+      combined_wait : Boolean := True;
+      label_shown   : Boolean := False;
+      aborted       : Boolean := False;
+
+      task body scan
+      is
+         procedure populate (cursor : subqueue.Cursor);
+         procedure populate (cursor : subqueue.Cursor)
+         is
+            procedure check_subpackage (position : subpackage_crate.Cursor);
+
+            target_port : port_index := subqueue.Element (cursor);
+            important   : constant Boolean := all_ports (target_port).scanned;
+
+            procedure check_subpackage (position : subpackage_crate.Cursor)
+            is
+               rec        : subpackage_record renames subpackage_crate.Element (position);
+               subpackage : String := HT.USS (rec.subpackage);
+            begin
+               if not aborted and then important then
+                  if remote_scan and then
+                    not rec.never_remote
+                  then
+                     if not rec.pkg_present or else
+                       rec.deletion_due
+                     then
+                        remote_package_scan (target_port, subpackage);
+                     end if;
+                  else
+                     initial_package_scan (repository, target_port, subpackage);
+                  end if;
+               end if;
+            end check_subpackage;
+
+         begin
+            all_ports (target_port).subpackages.Iterate (check_subpackage'Access);
+            mq_progress (lot) := mq_progress (lot) + 1;
+         end populate;
+      begin
+         make_queue (lot).Iterate (populate'Access);
+         finished (lot) := True;
+      end scan;
+
+      scan_01 : scan (lot => 1);
+      scan_02 : scan (lot => 2);
+      scan_03 : scan (lot => 3);
+      scan_04 : scan (lot => 4);
+      scan_05 : scan (lot => 5);
+      scan_06 : scan (lot => 6);
+      scan_07 : scan (lot => 7);
+      scan_08 : scan (lot => 8);
+      scan_09 : scan (lot => 9);
+      scan_10 : scan (lot => 10);
+      scan_11 : scan (lot => 11);
+      scan_12 : scan (lot => 12);
+      scan_13 : scan (lot => 13);
+      scan_14 : scan (lot => 14);
+      scan_15 : scan (lot => 15);
+      scan_16 : scan (lot => 16);
+      scan_17 : scan (lot => 17);
+      scan_18 : scan (lot => 18);
+      scan_19 : scan (lot => 19);
+      scan_20 : scan (lot => 20);
+      scan_21 : scan (lot => 21);
+      scan_22 : scan (lot => 22);
+      scan_23 : scan (lot => 23);
+      scan_24 : scan (lot => 24);
+      scan_25 : scan (lot => 25);
+      scan_26 : scan (lot => 26);
+      scan_27 : scan (lot => 27);
+      scan_28 : scan (lot => 28);
+      scan_29 : scan (lot => 29);
+      scan_30 : scan (lot => 30);
+      scan_31 : scan (lot => 31);
+      scan_32 : scan (lot => 32);
+   begin
+      while combined_wait loop
+         delay 1.0;
+         combined_wait := False;
+         for j in scanners'Range loop
+            if not finished (j) then
+               combined_wait := True;
+               exit;
+            end if;
+         end loop;
+         if combined_wait then
+            if not label_shown then
+               label_shown := True;
+               TIO.Put_Line ("Scanning existing packages.");
+            end if;
+            if show_progress then
+               TIO.Put (scan_progress);
+            end if;
+            if Signals.graceful_shutdown_requested then
+               aborted := True;
+            end if;
+         end if;
+      end loop;
+   end parallel_package_scan;
 
 
 end PortScan.Operations;

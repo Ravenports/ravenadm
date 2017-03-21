@@ -44,6 +44,11 @@ package PortScan.Operations is
       reason    : String;
       skips     : Natural);
 
+   --  The port build failed, so set all reverse dependences as skipped
+   --  Remove the port from the queue when this is done.
+   --  Exposed for pilot
+   procedure cascade_failed_build (id : port_id; numskipped : out Natural);
+
    --  removes processed port from the ranking queue.
    procedure unlist_port (id : port_id);
 
@@ -117,8 +122,10 @@ private
       calc_alt_abi_noarch : HT.Text;
    end record;
 
-   history     : progress_history;
-   abi_formats : package_abi;
+   pkgscan_progress : dim_progress := (others => 0);
+   pkgscan_total    : Natural := 0;
+   history          : progress_history;
+   abi_formats      : package_abi;
 
    external_repository : HT.Text;
 
@@ -167,6 +174,18 @@ private
       id         : port_id;
       subpackage : String) return HT.Text;
 
+   --  Dedicated progress meter for prescanning packages
+   function package_scan_progress return String;
+
+   --  For each package in the query, check the ABI and options (this is the
+   --  only time they are checked).  If those pass, query the dependencies,
+   --  store the result, and check them.  Set the "deletion" flag as needed.
+   --  The dependency check is NOT performed yet.
+   procedure initial_package_scan (repository : String; id : port_id; subpackage : String);
+
+   --  Same as above, but for packages in the external repository
+   procedure remote_package_scan (id : port_id; subpackage : String);
+
    --  Using the same make_queue as was used to scan the ports, use tasks (up to 32) to do the
    --  initial scanning of the ports, including getting the pkg dependency query.
    procedure parallel_package_scan
@@ -174,13 +193,27 @@ private
       remote_scan   : Boolean;
       show_progress : Boolean);
 
-   --  The port build failed, so set all reverse dependences as skipped
-   --  Remove the port from the queue when this is done.
-   procedure cascade_failed_build (id : port_id; numskipped : out Natural);
-
    --  The port build succeeded, so remove the "blocked_by" designation
    --  for all the immediate reverse dependencies.
    --  Remove the port from the queue when this is done.
    procedure cascade_successful_build (id : port_id);
+
+   --  This function returns "True" if the scanned package has the expected
+   --  package ABI, e.g. dragonfly:4.6:x86:64, freebsd:10:amd64
+   function passed_abi_check
+     (repository       : String;
+      id               : port_id;
+      subpackage       : String;
+      skip_exist_check : Boolean := False) return Boolean;
+
+   --  This function returns "True" if the scanned options exactly match
+   --  the options in the already-built package.  Usually it's already known
+   --  that a package exists before the function is called, but an existence
+   --  check will be performed just in case (failure returns "False")
+   function passed_option_check
+     (repository       : String;
+      id               : port_id;
+      subpackage       : String;
+      skip_exist_check : Boolean := False) return Boolean;
 
 end PortScan.Operations;
