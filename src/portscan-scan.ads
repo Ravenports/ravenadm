@@ -58,6 +58,7 @@ private
      (conspiracy    : String;
       unkindness    : String;
       target        : port_index;
+      always_build  : Boolean;
       sysrootver    : sysroot_characteristics);
 
    procedure parallel_deep_scan

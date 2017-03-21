@@ -115,12 +115,23 @@ private
          content       : kfile_content;
       end record;
 
-   type package_abi is record
-      calculated_abi      : HT.Text;
-      calculated_alt_abi  : HT.Text;
-      calc_abi_noarch     : HT.Text;
-      calc_alt_abi_noarch : HT.Text;
-   end record;
+   type package_abi is
+      record
+         calculated_abi      : HT.Text;
+         calculated_alt_abi  : HT.Text;
+         calc_abi_noarch     : HT.Text;
+         calc_alt_abi_noarch : HT.Text;
+      end record;
+
+   type subpackage_identifier is
+      record
+         id         : port_index;
+         subpackage : HT.Text;
+      end record;
+
+   package subpackage_queue is new CON.Vectors
+     (Element_Type => subpackage_identifier,
+      Index_Type   => port_index);
 
    pkgscan_progress : dim_progress := (others => 0);
    pkgscan_total    : Natural := 0;

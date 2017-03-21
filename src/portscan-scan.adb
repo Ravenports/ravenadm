@@ -296,7 +296,7 @@ package body PortScan.Scan is
             target_port : port_index := subqueue.Element (cursor);
          begin
             if not aborted then
-               populate_port_data (conspiracy, unkindness, target_port, sysrootver);
+               populate_port_data (conspiracy, unkindness, target_port, False, sysrootver);
                mq_progress (lot) := mq_progress (lot) + 1;
             end if;
          exception
@@ -380,6 +380,7 @@ package body PortScan.Scan is
      (conspiracy    : String;
       unkindness    : String;
       target        : port_index;
+      always_build  : Boolean;
       sysrootver    : sysroot_characteristics)
    is
       rec : port_record renames all_ports (target);
@@ -445,7 +446,13 @@ package body PortScan.Scan is
          populate_set_depends (target, thespec.get_list_item (PSP.sp_run_deps, item), runtime);
       end loop;
       for item in Positive range 1 .. thespec.get_subpackage_length (variant) loop
-         rec.subpackages.Append (HT.SUS (thespec.get_subpackage_item (variant, item)));
+         declare
+            newrec : subpackage_record;
+         begin
+            newrec.subpackage   := HT.SUS (thespec.get_subpackage_item (variant, item));
+            newrec.never_remote := always_build;
+            rec.subpackages.Append (newrec);
+         end;
       end loop;
       if variant = variant_standard then
          for item in Positive range 1 .. thespec.get_list_length (PSP.sp_opts_standard) loop
@@ -557,7 +564,7 @@ package body PortScan.Scan is
                raise circular_logic;
             end if;
             if not all_ports (new_target).scanned then
-               populate_port_data (conspiracy, unkindness, new_target, sysrootver);
+               populate_port_data (conspiracy, unkindness, new_target, False, sysrootver);
                all_ports (new_target).scan_locked := True;
                all_ports (new_target).blocked_by.Iterate (dig'Access);
                all_ports (new_target).scan_locked := False;
@@ -592,8 +599,7 @@ package body PortScan.Scan is
          return False;
       end if;
       begin
-         populate_port_data (conspiracy, unkindness, target, sysrootver);
-         all_ports (target).never_remote := always_build;
+         populate_port_data (conspiracy, unkindness, target, always_build, sysrootver);
       exception
          when issue : others =>
             TIO.Put_Line ("Encountered issue with " & two_partid & " or its dependencies" &

@@ -810,15 +810,17 @@ package body PortScan.Operations is
    is
       procedure prune_packages (cursor : ranking_crate.Cursor);
       procedure check_package (cursor : ranking_crate.Cursor);
+      procedure determine_fully_built (cursor : ranking_crate.Cursor);
       procedure prune_queue (cursor : subqueue.Cursor);
-      procedure print (cursor : subqueue.Cursor);
-      procedure fetch (cursor : subqueue.Cursor);
-      procedure check (cursor : subqueue.Cursor);
+      procedure print (cursor : subpackage_queue.Cursor);
+      procedure fetch (cursor : subpackage_queue.Cursor);
+      procedure check (cursor : subpackage_queue.Cursor);
       procedure set_delete  (Element : in out subpackage_record);
       procedure kill_remote (Element : in out subpackage_record);
 
-      already_built : subqueue.Vector;
-      fetch_list    : subqueue.Vector;
+      already_built : subpackage_queue.Vector;
+      fetch_list    : subpackage_queue.Vector;
+      prune_list    : subqueue.Vector;
       fetch_fail    : Boolean := False;
       clean_pass    : Boolean := False;
       listlog       : TIO.File_Type;
@@ -850,15 +852,16 @@ package body PortScan.Operations is
             pkgname    : constant String  := calculate_package_name (target, subpackage);
             available  : constant Boolean :=
                          (rec.remote_pkg or else rec.pkg_present) and then not rec.deletion_due;
+            newrec     : subpackage_identifier := (target, rec.subpackage);
          begin
             if not available then
                return;
             end if;
 
             if passed_dependency_check (query_result => rec.pkg_dep_query, id => target) then
-               already_built.Append (New_Item => target);
+               already_built.Append (New_Item => newrec);
                if rec.remote_pkg then
-                  fetch_list.Append (New_Item => target);
+                  fetch_list.Append (New_Item => newrec);
                end if;
             else
                if rec.remote_pkg then
@@ -912,49 +915,77 @@ package body PortScan.Operations is
          all_ports (target).subpackages.Iterate (check_subpackage'Access);
       end prune_packages;
 
-      procedure print (cursor : subqueue.Cursor)
+      procedure print (cursor : subpackage_queue.Cursor)
       is
-         function postinfo return String;
-
-         id   : constant port_index := subqueue.Element (cursor);
-
-         function postinfo return String
-         is
-            scount : Natural := Natural (all_ports (id).subpackages.Length);
-         begin
-            if scount = 1 then
-               return " (1 subpackage)";
-            else
-               return " (" & HT.int2str (scount) & " subpackages)";
-            end if;
-         end postinfo;
-
-         line : constant String := get_port_variant (all_ports (id)) & postinfo;
+         id      : constant port_index := subpackage_queue.Element (cursor).id;
+         subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
+         pkgfile : constant String := calculate_package_name (id, subpkg) & arc_ext;
       begin
-         TIO.Put_Line ("  => " & line);
+         TIO.Put_Line ("  => " & pkgfile);
          if goodlog then
-            TIO.Put_Line (listlog, line);
+            TIO.Put_Line (listlog, pkgfile);
          end if;
       end print;
 
-      procedure fetch (cursor : subqueue.Cursor)
+      procedure fetch (cursor : subpackage_queue.Cursor)
       is
-         id  : constant port_index := subqueue.Element (cursor);
+         id      : constant port_index := subpackage_queue.Element (cursor).id;
+         subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
+         pkgbase : constant String := " " & calculate_package_name (id, subpkg);
       begin
-         HT.SU.Append (package_list, " " & id2pkgname (id));
+         HT.SU.Append (package_list, pkgbase);
       end fetch;
 
-      procedure check (cursor : subqueue.Cursor)
+      procedure check (cursor : subpackage_queue.Cursor)
       is
-         id   : constant port_index := subqueue.Element (cursor);
-         name : constant String := HT.USS (all_ports (id).package_name);
-         loc  : constant String := HT.USS (PM.configuration.dir_repository) & "/" & name;
+         id      : constant port_index := subpackage_queue.Element (cursor).id;
+         subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
+         pkgfile : constant String := calculate_package_name (id, subpkg) & arc_ext;
+         loc     : constant String := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
       begin
          if not DIR.Exists (loc) then
-            TIO.Put_Line ("Download failed: " & name);
+            TIO.Put_Line ("Download failed: " & pkgfile);
             fetch_fail := True;
          end if;
       end check;
+
+      procedure determine_fully_built (cursor : ranking_crate.Cursor)
+      is
+         procedure check_subpackage (cursor : subpackage_crate.Cursor);
+
+         glass_full : Boolean := True;
+         target : port_id := ranking_crate.Element (cursor).ap_index;
+
+         procedure check_subpackage (cursor : subpackage_crate.Cursor)
+         is
+            procedure check_already_built (position : subpackage_queue.Cursor);
+
+            rec : subpackage_record renames subpackage_crate.Element (cursor);
+            found : Boolean := False;
+
+            procedure check_already_built (position : subpackage_queue.Cursor)
+            is
+               builtrec : subpackage_identifier renames subpackage_queue.Element (position);
+            begin
+               if not found then
+                  if HT.equivalent (builtrec.subpackage, rec.subpackage) then
+                     found := True;
+                  end if;
+               end if;
+            end check_already_built;
+         begin
+            if glass_full then
+               already_built.Iterate (check_already_built'Access);
+               glass_full := found;
+            end if;
+         end check_subpackage;
+      begin
+         all_ports (target).subpackages.Iterate (check_subpackage'Access);
+         if glass_full then
+            prune_list.Append (target);
+         end if;
+      end determine_fully_built;
+
    begin
       if Unix.env_variable_defined ("WHYFAIL") then
          activate_debugging_code;
@@ -1045,7 +1076,11 @@ package body PortScan.Operations is
          TIO.Put_Line ("At least one package failed to fetch, aborting build!");
          rank_queue.Clear;
       else
-         already_built.Iterate (prune_queue'Access);
+         --  All subpackages must be "already_built" before we can prune.
+         --  we have iterate through the rank_queue, then subiterate through subpackages.
+         --  If all subpackages are present, add port to prune queue.
+         rank_queue.Iterate (determine_fully_built'Access);
+         prune_list.Iterate (prune_queue'Access);
       end if;
    end limited_sanity_check;
 

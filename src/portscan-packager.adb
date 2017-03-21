@@ -29,8 +29,8 @@ package body PortScan.Packager is
       seq_id        : port_id;
       rootdir       : String) return Boolean
    is
-      procedure metadata   (position : string_crate.Cursor);
-      procedure package_it (position : string_crate.Cursor);
+      procedure metadata   (position : subpackage_crate.Cursor);
+      procedure package_it (position : subpackage_crate.Cursor);
 
       namebase   : String  := HT.USS (all_ports (seq_id).port_namebase);
       conbase    : String  := "/construction/" & namebase;
@@ -43,12 +43,13 @@ package body PortScan.Packager is
       pkgvers    : String  := HT.USS (all_ports (seq_id).pkgversion);
       still_good : Boolean := True;
 
-      procedure metadata (position : string_crate.Cursor)
+      procedure metadata (position : subpackage_crate.Cursor)
       is
          type three is range 1 .. 3;
          function convert_prepost (prepost : three) return String;
          function convert_stage   (stage   : three) return String;
-         subpackage    : constant String := HT.USS (string_crate.Element (position));
+         subpackage    : constant String :=
+                         HT.USS (subpackage_crate.Element (position).subpackage);
          message_file  : constant String := wrkdir & "/PKG_DISPLAY." & subpackage;
          descript_file : constant String := wrkdir & "/PKG_DESC." & subpackage;
          descript : String := "/+DESC";
@@ -105,9 +106,9 @@ package body PortScan.Packager is
                                  filename   => spkgdir & subpackage & manifest);
       end metadata;
 
-      procedure package_it (position : string_crate.Cursor)
+      procedure package_it (position : subpackage_crate.Cursor)
       is
-         subpackage   : constant String := HT.USS (string_crate.Element (position));
+         subpackage   : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
          package_list : constant String := conbase & "/.manifest." & subpackage & ".mktmp";
          FORCE_POST_PATTERNS : constant String := "rmdir mkfontscale mkfontdir fc-cache " &
            "fonts.dir fonts.scale gtk-update-icon-cache gio-querymodules gtk-query-immodules " &
