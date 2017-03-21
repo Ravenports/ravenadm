@@ -57,7 +57,7 @@ package body PortScan.Log is
       origin  : constant String := HT.part_1 (portvar, ":");
       variant : constant String := HT.part_2 (portvar, ":");
    begin
-      return HT.USS (PM.configuration.dir_logs) & "/" & origin & "___" & variant & ".log";
+      return HT.USS (PM.configuration.dir_logs) & "/logs/" & origin & "___" & variant & ".log";
    end log_name;
 
 
@@ -368,6 +368,7 @@ package body PortScan.Log is
          if DIR.Exists (log_path) then
             DIR.Delete_File (log_path);
          end if;
+         FOP.mkdirp_from_filename (log_path);
          TIO.Create (File => log_handle,
                      Mode => TIO.Out_File,
                      Name => log_path);
@@ -418,5 +419,103 @@ package body PortScan.Log is
    begin
       scan_stop := mark;
    end set_scan_complete;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_scan_start_time
+   --------------------------------------------------------------------------------------------
+   procedure set_overall_start_time (mark : CAL.Time) is
+   begin
+      start_time := mark;
+   end set_overall_start_time;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_scan_start_time
+   --------------------------------------------------------------------------------------------
+   procedure set_overall_complete (mark : CAL.Time) is
+   begin
+      stop_time := mark;
+   end set_overall_complete;
+
+
+   --------------------------------------------------------------------------------------------
+   --  start_logging
+   --------------------------------------------------------------------------------------------
+   procedure start_logging (flavor : count_type)
+   is
+      logpath : constant String := HT.USS (PM.configuration.dir_logs) & "/" & logname (flavor);
+   begin
+      if DIR.Exists (logpath) then
+         DIR.Delete_File (logpath);
+      end if;
+      TIO.Create (File => Flog (flavor),
+                  Mode => TIO.Out_File,
+                  Name => logpath);
+      if flavor = total then
+         TIO.Put_Line
+           (Flog (flavor),
+              "-=>  Chronology of last build  <=-" & LAT.LF &
+              "Started: " & timestamp (start_time) & LAT.LF &
+              "Ports to build: " & HT.int2str (original_queue_size) & LAT.LF & LAT.LF &
+              "Purging any ignored/broken ports first ...");
+         TIO.Flush (Flog (flavor));
+      end if;
+   exception
+      when others =>
+         raise overall_log with "Failed to create or delete " & logpath & bailing;
+   end start_logging;
+
+
+   --------------------------------------------------------------------------------------------
+   --  stop_logging
+   --------------------------------------------------------------------------------------------
+   procedure stop_logging (flavor : count_type) is
+   begin
+      if flavor = total then
+         TIO.Put_Line (Flog (flavor), "Finished: " & timestamp (stop_time));
+         TIO.Put_Line (Flog (flavor), log_duration (start => start_time, stop  => stop_time));
+         TIO.Put_Line
+           (Flog (flavor), LAT.LF &
+              "---------------------------" & LAT.LF &
+              "--  Final Statistics" & LAT.LF &
+              "---------------------------" & LAT.LF &
+              " Initial queue size:" & bld_counter (total)'Img & LAT.LF &
+              "     packages built:" & bld_counter (success)'Img & LAT.LF &
+              "            ignored:" & bld_counter (ignored)'Img & LAT.LF &
+              "            skipped:" & bld_counter (skipped)'Img & LAT.LF &
+              "             failed:" & bld_counter (failure)'Img);
+      end if;
+      TIO.Close (Flog (flavor));
+   end stop_logging;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scribe
+   --------------------------------------------------------------------------------------------
+   procedure scribe (flavor : count_type; line : String; flush_after : Boolean) is
+   begin
+      TIO.Put_Line (Flog (flavor), line);
+      if flush_after then
+         TIO.Flush (Flog (flavor));
+      end if;
+   end scribe;
+
+   --------------------------------------------------------------------------------------------
+   --  set_build_counters
+   --------------------------------------------------------------------------------------------
+   procedure set_build_counters (A, B, C, D, E : Natural) is
+   begin
+      bld_counter := (A, B, C, D, E);
+   end set_build_counters;
+
+
+   --------------------------------------------------------------------------------------------
+   --  increment_build_counter
+   --------------------------------------------------------------------------------------------
+   procedure increment_build_counter (flavor : count_type; quantity : Natural := 1) is
+   begin
+      bld_counter (flavor) := bld_counter (flavor) + quantity;
+   end increment_build_counter;
 
 end PortScan.Log;

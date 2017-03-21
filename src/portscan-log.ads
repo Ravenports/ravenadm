@@ -7,6 +7,8 @@ package PortScan.Log is
 
    package CAL renames Ada.Calendar;
 
+   overall_log : exception;
+
    --  Open log, dump diagnostic data and stop timer.
    function initialize_log
      (log_handle : in out TIO.File_Type;
@@ -39,17 +41,36 @@ package PortScan.Log is
    --  Returns formatted difference in seconds between two times
    function elapsed_HH_MM_SS (start, stop : CAL.Time) return String;
 
+   --  Returns formatted difference in seconds between overall start time and now.
+   function elapsed_now return String;
+
    --  Establish times before the start and upon completion of a scan.
    procedure set_scan_start_time (mark : CAL.Time);
    procedure set_scan_complete   (mark : CAL.Time);
 
+   --  Establish times before the start and upon completion of a bulk run
+   procedure set_overall_start_time (mark : CAL.Time);
+   procedure set_overall_complete   (mark : CAL.Time);
+
+   --  build log operations
+   procedure start_logging (flavor : count_type);
+   procedure stop_logging (flavor : count_type);
+   procedure scribe (flavor : count_type; line : String; flush_after : Boolean);
+
+   --  Establish values of build counters
+   procedure set_build_counters (A, B, C, D, E : Natural);
+
+   --  Increments the indicated build counter by some quality.
+   procedure increment_build_counter (flavor : count_type; quantity : Natural := 1);
+
 private
 
+   subtype logname_field is String (1 .. 19);
    type dim_handlers is array (count_type) of TIO.File_Type;
    type dim_counters is array (count_type) of Natural;
+   type dim_logname  is array (count_type) of logname_field;
 
    function log_duration (start, stop : CAL.Time) return String;
-   function elapsed_now return String;
    function elapsed_build (head_time, tail_time : CAL.Time) return String;
    function timestamp (hack : CAL.Time; www_format : Boolean := False) return String;
    function split_collection (line : String; title : String) return String;
@@ -64,5 +85,12 @@ private
    scan_start  : CAL.Time;
    scan_stop   : CAL.Time;
    bld_counter : dim_counters := (0, 0, 0, 0, 0);
+
+   bailing : constant String := "  (ravenadm must exit)";
+   logname : constant dim_logname := ("00_last_results.log",
+                                      "01_success_list.log",
+                                      "02_failure_list.log",
+                                      "03_ignored_list.log",
+                                      "04_skipped_list.log");
 
 end PortScan.Log;
