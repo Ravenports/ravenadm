@@ -192,7 +192,7 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    function create_package_directory_if_necessary (log_handle : TIO.File_Type) return Boolean
    is
-      packagedir : String := HT.USS (PM.configuration.dir_packages) & "/All";
+      packagedir : String := HT.USS (PM.configuration.dir_repository);
    begin
       if DIR.Exists (packagedir) then
          return True;

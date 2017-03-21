@@ -396,4 +396,7 @@ private
    --  Does not do existence checks on namebase, variants or subpackages.
    function valid_dependency_format (value : String) return Boolean;
 
+   --  If illegal characters in the namebase are detected, return True.
+   function invalid_namebase (value : String; allow_comma : Boolean) return Boolean;
+
 end Port_Specification;

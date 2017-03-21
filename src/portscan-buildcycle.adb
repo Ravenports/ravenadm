@@ -269,7 +269,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    function exec_phase_install (id : builders; pkgversion : String) return Boolean
    is
-      procedure install_it (position : string_crate.Cursor);
+      procedure install_it (position : subpackage_crate.Cursor);
 
       time_limit : execution_limit := max_time_without_output (install);
       root       : constant String := get_root (id);
@@ -278,9 +278,10 @@ package body PortScan.Buildcycle is
       still_good : Boolean := True;
       timed_out  : Boolean;
 
-      procedure install_it (position : string_crate.Cursor)
+      procedure install_it (position : subpackage_crate.Cursor)
       is
-         subpackage : constant String := HT.USS (string_crate.Element (position));
+         rec        : subpackage_record renames subpackage_crate.Element (position);
+         subpackage : constant String :=  HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          PKG_FILE   : constant String := "/packages/All/" & pkgname & arc_ext;
          command    : constant String := chroot & root & environment_override &
@@ -519,7 +520,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    function exec_phase_deinstall (id : builders; pkgversion : String) return Boolean
    is
-      procedure deinstall_it (position : string_crate.Cursor);
+      procedure deinstall_it (position : subpackage_crate.Cursor);
 
       time_limit : execution_limit := max_time_without_output (deinstall);
       root       : constant String := get_root (id);
@@ -528,13 +529,13 @@ package body PortScan.Buildcycle is
       still_good : Boolean := True;
       timed_out  : Boolean;
 
-      procedure deinstall_it (position : string_crate.Cursor)
+      procedure deinstall_it (position : subpackage_crate.Cursor)
       is
-         subpackage : constant String := HT.USS (string_crate.Element (position));
-         pkgname    : String := namebase & "-" & subpackage & "-" &
-                      HT.USS (all_ports (trackers (id).seq_id).port_variant) & "-" & pkgversion;
+         rec        : subpackage_record renames subpackage_crate.Element (position);
+         subpackage : constant String := HT.USS (rec.subpackage);
+         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := chroot & root & environment_override &
-                      PKG_DELETE & pkgname;
+                      PKG_DELETE & pkgname & arc_ext;
       begin
          if still_good then
             TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
@@ -599,7 +600,7 @@ package body PortScan.Buildcycle is
    procedure log_linked_libraries (id : builders; pkgversion : String)
    is
       procedure log_dump (position : string_crate.Cursor);
-      procedure check_package (position : string_crate.Cursor);
+      procedure check_package (position : subpackage_crate.Cursor);
 
       root     : constant String := get_root (id);
       namebase : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
@@ -611,11 +612,11 @@ package body PortScan.Buildcycle is
          TIO.Put_Line (trackers (id).log_handle, info);
       end log_dump;
 
-      procedure check_package (position : string_crate.Cursor)
+      procedure check_package (position : subpackage_crate.Cursor)
       is
-         subpackage : constant String := HT.USS (string_crate.Element (position));
-         pkgname    : String := namebase & "-" & subpackage & "-" &
-                      HT.USS (all_ports (trackers (id).seq_id).port_variant) & "-" & pkgversion;
+         rec        : subpackage_record renames subpackage_crate.Element (position);
+         subpackage : constant String := HT.USS (rec.subpackage);
+         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := chroot & root & environment_override &
                       "/usr/bin/pkg-static query %Fp " & pkgname;
          comres  : String :=  generic_system_command (command);

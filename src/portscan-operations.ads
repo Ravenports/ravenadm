@@ -44,10 +44,6 @@ package PortScan.Operations is
       reason    : String;
       skips     : Natural);
 
-   --  The port build failed, so set all reverse dependences as skipped
-   --  Remove the port from the queue when this is done.
-   procedure cascade_failed_build (id : port_id; numskipped : out Natural);
-
    --  removes processed port from the ranking queue.
    procedure unlist_port (id : port_id);
 
@@ -64,6 +60,16 @@ package PortScan.Operations is
 
    --  Returns the value of the stored external repository
    function top_external_repository return String;
+
+   --  If performing a limited build run (likely 99% of the use cases), only
+   --  the queued packages will be checked.  The checks are limited to finding
+   --  options changes and dependency changes.  Obsolete packages (related or
+   --  unrelated to upcoming build) are not removed; this would occur in
+   --  clean_repository().  These old packages will not interfere at this step.
+   procedure limited_sanity_check
+     (repository      : String;
+      dry_run         : Boolean;
+      suppress_remote : Boolean);
 
    function skip_verified (id : port_id) return Boolean;
 
@@ -116,6 +122,10 @@ private
 
    external_repository : HT.Text;
 
+   --  Debugging purposes only, can be turned on by environment variable
+   debug_dep_check : Boolean := False;
+   debug_opt_check : Boolean := False;
+
    --  Return true if file is executable (platform-specific)
    function file_is_executable (filename : String) return Boolean;
 
@@ -143,5 +153,34 @@ private
    procedure establish_package_architecture;
 
    function isolate_arch_from_file_type (fileinfo : String) return filearch;
+
+   --  This function returns "True" if the scanned dependencies match exactly
+   --  what the current ports tree has.
+   function passed_dependency_check (query_result : HT.Text; id : port_id) return Boolean;
+
+   --  Turn on option and dependency debug checks programmatically
+   procedure activate_debugging_code;
+
+   --  The result of the dependency query giving "id" port_id
+   function result_of_dependency_query
+     (repository : String;
+      id         : port_id;
+      subpackage : String) return HT.Text;
+
+   --  Using the same make_queue as was used to scan the ports, use tasks (up to 32) to do the
+   --  initial scanning of the ports, including getting the pkg dependency query.
+   procedure parallel_package_scan
+     (repository    : String;
+      remote_scan   : Boolean;
+      show_progress : Boolean);
+
+   --  The port build failed, so set all reverse dependences as skipped
+   --  Remove the port from the queue when this is done.
+   procedure cascade_failed_build (id : port_id; numskipped : out Natural);
+
+   --  The port build succeeded, so remove the "blocked_by" designation
+   --  for all the immediate reverse dependencies.
+   --  Remove the port from the queue when this is done.
+   procedure cascade_successful_build (id : port_id);
 
 end PortScan.Operations;

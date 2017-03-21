@@ -605,7 +605,7 @@ package body Pilot is
       end if;
 
       OPS.run_start_hook;
-      PKG.limited_sanity_check (repository => HT.USS (PM.configuration.dir_packages) & "/All",
+      OPS.limited_sanity_check (repository => HT.USS (PM.configuration.dir_repository),
                                 dry_run    => dry_run,
                                 suppress_remote => block_remote);
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
@@ -726,13 +726,13 @@ package body Pilot is
 
       CYC.initialize (test_mode => True);
 
-      PortScan.crash_test_dummy;
-
-      successful := CYC.build_package (id            => scan_slave,
-                                       specification => specification,
-                                       sequence_id   => PortScan.first_port,
-                                       interactive   => True,
-                                       interphase    => "deinstall");
+--        PortScan.crash_test_dummy;
+--
+--        successful := CYC.build_package (id            => scan_slave,
+--                                         specification => specification,
+--                                         sequence_id   => PortScan.first_port,
+--                                         interactive   => True,
+--                                         interphase    => "deinstall");
 
       REP.destroy_slave (scan_slave);
       REP.finalize;

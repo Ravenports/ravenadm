@@ -583,6 +583,11 @@ package body Parameters is
       configuration.avec_ncurses   := default_boolean (Field_14, True);
       configuration.defer_prebuilt := default_boolean (Field_15, False);
 
+      --  Derived configuration
+      configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/All");
+      configuration.sysroot_pkg8   := HT.SUS (HT.USS (configuration.dir_sysroot) &
+                                                "/usr/bin/pkg-static");
+
    end transfer_configuration;
 
 

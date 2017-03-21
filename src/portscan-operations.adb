@@ -3,6 +3,7 @@
 
 with Unix;
 with Signals;
+with Ada.Exceptions;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
 with PortScan.Log;
@@ -10,6 +11,7 @@ with PortScan.Buildcycle;
 
 package body PortScan.Operations is
 
+   package EX  renames Ada.Exceptions;
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
    package LOG renames PortScan.Log;
@@ -165,15 +167,16 @@ package body PortScan.Operations is
       procedure force_delete (plcursor : portkey_crate.Cursor);
       procedure force_delete (plcursor : portkey_crate.Cursor)
       is
-         procedure delete_subpackage (position : string_crate.Cursor);
+         procedure delete_subpackage (position : subpackage_crate.Cursor);
 
          origin : HT.Text := portkey_crate.Key (plcursor);
          pndx   : constant port_index := ports_keys.Element (origin);
-         repo   : constant String := HT.USS (PM.configuration.dir_packages) & "/All/";
+         repo   : constant String := HT.USS (PM.configuration.dir_repository);
 
-         procedure delete_subpackage (position : string_crate.Cursor)
+         procedure delete_subpackage (position : subpackage_crate.Cursor)
          is
-            subpackage : constant String := HT.USS (string_crate.Element (position));
+            rec        : subpackage_record renames subpackage_crate.Element (position);
+            subpackage : constant String := HT.USS (rec.subpackage);
             tball      : constant String := repo &
                          PortScan.calculate_package_name (pndx, subpackage) & arc_ext;
          begin
@@ -494,6 +497,30 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
+   --  cascade_successful_build
+   --------------------------------------------------------------------------------------------
+   procedure cascade_successful_build (id : port_id)
+   is
+      procedure cycle (cursor : block_crate.Cursor);
+      procedure cycle (cursor : block_crate.Cursor)
+      is
+         target : constant port_index := block_crate.Element (cursor);
+      begin
+         if all_ports (target).blocked_by.Contains (Key => id) then
+            all_ports (target).blocked_by.Delete (Key => id);
+         else
+            raise seek_failure
+              with  get_port_variant (target) & " was expected to be blocked by " &
+              get_port_variant (id);
+         end if;
+      end cycle;
+   begin
+      all_ports (id).blocks.Iterate (cycle'Access);
+      delete_rank (id);
+   end cascade_successful_build;
+
+
+   --------------------------------------------------------------------------------------------
    --  integrity_intact
    --------------------------------------------------------------------------------------------
    function integrity_intact return Boolean
@@ -787,6 +814,8 @@ package body PortScan.Operations is
       procedure print (cursor : subqueue.Cursor);
       procedure fetch (cursor : subqueue.Cursor);
       procedure check (cursor : subqueue.Cursor);
+      procedure set_delete  (Element : in out subpackage_record);
+      procedure kill_remote (Element : in out subpackage_record);
 
       already_built : subqueue.Vector;
       fetch_list    : subqueue.Vector;
@@ -798,35 +827,54 @@ package body PortScan.Operations is
       filename      : constant String := "/tmp/synth_prefetch_list.txt";
       package_list  : HT.Text := HT.blank;
 
+      procedure set_delete (Element : in out subpackage_record) is
+      begin
+         Element.deletion_due := True;
+      end set_delete;
+
+      procedure kill_remote (Element : in out subpackage_record) is
+      begin
+         Element.remote_pkg := False;
+      end kill_remote;
+
       procedure check_package (cursor : ranking_crate.Cursor)
       is
-         target    : port_id := ranking_crate.Element (cursor).ap_index;
-         pkgname   : String  := HT.USS (all_ports (target).package_name);
-         available : constant Boolean := all_ports (target).remote_pkg or else
-           (all_ports (target).pkg_present and then
-                not all_ports (target).deletion_due);
-      begin
-         if not available then
-            return;
-         end if;
+         procedure check_subpackage (position : subpackage_crate.Cursor);
 
-         if passed_dependency_check
-           (query_result => all_ports (target).pkg_dep_query, id => target)
-         then
-            already_built.Append (New_Item => target);
-            if all_ports (target).remote_pkg then
-               fetch_list.Append (New_Item => target);
+         target : port_id := ranking_crate.Element (cursor).ap_index;
+
+         procedure check_subpackage (position : subpackage_crate.Cursor)
+         is
+            rec        : subpackage_record renames subpackage_crate.Element (position);
+            subpackage : constant String  := HT.USS (rec.subpackage);
+            pkgname    : constant String  := calculate_package_name (target, subpackage);
+            available  : constant Boolean :=
+                         (rec.remote_pkg or else rec.pkg_present) and then not rec.deletion_due;
+         begin
+            if not available then
+               return;
             end if;
-         else
-            if all_ports (target).remote_pkg then
-               --  silently fail, remote packages are a bonus anyway
-               all_ports (target).remote_pkg := False;
+
+            if passed_dependency_check (query_result => rec.pkg_dep_query, id => target) then
+               already_built.Append (New_Item => target);
+               if rec.remote_pkg then
+                  fetch_list.Append (New_Item => target);
+               end if;
             else
-               TIO.Put_Line (pkgname & " failed dependency check.");
-               all_ports (target).deletion_due := True;
+               if rec.remote_pkg then
+                  --  silently fail, remote packages are a bonus anyway
+                  all_ports (target).subpackages.Update_Element (Position => position,
+                                                                 Process  => kill_remote'Access);
+               else
+                  TIO.Put_Line (pkgname & " failed dependency check.");
+                  all_ports (target).subpackages.Update_Element (Position => position,
+                                                                 Process  => set_delete'Access);
+               end if;
+               clean_pass := False;
             end if;
-            clean_pass := False;
-         end if;
+         end check_subpackage;
+      begin
+         all_ports (target).subpackages.Iterate (check_subpackage'Access);
       end check_package;
 
       procedure prune_queue (cursor : subqueue.Cursor)
@@ -838,16 +886,30 @@ package body PortScan.Operations is
 
       procedure prune_packages (cursor : ranking_crate.Cursor)
       is
-         target    : port_id := ranking_crate.Element (cursor).ap_index;
-         delete_it : Boolean := all_ports (target).deletion_due;
-         pkgname   : String  := HT.USS (all_ports (target).package_name);
-         fullpath  : constant String := repository & "/" & pkgname;
+         procedure check_subpackage (position : subpackage_crate.Cursor);
+
+         target : port_id := ranking_crate.Element (cursor).ap_index;
+
+         procedure check_subpackage (position : subpackage_crate.Cursor)
+         is
+            rec        : subpackage_record renames subpackage_crate.Element (position);
+            delete_it  : Boolean := rec.deletion_due;
+         begin
+            if delete_it then
+               declare
+                  subpackage : constant String  := HT.USS (rec.subpackage);
+                  pkgname    : constant String  := calculate_package_name (target, subpackage);
+                  fullpath   : constant String := repository & "/" & pkgname & arc_ext;
+               begin
+                  DIR.Delete_File (fullpath);
+               exception
+                  when others => null;
+               end;
+            end if;
+         end check_subpackage;
+
       begin
-         if delete_it then
-            DIR.Delete_File (fullpath);
-         end if;
-      exception
-         when others => null;
+         all_ports (target).subpackages.Iterate (check_subpackage'Access);
       end prune_packages;
 
       procedure print (cursor : subqueue.Cursor)
@@ -873,7 +935,7 @@ package body PortScan.Operations is
       is
          id   : constant port_index := subqueue.Element (cursor);
          name : constant String := HT.USS (all_ports (id).package_name);
-         loc  : constant String := HT.USS (PM.configuration.dir_packages) & "/All/" & name;
+         loc  : constant String := HT.USS (PM.configuration.dir_repository) & "/" & name;
       begin
          if not DIR.Exists (loc) then
             TIO.Put_Line ("Download failed: " & name);
@@ -975,6 +1037,162 @@ package body PortScan.Operations is
          already_built.Iterate (prune_queue'Access);
       end if;
    end limited_sanity_check;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_dependency_check
+   --------------------------------------------------------------------------------------------
+   function result_of_dependency_query
+     (repository : String;
+      id         : port_id;
+      subpackage : String) return HT.Text
+   is
+      rec : port_record renames all_ports (id);
+
+      pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
+      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
+      command  : constant String := pkg8 & " query -F "  & fullpath & " %dn-%dv@%do";
+      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
+                                    " -U %dn-%dv@%do " & pkg_base;
+      status   : Integer;
+      comres   : HT.Text;
+   begin
+      if repository = "" then
+         comres := Unix.piped_command (remocmd, status);
+      else
+         comres := Unix.piped_command (command, status);
+      end if;
+      if status = 0 then
+         return comres;
+      else
+         return HT.blank;
+      end if;
+   end result_of_dependency_query;
+
+
+   --------------------------------------------------------------------------------------------
+   --  activate_debugging_code
+   --------------------------------------------------------------------------------------------
+   procedure activate_debugging_code is
+   begin
+      debug_opt_check := True;
+      debug_dep_check := True;
+   end activate_debugging_code;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_dependency_check
+   --------------------------------------------------------------------------------------------
+   function passed_dependency_check (query_result : HT.Text; id : port_id) return Boolean
+   is
+      content  : String := HT.USS (query_result);
+      req_deps : constant Natural := Natural (all_ports (id).run_deps.Length);
+      headport : constant String := get_port_variant (all_ports (id));
+      counter  : Natural := 0;
+      markers  : HT.Line_Markers;
+   begin
+      HT.initialize_markers (content, markers);
+      loop
+         exit when not HT.next_line_present (content, markers);
+         declare
+            line   : constant String := HT.extract_line (content, markers);
+            deppkg : constant String := HT.part_1 (line, "@");
+            origin : constant String := HT.part_2 (line, "@");
+         begin
+            exit when line = "";
+            declare
+               procedure set_available (position : subpackage_crate.Cursor);
+
+               portkey    : String := convert_origin_to_portkey (origin);
+               subpackage : String := subpackage_from_origin (origin);
+               target_id  : port_index := ports_keys.Element (HT.SUS (portkey));
+               target_pkg : String := HT.replace_all (origin, LAT.Colon, LAT.Hyphen) &
+                                      LAT.Hyphen & HT.USS (all_ports (target_id).pkgversion);
+               found      : Boolean := False;
+               available  : Boolean;
+
+               procedure set_available (position : subpackage_crate.Cursor)
+               is
+                  rec : subpackage_record renames subpackage_crate.Element (position);
+               begin
+                  if not found and then
+                    HT.USS (rec.subpackage) = subpackage
+                  then
+                     available := (rec.remote_pkg or else rec.pkg_present) and then
+                       rec.deletion_due;
+                     found := True;
+                  end if;
+               end set_available;
+            begin
+               if valid_port_id (target_id) then
+                  all_ports (target_id).subpackages.Iterate (set_available'Access);
+               else
+                  --  package seems to have a dependency that has been removed from the conspiracy
+                  LOG.obsolete_notice
+                    (message         => portkey & " has been removed from Ravenports",
+                     write_to_screen => debug_dep_check);
+                  return False;
+               end if;
+
+               counter := counter + 1;
+               if counter > req_deps then
+                  --  package has more dependencies than we are looking for
+                  LOG.obsolete_notice
+                    (write_to_screen => debug_dep_check,
+                     message         => headport & " package has more dependencies than the " &
+                       "port requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
+                       "Query: " & HT.USS (query_result) & LAT.LF &
+                       "Tripped on: " & line);
+                  return False;
+               end if;
+
+               if deppkg /= target_pkg then
+                  --  The version that the package requires differs from the
+                  --  version that Ravenports will now produce
+                  LOG.obsolete_notice
+                    (write_to_screen => debug_dep_check,
+                     message         =>  "Current " & headport & " package depends on " &
+                       deppkg & ", but this is a different version than requirement of " &
+                       target_pkg & " (from " & origin & ")");
+                  return False;
+               end if;
+
+               if not available then
+                  --  Even if all the versions are matching, we still need
+                  --  the package to be in repository.
+                  LOG.obsolete_notice
+                    (write_to_screen => debug_dep_check,
+                     message         => headport & " package depends on " & target_pkg &
+                       " which doesn't exist or has been scheduled for deletion");
+                  return False;
+               end if;
+            end;
+         end;
+      end loop;
+
+      if counter < req_deps then
+         --  The ports tree requires more dependencies than the existing package does
+         LOG.obsolete_notice
+           (write_to_screen => debug_dep_check,
+            message         => headport & " package has less dependencies than the port " &
+              "requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
+              "Query: " & HT.USS (query_result));
+         return False;
+      end if;
+
+      --  If we get this far, the package dependencies match what the
+      --  port tree requires exactly.  This package passed sanity check.
+      return True;
+
+   exception
+      when issue : others =>
+         LOG.obsolete_notice
+           (write_to_screen => debug_dep_check,
+            message         => "Dependency check exception" & LAT.LF &
+              EX.Exception_Message (issue));
+         return False;
+   end passed_dependency_check;
 
 
 end PortScan.Operations;

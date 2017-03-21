@@ -56,9 +56,11 @@ package PortScan is
    --  Given an ID and specifying a subpackage, this function returns the package file name.
    function calculate_package_name (id : port_id; subpackage : String) return String;
 
-   --  DELETE-ME-LATER
-   first_port : constant port_id;
-   procedure crash_test_dummy;
+   --  Takes origin tuplet (namebase-subpkg-variant) and returns namebase-variant
+   function convert_origin_to_portkey (origin : String) return String;
+
+   --  Takes origin tuplet (namebase-subpkg-variant) and returns subpkg
+   function subpackage_from_origin (origin : String) return String;
 
 private
 
@@ -69,9 +71,6 @@ private
 
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;
-
-   --  DELETE-ME-LATER
-   first_port : constant port_id := port_index'First;
 
    port_match_failed : constant port_id := port_id'First;
 
@@ -86,6 +85,16 @@ private
       record
          ap_index      : port_index;
          reverse_score : port_index;
+      end record;
+
+   type subpackage_record is
+      record
+         subpackage    : HT.Text := HT.blank;
+         pkg_dep_query : HT.Text := HT.blank;
+         pkg_present   : Boolean := False;
+         remote_pkg    : Boolean := False;
+         never_remote  : Boolean := False;
+         deletion_due  : Boolean := False;
       end record;
 
    --  Functions for ranking_crate definitions
@@ -106,6 +115,10 @@ private
      (Element_Type => HT.Text,
       Index_Type   => port_index,
       "="          => HT.SU."=");
+
+   package subpackage_crate is new CON.Vectors
+     (Element_Type => subpackage_record,
+      Index_Type   => Positive);
 
    package ranking_crate is new CON.Ordered_Sets
      (Element_Type => queue_record);
@@ -144,10 +157,7 @@ private
          unlist_failed : Boolean              := False;
          work_locked   : Boolean              := False;
          scan_locked   : Boolean              := False;
-         pkg_present   : Boolean              := False;
-         remote_pkg    : Boolean              := False;
-         never_remote  : Boolean              := False;
-         deletion_due  : Boolean              := False;
+
          use_procfs    : Boolean              := False;
          reverse_score : port_index           := 0;
          run_deps      : block_crate.Map;
@@ -155,7 +165,7 @@ private
          blocks        : block_crate.Map;
          all_reverse   : block_crate.Map;
          options       : package_crate.Map;
-         subpackages   : string_crate.Vector;
+         subpackages   : subpackage_crate.Vector;
       end record;
 
    type dim_make_queue is array (scanners) of subqueue.Vector;

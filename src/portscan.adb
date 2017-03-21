@@ -2,8 +2,11 @@
 --  Reference: ../License.txt
 
 with Ada.Strings.Hash;
+with Ada.Characters.Latin_1;
 
 package body PortScan is
+
+   package LAT renames Ada.Characters.Latin_1;
 
    --------------------------------------------------------------------------------------------
    --  port_hash
@@ -129,10 +132,6 @@ package body PortScan is
             rec.unlist_failed := False;
             rec.work_locked   := False;
             rec.scan_locked   := False;
-            rec.pkg_present   := False;
-            rec.remote_pkg    := False;
-            rec.never_remote  := False;
-            rec.deletion_due  := False;
             rec.use_procfs    := False;
             rec.reverse_score := 0;
             rec.run_deps.Clear;
@@ -191,30 +190,42 @@ package body PortScan is
    is
       namebase   : constant String := HT.USS (all_ports (id).port_namebase);
       variant    : constant String := HT.USS (all_ports (id).port_variant);
-      pkgversion : constant String := HT.USS (all_ports (trackers (id).seq_id).pkgversion);
+      pkgversion : constant String := HT.USS (all_ports (id).pkgversion);
    begin
       return namebase & "-" & subpackage & "-" & variant & "-" & pkgversion;
    end calculate_package_name;
 
 
-   --  DELETE ME
-   procedure crash_test_dummy
+   --------------------------------------------------------------------------------------------
+   --  convert_origin_to_portkey
+   --------------------------------------------------------------------------------------------
+   function convert_origin_to_portkey (origin : String) return String
    is
-      rec : port_record renames all_ports (0);
+      numcolons : Natural := HT.count_char (origin, LAT.Colon);
    begin
-      ports_keys.Insert (Key      => HT.SUS ("nawk:standard"),
-                         New_Item => 0);
+      if numcolons < 2 then
+         return "error";
+      end if;
+      declare
+         namebase : String := HT.specific_field (origin, 1, ":");
+         variant  : String := HT.specific_field (origin, 3, ":");
+      begin
+         return namebase & LAT.Colon & variant;
+      end;
+   end convert_origin_to_portkey;
 
-      rec.sequence_id := 0;
-      rec.key_cursor    := ports_keys.Find (HT.SUS ("nawk:standard"));
-      rec.pkgversion    := HT.SUS ("20121220_1");
-      rec.port_variant  := HT.SUS ("standard");
-      rec.port_namebase := HT.SUS ("nawk");
-      rec.scanned       := True;
-      rec.rev_scanned   := True;
-      rec.subpackages.Append (HT.SUS ("single"));
 
-
-   end crash_test_dummy;
+   --------------------------------------------------------------------------------------------
+   --  subpackage_from_origin
+   --------------------------------------------------------------------------------------------
+   function subpackage_from_origin (origin : String) return String
+   is
+      numcolons : Natural := HT.count_char (origin, LAT.Colon);
+   begin
+      if numcolons < 2 then
+         return "error";
+      end if;
+      return HT.specific_field (origin, 2, ":");
+   end subpackage_from_origin;
 
 end PortScan;

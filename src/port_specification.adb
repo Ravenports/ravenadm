@@ -139,11 +139,17 @@ package body Port_Specification is
             if specs.last_set /= so_initialized then
                raise misordered with field'Img;
             end if;
+            if invalid_namebase (value, False) then
+               raise wrong_value with "illegal characters detected in NAMEBASE";
+            end if;
             specs.namebase := text_value;
             specs.last_set := so_namebase;
          when sp_version =>
             if specs.last_set /= so_namebase then
                raise misordered with field'Img;
+            end if;
+            if invalid_namebase (value, True) then
+               raise wrong_value with "illegal characters detected in VERSION";
             end if;
             specs.version := text_value;
             specs.last_set := so_version;
@@ -1647,15 +1653,6 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  ignored
-   --------------------------------------------------------------------------------------------
-   function ignored (specs : Portspecs) return Boolean is
-   begin
-      return (Natural (specs.broken.Length) > 0);
-   end ignored;
-
-
-   --------------------------------------------------------------------------------------------
    --  get_list_length
    --------------------------------------------------------------------------------------------
    function get_list_length (specs : Portspecs; field : spec_field) return Natural is
@@ -1808,6 +1805,28 @@ package body Port_Specification is
       end if;
       return HT.USS (result);
    end aggregated_ignore_reason;
+
+
+   --------------------------------------------------------------------------------------------
+   --  keyword_is_valid
+   --------------------------------------------------------------------------------------------
+   function invalid_namebase (value : String; allow_comma : Boolean) return Boolean is
+   begin
+      for x in value'Range loop
+         case value (x) is
+            when '0' .. '9' => null;
+            when 'A' .. 'Z' => null;
+            when 'a' .. 'z' => null;
+            when '_' | '-' | '.' => null;
+            when ',' =>
+               if not allow_comma then
+                  return True;
+               end if;
+            when others => return True;
+         end case;
+      end loop;
+      return False;
+   end invalid_namebase;
 
 
    --------------------------------------------------------------------------------------------

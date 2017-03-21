@@ -36,6 +36,8 @@ package Parameters is
 
          --  Computed, not saved
          number_cores    : cpu_range;
+         dir_repository  : HT.Text;
+         sysroot_pkg8    : HT.Text;
       end record;
 
    configuration  : configuration_record;
