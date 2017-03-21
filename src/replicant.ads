@@ -65,7 +65,6 @@ private
                    proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain);
    subtype subfolder is folder range bin .. usr;
    subtype safefolders is folder range bin .. ccache;
-   subtype filearch is String (1 .. 11);
 
    --  home and root need to be set readonly
    reference_base   : constant String := "Base";

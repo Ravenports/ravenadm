@@ -90,6 +90,7 @@ private
     --  Each history segment is limited to this many log lines
    kfile_units_limit : constant Positive := 500;
 
+   subtype filearch is String (1 .. 11);
    subtype impulse_range is Integer range 1 .. 500;
    subtype kfile_content  is String (1 .. kfile_unit_maxsize * kfile_units_limit);
 
@@ -103,7 +104,15 @@ private
          content       : kfile_content;
       end record;
 
-   history : progress_history;
+   type package_abi is record
+      calculated_abi      : HT.Text;
+      calculated_alt_abi  : HT.Text;
+      calc_abi_noarch     : HT.Text;
+      calc_alt_abi_noarch : HT.Text;
+   end record;
+
+   history     : progress_history;
+   abi_formats : package_abi;
 
    external_repository : HT.Text;
 
@@ -128,5 +137,11 @@ private
      (elapsed   : String;
       origin    : String;
       reason    : String);
+
+   --  This calculates the ABI for the platform and stores it.  The value is
+   --  used by passed_abi_check()
+   procedure establish_package_architecture;
+
+   function isolate_arch_from_file_type (fileinfo : String) return filearch;
 
 end PortScan.Operations;

@@ -63,6 +63,13 @@ package PortScan.Log is
    --  Increments the indicated build counter by some quality.
    procedure increment_build_counter (flavor : count_type; quantity : Natural := 1);
 
+   --  Open log to document packages that get deleted and the reason why
+   procedure start_obsolete_package_logging;
+   procedure stop_obsolete_package_logging;
+
+   --  Write to log if open and optionally output a copy to screen.
+   procedure obsolete_notice (message : String; write_to_screen : Boolean);
+
 private
 
    subtype logname_field is String (1 .. 19);
@@ -84,6 +91,9 @@ private
    scan_start  : CAL.Time;
    scan_stop   : CAL.Time;
    bld_counter : dim_counters := (0, 0, 0, 0, 0);
+
+   obsolete_pkg_log  : TIO.File_Type;
+   obsolete_log_open : Boolean := False;
 
    bailing : constant String := "  (ravenadm must exit)";
    logname : constant dim_logname := ("00_last_results.log",

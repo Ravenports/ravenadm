@@ -509,4 +509,49 @@ package body PortScan.Log is
       bld_counter (flavor) := bld_counter (flavor) + quantity;
    end increment_build_counter;
 
+
+   --------------------------------------------------------------------------------------------
+   --  start_obsolete_package_logging
+   --------------------------------------------------------------------------------------------
+   procedure start_obsolete_package_logging
+   is
+      logpath : constant String := HT.USS (PM.configuration.dir_logs)
+        & "/06_obsolete_packages.log";
+   begin
+      if DIR.Exists (logpath) then
+         DIR.Delete_File (logpath);
+      end if;
+      TIO.Create (File => obsolete_pkg_log,
+                  Mode => TIO.Out_File,
+                  Name => logpath);
+      obsolete_log_open := True;
+   exception
+      when others =>
+         obsolete_log_open := False;
+   end start_obsolete_package_logging;
+
+
+   --------------------------------------------------------------------------------------------
+   --  stop_obsolete_package_logging
+   --------------------------------------------------------------------------------------------
+   procedure stop_obsolete_package_logging is
+   begin
+      TIO.Close (obsolete_pkg_log);
+   end stop_obsolete_package_logging;
+
+
+   --------------------------------------------------------------------------------------------
+   --  obsolete_notice
+   --------------------------------------------------------------------------------------------
+   procedure obsolete_notice (message : String; write_to_screen : Boolean)
+   is
+   begin
+      if obsolete_log_open then
+         TIO.Put_Line (obsolete_pkg_log, message);
+      end if;
+      if write_to_screen then
+         TIO.Put (message);
+      end if;
+   end obsolete_notice;
+
 end PortScan.Log;

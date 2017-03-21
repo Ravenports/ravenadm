@@ -590,14 +590,13 @@ package body Pilot is
             --  We're going to use prebuilt packages if available, so let's
             --  prepare for that case by updating the external repository
             TIO.Put ("Stand by, updating external repository catalogs ... ");
-            if not Unix.external_command (update_external_repo & OPS.top_external_repository)
-            then
+            if Unix.external_command (update_external_repo & OPS.top_external_repository) then
+               TIO.Put_Line ("done.");
+            else
                TIO.Put_Line ("Failed!");
                TIO.Put_Line ("The external repository could not be updated.");
                TIO.Put_Line (no_packages);
                block_remote := True;
-            else
-               TIO.Put_Line ("done.");
             end if;
          else
             TIO.Put_Line ("The external repository does not seem to be configured.");

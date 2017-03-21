@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with Unix;
+with Signals;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
 with PortScan.Log;
@@ -590,6 +591,391 @@ package body PortScan.Operations is
    begin
       return HT.USS (external_repository);
    end top_external_repository;
+
+
+   --------------------------------------------------------------------------------------------
+   --  establish_package_architecture
+   --------------------------------------------------------------------------------------------
+   function isolate_arch_from_file_type (fileinfo : String) return filearch
+   is
+      --  DF: ELF 64-bit LSB executable, x86-64
+      --  FB: ELF 64-bit LSB executable, x86-64
+      --  FB: ELF 32-bit LSB executable, Intel 80386
+      --  NB: ELF 64-bit LSB executable, x86-64
+      --   L: ELF 64-bit LSB executable, x86-64
+      --  NATIVE Solaris (we use our own file)
+      --  /usr/bin/sh:    ELF 64-bit LSB executable AMD64 Version 1
+   begin
+      return fileinfo (fileinfo'First + 27 .. fileinfo'First + 37);
+   end isolate_arch_from_file_type;
+
+
+   --------------------------------------------------------------------------------------------
+   --  establish_package_architecture
+   --------------------------------------------------------------------------------------------
+   procedure establish_package_architecture
+   is
+      function newsuffix (arch : filearch) return String;
+      function suffix    (arch : filearch) return String;
+      function get_major (fileinfo : String; OS : String) return String;
+      function even      (fileinfo : String) return String;
+
+      sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
+      command : constant String := sysroot & "/usr/bin/file -b " & sysroot & "/bin/sh";
+      status  : Integer;
+      arch    : filearch;
+      UN      : HT.Text;
+
+      function suffix (arch : filearch) return String is
+      begin
+         if arch (arch'First .. arch'First + 5) = "x86-64" or else
+           arch (arch'First .. arch'First + 4) = "AMD64"
+         then
+            return "x86:64";
+         elsif arch = "Intel 80386" then
+            return "x86:32";
+         else
+            return "unknown:" & arch;
+         end if;
+      end suffix;
+
+      function newsuffix (arch : filearch) return String is
+      begin
+         if arch (arch'First .. arch'First + 5) = "x86-64" or else
+           arch (arch'First .. arch'First + 4) = "AMD64"
+         then
+            return "amd64";
+         elsif arch = "Intel 80386" then
+            return "i386";
+         else
+            return "unknown:" & arch;
+         end if;
+      end newsuffix;
+
+      function even (fileinfo : String) return String
+      is
+         --  DF  4.5-DEVELOPMENT: ... DragonFly 4.0.501
+         --  DF 4.10-RELEASE    : ... DragonFly 4.0.1000
+         --  DF 4.11-DEVELOPMENT: ... DragonFly 4.0.1102
+         --
+         --  Alternative future format (file version 2.0)
+         --  DFV 400702: ... DragonFly 4.7.2
+         --  DFV 401117: ..  DragonFly 4.11.17
+         rest  : constant String := HT.part_2 (fileinfo, "DragonFly ");
+         major : constant String := HT.specific_field (rest, 1, ".");
+         part2 : constant String := HT.specific_field (rest, 2, ".");
+         part3 : constant String := HT.part_1 (HT.specific_field (rest, 3, "."), ",");
+         minor : String (1 .. 2) := "00";
+         point : Character;
+      begin
+         if part2 = "0" then
+            --  version format in October 2016
+            declare
+               mvers : String (1 .. 4) := "0000";
+               lenp3 : constant Natural := part3'Length;
+            begin
+               mvers (mvers'Last - lenp3 + 1 .. mvers'Last) := part3;
+               minor := mvers (1 .. 2);
+            end;
+         else
+            --  Alternative future format (file version 2.0)
+            declare
+               lenp2 : constant Natural := part2'Length;
+            begin
+               minor (minor'Last - lenp2 + 1 .. minor'Last) := part2;
+            end;
+         end if;
+
+         point := minor (2);
+         case point is
+            when '1' => minor (2) := '2';
+            when '3' => minor (2) := '4';
+            when '5' => minor (2) := '6';
+            when '7' => minor (2) := '8';
+            when '9' => minor (2) := '0';
+                        minor (1) := Character'Val (Character'Pos (minor (1)) + 1);
+            when others => null;
+         end case;
+         if minor (1) = '0' then
+            return major & "." & minor (2);
+         else
+            return major & "." & minor (1 .. 2);
+         end if;
+
+      end even;
+
+      function get_major (fileinfo : String; OS : String) return String
+      is
+         --  FreeBSD 10.2, stripped
+         --  FreeBSD 11.0 (1100093), stripped
+         --  NetBSD 7.0.1, not stripped
+         rest  : constant String := HT.part_2 (fileinfo, OS);
+         major : constant String := HT.part_1 (rest, ".");
+      begin
+         return major;
+      end get_major;
+
+   begin
+      UN   := Unix.piped_command (command, status);
+      arch := isolate_arch_from_file_type (HT.USS (UN));
+      case platform_type is
+         when dragonfly =>
+            declare
+               dfly    : constant String := "dragonfly:";
+               release : constant String := even (HT.USS (UN));
+            begin
+               abi_formats.calculated_abi := HT.SUS (dfly);
+               HT.SU.Append (abi_formats.calculated_abi, release & ":");
+               abi_formats.calc_abi_noarch := abi_formats.calculated_abi;
+               HT.SU.Append (abi_formats.calculated_abi, suffix (arch));
+               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
+               abi_formats.calculated_alt_abi  := abi_formats.calculated_abi;
+               abi_formats.calc_alt_abi_noarch := abi_formats.calc_abi_noarch;
+            end;
+         when freebsd =>
+            declare
+               fbsd1   : constant String := "FreeBSD:";
+               fbsd2   : constant String := "freebsd:";
+               release : constant String := get_major (HT.USS (UN), "FreeBSD ");
+            begin
+               abi_formats.calculated_abi     := HT.SUS (fbsd1);
+               abi_formats.calculated_alt_abi := HT.SUS (fbsd2);
+               HT.SU.Append (abi_formats.calculated_abi, release & ":");
+               HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
+               abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
+               abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
+               HT.SU.Append (abi_formats.calculated_abi, newsuffix (arch));
+               HT.SU.Append (abi_formats.calculated_alt_abi, suffix (arch));
+               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
+               HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+            end;
+         when netbsd =>
+            declare
+               net1     : constant String := "NetBSD:";
+               net2     : constant String := "netbsd:";
+               release  : constant String := get_major (HT.USS (UN), "NetBSD ");
+            begin
+               abi_formats.calculated_abi     := HT.SUS (net1);
+               abi_formats.calculated_alt_abi := HT.SUS (net2);
+               HT.SU.Append (abi_formats.calculated_abi, release & ":");
+               HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
+               abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
+               abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
+               HT.SU.Append (abi_formats.calculated_abi, newsuffix (arch));
+               HT.SU.Append (abi_formats.calculated_alt_abi, suffix (arch));
+               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
+               HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+            end;
+         when linux   => null;  --  TBD (check ABI first)
+         when sunos   => null;  --  TBD (check ABI first)
+         when macos   => null;
+         when openbsd => null;
+      end case;
+   end establish_package_architecture;
+
+
+   --------------------------------------------------------------------------------------------
+   --  limited_sanity_check
+   --------------------------------------------------------------------------------------------
+   procedure limited_sanity_check
+     (repository      : String;
+      dry_run         : Boolean;
+      suppress_remote : Boolean)
+   is
+      procedure prune_packages (cursor : ranking_crate.Cursor);
+      procedure check_package (cursor : ranking_crate.Cursor);
+      procedure prune_queue (cursor : subqueue.Cursor);
+      procedure print (cursor : subqueue.Cursor);
+      procedure fetch (cursor : subqueue.Cursor);
+      procedure check (cursor : subqueue.Cursor);
+
+      already_built : subqueue.Vector;
+      fetch_list    : subqueue.Vector;
+      fetch_fail    : Boolean := False;
+      clean_pass    : Boolean := False;
+      listlog       : TIO.File_Type;
+      goodlog       : Boolean;
+      using_screen  : constant Boolean := Unix.screen_attached;
+      filename      : constant String := "/tmp/synth_prefetch_list.txt";
+      package_list  : HT.Text := HT.blank;
+
+      procedure check_package (cursor : ranking_crate.Cursor)
+      is
+         target    : port_id := ranking_crate.Element (cursor).ap_index;
+         pkgname   : String  := HT.USS (all_ports (target).package_name);
+         available : constant Boolean := all_ports (target).remote_pkg or else
+           (all_ports (target).pkg_present and then
+                not all_ports (target).deletion_due);
+      begin
+         if not available then
+            return;
+         end if;
+
+         if passed_dependency_check
+           (query_result => all_ports (target).pkg_dep_query, id => target)
+         then
+            already_built.Append (New_Item => target);
+            if all_ports (target).remote_pkg then
+               fetch_list.Append (New_Item => target);
+            end if;
+         else
+            if all_ports (target).remote_pkg then
+               --  silently fail, remote packages are a bonus anyway
+               all_ports (target).remote_pkg := False;
+            else
+               TIO.Put_Line (pkgname & " failed dependency check.");
+               all_ports (target).deletion_due := True;
+            end if;
+            clean_pass := False;
+         end if;
+      end check_package;
+
+      procedure prune_queue (cursor : subqueue.Cursor)
+      is
+         id : constant port_index := subqueue.Element (cursor);
+      begin
+         cascade_successful_build (id);
+      end prune_queue;
+
+      procedure prune_packages (cursor : ranking_crate.Cursor)
+      is
+         target    : port_id := ranking_crate.Element (cursor).ap_index;
+         delete_it : Boolean := all_ports (target).deletion_due;
+         pkgname   : String  := HT.USS (all_ports (target).package_name);
+         fullpath  : constant String := repository & "/" & pkgname;
+      begin
+         if delete_it then
+            DIR.Delete_File (fullpath);
+         end if;
+      exception
+         when others => null;
+      end prune_packages;
+
+      procedure print (cursor : subqueue.Cursor)
+      is
+         id   : constant port_index := subqueue.Element (cursor);
+         line : constant String := HT.USS (all_ports (id).package_name) &
+                 " (" & get_port_variant (all_ports (id)) & ")";
+      begin
+         TIO.Put_Line ("  => " & line);
+         if goodlog then
+            TIO.Put_Line (listlog, line);
+         end if;
+      end print;
+
+      procedure fetch (cursor : subqueue.Cursor)
+      is
+         id  : constant port_index := subqueue.Element (cursor);
+      begin
+         HT.SU.Append (package_list, " " & id2pkgname (id));
+      end fetch;
+
+      procedure check (cursor : subqueue.Cursor)
+      is
+         id   : constant port_index := subqueue.Element (cursor);
+         name : constant String := HT.USS (all_ports (id).package_name);
+         loc  : constant String := HT.USS (PM.configuration.dir_packages) & "/All/" & name;
+      begin
+         if not DIR.Exists (loc) then
+            TIO.Put_Line ("Download failed: " & name);
+            fetch_fail := True;
+         end if;
+      end check;
+   begin
+      if Unix.env_variable_defined ("WHYFAIL") then
+         activate_debugging_code;
+      end if;
+      establish_package_architecture;
+      original_queue_len := rank_queue.Length;
+      for m in scanners'Range loop
+         mq_progress (m) := 0;
+      end loop;
+      LOG.start_obsolete_package_logging;
+      parallel_package_scan (repository, False, using_screen);
+
+      if Signals.graceful_shutdown_requested then
+         LOG.stop_obsolete_package_logging;
+         return;
+      end if;
+
+      while not clean_pass loop
+         clean_pass := True;
+         already_built.Clear;
+         rank_queue.Iterate (check_package'Access);
+      end loop;
+      if not suppress_remote and then PM.configuration.defer_prebuilt then
+         --  The defer_prebuilt options has been elected, so check all the
+         --  missing and to-be-pruned ports for suitable prebuilt packages
+         --  So we need to an incremental scan (skip valid, present packages)
+         for m in scanners'Range loop
+            mq_progress (m) := 0;
+         end loop;
+         parallel_package_scan (repository, True, using_screen);
+
+         if Signals.graceful_shutdown_requested then
+            LOG.stop_obsolete_package_logging;
+            return;
+         end if;
+
+         clean_pass := False;
+         while not clean_pass loop
+            clean_pass := True;
+            already_built.Clear;
+            fetch_list.Clear;
+            rank_queue.Iterate (check_package'Access);
+         end loop;
+      end if;
+      LOG.stop_obsolete_package_logging;
+      if Signals.graceful_shutdown_requested then
+         return;
+      end if;
+      if dry_run then
+         if not fetch_list.Is_Empty then
+            begin
+               TIO.Create (File => listlog, Mode => TIO.Out_File,
+                           Name => filename);
+               goodlog := True;
+            exception
+               when others => goodlog := False;
+            end;
+            TIO.Put_Line ("These are the packages that would be fetched:");
+            fetch_list.Iterate (print'Access);
+            TIO.Put_Line ("Total packages that would be fetched:" &
+                            fetch_list.Length'Img);
+            if goodlog then
+               TIO.Close (listlog);
+               TIO.Put_Line ("The complete build list can also be found at:"
+                             & LAT.LF & filename);
+            end if;
+         else
+            if PM.configuration.defer_prebuilt then
+               TIO.Put_Line ("No packages qualify for prefetching from " &
+                               "official package repository.");
+            end if;
+         end if;
+      else
+         rank_queue.Iterate (prune_packages'Access);
+         fetch_list.Iterate (fetch'Access);
+         if not HT.equivalent (package_list, HT.blank) then
+            declare
+               cmd : constant String := host_pkg8 & " fetch -r " &
+                 HT.USS (external_repository) & " -U -y --output " &
+                 HT.USS (PM.configuration.dir_packages) & HT.USS (package_list);
+            begin
+               if Unix.external_command (cmd) then
+                  null;
+               end if;
+            end;
+            fetch_list.Iterate (check'Access);
+         end if;
+      end if;
+      if fetch_fail then
+         TIO.Put_Line ("At least one package failed to fetch, aborting build!");
+         rank_queue.Clear;
+      else
+         already_built.Iterate (prune_queue'Access);
+      end if;
+   end limited_sanity_check;
 
 
 end PortScan.Operations;
