@@ -31,6 +31,15 @@ package PortScan.Buildcycle is
                                      pid    : port_id;
                                      action : Display.history_action) return Display.history_rec;
 
+   --  exposed for WWW report
+   function load_core (instant_load : Boolean) return Float;
+
+   --  records the current length of the build log.
+   procedure set_log_lines (id : builders);
+
+   --  Returns the formatted time difference between start and stop of package build
+   function elapsed_build (id : builders) return String;
+
 private
 
    package CAL renames Ada.Calendar;
@@ -102,7 +111,6 @@ private
    function  environment_override (enable_tty : Boolean := False) return String;
    function  dynamically_linked (base, filename : String) return Boolean;
    function  format_loglines (numlines : Natural) return String;
-   function  load_core (instant_load : Boolean) return Float;
    function  watchdog_message (minutes : execution_limit) return String;
    function  generic_execute
      (id         : builders;

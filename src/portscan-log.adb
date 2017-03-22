@@ -49,6 +49,15 @@ package body PortScan.Log is
 
 
    --------------------------------------------------------------------------------------------
+   --  bulk_run_duration
+   --------------------------------------------------------------------------------------------
+   function bulk_run_duration return String is
+   begin
+      return log_duration (start_time, stop_time);
+   end bulk_run_duration;
+
+
+   --------------------------------------------------------------------------------------------
    --  log_name
    --------------------------------------------------------------------------------------------
    function log_name (sid : port_id) return String
@@ -492,6 +501,16 @@ package body PortScan.Log is
       end if;
    end scribe;
 
+
+   --------------------------------------------------------------------------------------------
+   --  flush_log
+   --------------------------------------------------------------------------------------------
+   procedure flush_log (flavor : count_type) is
+   begin
+      TIO.Flush (Flog (flavor));
+   end flush_log;
+
+
    --------------------------------------------------------------------------------------------
    --  set_build_counters
    --------------------------------------------------------------------------------------------
@@ -553,5 +572,120 @@ package body PortScan.Log is
          TIO.Put (message);
       end if;
    end obsolete_notice;
+
+
+   --------------------------------------------------------------------------------------------
+   --  www_timestamp_start_time
+   --------------------------------------------------------------------------------------------
+   function www_timestamp_start_time return String is
+   begin
+      return timestamp (start_time, True);
+   end www_timestamp_start_time;
+
+
+   --------------------------------------------------------------------------------------------
+   --  ports_remaining_to_build
+   --------------------------------------------------------------------------------------------
+   function ports_remaining_to_build return Integer is
+   begin
+      return bld_counter (total)
+        - bld_counter (success)
+        - bld_counter (failure)
+        - bld_counter (ignored)
+        - bld_counter (skipped);
+   end ports_remaining_to_build;
+
+
+   --------------------------------------------------------------------------------------------
+   --  port_counter_value
+   --------------------------------------------------------------------------------------------
+   function port_counter_value (flavor : count_type) return Integer is
+   begin
+      return bld_counter (flavor);
+   end port_counter_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  hourly_build_rate
+   --------------------------------------------------------------------------------------------
+   function hourly_build_rate return Natural
+   is
+      pkg_that_count : constant Natural := bld_counter (success) + bld_counter (failure);
+   begin
+      return get_packages_per_hour (pkg_that_count, start_time);
+   end hourly_build_rate;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_packages_per_hour
+   --------------------------------------------------------------------------------------------
+   function get_packages_per_hour (packages_done : Natural; from_when : CAL.Time) return Natural
+   is
+      diff_days    : CAR.Day_Count;
+      diff_secs    : Duration;
+      leap_secs    : CAR.Leap_Seconds_Count;
+      result       : Natural;
+      rightnow     : CAL.Time := CAL.Clock;
+      work_seconds : Integer;
+      work_days    : Integer;
+      use type CAR.Day_Count;
+   begin
+      if packages_done = 0 then
+         return 0;
+      end if;
+      CAR.Difference (Left    => rightnow,
+                      Right   => from_when,
+                      Days    => diff_days,
+                      Seconds => diff_secs,
+                      Leap_Seconds => leap_secs);
+
+      work_seconds := Integer (diff_secs);
+      work_days    := Integer (diff_days);
+      work_seconds := work_seconds + (work_days * 3600 * 24);
+
+      if work_seconds < 0 then
+         --  should be impossible to get here.
+         return 0;
+      end if;
+      result := packages_done * 3600;
+      result := result / work_seconds;
+      return result;
+   exception
+      when others => return 0;
+   end get_packages_per_hour;
+
+
+   --------------------------------------------------------------------------------------------
+   --  impulse_rate
+   --------------------------------------------------------------------------------------------
+   function impulse_rate return Natural
+   is
+      pkg_that_count : constant Natural := bld_counter (success) + bld_counter (failure);
+      pkg_diff : Natural;
+      result   : Natural;
+   begin
+      if impulse_counter = impulse_range'Last then
+         impulse_counter := impulse_range'First;
+      else
+         impulse_counter := impulse_counter + 1;
+      end if;
+      if impulse_data (impulse_counter).virgin then
+         impulse_data (impulse_counter).hack     := CAL.Clock;
+         impulse_data (impulse_counter).packages := pkg_that_count;
+         impulse_data (impulse_counter).virgin   := False;
+
+         return get_packages_per_hour (pkg_that_count, start_time);
+      end if;
+      pkg_diff := pkg_that_count - impulse_data (impulse_counter).packages;
+      result   := get_packages_per_hour
+                   (packages_done => pkg_diff,
+                    from_when     => impulse_data (impulse_counter).hack);
+      impulse_data (impulse_counter).hack     := CAL.Clock;
+      impulse_data (impulse_counter).packages := pkg_that_count;
+
+      return result;
+   exception
+      when others => return 0;
+   end impulse_rate;
 
 end PortScan.Log;

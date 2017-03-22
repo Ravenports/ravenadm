@@ -144,6 +144,9 @@ package HelperText is
    --  Filters out control characters from String S
    function strip_control (S : String) return String;
 
+   --  Replaces 2 or more consecutive spaces with a single space
+   function strip_excessive_spaces (S : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);

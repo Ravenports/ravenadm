@@ -665,6 +665,46 @@ package body Pilot is
    end sanity_check_then_prefail;
 
 
+   --------------------------------------------------------------------------------------------
+   --  perform_bulk_run
+   --------------------------------------------------------------------------------------------
+   procedure perform_bulk_run (testmode : Boolean)
+   is
+      num_builders : constant builders := PM.configuration.num_builders;
+      show_tally   : Boolean := True;
+   begin
+      if PortScan.queue_is_empty then
+         TIO.Put_Line ("After inspection, it has been determined that there are no packages that");
+         TIO.Put_Line ("require rebuilding; the task is therefore complete.");
+         show_tally := False;
+      else
+         REP.initialize (testmode);
+         CYC.initialize (testmode);
+         OPS.initialize_web_report (num_builders);
+         OPS.initialize_display (num_builders);
+         OPS.parallel_bulk_run (num_builders, sysrootver);
+         REP.finalize;
+      end if;
+      LOG.set_overall_complete (CAL.Clock);
+      LOG.start_logging (PortScan.total);
+      LOG.stop_logging (PortScan.success);
+      LOG.stop_logging (PortScan.failure);
+      LOG.stop_logging (PortScan.skipped);
+      if show_tally then
+         TIO.Put_Line (LAT.LF & LAT.LF);
+         TIO.Put_Line ("The task is complete.  Final tally:");
+         TIO.Put_Line ("Initial queue size:" & LOG.port_counter_value (PortScan.total)'Img);
+         TIO.Put_Line ("    packages built:" & LOG.port_counter_value (PortScan.success)'Img);
+         TIO.Put_Line ("           ignored:" & LOG.port_counter_value (PortScan.ignored)'Img);
+         TIO.Put_Line ("           skipped:" & LOG.port_counter_value (PortScan.skipped)'Img);
+         TIO.Put_Line ("            failed:" & LOG.port_counter_value (PortScan.failure)'Img);
+         TIO.Put_Line ("");
+         TIO.Put_Line (LOG.bulk_run_duration);
+         TIO.Put_Line ("The build logs can be found at: " &
+                         HT.USS (PM.configuration.dir_logs) & "/logs");
+      end if;
+   end perform_bulk_run;
+
 
    function proof_of_concept return Boolean
    is

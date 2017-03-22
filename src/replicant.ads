@@ -40,6 +40,9 @@ package Replicant is
    --  installation phases.  Sequence: launch_slave, unhook_toolchain, destroy_slave
    procedure unhook_toolchain (id : builders);
 
+   --  returns "SLXX" where XX is a zero-padded integer (01 .. 32)
+   function slave_name (id : builders) return String;
+
 private
 
    package HT  renames HelperText;
@@ -145,9 +148,6 @@ private
 
    --  locks and unlocks folders, even from root
    procedure folder_access (path : String; operation : folder_operation);
-
-   --  returns "SLXX" where XX is a zero-padded integer (01 .. 32)
-   function slave_name (id : builders) return String;
 
    --  create slave's /var directory tree.  Path should be an empty directory.
    procedure populate_var_folder (path : String);

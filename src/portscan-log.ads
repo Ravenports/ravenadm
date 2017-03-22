@@ -56,6 +56,7 @@ package PortScan.Log is
    procedure start_logging (flavor : count_type);
    procedure stop_logging (flavor : count_type);
    procedure scribe (flavor : count_type; line : String; flush_after : Boolean);
+   procedure flush_log (flavor : count_type);
 
    --  Establish values of build counters
    procedure set_build_counters (A, B, C, D, E : Natural);
@@ -70,18 +71,48 @@ package PortScan.Log is
    --  Write to log if open and optionally output a copy to screen.
    procedure obsolete_notice (message : String; write_to_screen : Boolean);
 
+   --  Return WWW report-formatted timestamp of start time.
+   function www_timestamp_start_time return String;
+
+   --  Return current build queue size
+   function ports_remaining_to_build return Integer;
+
+   --  Return value of individual port counter
+   function port_counter_value (flavor : count_type) return Integer;
+
+   --  Return number of packages built since build started
+   function hourly_build_rate return Natural;
+
+   --  Return number of packages built in the last 600 seconds
+   function impulse_rate return Natural;
+
+   --  Show duration between overall start and stop times.
+   function bulk_run_duration return String;
+
 private
 
+   type impulse_rec is
+      record
+         hack     : CAL.Time;
+         packages : Natural := 0;
+         virgin   : Boolean := True;
+      end record;
+
    subtype logname_field is String (1 .. 19);
+   subtype impulse_range is Integer range 1 .. 600;
    type dim_handlers is array (count_type) of TIO.File_Type;
    type dim_counters is array (count_type) of Natural;
    type dim_logname  is array (count_type) of logname_field;
+   type dim_impulse  is array (impulse_range) of impulse_rec;
 
    function log_duration (start, stop : CAL.Time) return String;
    function timestamp (hack : CAL.Time; www_format : Boolean := False) return String;
    function split_collection (line : String; title : String) return String;
 
    procedure dump_port_variables (log_handle : TIO.File_Type; contents : String);
+
+   --  Simple time calculation (guts)
+   function get_packages_per_hour (packages_done : Natural; from_when : CAL.Time) return Natural;
 
    --  bulk run variables
 
@@ -91,6 +122,9 @@ private
    scan_start  : CAL.Time;
    scan_stop   : CAL.Time;
    bld_counter : dim_counters := (0, 0, 0, 0, 0);
+
+   impulse_counter   : impulse_range := impulse_range'Last;
+   impulse_data      : dim_impulse;
 
    obsolete_pkg_log  : TIO.File_Type;
    obsolete_log_open : Boolean := False;

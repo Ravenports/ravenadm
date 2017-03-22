@@ -77,6 +77,10 @@ package Pilot is
      (delete_first : Boolean := False;
       dry_run      : Boolean := False) return Boolean;
 
+   --  Everything is fine so kick of the parallel builders.  They will
+   --  continue until everything is complete.
+   procedure perform_bulk_run (testmode : Boolean);
+
    function proof_of_concept return Boolean;
 
 private

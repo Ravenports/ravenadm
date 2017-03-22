@@ -3,11 +3,16 @@
 
 with Unix;
 with Signals;
+with Replicant;
 with Ada.Exceptions;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
+with Ada.Numerics.Discrete_Random;
 with PortScan.Log;
 with PortScan.Buildcycle;
+with Specification_Parser;
+with Port_Specification.Makefile;
+with Port_Specification.Transform;
 
 package body PortScan.Operations is
 
@@ -16,6 +21,368 @@ package body PortScan.Operations is
    package LAT renames Ada.Characters.Latin_1;
    package LOG renames PortScan.Log;
    package CYC renames PortScan.Buildcycle;
+   package REP renames Replicant;
+   package PAR renames Specification_Parser;
+   package PSM renames Port_Specification.Makefile;
+   package PST renames Port_Specification.Transform;
+
+   --------------------------------------------------------------------------------------------
+   --  parallel_bulk_run
+   --------------------------------------------------------------------------------------------
+   procedure parallel_bulk_run (num_builders : builders; sysrootver : sysroot_characteristics)
+   is
+      subtype cycle_count   is Natural range 1 .. 9;
+      subtype refresh_count is Natural range 1 .. 4;
+      subtype www_count     is Natural range 1 .. 3;
+      subtype alert_count   is Natural range 1 .. 200;
+
+      procedure text_display (builder : builders; info : String);
+      procedure common_display (flavor : count_type; info : String);
+      procedure slave_display (flavor : count_type; builder : builders; info : String);
+      function slave_name (slave : builders) return String;
+
+      instructions   : dim_instruction   := (others => port_match_failed);
+      builder_states : dim_builder_state := (others => idle);
+      cntcycle       : cycle_count       := cycle_count'First;
+      cntrefresh     : refresh_count     := refresh_count'First;
+      cntalert       : alert_count       := alert_count'First;
+      cntwww         : www_count         := www_count'First;
+      run_complete   : Boolean           := False;
+      available      : Positive          := Integer (num_builders);
+      target         : port_id;
+      all_idle       : Boolean;
+      cntskip        : Natural;
+      sumdata        : DPY.summary_rec;
+
+      procedure text_display (builder : builders; info : String) is
+      begin
+         TIO.Put_Line
+           (LOG.elapsed_now & " => [" & HT.zeropad (Integer (builder), 2) & "] " & info);
+      end text_display;
+
+      procedure slave_display (flavor : count_type; builder : builders; info : String)
+      is
+         slavid : constant String := HT.zeropad (Integer (builder), 2);
+      begin
+         LOG.scribe
+           (flavor, LOG.elapsed_now & " [" & slavid & "] => " & info, False);
+      end slave_display;
+
+      procedure common_display (flavor : count_type; info : String) is
+      begin
+         LOG.scribe (flavor, LOG.elapsed_now & " " & info, False);
+      end common_display;
+
+      function slave_name (slave : builders) return String is
+      begin
+         return get_port_variant (instructions (slave));
+      end slave_name;
+
+      task type build (builder : builders);
+      task body build
+      is
+         type Rand_Draw is range 1 .. 20;
+         package Rand20 is new Ada.Numerics.Discrete_Random (Rand_Draw);
+         seed : Rand20.Generator;
+         build_result : Boolean;
+         need_procfs  : Boolean;
+      begin
+         if builder <= num_builders then
+            if not curses_support then
+               text_display (builder, "Builder launched");
+            end if;
+            loop
+               exit when builder_states (builder) = shutdown;
+               if builder_states (builder) = tasked then
+                  builder_states (builder) := busy;
+                  need_procfs := all_ports (instructions (builder)).use_procfs;
+                  REP.launch_slave (builder, need_procfs);
+                  build_result := build_subpackages (builder, instructions (builder), sysrootver);
+                  REP.destroy_slave (builder, need_procfs);
+                  if build_result then
+                     builder_states (builder) := done_success;
+                  else
+                     builder_states (builder) := done_failure;
+                  end if;
+               else
+                  --  idle or done-(failure|success), just wait a bit
+                  delay 0.1;
+               end if;
+            end loop;
+            if not curses_support then
+               text_display (builder, "         Shutting down");
+            end if;
+         end if;
+      end build;
+
+      builder_01 : build (builder => 1);
+      builder_02 : build (builder => 2);
+      builder_03 : build (builder => 3);
+      builder_04 : build (builder => 4);
+      builder_05 : build (builder => 5);
+      builder_06 : build (builder => 6);
+      builder_07 : build (builder => 7);
+      builder_08 : build (builder => 8);
+      builder_09 : build (builder => 9);
+      builder_10 : build (builder => 10);
+      builder_11 : build (builder => 11);
+      builder_12 : build (builder => 12);
+      builder_13 : build (builder => 13);
+      builder_14 : build (builder => 14);
+      builder_15 : build (builder => 15);
+      builder_16 : build (builder => 16);
+      builder_17 : build (builder => 17);
+      builder_18 : build (builder => 18);
+      builder_19 : build (builder => 19);
+      builder_20 : build (builder => 20);
+      builder_21 : build (builder => 21);
+      builder_22 : build (builder => 22);
+      builder_23 : build (builder => 23);
+      builder_24 : build (builder => 24);
+      builder_25 : build (builder => 25);
+      builder_26 : build (builder => 26);
+      builder_27 : build (builder => 27);
+      builder_28 : build (builder => 28);
+      builder_29 : build (builder => 29);
+      builder_30 : build (builder => 30);
+      builder_31 : build (builder => 31);
+      builder_32 : build (builder => 32);
+      builder_33 : build (builder => 33);
+      builder_34 : build (builder => 34);
+      builder_35 : build (builder => 35);
+      builder_36 : build (builder => 36);
+      builder_37 : build (builder => 37);
+      builder_38 : build (builder => 38);
+      builder_39 : build (builder => 39);
+      builder_40 : build (builder => 40);
+      builder_41 : build (builder => 41);
+      builder_42 : build (builder => 42);
+      builder_43 : build (builder => 43);
+      builder_44 : build (builder => 44);
+      builder_45 : build (builder => 45);
+      builder_46 : build (builder => 46);
+      builder_47 : build (builder => 47);
+      builder_48 : build (builder => 48);
+      builder_49 : build (builder => 49);
+      builder_50 : build (builder => 50);
+      builder_51 : build (builder => 51);
+      builder_52 : build (builder => 52);
+      builder_53 : build (builder => 53);
+      builder_54 : build (builder => 54);
+      builder_55 : build (builder => 55);
+      builder_56 : build (builder => 56);
+      builder_57 : build (builder => 57);
+      builder_58 : build (builder => 58);
+      builder_59 : build (builder => 59);
+      builder_60 : build (builder => 60);
+      builder_61 : build (builder => 61);
+      builder_62 : build (builder => 62);
+      builder_63 : build (builder => 63);
+      builder_64 : build (builder => 64);
+
+   begin
+      loop
+         all_idle := True;
+         for slave in 1 .. num_builders loop
+            begin
+               case builder_states (slave) is
+               when busy | tasked =>
+                  all_idle := False;
+               when shutdown =>
+                  null;
+               when idle =>
+                  if run_complete then
+                     builder_states (slave) := shutdown;
+                  else
+                     target := top_buildable_port;
+                     if target = port_match_failed then
+                        if Signals.graceful_shutdown_requested or else
+                          nothing_left (num_builders)
+                        then
+                           run_complete := True;
+                           builder_states (slave) := shutdown;
+                           DPY.insert_history
+                             (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                        else
+                           if shutdown_recommended (available) then
+                              builder_states (slave) := shutdown;
+                              DPY.insert_history
+                                (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                              available := available - 1;
+                           end if;
+                        end if;
+                     else
+                        lock_package (target);
+                        instructions (slave) := target;
+                        builder_states (slave) := tasked;
+                        slave_display (total, slave, slave_name (slave));
+                        if not curses_support then
+                           text_display (slave, "         Kickoff " & slave_name (slave));
+                        end if;
+                     end if;
+                  end if;
+               when done_success | done_failure =>
+                  all_idle := False;
+                  if builder_states (slave) = done_success then
+                     if curses_support then
+                        DPY.insert_history
+                          (CYC.assemble_history_record
+                             (slave, instructions (slave), DPY.action_success));
+                     else
+                        text_display
+                          (slave, CYC.elapsed_build (slave) & " Success " & slave_name (slave));
+                     end if;
+                     record_history_built (elapsed   => LOG.elapsed_now,
+                                           slave_id  => slave,
+                                           origin    => slave_name (slave),
+                                           duration  => CYC.elapsed_build (slave));
+                     run_package_hook (pkg_success, instructions (slave));
+                     cascade_successful_build (instructions (slave));
+                     LOG.increment_build_counter (success);
+                     common_display (success, slave_name (slave));
+                     common_display (total, slave_name (slave) & " success");
+                  else
+                     common_display (total, slave_name (slave) & " FAILED!");
+                     cascade_failed_build (instructions (slave), cntskip);
+                     LOG.increment_build_counter (skipped, cntskip);
+                     LOG.increment_build_counter (failure);
+                     common_display (total, slave_name (slave) & " failure skips:" & cntskip'Img);
+                     common_display
+                       (failure, slave_name (slave) & " (skipped" & cntskip'Img & ")");
+                     if curses_support then
+                        DPY.insert_history
+                          (CYC.assemble_history_record
+                             (slave, instructions (slave), DPY.action_failure));
+                     else
+                        text_display
+                          (slave, CYC.elapsed_build (slave) & " Failure " & slave_name (slave));
+                     end if;
+                     record_history_failed
+                       (elapsed   => LOG.elapsed_now,
+                        slave_id  => slave,
+                        origin    => slave_name (slave),
+                        duration  => CYC.elapsed_build (slave),
+                        die_phase => CYC.last_build_phase (slave),
+                        skips     => cntskip);
+                     run_package_hook (pkg_failure, instructions (slave));
+                  end if;
+                  instructions (slave) := port_match_failed;
+                  if run_complete then
+                     builder_states (slave) := shutdown;
+                     DPY.insert_history
+                       (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                  else
+                     builder_states (slave) := idle;
+                  end if;
+               end case;
+            exception
+               when earthquake : others =>
+                    LOG.scribe (total, LOG.elapsed_now & " UNHANDLED EXCEPTION: " &
+                       EX.Exception_Information (earthquake), False);
+            end;
+         end loop;
+         exit when run_complete and all_idle;
+         if cntcycle = cycle_count'Last then
+            cntcycle := cycle_count'First;
+            LOG.flush_log (success);
+            LOG.flush_log (failure);
+            LOG.flush_log (skipped);
+            LOG.flush_log (total);
+            if curses_support then
+               if cntrefresh = refresh_count'Last then
+                  cntrefresh := refresh_count'First;
+                  DPY.set_full_redraw_next_update;
+               else
+                  cntrefresh := cntrefresh + 1;
+               end if;
+               sumdata.Initially := LOG.port_counter_value (total);
+               sumdata.Built     := LOG.port_counter_value (success);
+               sumdata.Failed    := LOG.port_counter_value (failure);
+               sumdata.Ignored   := LOG.port_counter_value (ignored);
+               sumdata.Skipped   := LOG.port_counter_value (skipped);
+               sumdata.elapsed   := LOG.elapsed_now;
+               sumdata.swap      := get_swap_status;
+               sumdata.load      := CYC.load_core (True);
+               sumdata.pkg_hour  := LOG.hourly_build_rate;
+               sumdata.impulse   := LOG.impulse_rate;
+               DPY.summarize (sumdata);
+
+               for b in builders'First .. num_builders loop
+                     if builder_states (b) = shutdown then
+                        DPY.update_builder (CYC.builder_status (b, True, False));
+                     elsif builder_states (b) = idle then
+                        DPY.update_builder (CYC.builder_status (b, False, True));
+                     else
+                        CYC.set_log_lines (b);
+                        DPY.update_builder (CYC.builder_status (b));
+                     end if;
+               end loop;
+               DPY.refresh_builder_window;
+               DPY.refresh_history_window;
+            else
+               --  text mode support, periodic status reports
+               if cntalert = alert_count'Last then
+                  cntalert := alert_count'First;
+                  TIO.Put_Line (LOG.elapsed_now & " =>    " &
+                                  "  Left:" & LOG.ports_remaining_to_build'Img &
+                                  "  Succ:" & LOG.port_counter_value (success)'Img &
+                                  "  Fail:" & LOG.port_counter_value (failure)'Img &
+                                  "  Skip:" & LOG.port_counter_value (skipped)'Img &
+                                  "   Ign:" & LOG.port_counter_value (ignored)'Img);
+               else
+                  cntalert := cntalert + 1;
+               end if;
+
+               --  Update log lines every 4 seconds for the watchdog
+               if cntrefresh = refresh_count'Last then
+                  cntrefresh := refresh_count'First;
+                  for b in builders'First .. num_builders loop
+                     if builder_states (b) /= shutdown and then
+                       builder_states (b) /= idle
+                     then
+                        CYC.set_log_lines (b);
+                     end if;
+                  end loop;
+               else
+                  cntrefresh := cntrefresh + 1;
+               end if;
+            end if;
+
+            --  Generate latest history file every 3 seconds.
+            --  With a poll period of 6 seconds, we need twice that frequency to avoid aliasing
+            --  Note that in text mode, the logs are updated every 4 seconds, so in this mode
+            --  the log lines will often be identical for a cycle.
+            if cntwww = www_count'Last then
+               cntwww := www_count'First;
+               write_history_json;
+               write_summary_json (active            => True,
+                                   states            => builder_states,
+                                   num_builders      => num_builders,
+                                   num_history_files => history.segment);
+            else
+               cntwww := cntwww + 1;
+            end if;
+         else
+            cntcycle := cntcycle + 1;
+         end if;
+         delay 0.10;
+      end loop;
+      if PM.configuration.avec_ncurses and then curses_support
+      then
+         DPY.terminate_monitor;
+      end if;
+      write_history_json;
+      write_summary_json (active            => False,
+                          states            => builder_states,
+                          num_builders      => num_builders,
+                          num_history_files => history.segment);
+      run_hook (run_end,
+                  "PORTS_BUILT=" & HT.int2str (LOG.port_counter_value (success)) &
+                  " PORTS_FAILED=" & HT.int2str (LOG.port_counter_value (failure)) &
+                  " PORTS_IGNORED=" & HT.int2str (LOG.port_counter_value (ignored)) &
+                  " PORTS_SKIPPED=" & HT.int2str (LOG.port_counter_value (skipped)));
+   end parallel_bulk_run;
+
 
    --------------------------------------------------------------------------------------------
    --  initialize_hooks
@@ -377,6 +744,65 @@ package body PortScan.Operations is
 
       check_history_segment_capacity;
    end record_history_skipped;
+
+
+   --------------------------------------------------------------------------------------------
+   --  record_history_built
+   --------------------------------------------------------------------------------------------
+   procedure record_history_built
+     (elapsed   : String;
+      slave_id  : builders;
+      origin    : String;
+      duration  : String)
+   is
+      ID : constant String := HT.zeropad (Integer (slave_id), 2);
+   begin
+      history.log_entry := history.log_entry + 1;
+      history.segment_count := history.segment_count + 1;
+      handle_first_history_entry;
+
+      assimulate_substring (history, "   " & nv ("entry", history.log_entry) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("ID", ID) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("result", "built") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("info", "") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("duration", duration) & LAT.LF);
+      assimulate_substring (history, " }" & LAT.LF);
+
+      check_history_segment_capacity;
+   end record_history_built;
+
+
+   --------------------------------------------------------------------------------------------
+   --  record_history_built
+   --------------------------------------------------------------------------------------------
+   procedure record_history_failed
+     (elapsed   : String;
+      slave_id  : builders;
+      origin    : String;
+      duration  : String;
+      die_phase : String;
+      skips     : Natural)
+   is
+      info : constant String := die_phase & ":" & HT.int2str (skips);
+      ID   : constant String := HT.zeropad (Integer (slave_id), 2);
+   begin
+      history.log_entry := history.log_entry + 1;
+      history.segment_count := history.segment_count + 1;
+      handle_first_history_entry;
+
+      assimulate_substring (history, "   " & nv ("entry", history.log_entry) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("ID", ID)  & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("result", "failed") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("info", info) & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("duration", duration) & LAT.LF);
+      assimulate_substring (history, " }" & LAT.LF);
+
+      check_history_segment_capacity;
+   end record_history_failed;
 
 
    --------------------------------------------------------------------------------------------
@@ -1675,6 +2101,381 @@ package body PortScan.Operations is
          end if;
       end loop;
    end parallel_package_scan;
+
+
+   --------------------------------------------------------------------------------------------
+   --  initialize_web_report
+   --------------------------------------------------------------------------------------------
+   procedure initialize_web_report (num_builders : builders) is
+      idle_slaves  : constant dim_builder_state := (others => idle);
+      reportdir    : constant String := HT.USS (PM.configuration.dir_logs);
+      sharedir     : constant String := host_localbase & "/share/ravenadm";
+   begin
+      DIR.Create_Path (reportdir);
+      DIR.Copy_File (sharedir & "/synth.png",     reportdir & "/synth.png");
+      DIR.Copy_File (sharedir & "/favicon.png",   reportdir & "/favicon.png");
+      DIR.Copy_File (sharedir & "/progress.js",   reportdir & "/progress.js");
+      DIR.Copy_File (sharedir & "/progress.css",  reportdir & "/progress.css");
+      DIR.Copy_File (sharedir & "/progress.html", reportdir & "/index.html");
+      write_summary_json (active            => True,
+                          states            => idle_slaves,
+                          num_builders      => num_builders,
+                          num_history_files => 0);
+   end initialize_web_report;
+
+
+   --------------------------------------------------------------------------------------------
+   --  write_summary_json
+   --------------------------------------------------------------------------------------------
+   procedure write_summary_json
+     (active            : Boolean;
+      states            : dim_builder_state;
+      num_builders      : builders;
+      num_history_files : Natural)
+   is
+      function TF (value : Boolean) return Natural;
+
+      jsonfile : TIO.File_Type;
+      filename : constant String := HT.USS (PM.configuration.dir_logs) & "/summary.json";
+      leftover : constant Integer := LOG.ports_remaining_to_build;
+      slave    : DPY.builder_rec;
+
+      function TF (value : Boolean) return Natural is
+      begin
+         if value then
+            return 1;
+         else
+            return 0;
+         end if;
+      end TF;
+   begin
+      TIO.Create (File => jsonfile, Mode => TIO.Out_File, Name => filename);
+      TIO.Put (jsonfile, "{" & LAT.LF &
+           "  " & nv ("profile", HT.USS (PM.configuration.profile)) & LAT.LF);
+      TIO.Put
+        (jsonfile,
+           " ," & nv ("kickoff", LOG.www_timestamp_start_time) & LAT.LF &
+           " ," & nv ("kfiles", num_history_files) & LAT.LF &
+           " ," & nv ("active", TF (active)) & LAT.LF &
+           " ," & LAT.Quotation & "stats" & LAT.Quotation & LAT.Colon & "{" & LAT.LF);
+      TIO.Put
+        (jsonfile,
+           "   " & nv ("queued",   LOG.port_counter_value (total))   & LAT.LF &
+           "  ," & nv ("built",    LOG.port_counter_value (success)) & LAT.LF &
+           "  ," & nv ("failed",   LOG.port_counter_value (failure)) & LAT.LF &
+           "  ," & nv ("ignored",  LOG.port_counter_value (ignored)) & LAT.LF &
+           "  ," & nv ("skipped",  LOG.port_counter_value (skipped)) & LAT.LF &
+           "  ," & nv ("remains",  leftover)              & LAT.LF &
+           "  ," & nv ("elapsed",  LOG.elapsed_now)       & LAT.LF &
+           "  ," & nv ("pkghour",  LOG.hourly_build_rate) & LAT.LF &
+           "  ," & nv ("impulse",  LOG.impulse_rate)      & LAT.LF &
+           "  ," & nv ("swapinfo", DPY.fmtpc (get_swap_status, True)) & LAT.LF &
+           "  ," & nv ("load",     DPY.fmtpc (CYC.load_core (True), False)) & LAT.LF &
+           " }" & LAT.LF &
+           " ," & LAT.Quotation & "builders" & LAT.Quotation & LAT.Colon & "[" & LAT.LF);
+
+      for b in builders'First .. num_builders loop
+         if states (b) = shutdown then
+            slave := CYC.builder_status (b, True, False);
+         elsif states (b) = idle then
+            slave := CYC.builder_status (b, False, True);
+         else
+            slave := CYC.builder_status (b);
+         end if;
+         if b = builders'First then
+            TIO.Put (jsonfile, "  {" & LAT.LF);
+         else
+            TIO.Put (jsonfile, "  ,{" & LAT.LF);
+         end if;
+
+         TIO.Put
+           (jsonfile,
+              "    " & nv ("ID",      slave.slavid)  & LAT.LF &
+              "   ," & nv ("elapsed", HT.trim (slave.Elapsed)) & LAT.LF &
+              "   ," & nv ("phase",   HT.trim (slave.phase))   & LAT.LF &
+              "   ," & nv ("origin",  HT.trim (slave.origin))  & LAT.LF &
+              "   ," & nv ("lines",   HT.trim (slave.LLines))  & LAT.LF &
+              "  }" & LAT.LF);
+      end loop;
+      TIO.Put (jsonfile, " ]" & LAT.LF & "}" & LAT.LF);
+      TIO.Close (jsonfile);
+   exception
+      when others =>
+         if TIO.Is_Open (jsonfile) then
+            TIO.Close (jsonfile);
+         end if;
+   end write_summary_json;
+
+
+   --------------------------------------------------------------------------------------------
+   --  swapinfo_command
+   --------------------------------------------------------------------------------------------
+   function swapinfo_command return String is
+   begin
+      case platform_type is
+         when dragonfly | freebsd =>
+            return "/usr/sbin/swapinfo -k";
+         when netbsd | openbsd =>
+            return "/sbin/swapctl -lk";
+         when linux =>
+            return "/usr/sbin/swapon --bytes --show=NAME,SIZE,USED,PRIO";
+         when sunos =>
+            return "/usr/sbin/swap -l";
+         when macos =>
+            return "/usr/bin/vm_stat";
+      end case;
+   end swapinfo_command;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_swap_status
+   --------------------------------------------------------------------------------------------
+   function get_swap_status return Float
+   is
+      command : String := swapinfo_command;
+      status  : Integer;
+      comres  : HT.Text;
+
+      blocks_total : Natural := 0;
+      blocks_used  : Natural := 0;
+   begin
+      if platform_type = macos then
+         return 0.0;
+      end if;
+      comres := Unix.piped_command (command, status);
+      if status /= 0 then
+         return 200.0;  --  [ERROR] Signal to set swap display to "N/A"
+      end if;
+      --  Throw first line away, e.g "Device 1K-blocks Used  Avail ..."
+      --  Distinguishes platforms though:
+      --     Net/Free/Dragon start with "Device"
+      --     Linux starts with "NAME"
+      --     Solaris starts with "swapfile"
+      --  MacOS has no limit, it will keep generating swapfiles as needed, so return 0.0
+      declare
+         command_result : String := HT.USS (comres);
+         markers        : HT.Line_Markers;
+         line_present   : Boolean;
+         oneline_total  : Natural;
+         oneline_other  : Natural;
+      begin
+         HT.initialize_markers (command_result, markers);
+         --  Throw first line away (valid for all platforms
+         line_present := HT.next_line_present (command_result, markers);
+         if line_present then
+            declare
+               line : String := HT.extract_line (command_result, markers);
+            begin
+               null;
+            end;
+         else
+            return 200.0;  --  [ERROR] Signal to set swap display to "N/A"
+         end if;
+         case platform_type is
+            when freebsd | dragonfly | netbsd | openbsd | linux | sunos =>
+               --  Normally 1 swap line, but there is no limit
+               loop
+                  exit when not HT.next_line_present (command_result, markers);
+                  declare
+                     line : constant String :=
+                       HT.strip_excessive_spaces (HT.extract_line (command_result, markers));
+                  begin
+                     case platform_type is
+                        when freebsd | dragonfly | netbsd | openbsd =>
+                           blocks_total := blocks_total +
+                                           Natural'Value (HT.specific_field (line, 4));
+                           blocks_used  := blocks_used +
+                                           Natural'Value (HT.specific_field (line, 3));
+                        when sunos =>
+                           oneline_total := Natural'Value (HT.specific_field (line, 4));
+                           oneline_other := Natural'Value (HT.specific_field (line, 5));
+                           blocks_total  := blocks_total + oneline_total;
+                           blocks_used   := blocks_used + (oneline_total - oneline_other);
+                        when linux =>
+                           blocks_total := blocks_total +
+                                           Natural'Value (HT.specific_field (line, 2));
+                           blocks_used  := blocks_used +
+                                           Natural'Value (HT.specific_field (line, 3));
+                        when macos => null;
+                     end case;
+                  exception
+                     when Constraint_Error =>
+                        return  200.0;  --  [ERROR] Signal to set swap display to "N/A"
+                  end;
+               end loop;
+            when macos =>
+               null;
+         end case;
+      end;
+      if blocks_total = 0 then
+         return 200.0;  --  Signal to set swap display to "N/A"
+      else
+         return 100.0 * Float (blocks_used) / Float (blocks_total);
+      end if;
+   end get_swap_status;
+
+
+   --------------------------------------------------------------------------------------------
+   --  initialize_display
+   --------------------------------------------------------------------------------------------
+   procedure initialize_display (num_builders : builders) is
+   begin
+      if PM.configuration.avec_ncurses then
+         curses_support := DPY.launch_monitor (num_builders);
+      end if;
+   end initialize_display;
+
+
+   --------------------------------------------------------------------------------------------
+   --  nothing_left
+   --------------------------------------------------------------------------------------------
+   function nothing_left (num_builders : builders) return Boolean
+   is
+      list_len : constant Integer := Integer (rank_queue.Length);
+   begin
+      return list_len = 0;
+   end nothing_left;
+
+
+   --------------------------------------------------------------------------------------------
+   --  shutdown_recommended
+   --------------------------------------------------------------------------------------------
+   function shutdown_recommended (active_builders : Positive) return Boolean
+   is
+      list_len : constant Natural  := Integer (rank_queue.Length);
+      list_max : constant Positive := 2 * active_builders;
+      num_wait : Natural := 0;
+      cursor   : ranking_crate.Cursor;
+      QR       : queue_record;
+   begin
+      if list_len = 0 or else list_len >= list_max then
+         return False;
+      end if;
+      cursor := rank_queue.First;
+      for k in 1 .. list_len loop
+         QR := ranking_crate.Element (Position => cursor);
+         if not all_ports (QR.ap_index).work_locked then
+            num_wait := num_wait + 1;
+            if num_wait >= active_builders then
+               return False;
+            end if;
+         end if;
+         cursor := ranking_crate.Next (Position => cursor);
+      end loop;
+      return True;
+   end shutdown_recommended;
+
+
+   --------------------------------------------------------------------------------------------
+   --  lock_package
+   --------------------------------------------------------------------------------------------
+   procedure lock_package (id : port_id) is
+   begin
+      if id /= port_match_failed then
+         all_ports (id).work_locked := True;
+      end if;
+   end lock_package;
+
+
+   --------------------------------------------------------------------------------------------
+   --  top_buildable_port
+   --------------------------------------------------------------------------------------------
+   function top_buildable_port return port_id
+   is
+      list_len : constant Integer := Integer (rank_queue.Length);
+      cursor   : ranking_crate.Cursor;
+      QR       : queue_record;
+      result   : port_id := port_match_failed;
+   begin
+      if list_len = 0 then
+         return result;
+      end if;
+      cursor := rank_queue.First;
+      for k in 1 .. list_len loop
+         QR := ranking_crate.Element (Position => cursor);
+         if not all_ports (QR.ap_index).work_locked and then
+           all_ports (QR.ap_index).blocked_by.Is_Empty
+         then
+            result := QR.ap_index;
+            exit;
+         end if;
+         cursor := ranking_crate.Next (Position => cursor);
+      end loop;
+      if Signals.graceful_shutdown_requested then
+         return port_match_failed;
+      end if;
+      return result;
+   end top_buildable_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  top_buildable_port
+   --------------------------------------------------------------------------------------------
+   function build_subpackages
+     (builder     : builders;
+      sequence_id : port_id;
+      sysrootver  : sysroot_characteristics) return Boolean
+   is
+      function get_buildsheet return String;
+
+      namebase : String := HT.USS (all_ports (sequence_id).port_namebase);
+      variant  : String := HT.USS (all_ports (sequence_id).port_variant);
+      bucket   : String := all_ports (sequence_id).bucket;
+      portloc  : String := HT.USS (PM.configuration.dir_buildbase) &
+                           "/" & REP.slave_name (builder) & "/port";
+      makefile   : String := portloc & "/Makefile";
+
+      function get_buildsheet return String is
+      begin
+         if all_ports (sequence_id).unkind_custom then
+            return HT.USS (PM.configuration.dir_unkindness) & "/bucket_" & bucket & "/" & namebase;
+         else
+            return HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" & bucket & "/" & namebase;
+         end if;
+      end get_buildsheet;
+
+      buildsheet    : constant String := get_buildsheet;
+      specification : Port_Specification.Portspecs;
+      successful    : Boolean;
+   begin
+      PAR.parse_specification_file (dossier         => buildsheet,
+                                    specification   => specification,
+                                    opsys_focus     => platform_type,
+                                    arch_focus      => sysrootver.arch,
+                                    success         => successful,
+                                    stop_at_targets => False,
+                                    extraction_dir  => portloc);
+      if not successful then
+         return False;
+      end if;
+
+      PST.set_option_defaults (specs         => specification,
+                               variant       => variant,
+                               opsys         => platform_type,
+                               arch_standard => sysrootver.arch,
+                               osrelease     => HT.USS (sysrootver.release));
+
+      --  TODO: Implement options correctly
+      PST.set_option_to_default_values (specs => specification);
+
+      PST.set_outstanding_ignore (specs         => specification,
+                                  variant       => variant,
+                                  opsys         => platform_type,
+                                  arch_standard => sysrootver.arch,
+                                  osrelease     => HT.USS (sysrootver.release),
+                                  osmajor       => HT.USS (sysrootver.major));
+
+      PST.apply_directives (specs => specification);
+
+      PSM.generator (specs       => specification,
+                     variant     => variant,
+                     opsys       => platform_type,
+                     output_file => makefile);
+
+      return CYC.build_package (id            => builder,
+                                specification => specification,
+                                sequence_id   => sequence_id);
+   end build_subpackages;
 
 
 end PortScan.Operations;

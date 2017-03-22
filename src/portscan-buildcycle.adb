@@ -1252,4 +1252,34 @@ package body PortScan.Buildcycle is
       return HR;
    end assemble_history_record;
 
+
+   --------------------------------------------------------------------------------------------
+   --  set_log_lines
+   --------------------------------------------------------------------------------------------
+   procedure set_log_lines (id : builders)
+   is
+      log_path : constant String := LOG.log_name (trackers (id).seq_id);
+      command  : constant String := HT.USS (PM.configuration.dir_sysroot) &
+                 "/usr/bin/wc -l " & log_path;
+   begin
+      declare
+         numtext : constant String :=
+           HT.part_1 (S => HT.trim (generic_system_command (command)), separator => " ");
+      begin
+         trackers (id).loglines := Natural'Value (numtext);
+      end;
+   exception
+      when others => null;  -- just skip this cycle
+   end set_log_lines;
+
+
+   --------------------------------------------------------------------------------------------
+   --  elapsed_build
+   --------------------------------------------------------------------------------------------
+   function elapsed_build (id : builders) return String is
+   begin
+      return LOG.elapsed_HH_MM_SS (start => trackers (id).head_time,
+                                   stop  => trackers (id).tail_time);
+   end elapsed_build;
+
 end PortScan.Buildcycle;

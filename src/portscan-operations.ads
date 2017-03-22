@@ -76,6 +76,19 @@ package PortScan.Operations is
       dry_run         : Boolean;
       suppress_remote : Boolean);
 
+   --  Unconditionally copies web assets to <log directory/report directory
+   --  It also provides an initial summary.json data file just the report has something to load
+   procedure initialize_web_report (num_builders : builders);
+
+   --  Kicks off curses or sets color support off.  Do it before
+   --  calling parallel_bulk_run.
+   procedure initialize_display (num_builders : builders);
+
+   --  Kick off bulk run using the given number of builders
+   --  The rank_queue and all_ports must be already set up (it's recommended
+   --  To eliminate the ignored ports and subsequent skips first.
+   procedure parallel_bulk_run (num_builders : builders; sysrootver : sysroot_characteristics);
+
    function skip_verified (id : port_id) return Boolean;
 
 private
@@ -85,6 +98,10 @@ private
    type hook_type    is (run_start, run_end, pkg_success, pkg_failure, pkg_skipped, pkg_ignored);
    type dim_hooks    is array (hook_type) of Boolean;
    type dim_hooksloc is array (hook_type) of HT.Text;
+
+   type machine_state     is (idle, tasked, busy, done_failure, done_success, shutdown);
+   type dim_instruction   is array (builders) of port_id;
+   type dim_builder_state is array (builders) of machine_state;
 
    active_hook   : dim_hooks := (False, False, False, False, False, False);
    hook_location : constant dim_hooksloc :=
@@ -137,6 +154,7 @@ private
    pkgscan_total    : Natural := 0;
    history          : progress_history;
    abi_formats      : package_abi;
+   curses_support   : Boolean;
 
    external_repository : HT.Text;
 
@@ -158,13 +176,37 @@ private
    procedure delete_rank (id : port_id);
    function  still_ranked (id : port_id) return Boolean;
    function  rank_arrow (id : port_id) return ranking_crate.Cursor;
+   function  get_swap_status return Float;
+   function  swapinfo_command return String;
+   function  nothing_left (num_builders : builders) return Boolean;
+   function  shutdown_recommended (active_builders : Positive) return Boolean;
 
    procedure write_history_json;
+
+   procedure write_summary_json
+     (active            : Boolean;
+      states            : dim_builder_state;
+      num_builders      : builders;
+      num_history_files : Natural);
 
    procedure record_history_skipped
      (elapsed   : String;
       origin    : String;
       reason    : String);
+
+   procedure record_history_built
+     (elapsed   : String;
+      slave_id  : builders;
+      origin    : String;
+      duration  : String);
+
+   procedure record_history_failed
+     (elapsed   : String;
+      slave_id  : builders;
+      origin    : String;
+      duration  : String;
+      die_phase : String;
+      skips     : Natural);
 
    --  This calculates the ABI for the platform and stores it.  The value is
    --  used by passed_abi_check()
@@ -226,5 +268,19 @@ private
       id               : port_id;
       subpackage       : String;
       skip_exist_check : Boolean := False) return Boolean;
+
+   --  Before starting to build a port, lock it.  This is required for
+   --  parallel building.
+   procedure lock_package (id : port_id);
+
+   --  Returns the highly priority buildable port
+   function top_buildable_port return port_id;
+
+   --  Explodes the buildsheet after applying directives, and returns True if all the subpackges
+   --  were successfully built.
+   function build_subpackages
+     (builder     : builders;
+      sequence_id : port_id;
+      sysrootver  : sysroot_characteristics) return Boolean;
 
 end PortScan.Operations;
