@@ -5,6 +5,7 @@ with Definitions; use Definitions;
 
 private with HelperText;
 private with PortScan;
+private with Ada.Containers.Vectors;
 
 package Pilot is
 
@@ -86,10 +87,16 @@ package Pilot is
 private
 
    package HT renames HelperText;
+   package CON renames Ada.Containers;
 
    subtype logname_field is String (1 .. 19);
    type dim_logname  is array (count_type) of logname_field;
    type verdiff is (newbuild, rebuild, change);
+
+   package pv_crate is new CON.Vectors
+     (Element_Type => HT.Text,
+      Index_Type   => Natural,
+      "="          => HT.SU."=");
 
    specfile   : constant String := "specification";
    errprefix  : constant String := "Error : ";
@@ -102,6 +109,8 @@ private
    ss_base    : constant String   := "/SL09";
 
    sysrootver : PortScan.sysroot_characteristics;
+   portlist   : pv_crate.Vector;
+   dupelist   : pv_crate.Vector;
 
    logname   : constant dim_logname := ("00_last_results.log",
                                         "01_success_list.log",
@@ -110,5 +119,14 @@ private
                                         "04_skipped_list.log");
 
    procedure DNE (filename : String);
+
+   function valid_origin (port_variant : String; bad_namebase : out Boolean) return Boolean;
+
+   --  Insert unique NV pair into portlist and dupelist.
+   procedure insert_into_portlist (port_variant : String);
+
+   --  Returns "True" when all the port origins
+   --  (command line or inside file) are verified and arguments are correct.
+   function store_origins (start_from : Positive) return Boolean;
 
 end Pilot;

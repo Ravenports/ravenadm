@@ -174,7 +174,6 @@ private
 
    all_ports    : dim_all_ports;
    ports_keys   : portkey_crate.Map;
-   portlist     : portkey_crate.Map;
    make_queue   : dim_make_queue;
    mq_progress  : dim_progress := (others => 0);
    rank_queue   : ranking_crate.Set;

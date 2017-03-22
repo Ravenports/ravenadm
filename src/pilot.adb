@@ -1,10 +1,12 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Ada.Directories;
-with Ada.Text_IO;
 with Ada.Characters.Latin_1;
+with Ada.Strings.Fixed;
+with Ada.Command_Line;
+with Ada.Directories;
 with Ada.Calendar;
+with Ada.Text_IO;
 with Specification_Parser;
 with File_Operations;
 with Information;
@@ -38,9 +40,11 @@ package body Pilot is
    package SCN renames PortScan.Scan;
    package LOG renames PortScan.Log;
    package LAT renames Ada.Characters.Latin_1;
+   package CLI renames Ada.Command_Line;
    package DIR renames Ada.Directories;
    package CAL renames Ada.Calendar;
    package TIO renames Ada.Text_IO;
+   package AS  renames Ada.Strings;
 
    --------------------------------------------------------------------------------------------
    --  display_usage
@@ -704,6 +708,115 @@ package body Pilot is
                          HT.USS (PM.configuration.dir_logs) & "/logs");
       end if;
    end perform_bulk_run;
+
+
+   --------------------------------------------------------------------------------------------
+   --  store_origins
+   --------------------------------------------------------------------------------------------
+   function store_origins (start_from : Positive) return Boolean
+   is
+      --  format is <namebase>:<variant>
+      badname    : constant String := "Invalid port namebase: ";
+      badvariant : constant String := "Invalid port variant: ";
+   begin
+      portlist.Clear;
+      for k in start_from .. CLI.Argument_Count loop
+         declare
+            Argk : constant String := CLI.Argument (k);
+            bad_namebase : Boolean;
+         begin
+            if valid_origin (Argk, bad_namebase) then
+               insert_into_portlist (Argk);
+            else
+               if bad_namebase then
+                  TIO.Put_Line (badname & "'" & Argk & "'" & k'Img);
+               else
+                  TIO.Put_Line (badvariant & "'" & Argk & "'" & k'Img);
+               end if;
+               return False;
+            end if;
+         end;
+      end loop;
+      return True;
+   end store_origins;
+
+
+
+   --------------------------------------------------------------------------------------------
+   --  insert_into_portlist
+   --------------------------------------------------------------------------------------------
+   procedure insert_into_portlist (port_variant : String)
+   is
+      pv_text : HT.Text := HT.SUS (port_variant);
+   begin
+      if not portlist.Contains (pv_text) then
+         portlist.Append (pv_text);
+         dupelist.Append (pv_text);
+      end if;
+   end insert_into_portlist;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_origin
+   --------------------------------------------------------------------------------------------
+   function valid_origin (port_variant : String; bad_namebase : out Boolean) return Boolean
+   is
+      function variant_valid (fileloc : String; variant : String) return Boolean;
+
+      numhyphens : constant Natural := HT.count_char (port_variant, LAT.Hyphen);
+
+      function variant_valid (fileloc : String; variant : String) return Boolean
+      is
+         contents    : String := FOP.get_file_contents (fileloc);
+         variants    : constant String := "VARIANTS=";
+         single_LF   : constant String (1 .. 1) := (1 => LAT.LF);
+         variantsvar : Natural := AS.Fixed.Index (contents, variants);
+      begin
+         if variantsvar = 0 then
+            return False;
+         end if;
+         declare
+            nextlf : Natural := AS.Fixed.Index (Source  => contents,
+                                                Pattern => single_LF,
+                                                From    => variantsvar);
+            special : String := HT.trim
+              (HT.strip_excessive_spaces (contents (variantsvar + variants'Length .. nextlf - 1)));
+         begin
+            if nextlf = 0 then
+               return False;
+            end if;
+            return
+              special = variant or else
+              special (special'First .. special'First + variant'Length) = variant & " " or else
+              special (special'Last - variant'Length .. special'Last) = " " & variant or else
+              AS.Fixed.Index (special, " " & variant & " ") /= 0;
+         end;
+      end variant_valid;
+   begin
+      bad_namebase := True;
+      if numhyphens /= 1 then
+         return False;
+      end if;
+
+      declare
+         namebase   : String := HT.part_1 (port_variant, "-");
+         variant    : String := HT.part_2 (port_variant, "-");
+         bsheetname : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
+         bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
+         bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
+      begin
+         if DIR.Exists (bsheetu) then
+            bad_namebase := False;
+            return variant_valid (bsheetu, variant);
+         elsif  DIR.Exists (bsheetc) then
+            bad_namebase := False;
+            return variant_valid (bsheetc, variant);
+         else
+            return False;
+         end if;
+      end;
+   end valid_origin;
+
 
 
    function proof_of_concept return Boolean
