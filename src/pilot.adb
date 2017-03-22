@@ -716,19 +716,22 @@ package body Pilot is
    function store_origins (start_from : Positive) return Boolean
    is
       --  format is <namebase>:<variant>
+      badformat  : constant String := "Invalid format: ";
       badname    : constant String := "Invalid port namebase: ";
       badvariant : constant String := "Invalid port variant: ";
    begin
-      portlist.Clear;
       for k in start_from .. CLI.Argument_Count loop
          declare
             Argk : constant String := CLI.Argument (k);
             bad_namebase : Boolean;
+            bad_format   : Boolean;
          begin
-            if valid_origin (Argk, bad_namebase) then
-               insert_into_portlist (Argk);
+            if valid_origin (Argk, bad_namebase, bad_format) then
+               PortScan.insert_into_portlist (Argk);
             else
-               if bad_namebase then
+               if bad_format then
+                  TIO.Put_Line (badformat & "'" & Argk & "'" & k'Img);
+               elsif bad_namebase then
                   TIO.Put_Line (badname & "'" & Argk & "'" & k'Img);
                else
                   TIO.Put_Line (badvariant & "'" & Argk & "'" & k'Img);
@@ -741,29 +744,18 @@ package body Pilot is
    end store_origins;
 
 
-
-   --------------------------------------------------------------------------------------------
-   --  insert_into_portlist
-   --------------------------------------------------------------------------------------------
-   procedure insert_into_portlist (port_variant : String)
-   is
-      pv_text : HT.Text := HT.SUS (port_variant);
-   begin
-      if not portlist.Contains (pv_text) then
-         portlist.Append (pv_text);
-         dupelist.Append (pv_text);
-      end if;
-   end insert_into_portlist;
-
-
    --------------------------------------------------------------------------------------------
    --  valid_origin
    --------------------------------------------------------------------------------------------
-   function valid_origin (port_variant : String; bad_namebase : out Boolean) return Boolean
+   function valid_origin
+     (port_variant : String;
+      bad_namebase : out Boolean;
+      bad_format   : out Boolean) return Boolean
    is
       function variant_valid (fileloc : String; variant : String) return Boolean;
 
       numhyphens : constant Natural := HT.count_char (port_variant, LAT.Hyphen);
+      num_spaces : constant Natural := HT.count_char (port_variant, LAT.Space);
 
       function variant_valid (fileloc : String; variant : String) return Boolean
       is
@@ -794,106 +786,47 @@ package body Pilot is
       end variant_valid;
    begin
       bad_namebase := True;
-      if numhyphens /= 1 then
+      if num_spaces > 0 or else numhyphens > 1 then
+         bad_format := True;
          return False;
       end if;
+      bad_format := False;
 
-      declare
-         namebase   : String := HT.part_1 (port_variant, "-");
-         variant    : String := HT.part_2 (port_variant, "-");
-         bsheetname : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
-         bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
-         bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
-      begin
-         if DIR.Exists (bsheetu) then
-            bad_namebase := False;
-            return variant_valid (bsheetu, variant);
-         elsif  DIR.Exists (bsheetc) then
-            bad_namebase := False;
-            return variant_valid (bsheetc, variant);
-         else
-            return False;
-         end if;
-      end;
+      if numhyphens = 1 then
+         declare
+            namebase   : String := HT.part_1 (port_variant, "-");
+            variant    : String := HT.part_2 (port_variant, "-");
+            bsheetname : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
+            bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
+            bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
+         begin
+            if DIR.Exists (bsheetu) then
+               bad_namebase := False;
+               return variant_valid (bsheetu, variant);
+            elsif  DIR.Exists (bsheetc) then
+               bad_namebase := False;
+               return variant_valid (bsheetc, variant);
+            else
+               return False;
+            end if;
+         end;
+      else
+         declare
+            bsheetname : String := "/bucket_" & UTL.bucket (port_variant) & "/" & port_variant;
+            bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
+            bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
+         begin
+            if DIR.Exists (bsheetu) then
+               bad_namebase := False;
+               return variant_valid (bsheetu, variant_standard);
+            elsif  DIR.Exists (bsheetc) then
+               bad_namebase := False;
+               return variant_valid (bsheetc, variant_standard);
+            else
+               return False;
+            end if;
+         end;
+      end if;
    end valid_origin;
-
-
-
-   function proof_of_concept return Boolean
-   is
-      variant    : String := variant_standard;
-      namebase   : String := "nawk";
-      buildsheet : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
-                             UTL.bucket (namebase) & "/" & namebase;
-      portloc    : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
-      makefile   : String := portloc & "/Makefile";
-      successful : Boolean;
-
-      specification : Port_Specification.Portspecs;
-
-   begin
-
-      if not slave_platform_determined then
-         return False;
-      end if;
-
-      if not DIR.Exists (buildsheet) then
-         return False;
-      end if;
-
-      REP.initialize (testmode  => False);
-      REP.launch_slave (scan_slave);
-
-      FOP.mkdirp_from_filename (makefile);
-      PAR.parse_specification_file (dossier         => buildsheet,
-                                    specification   => specification,
-                                    opsys_focus     => platform_type,
-                                    arch_focus      => sysrootver.arch,
-                                    success         => successful,
-                                    stop_at_targets => False,
-                                    extraction_dir  => portloc);
-      if not successful then
-         TIO.Put_Line (errprefix & "Failed to parse " & buildsheet);
-         TIO.Put_Line (PAR.get_parse_error);
-         return False;
-      end if;
-
-      PST.set_option_defaults (specs         => specification,
-                               variant       => variant,
-                               opsys         => platform_type,
-                               arch_standard => sysrootver.arch,
-                               osrelease     => HT.USS (sysrootver.release));
-      PST.set_option_to_default_values (specs => specification);
-      PST.set_outstanding_ignore (specs         => specification,
-                                  variant       => variant,
-                                  opsys         => platform_type,
-                                  arch_standard => sysrootver.arch,
-                                  osrelease     => HT.USS (sysrootver.release),
-                                  osmajor       => HT.USS (sysrootver.major));
-      PST.apply_directives (specs => specification);
-
-      PSM.generator (specs       => specification,
-                     variant     => variant,
-                     opsys       => platform_type,
-                     output_file => makefile);
-
-      CYC.initialize (test_mode => True);
-
---        PortScan.crash_test_dummy;
---
---        successful := CYC.build_package (id            => scan_slave,
---                                         specification => specification,
---                                         sequence_id   => PortScan.first_port,
---                                         interactive   => True,
---                                         interphase    => "deinstall");
-
-      REP.destroy_slave (scan_slave);
-      REP.finalize;
-      return True;
-
-   end proof_of_concept;
-
-
-
 
 end Pilot;

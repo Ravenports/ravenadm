@@ -739,15 +739,16 @@ package body PortScan.Scan is
      (always_build : Boolean;
       sysrootver   : sysroot_characteristics) return Boolean
    is
-      procedure scan (plcursor : portkey_crate.Cursor);
+      procedure scan (plcursor : string_crate.Cursor);
+
       successful : Boolean := True;
       just_stop_now : Boolean;
 
-      procedure scan (plcursor : portkey_crate.Cursor)
+      procedure scan (plcursor : string_crate.Cursor)
       is
-         origin   : constant String := HT.USS (portkey_crate.Key (plcursor));
-         namebase : constant String := HT.part_1 (origin, ":");
-         variant  : constant String := HT.part_2 (origin, ":");
+         origin   : constant String := HT.USS (string_crate.Element (plcursor));
+         namebase : constant String := HT.part_1 (origin, "-");
+         variant  : constant String := HT.part_2 (origin, "-");
       begin
          if not successful then
             return;

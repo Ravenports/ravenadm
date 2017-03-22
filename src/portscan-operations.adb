@@ -531,12 +531,12 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure delete_existing_packages_of_ports_list
    is
-      procedure force_delete (plcursor : portkey_crate.Cursor);
-      procedure force_delete (plcursor : portkey_crate.Cursor)
+      procedure force_delete (plcursor : string_crate.Cursor);
+      procedure force_delete (plcursor : string_crate.Cursor)
       is
          procedure delete_subpackage (position : subpackage_crate.Cursor);
 
-         origin : HT.Text := portkey_crate.Key (plcursor);
+         origin : HT.Text := string_crate.Element (plcursor);
          pndx   : constant port_index := ports_keys.Element (origin);
          repo   : constant String := HT.USS (PM.configuration.dir_repository);
 

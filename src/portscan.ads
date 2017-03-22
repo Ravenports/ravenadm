@@ -62,6 +62,9 @@ package PortScan is
    --  Takes origin tuplet (namebase-subpkg-variant) and returns subpkg
    function subpackage_from_origin (origin : String) return String;
 
+   --  Insert unique NV pair into portlist and dupelist.
+   procedure insert_into_portlist (port_variant : String);
+
 private
 
    package CON renames Ada.Containers;
@@ -181,6 +184,8 @@ private
    lot_number   : scanners   := 1;
    lot_counter  : port_index := 0;
    prescanned   : Boolean    := False;
+   portlist     : string_crate.Vector;
+   dupelist     : string_crate.Vector;
 
    original_queue_len : CON.Count_Type;
 

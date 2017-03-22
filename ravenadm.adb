@@ -146,8 +146,19 @@ begin
       return;
    end if;
 
-      --  TODO: store origins check
-
+   case mandate is
+      when build =>
+         if not Pilot.store_origins (start_from => 2) then
+            return;
+         end if;
+      when status =>
+         if CLI.Argument_Count > 1 then
+            if not Pilot.store_origins (start_from => 2) then
+               return;
+            end if;
+         end if;
+      when others => null;
+   end case;
 
    Pilot.create_pidfile;
    Unix.ignore_background_tty;
@@ -162,11 +173,29 @@ begin
 
    case mandate is
 
+      when status =>
+         --------------------------------
+         --  status command
+         --------------------------------
+         if CLI.Argument_Count > 1 then
+            if Pilot.scan_stack_of_single_ports (always_build => False) and then
+              Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
+            then
+               Pilot.perform_bulk_run (testmode => False);
+            end if;
+         else
+            null;  -- reserved for upgrade_system_everything maybe
+         end if;
+
       when build =>
          --------------------------------
          --  build command
          --------------------------------
-         null;  --  tbw
+         if Pilot.scan_stack_of_single_ports (always_build => False) and then
+           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
+         then
+            Pilot.perform_bulk_run (testmode => False);
+         end if;
 
 
       when dev =>
@@ -201,21 +230,11 @@ begin
          --------------------------------
          null;  --  tbw
 
-      when status =>
-         --------------------------------
-         --  status command
-         --------------------------------
-         null; --  tbw
-
       when test =>
          --------------------------------
          --  test command
          --------------------------------
-         declare
-            result : Boolean;
-         begin
-            result := Pilot.proof_of_concept;
-         end;
+         null;  --  tbw
 
       when configure =>
          --------------------------------

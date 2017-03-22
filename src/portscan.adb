@@ -245,4 +245,18 @@ package body PortScan is
       return " progress:" & pc'Img & "%              " & LAT.CR;
    end scan_progress;
 
+
+   --------------------------------------------------------------------------------------------
+   --  insert_into_portlist
+   --------------------------------------------------------------------------------------------
+   procedure insert_into_portlist (port_variant : String)
+   is
+      pv_text : HT.Text := HT.SUS (port_variant);
+   begin
+      if not portlist.Contains (pv_text) then
+         portlist.Append (pv_text);
+         dupelist.Append (pv_text);
+      end if;
+   end insert_into_portlist;
+
 end PortScan;
