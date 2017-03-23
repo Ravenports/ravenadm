@@ -446,6 +446,7 @@ package body PortScan.Buildcycle is
 
       PATH : constant String := "PATH=/bin:/usr/bin:"
         & localbase & "/toolchain/gcc6/bin:"
+        & localbase & "/toolchain/bin:"
         & localbase & "/sbin:"
         & localbase & "/bin ";
 

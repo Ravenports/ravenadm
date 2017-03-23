@@ -535,7 +535,7 @@ package body PortScan.Log is
    procedure start_obsolete_package_logging
    is
       logpath : constant String := HT.USS (PM.configuration.dir_logs)
-        & "/06_obsolete_packages.log";
+        & "/logs/06_obsolete_packages.log";
    begin
       if DIR.Exists (logpath) then
          DIR.Delete_File (logpath);

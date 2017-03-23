@@ -124,7 +124,7 @@ package body Replicant is
    procedure start_abnormal_logging
    is
       logpath : constant String := HT.USS (PM.configuration.dir_logs)
-        & "/" & abnormal_cmd_logname;
+        & "/logs/" & abnormal_cmd_logname;
    begin
       if DIR.Exists (logpath) then
          DIR.Delete_File (logpath);
