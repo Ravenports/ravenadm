@@ -30,6 +30,7 @@ package body Port_Specification.Makefile is
       procedure send (varname : String; value, default : Integer);
       procedure print_item (position : string_crate.Cursor);
       procedure dump_list (position : list_crate.Cursor);
+      procedure dump_variant_index (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
       procedure dump_ext_zip   (position : string_crate.Cursor);
       procedure dump_ext_7z    (position : string_crate.Cursor);
@@ -122,6 +123,7 @@ package body Port_Specification.Makefile is
          case flavor is
             when 1 => crate.Iterate (Process => dump_list'Access);
             when 6 => crate.Iterate (Process => dump_extract_head_tail'Access);
+            when 8 => crate.Iterate (Process => dump_variant_index'Access);
             when others =>
                raise dev_error;
          end case;
@@ -136,6 +138,17 @@ package body Port_Specification.Makefile is
          list_crate.Element (position).list.Iterate (Process => print_item'Access);
          send ("");
       end dump_list;
+
+      procedure dump_variant_index (position : list_crate.Cursor)
+      is
+         index : String := HT.USS (list_crate.Element (position).group);
+      begin
+         if index = variant then
+            send (HT.USS (varname_prefix) & LAT.Equals_Sign, True);
+            list_crate.Element (position).list.Iterate (Process => print_item'Access);
+            send ("");
+         end if;
+      end dump_variant_index;
 
       procedure dump_extract_head_tail (position : list_crate.Cursor)
       is
@@ -405,6 +418,7 @@ package body Port_Specification.Makefile is
       send ("DIST_SUBDIR",      specs.dist_subdir);
       send ("DISTNAME",         specs.distname);
       send ("DF_INDEX",         specs.df_index, 1);
+      send ("SUBPACKAGES",      specs.subpackages, 8);
       send ("EXTRACT_ONLY",     specs.extract_only, 1);
       send ("DIRTY_EXTRACT",    specs.extract_dirty, 7);
       send ("ZIP-EXTRACT",      specs.extract_zip, 3);
