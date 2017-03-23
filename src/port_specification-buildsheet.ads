@@ -11,6 +11,10 @@ package Port_Specification.Buildsheet is
       ravensrcdir : String;
       output_file : String);
 
+
+   --  This produces a skeleton of the mandatory specification elements.
+   procedure print_specification_template;
+
 private
 
    --  Takes a string and appends enough tabs to align to column 24

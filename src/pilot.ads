@@ -86,6 +86,9 @@ package Pilot is
    --  (command line or inside file) are verified and arguments are correct.
    function store_origins (start_from : Positive) return Boolean;
 
+   --  Sends a basic template for writing specifications to standard out.
+   procedure print_spec_template;
+
 private
 
    package HT renames HelperText;

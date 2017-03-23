@@ -665,4 +665,33 @@ package body Port_Specification.Buildsheet is
       end if;
    end align40;
 
+
+   --------------------------------------------------------------------------------------------
+   --  print_specification_template
+   --------------------------------------------------------------------------------------------
+   procedure print_specification_template
+   is
+      tab : constant Character := LAT.HT;
+      CR  : constant Character := LAT.LF;
+   begin
+      TIO.Put_Line
+        ("# DEF[PORTVERSION]=" & tab & "1.00" & CR &
+           "# ----------------------------------------------------------------------------");
+      TIO.Put_Line
+        (CR &
+           "NAMEBASE=" & tab & tab & "..." & CR &
+           "VERSION=" & tab & tab & "${PORTVERSION}" & CR &
+           "KEYWORDS=" & tab & tab & "..." & CR &
+           "VARIANTS=" & tab & tab & "standard" & CR &
+           "SDESC[standard]=" & tab & "..." & CR &
+           "HOMEPAGE=" & tab & tab & "none" & CR &
+           "CONTACT=" & tab & tab & "Jay_Leno[jay@aarp.org]" & CR & CR &
+           "DOWNLOAD_GROUPS=" & tab & "main" & CR &
+           "SITES[main]=" & tab & tab & "http://www.example.com/" & CR &
+           "DISTFILE[1]=" & tab & tab & "something.tar.gz:main" & CR & CR &
+           "SPKGS[standard]=" & tab & "single" & CR & CR &
+           "OPTIONS_AVAILABLE=" & tab & "none" & CR &
+           "OPTIONS_STANDARD=" & tab & "none");
+   end print_specification_template;
+
 end Port_Specification.Buildsheet;

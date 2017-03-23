@@ -837,4 +837,13 @@ package body Pilot is
       end if;
    end valid_origin;
 
+
+   --------------------------------------------------------------------------------------------
+   --  print_spec_template
+   --------------------------------------------------------------------------------------------
+   procedure print_spec_template is
+   begin
+      PSB.print_specification_template;
+   end print_spec_template;
+
 end Pilot;
