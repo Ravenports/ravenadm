@@ -405,6 +405,10 @@ package body HelperText is
          end if;
          shuttle.front_marker := shuttle.back_marker;
          shuttle.zero_length  := block_text (shuttle.back_marker) = LAT.LF;
+      else
+         if block_text'Length = 0 then
+            return False;
+         end if;
       end if;
       loop
          shuttle.utilized := True;

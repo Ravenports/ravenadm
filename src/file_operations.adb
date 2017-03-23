@@ -25,6 +25,9 @@ package body File_Operations is
       file_handle : File_String_IO.File_Type;
       contents    : File_String;
    begin
+      if File_Size = 0 then
+         return "";
+      end if;
       File_String_IO.Open  (File => file_handle,
                             Mode => File_String_IO.In_File,
                             Name => dossier);
@@ -37,7 +40,7 @@ package body File_Operations is
          if File_String_IO.Is_Open (file_handle) then
             File_String_IO.Close (file_handle);
          end if;
-         raise file_handling;
+         raise file_handling with dossier;
    end get_file_contents;
 
 

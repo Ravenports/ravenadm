@@ -16,14 +16,6 @@ package PortScan.Packager is
       seq_id        : port_id;
       rootdir       : String) return Boolean;
 
-   --  check-plist target verifies manifest
-   --  It takes into account the manifest for all subpackages (for a given variant).
-   --  If any files are left over or unaccounted for according to manifest, return false.
-   --  It
-   function exec_check_plist
-     (log_handle : TIO.File_Type;
-      seq_id     : port_id) return Boolean;
-
 private
 
    --  create +MANIFEST file for each subpackage

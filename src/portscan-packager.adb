@@ -421,15 +421,4 @@ package body PortScan.Packager is
       end loop;
    end execute_command;
 
-
-   --------------------------------------------------------------------------------------------
-   --  exec_phase_check_plist
-   --------------------------------------------------------------------------------------------
-   function exec_check_plist
-     (log_handle : TIO.File_Type;
-      seq_id     : port_id) return Boolean is
-   begin
-      return True;
-   end exec_check_plist;
-
 end PortScan.Packager;

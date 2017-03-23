@@ -5,6 +5,7 @@ with Unix;
 with Replicant;
 with Parameters;
 with PortScan.Log;
+with PortScan.Tests;
 with PortScan.Packager;
 with File_Operations;
 with Ada.Directories;
@@ -17,6 +18,7 @@ package body PortScan.Buildcycle is
    package FOP renames File_Operations;
    package LOG renames PortScan.Log;
    package PKG renames PortScan.Packager;
+   package TST renames PortScan.Tests;
    package PM  renames Parameters;
    package REP renames Replicant;
 
@@ -95,7 +97,11 @@ package body PortScan.Buildcycle is
 
             when check_plist =>
                if testing then
-                  R := PKG.exec_check_plist (trackers (id).log_handle, trackers (id).seq_id);
+                  R := TST.exec_check_plist (specification => specification,
+                                             log_handle    => trackers (id).log_handle,
+                                             phase_name    => phase2str (phase),
+                                             seq_id        => trackers (id).seq_id,
+                                             rootdir       => get_root (id));
                end if;
 
             when deinstall =>
