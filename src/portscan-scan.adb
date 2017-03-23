@@ -591,12 +591,10 @@ package body PortScan.Scan is
             TIO.Put_Line (EX.Exception_Message (issue));
       end dig;
    begin
-      TIO.Put_Line ("ALPHA: " & namebase & " variant: " & variant);
       fatal := False;
       if not prescanned then
          prescan_ports_tree (conspiracy, unkindness, sysrootver);
       end if;
-      TIO.Put_Line ("BRAVO:" & two_partid);
       if ports_keys.Contains (portkey) then
          target := ports_keys.Element (portkey);
       else

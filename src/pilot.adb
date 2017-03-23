@@ -780,7 +780,6 @@ package body Pilot is
             special : String :=
               HT.strip_excessive_spaces (contents (variantsvar + variants'Length .. nextlf - 1));
          begin
-            TIO.Put_Line ("SPECIAL:" & special);
             if nextlf = 0 then
                return False;
             end if;

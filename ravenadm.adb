@@ -12,7 +12,7 @@ procedure Ravenadm is
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
 
-   type mandate_type is (unset, help, dev, build, test, status, configure, locate);
+   type mandate_type is (unset, help, dev, build, force, test, status, configure, locate);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet);
 
    procedure scan_first_command_word;
@@ -31,6 +31,8 @@ procedure Ravenadm is
          mandate := dev;
       elsif first = "build" then
          mandate := build;
+      elsif first = "force" then
+         mandate := force;
       elsif first = "test" then
          mandate := test;
       elsif first = "status" then
@@ -147,7 +149,7 @@ begin
    end if;
 
    case mandate is
-      when build =>
+      when build | force =>
          if not Pilot.store_origins (start_from => 2) then
             return;
          end if;
@@ -193,6 +195,16 @@ begin
          --------------------------------
          if Pilot.scan_stack_of_single_ports (always_build => False) and then
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
+         then
+            Pilot.perform_bulk_run (testmode => False);
+         end if;
+
+      when force =>
+         --------------------------------
+         --  force command
+         --------------------------------
+         if Pilot.scan_stack_of_single_ports (always_build => False) and then
+           Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
          end if;

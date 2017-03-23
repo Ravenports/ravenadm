@@ -538,7 +538,7 @@ package body PortScan.Operations is
 
          origin : HT.Text := string_crate.Element (plcursor);
          pndx   : constant port_index := ports_keys.Element (origin);
-         repo   : constant String := HT.USS (PM.configuration.dir_repository);
+         repo   : constant String := HT.USS (PM.configuration.dir_repository) & "/";
 
          procedure delete_subpackage (position : subpackage_crate.Cursor)
          is
