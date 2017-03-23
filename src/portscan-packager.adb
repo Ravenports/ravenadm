@@ -266,6 +266,15 @@ package body PortScan.Packager is
 
 
    --------------------------------------------------------------------------------------------
+   --  quote
+   --------------------------------------------------------------------------------------------
+   function quote (thetext : String) return String is
+   begin
+      return LAT.Quotation & thetext & LAT.Quotation;
+   end quote;
+
+
+   --------------------------------------------------------------------------------------------
    --  write_package_manifest
    --------------------------------------------------------------------------------------------
    procedure write_package_manifest
@@ -275,17 +284,11 @@ package body PortScan.Packager is
       pkgversion : String;
       filename   : String)
    is
-      function quote (thetext : String) return String;
       function get_prefix return String;
       procedure single_if_defined (name, value : String);
       procedure array_if_defined (name, value : String);
 
       file_handle : TIO.File_Type;
-
-      function quote (thetext : String) return String is
-      begin
-         return LAT.Quotation & thetext & LAT.Quotation;
-      end quote;
 
       function get_prefix return String
       is
@@ -315,7 +318,7 @@ package body PortScan.Packager is
       end array_if_defined;
 
       name    : String := quote (spec.get_namebase & "-" & subpackage & "-" & variant);
-      origin  : String := quote (spec.get_namebase & ":" & subpackage & ":" & variant);
+      origin  : String := quote (spec.get_namebase & ":" & variant);
 
    begin
       TIO.Create (File => file_handle,
@@ -328,7 +331,7 @@ package body PortScan.Packager is
            "version: " & quote (pkgversion) & LAT.LF &
            "origin: " & origin & LAT.LF &
            "comment: <<EOD" & LAT.LF &
-           spec.get_tagline (variant) & LAT.LF &
+           spec.get_tagline (variant) & " (" & subpackage & ")" & LAT.LF &
            "EOD" & LAT.LF &
            "maintainer: " & quote (spec.get_field_value (PSP.sp_contacts)) & LAT.LF &
            "prefix: " & quote (get_prefix) & LAT.LF &
@@ -340,7 +343,13 @@ package body PortScan.Packager is
       array_if_defined  ("users",    spec.get_field_value (PSP.sp_users));
       array_if_defined  ("groups",   spec.get_field_value (PSP.sp_groups));
       TIO.Put_Line (file_handle, "deps: {");
-      --  TODO: dependencies
+      if subpackage = spkg_complete then
+         --  special handling: this is automatically converted to a metaport
+         write_complete_metapackage_deps (spec, file_handle, variant, pkgversion);
+      else
+         --  TODO: dependencies
+         null;
+      end if;
       TIO.Put_Line (file_handle, "}");
       TIO.Put_Line (file_handle, "options: {"  & spec.get_field_value (PSP.sp_opt_helper) & " }");
       TIO.Close (file_handle);
@@ -351,6 +360,37 @@ package body PortScan.Packager is
             TIO.Close (file_handle);
          end if;
    end write_package_manifest;
+
+
+   --------------------------------------------------------------------------------------------
+   --  write_complete_metapackage_deps
+   --------------------------------------------------------------------------------------------
+   procedure write_complete_metapackage_deps
+     (spec        : PSP.Portspecs;
+      file_handle : TIO.File_Type;
+      variant     : String;
+      pkgversion  : String)
+   is
+      namebase        : constant String  := spec.get_namebase;
+      num_subpackages : constant Natural := spec.get_subpackage_length (variant);
+   begin
+      for spkg in 1 .. num_subpackages loop
+         declare
+            subpackage : constant String := spec.get_subpackage_item (variant, spkg);
+         begin
+            if subpackage /= spkg_complete then
+               TIO.Put_Line
+                 (file_handle, "  " &
+                    quote (namebase & LAT.Hyphen & subpackage & LAT.Hyphen & variant) & " : {");
+               TIO.Put_Line
+                 (file_handle,
+                    "    version : " & quote (pkgversion) & "," & LAT.LF &
+                    "    origin : " & quote (namebase & LAT.Colon & variant) & LAT.LF &
+                    "  },");
+            end if;
+         end;
+      end loop;
+   end write_complete_metapackage_deps;
 
 
    --------------------------------------------------------------------------------------------

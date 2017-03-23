@@ -49,4 +49,14 @@ private
    --  Used to launch root commands (no watchdog)
    function execute_command (command : String; name_of_log : String) return Boolean;
 
+   --  Puts quotation marks around given string
+   function quote (thetext : String) return String;
+
+   --  Handle "complete" metapackage deps case for the metadata file
+   procedure write_complete_metapackage_deps
+     (spec        : PSP.Portspecs;
+      file_handle : TIO.File_Type;
+      variant     : String;
+      pkgversion  : String);
+
 end PortScan.Packager;

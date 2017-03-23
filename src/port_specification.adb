@@ -701,6 +701,11 @@ package body Port_Specification is
             if specs.subpackages.Element (text_key).list.Contains (text_value) then
                raise dupe_list_value with value;
             end if;
+            if value = spkg_complete and then
+              not specs.subpackages.Element (text_key).list.Is_Empty
+            then
+               raise wrong_value with "The '" & value & "' subpackage must be set first";
+            end if;
             specs.subpackages.Update_Element (Position => specs.subpackages.Find (text_key),
                                               Process  => grow'Access);
             specs.last_set := so_subpackages;

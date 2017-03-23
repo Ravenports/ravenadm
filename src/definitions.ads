@@ -20,6 +20,7 @@ package Definitions is
    broken_all        : constant String := "all";
    boolean_yes       : constant String := "yes";
    homepage_none     : constant String := "none";
+   spkg_complete     : constant String := "complete";
    jobs_per_cpu      : constant := 2;
 
    type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);
