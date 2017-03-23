@@ -274,7 +274,7 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (install);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_ADD    : constant String := "/usr/bin/pkg-static add -f ";
+      PKG_ADD    : constant String := "/usr/bin/pkg-static add ";
       still_good : Boolean := True;
       timed_out  : Boolean;
 
@@ -536,7 +536,7 @@ package body PortScan.Buildcycle is
          subpackage : constant String := HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := chroot & root & environment_override &
-                      PKG_DELETE & pkgname & arc_ext;
+                      PKG_DELETE & pkgname;
       begin
          if still_good then
             TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
