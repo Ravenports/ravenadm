@@ -45,6 +45,18 @@ package body PortScan.Tests is
          passed_check := False;
       end if;
 
+      if missing_directories_detected (log_handle) then
+         passed_check := False;
+      end if;
+
+      if orphaned_files_detected (log_handle, namebase, rootdir) then
+         passed_check := False;
+      end if;
+
+      if missing_files_detected (log_handle) then
+         passed_check := False;
+      end if;
+
       if passed_check then
          TIO.Put_Line (log_handle, "====> No manifest issues found");
       end if;
@@ -240,7 +252,8 @@ package body PortScan.Tests is
       loop
          exit when not HT.next_line_present (comres, markers);
          declare
-            line : constant String := HT.extract_line (comres, markers);
+            line      : constant String := HT.extract_line (comres, markers);
+            line_text : HT.Text := HT.SUS (line);
          begin
             if line /= "" then
                if HT.leads (line, localbase) then
@@ -258,7 +271,10 @@ package body PortScan.Tests is
                      end if;
                   end;
                else
-                  if not directory_list.Contains (HT.SUS (line)) then
+                  if directory_list.Contains (line_text) then
+                     directory_list.Update_Element (Position => directory_list.Find (line_text),
+                                                    Process  => mark_verified'Access);
+                  else
                      TIO.Put_Line (log_handle, errprefix & line);
                      result := True;
                   end if;
@@ -277,5 +293,122 @@ package body PortScan.Tests is
    begin
       Element.verified := True;
    end mark_verified;
+
+
+   --------------------------------------------------------------------------------------------
+   --  missing_directories_detected
+   --------------------------------------------------------------------------------------------
+   function missing_directories_detected (log_handle : TIO.File_Type) return Boolean
+   is
+      procedure check (position : entry_crate.Cursor);
+
+      result : Boolean := False;
+
+      procedure check (position : entry_crate.Cursor)
+      is
+         rec       : entry_record renames entry_crate.Element (position);
+         plist_dir : String := HT.USS (entry_crate.Key (position));
+      begin
+         if not rec.verified then
+            TIO.Put_Line
+              (log_handle,
+               "Directory " & plist_dir & " listed on " & HT.USS (rec.subpackage) &
+                 " manifest is not present in the stage directory.");
+            result := True;
+         end if;
+      end check;
+   begin
+      directory_list.Iterate (check'Access);
+      return result;
+   end missing_directories_detected;
+
+
+   --------------------------------------------------------------------------------------------
+   --  missing_files_detected
+   --------------------------------------------------------------------------------------------
+   function missing_files_detected (log_handle : TIO.File_Type) return Boolean
+   is
+      procedure check (position : entry_crate.Cursor);
+
+      result : Boolean := False;
+
+      procedure check (position : entry_crate.Cursor)
+      is
+         rec        : entry_record renames entry_crate.Element (position);
+         plist_file : String := HT.USS (entry_crate.Key (position));
+      begin
+         if not rec.verified then
+            TIO.Put_Line
+              (log_handle,
+               "File " & plist_file & " listed on " & HT.USS (rec.subpackage) &
+                 " manifest is not present in the stage directory.");
+            result := True;
+         end if;
+      end check;
+   begin
+      dossier_list.Iterate (check'Access);
+      return result;
+   end missing_files_detected;
+
+
+   --------------------------------------------------------------------------------------------
+   --  orphaned_files_detected
+      --------------------------------------------------------------------------------------------
+   function orphaned_files_detected
+     (log_handle    : TIO.File_Type;
+      namebase      : String;
+      rootdir       : String) return Boolean
+   is
+      rawlbase  : constant String  := HT.USS (PM.configuration.dir_localbase);
+      localbase : constant String  := rawlbase (rawlbase'First + 1 .. rawlbase'Last);
+      stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
+      command   : String := rootdir & "/usr/bin/find " & stagedir &
+                  " \( -type f -o -type l \) -printf " &
+                  LAT.Quotation & "%P\n" & LAT.Quotation;
+      status    : Integer;
+      comres    : String := HT.USS (Unix.piped_command (command, status));
+      markers   : HT.Line_Markers;
+      lblen     : constant Natural := localbase'Length;
+      result    : Boolean := False;
+      errprefix : constant String := "Orphaned file detected: ";
+   begin
+      if status /= 0 then
+         TIO.Put_Line ("orphaned_files_detected: command error: " & comres);
+         return True;
+      end if;
+      HT.initialize_markers (comres, markers);
+      loop
+         exit when not HT.next_line_present (comres, markers);
+         declare
+            line      : constant String := HT.extract_line (comres, markers);
+            line_text : HT.Text := HT.SUS (line);
+         begin
+            if line /= "" then
+               if HT.leads (line, localbase) then
+                  declare
+                     plist_file : HT.Text := HT.SUS (line (line'First + lblen + 1 .. line'Last));
+                  begin
+                     if dossier_list.Contains (plist_file) then
+                        dossier_list.Update_Element (Position => dossier_list.Find (plist_file),
+                                                     Process  => mark_verified'Access);
+                     else
+                        TIO.Put_Line (log_handle, errprefix & line);
+                        result := True;
+                     end if;
+                  end;
+               else
+                  if dossier_list.Contains (line_text) then
+                     dossier_list.Update_Element (Position => dossier_list.Find (line_text),
+                                                  Process  => mark_verified'Access);
+                  else
+                     TIO.Put_Line (log_handle, errprefix & line);
+                     result := True;
+                  end if;
+               end if;
+            end if;
+         end;
+      end loop;
+      return result;
+   end orphaned_files_detected;
 
 end PortScan.Tests;

@@ -52,6 +52,20 @@ private
       namebase      : String;
       rootdir       : String) return Boolean;
 
+   --  Scans all files in stage and returns true if any orphans are found
+   function orphaned_files_detected
+     (log_handle    : TIO.File_Type;
+      namebase      : String;
+      rootdir       : String) return Boolean;
+
+   --  Iterates through directory list.  If any directories are listed that weren't in
+   --  the stage directory, output the issue and set result to false.
+   function missing_directories_detected (log_handle : TIO.File_Type) return Boolean;
+
+   --  Iterates through file list.  If any file are listed that weren't in
+   --  the stage directory, output the issue and set result to false.
+   function missing_files_detected (log_handle : TIO.File_Type) return Boolean;
+
    --  Return True if directory was pre-created by ravenports
    function directory_excluded (candidate : String) return Boolean;
 
