@@ -43,6 +43,9 @@ package PortScan.Buildcycle is
    --  Run make -C /port/ makesum (used by developer to generate distinfo)
    procedure run_makesum (id : builders);
 
+   --  Exposed for Pilot to determine validity of test build request
+   function valid_test_phase (afterphase : String) return Boolean;
+
 private
 
    package CAL renames Ada.Calendar;
@@ -80,7 +83,6 @@ private
    --  stage includes check-plist
 
    function  valid_test_phase (afterphase : String) return phases;
-   function  valid_test_phase (afterphase : String) return Boolean;
 
    function  exec_phase (id : builders; phase : phases;
                          time_limit    : execution_limit;

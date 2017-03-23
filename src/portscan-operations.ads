@@ -49,8 +49,8 @@ package PortScan.Operations is
    --  Exposed for pilot
    procedure cascade_failed_build (id : port_id; numskipped : out Natural);
 
-   --  removes processed port from the ranking queue.
-   procedure unlist_port (id : port_id);
+   --  removes processed port from the top of ranking queue and returns the port id
+   function unlist_first_port return port_id;
 
    --  After the initial queue is created, and before the limited sanity
    --  check, we go through each port and check if it has cached options.
@@ -88,6 +88,15 @@ package PortScan.Operations is
    --  The rank_queue and all_ports must be already set up (it's recommended
    --  To eliminate the ignored ports and subsequent skips first.
    procedure parallel_bulk_run (num_builders : builders; sysrootver : sysroot_characteristics);
+
+   --  Explodes the buildsheet after applying directives, and returns True if all the subpackges
+   --  were successfully built.  Exposes for use by test mode from pilot
+   function build_subpackages
+     (builder     : builders;
+      sequence_id : port_id;
+      sysrootver  : sysroot_characteristics;
+      interactive : Boolean := False;
+      enterafter  : String := "") return Boolean;
 
    function skip_verified (id : port_id) return Boolean;
 
@@ -276,11 +285,7 @@ private
    --  Returns the highly priority buildable port
    function top_buildable_port return port_id;
 
-   --  Explodes the buildsheet after applying directives, and returns True if all the subpackges
-   --  were successfully built.
-   function build_subpackages
-     (builder     : builders;
-      sequence_id : port_id;
-      sysrootver  : sysroot_characteristics) return Boolean;
+   --  removes processed port from the ranking queue.
+   procedure unlist_port (id : port_id);
 
 end PortScan.Operations;

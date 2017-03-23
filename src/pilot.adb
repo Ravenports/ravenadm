@@ -890,4 +890,66 @@ package body Pilot is
    end generate_distinfo;
 
 
+   --------------------------------------------------------------------------------------------
+   --  bulk_run_then_interact_with_final_port
+   --------------------------------------------------------------------------------------------
+   procedure bulk_run_then_interact_with_final_port
+   is
+      brkphase : constant String := Unix.env_variable_value (brkname);
+      buildres : Boolean;
+      ptid     : PortScan.port_id := OPS.unlist_first_port;
+      pvname   : constant String  := PortScan.get_port_variant (ptid);
+      use_proc : constant Boolean := PortScan.requires_procfs (ptid);
+   begin
+      if not PortScan.valid_port_id (ptid) then
+         TIO.Put_Line ("Failed to remove first port from list." & bailing);
+         return;
+      end if;
+      perform_bulk_run (testmode => True);
+      if Signals.graceful_shutdown_requested then
+         return;
+      end if;
+      if LOG.port_counter_value (PortScan.ignored) > 0 or else
+        LOG.port_counter_value (PortScan.skipped) > 0 or else
+        LOG.port_counter_value (PortScan.failure) > 0
+      then
+         TIO.Put_Line ("It appears a prerequisite failed, so the interactive build of");
+         TIO.Put_Line (pvname & " has been cancelled.");
+         return;
+      end if;
+      TIO.Put_Line ("Starting interactive build of " & pvname);
+      TIO.Put_Line ("Stand by, building up to the point requested ...");
+
+      REP.initialize (testmode => True);
+      CYC.initialize (test_mode => True);
+      REP.launch_slave (scan_slave, use_proc);
+      Unix.cone_of_silence (deploy => False);
+
+      buildres := OPS.build_subpackages (builder     => scan_slave,
+                                         sequence_id => ptid,
+                                         sysrootver  => sysrootver,
+                                         interactive => True,
+                                         enterafter  => brkphase);
+
+      REP.destroy_slave (scan_slave, use_proc);
+      REP.finalize;
+   end bulk_run_then_interact_with_final_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  interact_with_single_builder
+   --------------------------------------------------------------------------------------------
+   function interact_with_single_builder return Boolean
+   is
+      EA_defined : constant Boolean := Unix.env_variable_defined (brkname);
+   begin
+      if PortScan.build_request_length /= 1 then
+         return False;
+      end if;
+      if not EA_defined then
+         return False;
+      end if;
+      return CYC.valid_test_phase (Unix.env_variable_value (brkname));
+   end interact_with_single_builder;
+
 end Pilot;

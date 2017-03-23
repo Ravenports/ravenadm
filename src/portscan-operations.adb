@@ -455,7 +455,7 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  run_hook_after_build
+   --  run_package_hook
    --------------------------------------------------------------------------------------------
    procedure run_package_hook (hook : hook_type; id : port_id)
    is
@@ -844,6 +844,28 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
+   --  unlist_first_port
+   --------------------------------------------------------------------------------------------
+   function unlist_first_port return port_id
+   is
+      origin : HT.Text := string_crate.Element (portlist.First);
+      id     : port_id;
+   begin
+      if ports_keys.Contains (origin) then
+         id := ports_keys.Element (origin);
+      else
+         return port_match_failed;
+      end if;
+
+      if id = port_match_failed then
+         return port_match_failed;
+      end if;
+      delete_rank (id);
+      return id;
+   end unlist_first_port;
+
+
+   --------------------------------------------------------------------------------------------
    --  unlist_port
    --------------------------------------------------------------------------------------------
    procedure unlist_port (id : port_id) is
@@ -1046,7 +1068,7 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  establish_package_architecture
+   --  isolate_arch_from_file_type
    --------------------------------------------------------------------------------------------
    function isolate_arch_from_file_type (fileinfo : String) return filearch
    is
@@ -1512,7 +1534,7 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  passed_dependency_check
+   --  result_of_dependency_query
    --------------------------------------------------------------------------------------------
    function result_of_dependency_query
      (repository : String;
@@ -2409,12 +2431,14 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  top_buildable_port
+   --  build_subpackages
    --------------------------------------------------------------------------------------------
    function build_subpackages
      (builder     : builders;
       sequence_id : port_id;
-      sysrootver  : sysroot_characteristics) return Boolean
+      sysrootver  : sysroot_characteristics;
+      interactive : Boolean := False;
+      enterafter  : String := "") return Boolean
    is
       function get_buildsheet return String;
 
@@ -2474,7 +2498,9 @@ package body PortScan.Operations is
 
       return CYC.build_package (id            => builder,
                                 specification => specification,
-                                sequence_id   => sequence_id);
+                                sequence_id   => sequence_id,
+                                interactive   => interactive,
+                                interphase    => enterafter);
    end build_subpackages;
 
 

@@ -151,7 +151,7 @@ begin
    end if;
 
    case mandate is
-      when build | force =>
+      when build | force | test =>
          if not Pilot.store_origins (start_from => 2) then
             return;
          end if;
@@ -250,7 +250,15 @@ begin
          --------------------------------
          --  test command
          --------------------------------
-         null;  --  tbw
+         if Pilot.scan_stack_of_single_ports (always_build => True) and then
+           Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
+         then
+            if Pilot.interact_with_single_builder then
+               Pilot.bulk_run_then_interact_with_final_port;
+            else
+               Pilot.perform_bulk_run (testmode => True);
+            end if;
+         end if;
 
       when configure =>
          --------------------------------

@@ -44,6 +44,9 @@ package PortScan is
    --  Returns the current queue size
    function queue_length return Integer;
 
+   --  Return the length of the original build request
+   function build_request_length return Integer;
+
    --  Given a port ID, attempt to display the portkey
    function get_port_variant (id : port_id) return String;
 
@@ -64,6 +67,9 @@ package PortScan is
 
    --  Insert unique NV pair into portlist and dupelist.
    procedure insert_into_portlist (port_variant : String);
+
+   --  Checks all_ports (id) and returns value of use_procfs
+   function requires_procfs (id : port_id) return Boolean;
 
 private
 

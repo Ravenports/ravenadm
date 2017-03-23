@@ -259,4 +259,22 @@ package body PortScan is
       end if;
    end insert_into_portlist;
 
+
+   --------------------------------------------------------------------------------------------
+   --  requires_procfs
+   --------------------------------------------------------------------------------------------
+   function requires_procfs (id : port_id) return Boolean is
+   begin
+      return all_ports (id).use_procfs;
+   end requires_procfs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_request_length
+   --------------------------------------------------------------------------------------------
+   function build_request_length return Integer is
+   begin
+      return Integer (dupelist.Length);
+   end build_request_length;
+
 end PortScan;

@@ -93,6 +93,16 @@ package Pilot is
    --  file which is copied back to current directory.
    procedure generate_distinfo;
 
+   --  This procedure removes the single CLI listed port from the queue,
+   --  executes "perform_bulk_run" and then builds the final port, but
+   --  breaks into the jail at the specified (by ENTERAFTER env) point
+   --  The test mode is always "True" so that's not an argument.
+   procedure bulk_run_then_interact_with_final_port;
+
+   --  If ENTERAFTER is defined to valid phase and there's only one port
+   --  given on the command line, then return True
+   function interact_with_single_builder return Boolean;
+
 private
 
    package HT renames HelperText;
