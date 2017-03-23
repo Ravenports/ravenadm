@@ -42,6 +42,7 @@ package body Port_Specification.Makefile is
       procedure dump_opsys_target    (target : String);
       procedure dump_option_target   (target : String);
       procedure dump_broken;
+      procedure dump_catchall;
       procedure dump_has_configure   (value  : HT.Text);
 
       write_to_file   : constant Boolean := (output_file /= "");
@@ -392,6 +393,20 @@ package body Port_Specification.Makefile is
          end if;
       end dump_has_configure;
 
+      procedure dump_catchall
+      is
+         procedure dump_nv (position : def_crate.Cursor);
+         procedure dump_nv (position : def_crate.Cursor)
+         is
+            keystr : String := HT.USS (def_crate.Key (position));
+            valstr : String := HT.USS (def_crate.Element (position));
+         begin
+            send (keystr, valstr);
+         end dump_nv;
+      begin
+         specs.catch_all.Iterate (dump_nv'Access);
+      end dump_catchall;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -427,6 +442,7 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
+      dump_catchall;
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
 
       dump_has_configure (specs.config_must);

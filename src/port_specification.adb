@@ -549,6 +549,12 @@ package body Port_Specification is
                when sp_run_deps      => specs.run_deps.Append (text_value);
                when others => null;
             end case;
+         when sp_uses =>
+            verify_entry_is_post_options;
+            if not valid_uses_module (value) then
+               raise wrong_value with "invalid USES module '" & value & "'";
+            end if;
+            specs.uses.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -799,6 +805,12 @@ package body Port_Specification is
             end if;
             specs.broken.Update_Element (Position => specs.broken.Find (text_key),
                                          Process  => grow'Access);
+         when sp_catchall =>
+            verify_entry_is_post_options;
+            if specs.catch_all.Contains (text_key) then
+               raise wrong_value with "duplicate definition: " & key & "=" & value;
+            end if;
+            specs.catch_all.Insert (text_key, text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1055,7 +1067,9 @@ package body Port_Specification is
                raise dupe_list_value with value;
             end if;
          when uses_on =>
-            null; --  TODO: Add validation (needs uses_is_valid function I guess);
+            if not valid_uses_module (value) then
+               raise wrong_value with "USES '" & value & "' is not recognized";
+            end if;
          when not_supported_helper | not_helper_format =>
             null;
       end case;
@@ -1836,6 +1850,40 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  valid_uses_module
+   --------------------------------------------------------------------------------------------
+   function valid_uses_module (value : String) return Boolean
+   is
+      total_modules : constant Positive := 2;
+
+      subtype uses_string is String (1 .. 12);
+
+      --  Keep in alphabetical order for future conversion to binary search
+      all_keywords : constant array (1 .. total_modules) of uses_string :=
+        (
+         "cpe         ",
+         "dummy       "
+        );
+      bandolier : uses_string := (others => ' ');
+
+   begin
+      if value'Length > uses_string'Length then
+         return False;
+      end if;
+
+      bandolier (1 .. value'Length) := value;
+
+      for index in all_keywords'Range loop
+         if all_keywords (index) = bandolier then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end valid_uses_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
@@ -1950,7 +1998,8 @@ package body Port_Specification is
    procedure dump_specification (specs : Portspecs)
    is
       procedure print_item (position : string_crate.Cursor);
-      procedure print_item (position : def_crate.Cursor);
+      procedure print_tagline (position : def_crate.Cursor);
+      procedure print_catchall (position : def_crate.Cursor);
       procedure print_line_item (position : string_crate.Cursor);
       procedure dump (position : list_crate.Cursor);
       procedure dump_target (position : list_crate.Cursor);
@@ -1960,8 +2009,7 @@ package body Port_Specification is
       procedure print_single (thelabel : String; thelist : spec_field);
       procedure print_boolean (thelabel : String; thelist : spec_field);
       procedure print_opt_vector (vec : string_crate.Vector; thelabel : String);
-
-      array_label : Positive;
+      procedure print_define (flavor : Positive);
 
       procedure print_item (position : string_crate.Cursor)
       is
@@ -1973,15 +2021,27 @@ package body Port_Specification is
          TIO.Put (HT.USS (string_crate.Element (position)));
       end print_item;
 
-      procedure print_item (position : def_crate.Cursor) is
+      procedure print_tagline (position : def_crate.Cursor) is
       begin
-         case array_label is
-            when 1 => TIO.Put ("SDESC[");
-            when others => null;
-         end case;
-         TIO.Put_Line (HT.USS (def_crate.Key (position)) & LAT.Right_Square_Bracket &
+         TIO.Put_Line ("SDESC[" & HT.USS (def_crate.Key (position)) & LAT.Right_Square_Bracket &
                          LAT.HT & LAT.HT & HT.USS (def_crate.Element (position)));
-      end print_item;
+      end print_tagline;
+
+      procedure print_catchall (position : def_crate.Cursor)
+      is
+         varname : String  := HT.USS (def_crate.Key (position));
+         value   : String  := HT.USS (def_crate.Element (position));
+         vnlen   : Natural := varname'Length + 1;
+         tritab  : String (1 .. 3) := LAT.HT & LAT.HT & LAT.HT;
+         frtmark : Natural := 1;
+      begin
+         if vnlen < 8 then
+            frtmark := 3;
+         elsif vnlen < 16 then
+            frtmark := 2;
+         end if;
+         TIO.Put_Line (varname & LAT.Equals_Sign & tritab (1 .. frtmark) & value);
+      end print_catchall;
 
       procedure print_line_item (position : string_crate.Cursor)
       is
@@ -2207,6 +2267,15 @@ package body Port_Specification is
          end case;
       end print_boolean;
 
+      procedure print_define (flavor : Positive) is
+      begin
+         case flavor is
+            when 1 => specs.taglines.Iterate (Process => print_tagline'Access);
+            when 2 => specs.catch_all.Iterate (Process => print_catchall'Access);
+            when others => null;
+         end case;
+      end print_define;
+
    begin
       print_single      ("NAMEBASE", sp_namebase);
       print_single      ("VERSION",  sp_version);
@@ -2214,8 +2283,7 @@ package body Port_Specification is
       print_single      ("EPOCH",    sp_epoch);
       print_vector_list ("KEYWORDS", sp_keywords);
       print_vector_list ("VARIANTS", sp_variants);
-      array_label := 1;
-      specs.taglines.Iterate (Process => print_item'Access);
+      print_define      (1);  -- SDESC
       print_single      ("HOMEPAGE", sp_homepage);
       print_vector_list ("CONTACTS", sp_contacts);
       print_group_list  ("SITES", sp_dl_sites);
@@ -2291,6 +2359,7 @@ package body Port_Specification is
       print_vector_list ("LICENSES", sp_licenses);
       print_vector_list ("USERS", sp_users);
       print_vector_list ("GROUPS", sp_groups);
+      print_define      (2);  -- catchall
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

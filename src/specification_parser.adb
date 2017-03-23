@@ -391,6 +391,7 @@ package body Specification_Parser is
                      when licenses         => build_list (spec, PSP.sp_licenses, line);
                      when users            => build_list (spec, PSP.sp_users, line);
                      when groups           => build_list (spec, PSP.sp_groups, line);
+                     when catchall         => build_nvpair (spec, line);
                      when not_singlet      => null;
                   end case;
                   last_singlet := line_singlet;
@@ -883,7 +884,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 69;
+      total_singlets : constant Positive := 80;
 
       type singlet_pair is
          record
@@ -909,6 +910,17 @@ package body Specification_Parser is
          ("CONFIGURE_TARGET      ", 16, configure_target),
          ("CONFIGURE_WRKSRC      ", 16, configure_wrksrc),
          ("CONTACT               ",  7, contacts),
+         ("CPE_EDITION           ", 11, catchall),
+         ("CPE_LANG              ",  8, catchall),
+         ("CPE_OTHER             ",  9, catchall),
+         ("CPE_PART              ",  8, catchall),
+         ("CPE_PRODUCT           ", 11, catchall),
+         ("CPE_SW_EDITION        ", 14, catchall),
+         ("CPE_TARGET_HW         ", 13, catchall),
+         ("CPE_TARGET_SW         ", 13, catchall),
+         ("CPE_UPDATE            ", 10, catchall),
+         ("CPE_VENDOR            ", 10, catchall),
+         ("CPE_VERSION           ", 11, catchall),
          ("CPPFLAGS              ",  8, cppflags),
          ("CXXFLAGS              ",  8, cxxflags),
          ("DEPRECATED            ", 10, deprecated),
@@ -1241,6 +1253,38 @@ package body Specification_Parser is
    begin
       spec.set_single_string (field, retrieve_single_value (line));
    end build_string;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_nvpair
+   --------------------------------------------------------------------------------------------
+   procedure build_nvpair (spec : in out PSP.Portspecs; line : String)
+   is
+      strkey   : constant String := HT.part_1 (line, LAT.Equals_Sign & LAT.HT);
+      strvalue : constant String := retrieve_single_value (line);
+      mask     : String := strvalue;
+      Qopened  : Boolean := False;
+   begin
+      if HT.contains (S => strvalue, fragment => " ") then
+         for x in mask'Range loop
+            if mask (x) = LAT.Quotation then
+               Qopened := not Qopened;
+            elsif mask (x) = LAT.Space then
+               if Qopened then
+                  mask (x) := 'X';
+               end if;
+            end if;
+         end loop;
+         if HT.contains (S => strvalue, fragment => " ") then
+            raise extra_spaces;
+         end if;
+      end if;
+
+      spec.append_array (field        => PSP.sp_catchall,
+                         key          => strkey,
+                         value        => strvalue,
+                         allow_spaces => True);
+   end build_nvpair;
 
 
    --------------------------------------------------------------------------------------------

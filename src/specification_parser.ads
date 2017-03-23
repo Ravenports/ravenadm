@@ -50,7 +50,8 @@ private
                          install_tgt, patch_wrksrc, patch_strip, patchfiles_strip, extra_patches,
                          must_configure, configure_wrksrc, configure_script, gnu_cfg_prefix,
                          configure_target, config_outsource, apply_10_fix, deprecated,
-                         expiration, install_wrksrc, plist_sub, prefix, licenses, users, groups);
+                         expiration, install_wrksrc, plist_sub, prefix, licenses, users, groups,
+                         catchall);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
@@ -139,6 +140,10 @@ private
       field  : PSP.spec_option;
       option : String;
       line   : String);
+
+   --  essentially a singlet, but the varname is used a key for a name-value pair
+   --  Spaces are allowed only if quoted (single value)
+   procedure build_nvpair (spec : in out PSP.Portspecs; line : String);
 
    --  Line may contain spaces and they are considered part of an entire string
    procedure build_string (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String);

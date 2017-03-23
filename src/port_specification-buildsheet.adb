@@ -59,6 +59,7 @@ package body Port_Specification.Buildsheet is
       procedure send_file      (filename : String);
       procedure send_plist     (filename : String);
       procedure send_directory (dirname  : String; pattern : String := "");
+      procedure send_catchall;
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -497,6 +498,20 @@ package body Port_Specification.Buildsheet is
          send ("");
       end send_download_groups;
 
+      procedure send_catchall
+      is
+         procedure dump_nv (position : def_crate.Cursor);
+         procedure dump_nv (position : def_crate.Cursor)
+         is
+            keystr : String := HT.USS (def_crate.Key (position));
+            valstr : String := HT.USS (def_crate.Element (position));
+         begin
+            send (align24 (keystr) & valstr);
+         end dump_nv;
+      begin
+         specs.catch_all.Iterate (dump_nv'Access);
+      end send_catchall;
+
    begin
       if write_to_file then
         TIO.Create (File => makefile_handle,
@@ -550,6 +565,8 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_WITH_LHA",     specs.extract_lha, 2);
       send ("EXTRACT_HEAD",         specs.extract_head);
       send ("EXTRACT_TAIL",         specs.extract_tail);
+      blank_line;
+      send_catchall;
       blank_line;
       send ("PATCH_WRKSRC",         specs.patch_wrksrc);
       send ("PATCHFILES",           specs.patchfiles, 1);
