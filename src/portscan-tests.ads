@@ -43,6 +43,19 @@ private
      (specification : PSP.Portspecs;
       log_handle    : TIO.File_Type;
       seq_id        : port_id;
+      namebase      : String;
       rootdir       : String) return Boolean;
+
+   --  Scans all directories in stage and returns true if any non-standard orphans are found
+   function orphaned_directories_detected
+     (log_handle    : TIO.File_Type;
+      namebase      : String;
+      rootdir       : String) return Boolean;
+
+   --  Return True if directory was pre-created by ravenports
+   function directory_excluded (candidate : String) return Boolean;
+
+   --  Set verified to true
+   procedure mark_verified (key : HT.Text; Element : in out entry_record);
 
 end PortScan.Tests;
