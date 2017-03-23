@@ -1695,6 +1695,7 @@ package body Port_Specification is
          when sp_run_deps      => specs.run_deps.Iterate (scan'Access);
          when sp_opts_standard => specs.ops_standard.Iterate (scan'Access);
          when sp_opts_avail    => specs.ops_avail.Iterate (scan'Access);
+         when sp_variants      => specs.variants.Iterate (scan'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;

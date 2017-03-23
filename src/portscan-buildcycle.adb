@@ -1282,4 +1282,23 @@ package body PortScan.Buildcycle is
                                    stop  => trackers (id).tail_time);
    end elapsed_build;
 
+
+   --------------------------------------------------------------------------------------------
+   --  run_makesum
+   --------------------------------------------------------------------------------------------
+   procedure run_makesum (id : builders)
+   is
+      root     : constant String := get_root (id);
+      command  : constant String := chroot & root & environment_override &
+                 chroot_make_program & " -C /port makesum";
+      distinfo : constant String := root & "/port/distinfo";
+      result   : constant String := generic_system_command (command);
+   begin
+      TIO.Put_Line (result);
+      if DIR.Exists (distinfo) then
+         TIO.Put_Line ("Copying " & distinfo & " to current directory");
+         DIR.Copy_File (distinfo, "distinfo");
+      end if;
+   end run_makesum;
+
 end PortScan.Buildcycle;

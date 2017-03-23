@@ -227,7 +227,7 @@ begin
                   when dump =>
                      Pilot.dump_ravensource (get_arg (3));
                   when distinfo =>
-                     null;
+                     Pilot.generate_distinfo;
                   when buildsheet =>
                      Pilot.generate_buildsheet (get_arg (3), get_arg (4));
                   when makefile =>

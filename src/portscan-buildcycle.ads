@@ -40,6 +40,9 @@ package PortScan.Buildcycle is
    --  Returns the formatted time difference between start and stop of package build
    function elapsed_build (id : builders) return String;
 
+   --  Run make -C /port/ makesum (used by developer to generate distinfo)
+   procedure run_makesum (id : builders);
+
 private
 
    package CAL renames Ada.Calendar;

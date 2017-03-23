@@ -846,4 +846,48 @@ package body Pilot is
       PSB.print_specification_template;
    end print_spec_template;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_distinfo
+   --------------------------------------------------------------------------------------------
+   procedure generate_distinfo
+   is
+      specfile : constant String := "specification";
+      portloc  : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
+      makefile : String := portloc & "/Makefile";
+      successful    : Boolean;
+      specification : Port_Specification.Portspecs;
+   begin
+      if not DIR.Exists (specfile) then
+         TIO.Put_Line ("No specification file found in current directory.");
+         return;
+      end if;
+      REP.initialize (testmode  => False);
+      REP.launch_slave (scan_slave);
+      PAR.parse_specification_file (dossier         => specfile,
+                                    specification   => specification,
+                                    opsys_focus     => platform_type,
+                                    arch_focus      => x86_64,
+                                    success         => successful,
+                                    stop_at_targets => True,
+                                    extraction_dir  => portloc);
+      if not successful then
+         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line (PAR.get_parse_error);
+      end if;
+      declare
+         variant : String := specification.get_list_item (Port_Specification.sp_variants, 1);
+      begin
+         PSM.generator (specs       => specification,
+                        variant     => variant,
+                        opsys       => platform_type,
+                        output_file => makefile);
+      end;
+
+      CYC.run_makesum (scan_slave);
+      REP.destroy_slave (scan_slave);
+      REP.finalize;
+   end generate_distinfo;
+
+
 end Pilot;

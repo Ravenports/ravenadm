@@ -89,6 +89,10 @@ package Pilot is
    --  Sends a basic template for writing specifications to standard out.
    procedure print_spec_template;
 
+   --  Explodes current directory specfication into scan slave and generates a distinfo
+   --  file which is copied back to current directory.
+   procedure generate_distinfo;
+
 private
 
    package HT renames HelperText;
