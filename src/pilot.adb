@@ -690,7 +690,7 @@ package body Pilot is
          REP.finalize;
       end if;
       LOG.set_overall_complete (CAL.Clock);
-      LOG.start_logging (PortScan.total);
+      LOG.stop_logging (PortScan.total);
       LOG.stop_logging (PortScan.success);
       LOG.stop_logging (PortScan.failure);
       LOG.stop_logging (PortScan.skipped);
@@ -725,16 +725,21 @@ package body Pilot is
             Argk : constant String := CLI.Argument (k);
             bad_namebase : Boolean;
             bad_format   : Boolean;
+            add_standard : Boolean;
          begin
-            if valid_origin (Argk, bad_namebase, bad_format) then
-               PortScan.insert_into_portlist (Argk);
+            if valid_origin (Argk, bad_namebase, bad_format, add_standard) then
+               if add_standard then
+                  PortScan.insert_into_portlist (Argk & LAT.Colon & variant_standard);
+               else
+                  PortScan.insert_into_portlist (Argk);
+               end if;
             else
                if bad_format then
-                  TIO.Put_Line (badformat & "'" & Argk & "'" & k'Img);
+                  TIO.Put_Line (badformat & "'" & Argk & "'");
                elsif bad_namebase then
-                  TIO.Put_Line (badname & "'" & Argk & "'" & k'Img);
+                  TIO.Put_Line (badname & "'" & Argk & "'");
                else
-                  TIO.Put_Line (badvariant & "'" & Argk & "'" & k'Img);
+                  TIO.Put_Line (badvariant & "'" & Argk & "'");
                end if;
                return False;
             end if;
@@ -750,17 +755,18 @@ package body Pilot is
    function valid_origin
      (port_variant : String;
       bad_namebase : out Boolean;
-      bad_format   : out Boolean) return Boolean
+      bad_format   : out Boolean;
+      assume_std   : out Boolean) return Boolean
    is
       function variant_valid (fileloc : String; variant : String) return Boolean;
 
-      numhyphens : constant Natural := HT.count_char (port_variant, LAT.Hyphen);
+      numcolons  : constant Natural := HT.count_char (port_variant, LAT.Colon);
       num_spaces : constant Natural := HT.count_char (port_variant, LAT.Space);
 
       function variant_valid (fileloc : String; variant : String) return Boolean
       is
          contents    : String := FOP.get_file_contents (fileloc);
-         variants    : constant String := "VARIANTS=";
+         variants    : constant String := "VARIANTS=" & LAT.HT & LAT.HT;
          single_LF   : constant String (1 .. 1) := (1 => LAT.LF);
          variantsvar : Natural := AS.Fixed.Index (contents, variants);
       begin
@@ -771,9 +777,10 @@ package body Pilot is
             nextlf : Natural := AS.Fixed.Index (Source  => contents,
                                                 Pattern => single_LF,
                                                 From    => variantsvar);
-            special : String := HT.trim
-              (HT.strip_excessive_spaces (contents (variantsvar + variants'Length .. nextlf - 1)));
+            special : String :=
+              HT.strip_excessive_spaces (contents (variantsvar + variants'Length .. nextlf - 1));
          begin
+            TIO.Put_Line ("SPECIAL:" & special);
             if nextlf = 0 then
                return False;
             end if;
@@ -786,16 +793,17 @@ package body Pilot is
       end variant_valid;
    begin
       bad_namebase := True;
-      if num_spaces > 0 or else numhyphens > 1 then
+      assume_std   := False;
+      if num_spaces > 0 or else numcolons > 1 then
          bad_format := True;
          return False;
       end if;
       bad_format := False;
 
-      if numhyphens = 1 then
+      if numcolons = 1 then
          declare
-            namebase   : String := HT.part_1 (port_variant, "-");
-            variant    : String := HT.part_2 (port_variant, "-");
+            namebase   : String := HT.part_1 (port_variant, ":");
+            variant    : String := HT.part_2 (port_variant, ":");
             bsheetname : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
             bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
             bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
@@ -816,6 +824,7 @@ package body Pilot is
             bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
             bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
          begin
+            assume_std := True;
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
                return variant_valid (bsheetu, variant_standard);

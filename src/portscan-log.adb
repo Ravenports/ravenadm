@@ -444,7 +444,7 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    procedure start_logging (flavor : count_type)
    is
-      logpath : constant String := HT.USS (PM.configuration.dir_logs) & "/" & logname (flavor);
+      logpath : String := HT.USS (PM.configuration.dir_logs) & "/logs/" & logname (flavor);
    begin
       if DIR.Exists (logpath) then
          DIR.Delete_File (logpath);
@@ -454,16 +454,16 @@ package body PortScan.Log is
                   Name => logpath);
       if flavor = total then
          TIO.Put_Line
-           (Flog (flavor),
+           (Flog (total),
               "-=>  Chronology of last build  <=-" & LAT.LF &
               "Started: " & timestamp (start_time) & LAT.LF &
               "Ports to build: " & HT.int2str (original_queue_size) & LAT.LF & LAT.LF &
               "Purging any ignored/broken ports first ...");
-         TIO.Flush (Flog (flavor));
+         TIO.Flush (Flog (total));
       end if;
    exception
       when others =>
-         raise overall_log with "Failed to create or delete " & logpath & bailing;
+         raise overall_log with "Failed to create " & logpath & bailing;
    end start_logging;
 
 
@@ -569,7 +569,7 @@ package body PortScan.Log is
          TIO.Put_Line (obsolete_pkg_log, message);
       end if;
       if write_to_screen then
-         TIO.Put (message);
+         TIO.Put_Line (message);
       end if;
    end obsolete_notice;
 

@@ -120,6 +120,7 @@ private
    function valid_origin
      (port_variant : String;
       bad_namebase : out Boolean;
-      bad_format   : out Boolean) return Boolean;
+      bad_format   : out Boolean;
+      assume_std   : out Boolean) return Boolean;
 
 end Pilot;

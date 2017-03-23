@@ -61,8 +61,8 @@ package body PortScan.Scan is
       unkindness : String;
       sysrootver : sysroot_characteristics)
    is
-      conspindex      : constant String := "conspiracy_index";
-      conspindex_path : constant String := conspiracy & "/Mk/" & conspindex;
+      conspindex      : constant String := "/Mk/Misc/" & "conspiracy_variants";
+      conspindex_path : constant String := conspiracy & conspindex;
       max_lots        : constant scanners := get_max_lots;
       custom_avail    : constant Boolean := unkindness /= PM.no_unkindness;
    begin
@@ -459,7 +459,9 @@ package body PortScan.Scan is
             declare
                optname : String := thespec.get_list_item (PSP.sp_opts_standard, item);
             begin
-               populate_option (target, optname, thespec.option_current_setting (optname));
+               if optname /= options_none then
+                  populate_option (target, optname, thespec.option_current_setting (optname));
+               end if;
             end;
          end loop;
       else
@@ -548,7 +550,7 @@ package body PortScan.Scan is
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
 
-      two_partid : constant String := namebase & LAT.Hyphen & variant;
+      two_partid : constant String := namebase & LAT.Colon & variant;
       portkey    : HT.Text := HT.SUS (two_partid);
       target     : port_index;
       aborted    : Boolean := False;
@@ -589,10 +591,12 @@ package body PortScan.Scan is
             TIO.Put_Line (EX.Exception_Message (issue));
       end dig;
    begin
+      TIO.Put_Line ("ALPHA: " & namebase & " variant: " & variant);
       fatal := False;
       if not prescanned then
          prescan_ports_tree (conspiracy, unkindness, sysrootver);
       end if;
+      TIO.Put_Line ("BRAVO:" & two_partid);
       if ports_keys.Contains (portkey) then
          target := ports_keys.Element (portkey);
       else
@@ -747,8 +751,8 @@ package body PortScan.Scan is
       procedure scan (plcursor : string_crate.Cursor)
       is
          origin   : constant String := HT.USS (string_crate.Element (plcursor));
-         namebase : constant String := HT.part_1 (origin, "-");
-         variant  : constant String := HT.part_2 (origin, "-");
+         namebase : constant String := HT.part_1 (origin, ":");
+         variant  : constant String := HT.part_2 (origin, ":");
       begin
          if not successful then
             return;

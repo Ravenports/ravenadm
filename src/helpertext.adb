@@ -360,7 +360,9 @@ package body HelperText is
    begin
       shuttle.back_marker  := block_text'First;
       shuttle.front_marker := block_text'First;
-      shuttle.zero_length  := block_text (shuttle.back_marker) = ASCII.LF;
+      if block_text'Length > 0 then
+         shuttle.zero_length  := block_text (shuttle.back_marker) = LAT.LF;
+      end if;
       shuttle.utilized     := False;
    end initialize_markers;
 
@@ -402,13 +404,13 @@ package body HelperText is
             shuttle.back_marker  := shuttle.front_marker + 2;
          end if;
          shuttle.front_marker := shuttle.back_marker;
-         shuttle.zero_length  := block_text (shuttle.back_marker) = ASCII.LF;
+         shuttle.zero_length  := block_text (shuttle.back_marker) = LAT.LF;
       end if;
       loop
          shuttle.utilized := True;
          exit when shuttle.front_marker = block_text'Last;
-         exit when block_text (shuttle.back_marker) = ASCII.LF;
-         exit when block_text (shuttle.front_marker + 1) = ASCII.LF;
+         exit when block_text (shuttle.back_marker) = LAT.LF;
+         exit when block_text (shuttle.front_marker + 1) = LAT.LF;
          shuttle.front_marker := shuttle.front_marker + 1;
       end loop;
       return True;
