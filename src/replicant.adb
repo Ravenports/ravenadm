@@ -1134,7 +1134,7 @@ package body Replicant is
            "RAVENBASE=" & HT.USS (PM.configuration.dir_localbase) & LAT.LF &
            "WRKDIRPREFIX=/construction" & LAT.LF &
            "DISTDIR=/distfiles" & LAT.LF &
-           "NUMBER_CPUS=" & HT.int2str (Integer (smp_cores)) & LAT.LF &
+           "NUMBER_CPUS=" & HT.int2str (Integer (PM.configuration.number_cores)) & LAT.LF &
            "MAKE_JOBS_NUMBER_LIMIT=" & HT.int2str (mjnum));
 
       if developer_mode then

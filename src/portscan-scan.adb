@@ -603,6 +603,8 @@ package body PortScan.Scan is
       if ports_keys.Contains (portkey) then
          target := ports_keys.Element (portkey);
       else
+         TIO.Put_Line (namebase & " specification not listed in Mk/Misc/conspiracy-variants, ");
+         TIO.Put_Line ("nor found in the custom ports directory");
          return False;
       end if;
       begin

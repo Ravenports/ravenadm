@@ -489,15 +489,34 @@ package body Port_Specification.Buildsheet is
 
       procedure send_download_groups
       is
+         --  The first group must be either "main" or "none"
          procedure dump_group (position : list_crate.Cursor);
+         procedure dump_main (position : list_crate.Cursor);
+
+         procedure dump_main (position : list_crate.Cursor)
+         is
+            rec : group_list renames list_crate.Element (position);
+         begin
+            if HT.equivalent (rec.group, dlgroup_main) or else
+              HT.equivalent (rec.group, dlgroup_none)
+            then
+               send (HT.USS (rec.group), True);
+            end if;
+         end dump_main;
+
          procedure dump_group (position : list_crate.Cursor)
          is
             rec : group_list renames list_crate.Element (position);
          begin
-            send (HT.USS (rec.group) & " ", True);
+            if not HT.equivalent (rec.group, dlgroup_main) and then
+              not HT.equivalent (rec.group, dlgroup_none)
+            then
+              send (" " & HT.USS (rec.group), True);
+            end if;
          end dump_group;
       begin
          send (align24 ("DOWNLOAD_GROUPS="), True);
+         specs.dl_sites.Iterate (Process => dump_main'Access);
          specs.dl_sites.Iterate (Process => dump_group'Access);
          send ("");
       end send_download_groups;

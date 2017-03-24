@@ -49,7 +49,6 @@ private
    package TIO renames Ada.Text_IO;
    package UTL renames Utilities;
 
-   smp_cores      : cpu_range := cpu_range'First;
    developer_mode : Boolean;
    abn_log_ready  : Boolean;
    abnormal_log   : TIO.File_Type;
