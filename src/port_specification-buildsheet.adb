@@ -490,7 +490,7 @@ package body Port_Specification.Buildsheet is
          is
             rec : group_list renames list_crate.Element (position);
          begin
-            send (HT.USS (rec.group), True);
+            send (HT.USS (rec.group) & " ", True);
          end dump_group;
       begin
          send (align24 ("DOWNLOAD_GROUPS="), True);

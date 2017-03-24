@@ -32,6 +32,7 @@ package body Port_Specification.Makefile is
       procedure dump_list (position : list_crate.Cursor);
       procedure dump_variant_index (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
+      procedure dump_makesum   (position : string_crate.Cursor);
       procedure dump_ext_zip   (position : string_crate.Cursor);
       procedure dump_ext_7z    (position : string_crate.Cursor);
       procedure dump_ext_lha   (position : string_crate.Cursor);
@@ -105,6 +106,10 @@ package body Port_Specification.Makefile is
             when 2 =>
                varname_prefix := HT.SUS (varname);
                crate.Iterate (Process => dump_distfiles'Access);
+            when 9 =>
+               send (varname & "=", True);
+               crate.Iterate (Process => dump_makesum'Access);
+               send ("");
             when 3 =>
                crate.Iterate (Process => dump_ext_zip'Access);
             when 4 =>
@@ -185,6 +190,13 @@ package body Port_Specification.Makefile is
       begin
          send (NDX & HT.USS (string_crate.Element (position)));
       end dump_distfiles;
+
+      procedure dump_makesum (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+      begin
+         send (HT.int2str (index) & " ", True);
+      end dump_makesum;
 
       procedure dump_ext_zip (position : string_crate.Cursor)
       is
@@ -432,6 +444,7 @@ package body Port_Specification.Makefile is
       send ("DISTFILE",         specs.distfiles, 2);
       send ("DIST_SUBDIR",      specs.dist_subdir);
       send ("DISTNAME",         specs.distname);
+      send ("MAKESUM_INDEX",    specs.distfiles, 9);
       send ("DF_INDEX",         specs.df_index, 1);
       send ("SUBPACKAGES",      specs.subpackages, 8);
       send ("EXTRACT_ONLY",     specs.extract_only, 1);

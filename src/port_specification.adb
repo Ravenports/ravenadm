@@ -498,6 +498,9 @@ package body Port_Specification is
          when sp_build_target =>
             verify_entry_is_post_options;
             specs.build_target.Append (text_value);
+         when sp_install_tgt =>
+            verify_entry_is_post_options;
+            specs.install_tgt.Append (text_value);
          when sp_cflags =>
             verify_entry_is_post_options;
             specs.cflags.Append (text_value);
@@ -510,6 +513,12 @@ package body Port_Specification is
          when sp_ldflags =>
             verify_entry_is_post_options;
             specs.ldflags.Append (text_value);
+         when sp_config_args =>
+            verify_entry_is_post_options;
+            specs.config_args.Append (text_value);
+         when sp_config_env =>
+            verify_entry_is_post_options;
+            specs.config_env.Append (text_value);
          when sp_patchfiles =>
             verify_entry_is_post_options;
             specs.patchfiles.Append (text_value);
@@ -1878,7 +1887,7 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
          "cpe         ",
-         "dummy       "
+         "libtool     "
         );
       bandolier : uses_string := (others => ' ');
 

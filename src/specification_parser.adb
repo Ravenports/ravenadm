@@ -1460,6 +1460,7 @@ package body Specification_Parser is
       configure : constant String := "configure";
       build     : constant String := "build";
       install   : constant String := "install";
+      test      : constant String := "test";
       opt_on    : constant String := "-ON:";
       opt_off   : constant String := "-OFF:";
       pre_pre   : constant String := "pre-";
@@ -1504,7 +1505,8 @@ package body Specification_Parser is
            first_set_successful (prefix & patch & LAT.Hyphen) or else
            first_set_successful (prefix & configure & LAT.Hyphen) or else
            first_set_successful (prefix & build & LAT.Hyphen) or else
-           first_set_successful (prefix & install & LAT.Hyphen)
+           first_set_successful (prefix & install & LAT.Hyphen) or else
+           first_set_successful (prefix & test & LAT.Hyphen)
          then
             return line (first .. last);
          else
@@ -1551,7 +1553,8 @@ package body Specification_Parser is
            line = prefix & patch & LAT.Colon or else
            line = prefix & configure & LAT.Colon or else
            line = prefix & build & LAT.Colon or else
-           line = prefix & install & LAT.Colon
+           line = prefix & install & LAT.Colon or else
+           line = prefix & test & LAT.Colon
          then
             return target_title;
          end if;
@@ -1566,7 +1569,8 @@ package body Specification_Parser is
                  line = prefix & patch & lowsys or else
                  line = prefix & configure & lowsys or else
                  line = prefix & build & lowsys or else
-                 line = prefix & install & lowsys
+                 line = prefix & install & lowsys or else
+                 line = prefix & test & lowsys
                then
                   return target_title;
                end if;

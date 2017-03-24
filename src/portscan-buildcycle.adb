@@ -390,8 +390,17 @@ package body PortScan.Buildcycle is
    begin
       content := Unix.piped_command (command, status);
       if status /= 0 then
-         raise cycle_cmd_error with "cmd: " & command &
-           " (return code =" & status'Img & ")";
+         declare
+            message : String := command & " (return code =" & status'Img & ")";
+            projlen : Natural := message'Length + 5;
+         begin
+            if projlen > 200 then
+               raise cycle_cmd_error
+                 with "cmd: ..." & message (message'Last - 191 .. message'Last);
+            else
+               raise cycle_cmd_error with "cmd: " & message;
+            end if;
+         end;
       end if;
       return HT.USS (content);
    end generic_system_command;
