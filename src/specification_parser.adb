@@ -1029,7 +1029,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 40;
+      total_helpers : constant Positive := 41;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1057,6 +1057,7 @@ package body Specification_Parser is
          ("CONFIGURE_ENV_ON     ", PSP.configure_env_on),
          ("CONFIGURE_WITH_BOTH  ", PSP.configure_with_both),
          ("CPPFLAGS_ON          ", PSP.cppflags_on),
+         ("DESCRIPTION          ", PSP.description),
          ("DF_INDEX_ON          ", PSP.df_index_on),
          ("EXTRACT_ONLY_ON      ", PSP.extra_patches_on),
          ("EXTRA_PATCHES_ON     ", PSP.extra_patches_on),

@@ -47,7 +47,7 @@ package Port_Specification is
                          install_target_on, keywords_on, ldflags_on, buildrun_depends_on,
                          make_args_on, make_env_on, patchfiles_on, plist_sub_on, prevents_on,
                          qmake_off, qmake_on, run_depends_on, sub_files_on, sub_list_on,
-                         test_target_on, uses_on);
+                         test_target_on, uses_on, description);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -224,6 +224,7 @@ private
    type Option_Helper is
       record
          option_name           : HT.Text;
+         option_description    : HT.Text;
          currently_set_ON      : Boolean := False;
          set_ON_by_default     : Boolean := False;
          BROKEN_ON             : HT.Text;

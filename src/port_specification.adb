@@ -946,6 +946,8 @@ package body Port_Specification is
                Element.CPPFLAGS_ON.Append (value_text);
             when cxxflags_on =>
                Element.CXXFLAGS_ON.Append (value_text);
+            when description =>
+               Element.option_description := value_text;
             when df_index_on =>
                Element.DF_INDEX_ON.Append (value_text);
             when extra_patches_on =>
@@ -1035,7 +1037,7 @@ package body Port_Specification is
               cppflags_on | cxxflags_on | extra_patches_on | gh_tuple_on | gh_tagname_on |
               gh_account_on | gh_project_on | gh_subdir_on | info_on | install_target_on |
               ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
-              qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on =>
+              qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description =>
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on =>
@@ -1122,6 +1124,7 @@ package body Port_Specification is
             when cppflags_on           => return rec.CPPFLAGS_ON.Is_Empty;
             when cxxflags_on           => return rec.CXXFLAGS_ON.Is_Empty;
             when df_index_on           => return rec.DF_INDEX_ON.Is_Empty;
+            when description           => return HT.IsBlank (rec.option_description);
             when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
             when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
             when gh_account_on         => return rec.GH_ACCOUNT_ON.Is_Empty;
@@ -2106,6 +2109,7 @@ package body Port_Specification is
       begin
          TIO.Put_Line ("   " & NDX & LAT.Colon);
          TIO.Put_Line ("      BROKEN_ON=" & LAT.HT & LAT.HT & HT.USS (rec.BROKEN_ON));
+         TIO.Put_Line ("      DESCRIPTION=" & LAT.HT & LAT.HT & HT.USS (rec.option_description));
          print_opt_vector (rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
          print_opt_vector (rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
          print_opt_vector (rec.CFLAGS_ON, "CFLAGS_ON");

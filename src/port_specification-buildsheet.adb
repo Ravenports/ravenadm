@@ -270,6 +270,10 @@ package body Port_Specification.Buildsheet is
          name : String := HT.USS (rec.option_name);
       begin
          blank_line;
+         if not HT.IsBlank (rec.option_description) then
+            send (align40 (LAT.Left_Square_Bracket & name & "].DESCRIPTION=") &
+                    HT.USS (rec.option_description));
+         end if;
          if not HT.IsBlank (rec.BROKEN_ON) then
             send (align40 (LAT.Left_Square_Bracket & name & "].BROKEN_ON=") &
                     HT.USS (rec.BROKEN_ON));
