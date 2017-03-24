@@ -185,7 +185,9 @@ package body Pilot is
                                      arch_standard => x86_64,
                                      osrelease     => "4.7",
                                      osmajor       => "4.7");
-         PST.apply_directives (specs => specification);
+         PST.apply_directives (specs         => specification,
+                               arch_standard => x86_64,
+                               osmajor       => "4.7");
          PSM.generator (specs         => specification,
                         variant       => get_variant,
                         opsys         => platform_type,
@@ -520,6 +522,7 @@ package body Pilot is
         not DIR.Exists (F3) or else
         not DIR.Exists (F4)
       then
+         TIO.Put_Line ("Platform type could not be determined (sysroot F1-F4 missing)");
          return False;
       end if;
       sysrootver.release := HT.SUS (FOP.head_n1 (F1));
@@ -531,6 +534,7 @@ package body Pilot is
          if UTL.valid_cpu_arch (candidate) then
             sysrootver.arch := UTL.convert_cpu_arch (candidate);
          else
+            TIO.Put_Line ("Platform type could not be determined (STDARCH conversion failed)");
             return False;
          end if;
       end;

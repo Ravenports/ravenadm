@@ -352,6 +352,7 @@ package body PortScan.Packager is
       end if;
       TIO.Put_Line (file_handle, "}");
       TIO.Put_Line (file_handle, "options: {"  & spec.get_field_value (PSP.sp_opt_helper) & " }");
+      write_package_annotations (spec, file_handle);
       TIO.Close (file_handle);
 
    exception
@@ -391,6 +392,32 @@ package body PortScan.Packager is
          end;
       end loop;
    end write_complete_metapackage_deps;
+
+
+   --------------------------------------------------------------------------------------------
+   --  write_package_annotations
+   --------------------------------------------------------------------------------------------
+   procedure write_package_annotations
+     (spec        : PSP.Portspecs;
+      file_handle : TIO.File_Type)
+   is
+      num_notes : constant Natural := spec.get_list_length (PSP.sp_notes);
+   begin
+      if num_notes = 0 then
+         return;
+      end if;
+      TIO.Put_Line (file_handle, "annotations: {");
+      for note in 1 .. num_notes loop
+         declare
+            nvpair : String := spec.get_list_item (PSP.sp_notes, note);
+            key    : String := HT.part_1 (nvpair, "=");
+            value  : String := HT.part_2 (nvpair, "=");
+         begin
+            TIO.Put_Line (file_handle, key & ": <<EOD" & LAT.LF & value & LAT.LF & "EOD");
+         end;
+      end loop;
+      TIO.Put_Line (file_handle, "}");
+   end write_package_annotations;
 
 
    --------------------------------------------------------------------------------------------

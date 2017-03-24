@@ -23,7 +23,10 @@ package Port_Specification.Transform is
 --        osmajor       : String;
 --        osversion     : String
 --       );
-   procedure apply_directives  (specs : in out Portspecs);
+   procedure apply_directives
+     (specs         : in out Portspecs;
+      arch_standard : supported_arch;
+      osmajor       : String);
 
    --  For non-standard variants, set options defaults as directed by VOPTS
    --  For standard variant, set options default by OPT_ON values
@@ -55,5 +58,10 @@ private
    --  Implement less-than and greater-than OS Major comparision
    function LTE (gen_release, spec_release : String) return Boolean;
    function GTE (gen_release, spec_release : String) return Boolean;
+
+   procedure apply_cpe_module
+     (specs         : in out Portspecs;
+      arch_standard : supported_arch;
+      osmajor       : String);
 
 end Port_Specification.Transform;

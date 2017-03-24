@@ -2473,28 +2473,34 @@ package body PortScan.Operations is
          return False;
       end if;
 
-      PST.set_option_defaults (specs         => specification,
-                               variant       => variant,
-                               opsys         => platform_type,
-                               arch_standard => sysrootver.arch,
-                               osrelease     => HT.USS (sysrootver.release));
+      PST.set_option_defaults
+        (specs         => specification,
+         variant       => variant,
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => HT.USS (sysrootver.release));
 
       --  TODO: Implement options correctly
       PST.set_option_to_default_values (specs => specification);
 
-      PST.set_outstanding_ignore (specs         => specification,
-                                  variant       => variant,
-                                  opsys         => platform_type,
-                                  arch_standard => sysrootver.arch,
-                                  osrelease     => HT.USS (sysrootver.release),
-                                  osmajor       => HT.USS (sysrootver.major));
+      PST.set_outstanding_ignore
+        (specs         => specification,
+         variant       => variant,
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => HT.USS (sysrootver.release),
+         osmajor       => HT.USS (sysrootver.major));
 
-      PST.apply_directives (specs => specification);
+      PST.apply_directives
+        (specs         => specification,
+         arch_standard => sysrootver.arch,
+         osmajor       => HT.USS (sysrootver.major));
 
-      PSM.generator (specs       => specification,
-                     variant     => variant,
-                     opsys       => platform_type,
-                     output_file => makefile);
+      PSM.generator
+        (specs         => specification,
+         variant       => variant,
+         opsys         => platform_type,
+         output_file   => makefile);
 
       return CYC.build_package (id            => builder,
                                 specification => specification,

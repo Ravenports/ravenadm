@@ -12,7 +12,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  apply_directives
    --------------------------------------------------------------------------------------------
-   procedure apply_directives (specs : in out Portspecs)
+   procedure apply_directives
+     (specs         : in out Portspecs;
+      arch_standard : supported_arch;
+      osmajor       : String)
    is
       procedure copy_option_over (position : option_crate.Cursor);
 
@@ -189,6 +192,7 @@ package body Port_Specification.Transform is
       end copy_option_over;
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
+      apply_cpe_module (specs, arch_standard, osmajor);
    end apply_directives;
 
 
@@ -525,5 +529,75 @@ package body Port_Specification.Transform is
       specs.broken.Iterate (Process => check'Access);
       check_ignore;
    end set_outstanding_ignore;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_cpe_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_cpe_module
+     (specs         : in out Portspecs;
+      arch_standard : supported_arch;
+      osmajor       : String)
+   is
+      function retrieve (key : String; default_value : String) return String;
+      function arch_default return String;
+      function other_default return String;
+
+      text_cpe : HT.Text := HT.SUS ("cpe");
+
+      function retrieve (key : String; default_value : String) return String
+      is
+         key_text : HT.Text := HT.SUS (key);
+      begin
+         if specs.catch_all.Contains (key_text) then
+            return HT.USS (specs.catch_all.Element (key_text));
+         else
+            return default_value;
+         end if;
+      end retrieve;
+
+      function arch_default return String is
+      begin
+         case arch_standard is
+            when x86_64  => return "x64";
+            when i386    => return "x86";
+            when aarch64 => return "aarch64";
+         end case;
+      end arch_default;
+
+      function other_default return String is
+      begin
+         if specs.revision = 0 then
+            return "";
+         else
+            return LAT.Colon & HT.int2str (specs.revision);
+         end if;
+      end other_default;
+   begin
+      if not specs.uses.Contains (text_cpe) then
+         return;
+      end if;
+      declare
+         cpe_product : String := retrieve ("CPE_PRODUCT", HT.lowercase (specs.get_namebase));
+         cpe_vendor  : String := retrieve ("CPE_VENDOR", cpe_product);
+         cpe_version : String := retrieve ("CPE_VERSION", HT.lowercase (HT.USS (specs.version)));
+         cpe_tgt_sw  : String := retrieve ("CPE_TARGET_SW",
+                                           UTL.lower_opsys (platform_type) & osmajor);
+         default_note : String := "cpe:2.3" & LAT.Colon &
+           retrieve ("CPE_PART", "a")       & LAT.Colon &
+           cpe_vendor                       & LAT.Colon &
+           cpe_product                      & LAT.Colon &
+           cpe_version                      & LAT.Colon &
+           retrieve ("CPE_UPDATE", "")      & LAT.Colon &
+           retrieve ("CPE_EDITION", "")     & LAT.Colon &
+           retrieve ("CPE_LANG", "")        & LAT.Colon &
+           retrieve ("CPE_SW_EDITION", "")  & LAT.Colon &
+           cpe_tgt_sw                       & LAT.Colon &
+           retrieve ("CPE_TARGET_HW", arch_default) &
+           retrieve ("CPE_OTHER", other_default);
+      begin
+         specs.pkg_notes.Insert (text_cpe, HT.SUS (retrieve ("CPE_STR", default_note)));
+      end;
+   end apply_cpe_module;
 
 end Port_Specification.Transform;

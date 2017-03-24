@@ -103,6 +103,8 @@ package body Port_Specification is
       specs.licenses.Clear;
       specs.users.Clear;
       specs.groups.Clear;
+      specs.catch_all.Clear;
+      specs.pkg_notes.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -1682,6 +1684,7 @@ package body Port_Specification is
          when sp_run_deps      => return Natural (specs.run_deps.Length);
          when sp_opts_standard => return Natural (specs.ops_standard.Length);
          when sp_opts_avail    => return Natural (specs.ops_avail.Length);
+         when sp_notes         => return Natural (specs.pkg_notes.Length);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1694,6 +1697,7 @@ package body Port_Specification is
    function get_list_item (specs : Portspecs; field : spec_field; item : Natural) return String
    is
       procedure scan (position : string_crate.Cursor);
+      procedure scan_note (position : def_crate.Cursor);
 
       counter : Natural := 0;
       result  : HT.Text;
@@ -1707,6 +1711,17 @@ package body Port_Specification is
             end if;
          end if;
       end scan;
+
+      procedure scan_note (position : def_crate.Cursor) is
+      begin
+         if HT.IsBlank (result) then
+            counter := counter + 1;
+            if counter = item then
+               result := HT.SUS (HT.USS (def_crate.Key (position)) & LAT.Equals_Sign &
+                                   HT.USS (def_crate.Element (position)));
+            end if;
+         end if;
+      end scan_note;
    begin
       case field is
          when sp_build_deps    => specs.build_deps.Iterate (scan'Access);
@@ -1715,6 +1730,7 @@ package body Port_Specification is
          when sp_opts_standard => specs.ops_standard.Iterate (scan'Access);
          when sp_opts_avail    => specs.ops_avail.Iterate (scan'Access);
          when sp_variants      => specs.variants.Iterate (scan'Access);
+         when sp_notes         => specs.pkg_notes.Iterate (scan_note'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;

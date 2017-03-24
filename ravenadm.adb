@@ -164,6 +164,14 @@ begin
       when others => null;
    end case;
 
+   case mandate is
+      when build | force | test | status =>
+         if not Pilot.slave_platform_determined then
+            return;
+         end if;
+      when others => null;
+   end case;
+
    Pilot.create_pidfile;
    Unix.ignore_background_tty;
 

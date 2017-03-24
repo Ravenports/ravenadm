@@ -413,23 +413,28 @@ package body PortScan.Scan is
            with calc_dossier & "-> " & PAR.get_parse_error;
       end if;
 
-      PST.set_option_defaults (specs         => thespec,
-                               variant       => variant,
-                               opsys         => platform_type,
-                               arch_standard => sysrootver.arch,
-                               osrelease     => osrelease);
+      PST.set_option_defaults
+        (specs         => thespec,
+         variant       => variant,
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => osrelease);
 
       --  TODO: implement option caching and determination (changes next line)
       PST.set_option_to_default_values (specs => thespec);
 
-      PST.set_outstanding_ignore (specs         => thespec,
-                                  variant       => variant,
-                                  opsys         => platform_type,
-                                  arch_standard => sysrootver.arch,
-                                  osrelease     => osrelease,
-                                  osmajor       => HT.USS (sysrootver.major));
+      PST.set_outstanding_ignore
+        (specs         => thespec,
+         variant       => variant,
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => osrelease,
+         osmajor       => HT.USS (sysrootver.major));
 
-      PST.apply_directives (specs => thespec);
+      PST.apply_directives
+        (specs         => thespec,
+         arch_standard => sysrootver.arch,
+         osmajor       => HT.USS (sysrootver.major));
 
       rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
       rec.ignore_reason := HT.SUS (thespec.aggregated_ignore_reason);

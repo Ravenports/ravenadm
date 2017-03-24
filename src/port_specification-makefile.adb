@@ -398,7 +398,7 @@ package body Port_Specification.Makefile is
          procedure dump_nv (position : def_crate.Cursor);
          procedure dump_nv (position : def_crate.Cursor)
          is
-            keystr : String := HT.USS (def_crate.Key (position));
+            keystr : String := HT.USS (def_crate.Key (position)) & LAT.Equals_Sign;
             valstr : String := HT.USS (def_crate.Element (position));
          begin
             send (keystr, valstr);

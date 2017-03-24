@@ -51,4 +51,9 @@ private
       variant     : String;
       pkgversion  : String);
 
+   --  If there are any package notes, write them to the manifest
+   procedure write_package_annotations
+     (spec        : PSP.Portspecs;
+      file_handle : TIO.File_Type);
+
 end PortScan.Packager;
