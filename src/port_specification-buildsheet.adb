@@ -620,6 +620,7 @@ package body Port_Specification.Buildsheet is
       send ("SKIP_INSTALL",         specs.skip_install, True);
       send ("INSTALL_WRKSRC",       specs.install_wrksrc);
       send ("INSTALL_TARGET",       specs.install_tgt, 2);
+      send ("INSTALL_REQ_TOOLCHAIN", specs.shift_install, True);
       send ("PLIST_SUB",            specs.plist_sub, 1);
       blank_line;
       send ("CFLAGS",               specs.cflags, 1);

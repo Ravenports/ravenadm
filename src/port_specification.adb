@@ -58,13 +58,14 @@ package body Port_Specification is
       specs.config_args.Clear;
       specs.config_env.Clear;
 
-      specs.skip_build   := False;
-      specs.skip_install := False;
-      specs.destdir_env  := False;
-      specs.single_job   := False;
-      specs.build_wrksrc := HT.blank;
-      specs.makefile     := HT.blank;
-      specs.destdirname  := HT.blank;
+      specs.skip_build    := False;
+      specs.skip_install  := False;
+      specs.destdir_env   := False;
+      specs.single_job    := False;
+      specs.shift_install := False;
+      specs.build_wrksrc  := HT.blank;
+      specs.makefile      := HT.blank;
+      specs.destdirname   := HT.blank;
       specs.make_env.Clear;
       specs.make_args.Clear;
       specs.build_target.Clear;
@@ -891,6 +892,8 @@ package body Port_Specification is
             specs.config_outsrc := value;
          when sp_apply_f10_fix =>
             specs.apply_f10_fix := value;
+         when sp_inst_tchain =>
+            specs.shift_install := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1931,7 +1934,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 2;
+      total_modules : constant Positive := 4;
 
       subtype uses_string is String (1 .. 12);
 
@@ -1939,6 +1942,8 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
          "cpe         ",
+         "gettext     ",
+         "iconv       ",
          "libtool     "
         );
       bandolier : uses_string := (others => ' ');
@@ -2341,6 +2346,7 @@ package body Port_Specification is
             when sp_single_job     => TIO.Put_Line (specs.single_job'Img);
             when sp_apply_f10_fix  => TIO.Put_Line (specs.apply_f10_fix'Img);
             when sp_cfg_outsrc     => TIO.Put_Line (specs.config_outsrc'Img);
+            when sp_inst_tchain    => TIO.Put_Line (specs.shift_install'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -2415,6 +2421,7 @@ package body Port_Specification is
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
       print_boolean     ("SKIP_INSTALL", sp_skip_install);
+      print_boolean     ("INSTALL_REQ_TOOLCHAIN", sp_inst_tchain);
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);

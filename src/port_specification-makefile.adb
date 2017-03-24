@@ -472,6 +472,7 @@ package body Port_Specification.Makefile is
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
       send ("BUILD_TARGET",     specs.build_target, 1);
       send ("NO_INSTALL",       specs.skip_install, True);
+      send ("INSTALL_REQ_TOOLCHAIN", specs.shift_install, True);
       send ("INSTALL_WRKSRC",   specs.install_wrksrc);
       send ("INSTALL_TARGET",   specs.install_tgt, 1);
       send ("PLIST_SUB",        specs.plist_sub, 1);

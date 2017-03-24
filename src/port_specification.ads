@@ -35,7 +35,7 @@ package Port_Specification is
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
-                       sp_notes);
+                       sp_notes, sp_inst_tchain);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -339,6 +339,7 @@ private
          skip_install  : Boolean;
          destdir_env   : Boolean;
          single_job    : Boolean;
+         shift_install : Boolean;
          prefix        : HT.Text;
          build_wrksrc  : HT.Text;
          makefile      : HT.Text;

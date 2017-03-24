@@ -347,6 +347,7 @@ package body Specification_Parser is
                      when single_job       => set_boolean (spec, PSP.sp_single_job, line);
                      when destdir_env      => set_boolean (spec, PSP.sp_destdir_env, line);
                      when config_outsource => set_boolean (spec, PSP.sp_cfg_outsrc, line);
+                     when shift_install    => set_boolean (spec, PSP.sp_inst_tchain, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -884,7 +885,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 80;
+      total_singlets : constant Positive := 81;
 
       type singlet_pair is
          record
@@ -942,6 +943,7 @@ package body Specification_Parser is
          ("GROUPS                ",  6, groups),
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
+         ("INSTALL_REQ_TOOLCHAIN ", 21, shift_install),
          ("INSTALL_TARGET        ", 14, install_tgt),
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
          ("KEYWORDS              ",  8, keywords),
