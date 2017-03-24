@@ -44,7 +44,7 @@ package body PortScan.Buildcycle is
                                  slave_root => get_root (id),
                                  UNAME      => HT.USS (uname_mrv),
                                  BENV       => get_environment (id),
-                                 COPTS      => get_options_configuration (id),
+                                 COPTS      => specification.options_summary,
                                  PTVAR      => get_port_variables (id))
       then
          LOG.finalize_log (trackers (id).log_handle,
@@ -1206,17 +1206,6 @@ package body PortScan.Buildcycle is
          end if;
       end loop;
    end generic_execute;
-
-
-   --------------------------------------------------------------------------------------------
-   --  get_options_configuration
-      --------------------------------------------------------------------------------------------
-   function get_options_configuration (id : builders) return String
-   is
-      --  TODO: this comes from prescan (eventually)
-   begin
-      return "" & LAT.LF;
-   end get_options_configuration;
 
 
    --------------------------------------------------------------------------------------------

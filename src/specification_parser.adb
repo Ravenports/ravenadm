@@ -1655,7 +1655,7 @@ package body Specification_Parser is
 
       use type PSP.spec_option;
    begin
-      if field = PSP.broken_on then
+      if field = PSP.broken_on or else field = PSP.description then
          spec.build_option_helper (field  => field,
                                             option => option,
                                             value  => strvalue);

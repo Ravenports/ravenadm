@@ -1880,6 +1880,55 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  valid_uses_module
    --------------------------------------------------------------------------------------------
+   function options_summary (specs : Portspecs) return String
+   is
+      package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
+
+      procedure scan (position : option_crate.Cursor);
+      procedure format (position : string_crate.Cursor);
+
+      tempstore : string_crate.Vector;
+      block : HT.Text;
+
+      procedure scan (position : option_crate.Cursor)
+      is
+         rec : Option_Helper renames option_crate.Element (position);
+      begin
+         tempstore.Append (rec.option_name);
+      end scan;
+
+      procedure format (position : string_crate.Cursor)
+      is
+         optname_text : HT.Text renames string_crate.Element (position);
+         optname : String := HT.USS (optname_text);
+         curval  : Boolean := specs.ops_helpers.Element (optname_text).currently_set_ON;
+         desc    : String  := HT.USS (specs.ops_helpers.Element (optname_text).option_description);
+         --  The option name is limited to 14 characters.  Format:
+         --  123456789-12345678-1234
+         --  OPTION_NAMEXXX  OFF  Description ...
+         --  OPTION_2        ON   Description ...
+         part1   : String (1 .. 16) := (others => ' ');
+         part2   : String (1 .. 5);
+      begin
+         part1 (1 .. optname'Length) := optname;
+         if curval then
+            part2 := "ON   ";
+         else
+            part2 := "OFF  ";
+         end if;
+         HT.SU.Append (block, part1 & part2 & desc & LAT.LF);
+      end format;
+   begin
+      specs.ops_helpers.Iterate (scan'Access);
+      sorter.Sort (Container => tempstore);
+      tempstore.Iterate (format'Access);
+      return HT.USS (block);
+   end options_summary;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_uses_module
+   --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
       total_modules : constant Positive := 2;

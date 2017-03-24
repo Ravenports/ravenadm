@@ -187,6 +187,9 @@ package Port_Specification is
    --  Return aggregate and formatted reason(s) for ignoring the port.
    function aggregated_ignore_reason (specs : Portspecs) return String;
 
+   --  Returns a formatted block of lines to represent the current option settings
+   function options_summary (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;

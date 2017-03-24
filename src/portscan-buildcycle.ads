@@ -110,7 +110,6 @@ private
                                        description : String) return Boolean;
    function  get_environment (id : builders) return String;
    function  get_port_variables (id : builders) return String;
-   function  get_options_configuration (id : builders) return String;
    function  generic_system_command (command : String) return String;
    function  get_root (id : builders) return String;
    function  environment_override (enable_tty : Boolean := False) return String;
