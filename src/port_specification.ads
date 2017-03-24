@@ -190,6 +190,9 @@ package Port_Specification is
    --  Returns a formatted block of lines to represent the current option settings
    function options_summary (specs : Portspecs) return String;
 
+   --  Returns True if one or more variants have no defined subpackages.
+   function missing_subpackage_definition (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;

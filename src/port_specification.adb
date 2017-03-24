@@ -1922,6 +1922,9 @@ package body Port_Specification is
          HT.SU.Append (block, part1 & part2 & desc & LAT.LF);
       end format;
    begin
+      if specs.ops_avail.Contains (HT.SUS (options_none)) then
+         return "This port has no build options.";
+      end if;
       specs.ops_helpers.Iterate (scan'Access);
       sorter.Sort (Container => tempstore);
       tempstore.Iterate (format'Access);
@@ -1930,11 +1933,34 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  missing_subpackage_definition
+   --------------------------------------------------------------------------------------------
+   function missing_subpackage_definition (specs : Portspecs) return Boolean
+   is
+      procedure check (position : list_crate.Cursor);
+
+      triggered : Boolean := False;
+
+      procedure check (position : list_crate.Cursor)
+      is
+         rec : group_list renames list_crate.Element (position);
+      begin
+         if rec.list.Is_Empty then
+            triggered := True;
+         end if;
+      end check;
+   begin
+      specs.subpackages.Iterate (check'Access);
+      return triggered;
+   end missing_subpackage_definition;
+
+
+   --------------------------------------------------------------------------------------------
    --  valid_uses_module
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 4;
+      total_modules : constant Positive := 5;
 
       subtype uses_string is String (1 .. 12);
 
@@ -1943,6 +1969,7 @@ package body Port_Specification is
         (
          "cpe         ",
          "gettext     ",
+         "gmake       ",
          "iconv       ",
          "libtool     "
         );

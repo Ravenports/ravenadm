@@ -114,6 +114,7 @@ package body Specification_Parser is
                      if line_array = not_array then
                         line_singlet := determine_singlet (line);
                         if line_singlet /= not_singlet and then
+                          line_singlet /= catchall and then
                           seen_singlet (line_singlet)
                         then
                            last_parse_error :=
@@ -1437,7 +1438,10 @@ package body Specification_Parser is
                           "' option configuration.");
       end if;
       if not spec.deprecation_valid then
-         return HT.SUS ("DEPRECATED and EXPIRATION must both be set");
+         return HT.SUS ("DEPRECATED and EXPIRATION must both be set.");
+      end if;
+      if spec.missing_subpackage_definition then
+         return HT.SUS ("At least one variant has no subpackages defined.");
       end if;
       return HT.blank;
    end late_validity_check_error;

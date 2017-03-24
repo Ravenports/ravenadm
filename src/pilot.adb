@@ -878,6 +878,7 @@ package body Pilot is
       if not successful then
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (PAR.get_parse_error);
+         goto endzone;
       end if;
       declare
          variant : String := specification.get_list_item (Port_Specification.sp_variants, 1);
@@ -889,6 +890,7 @@ package body Pilot is
       end;
 
       CYC.run_makesum (scan_slave);
+      <<endzone>>
       REP.destroy_slave (scan_slave);
       REP.finalize;
    end generate_distinfo;

@@ -780,7 +780,7 @@ package body PortScan.Scan is
          end if;
       end scan;
    begin
-       portlist.Iterate (Process => scan'Access);
+      portlist.Iterate (Process => scan'Access);
       return successful;
    end scan_provided_list_of_ports;
 
