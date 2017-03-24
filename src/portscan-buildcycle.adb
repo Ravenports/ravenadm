@@ -290,7 +290,7 @@ package body PortScan.Buildcycle is
          subpackage : constant String :=  HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          PKG_FILE   : constant String := "/packages/All/" & pkgname & arc_ext;
-         command    : constant String := chroot & root & environment_override &
+         command    : constant String := chroot & root & environment_override (id) &
                       PKG_ADD & PKG_FILE;
       begin
          if still_good then
@@ -341,7 +341,7 @@ package body PortScan.Buildcycle is
       TIO.Close (trackers (id).log_handle);
 
       declare
-         command : constant String := chroot & root & environment_override &
+         command : constant String := chroot & root & environment_override (id) &
            phaseenv & chroot_make_program & " -C /port " & phase2str (phase);
       begin
          result := generic_execute (id, command, timed_out, time_limit);
@@ -370,7 +370,7 @@ package body PortScan.Buildcycle is
    function get_port_variables (id : builders) return String
    is
       root    : constant String := get_root (id);
-      command : constant String := chroot & root & environment_override &
+      command : constant String := chroot & root & environment_override (id) &
         chroot_make_program & " -C /port -VCONFIGURE_ENV -VCONFIGURE_ARGS" &
                               " -VMAKE_ENV -VMAKE_ARGS -VPLIST_SUB -VSUB_LIST";
    begin
@@ -434,7 +434,7 @@ package body PortScan.Buildcycle is
    function get_environment (id : builders) return String
    is
       root    : constant String := get_root (id);
-      command : constant String := chroot & root & environment_override;
+      command : constant String := chroot & root & environment_override (id);
    begin
       return generic_system_command (command);
    exception
@@ -446,9 +446,13 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  environment_override
    --------------------------------------------------------------------------------------------
-   function environment_override (enable_tty : Boolean := False) return String
+   function environment_override (id : builders; enable_tty : Boolean := False) return String
    is
       function set_terminal (enable_tty : Boolean) return String;
+      function toolchain_path return String;
+
+      localbase : constant String := HT.USS (PM.configuration.dir_localbase);
+
       function set_terminal (enable_tty : Boolean) return String is
       begin
          if enable_tty then
@@ -457,11 +461,19 @@ package body PortScan.Buildcycle is
          return "TERM=dumb ";
       end set_terminal;
 
-      localbase : constant String := HT.USS (PM.configuration.dir_localbase);
+      function toolchain_path return String is
+      begin
+
+         if phases'Pos (phase_trackers (id)) < phases'Pos (stage) then
+            return localbase & "/toolchain/gcc6/bin:"
+                 & localbase & "/toolchain/bin:";
+         else
+            return "";
+         end if;
+      end toolchain_path;
 
       PATH : constant String := "PATH=/bin:/usr/bin:"
-        & localbase & "/toolchain/gcc6/bin:"
-        & localbase & "/toolchain/bin:"
+        & toolchain_path
         & localbase & "/sbin:"
         & localbase & "/bin ";
 
@@ -550,7 +562,7 @@ package body PortScan.Buildcycle is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := chroot & root & environment_override &
+         command    : constant String := chroot & root & environment_override (id) &
                       PKG_DELETE & pkgname;
       begin
          if still_good then
@@ -584,7 +596,7 @@ package body PortScan.Buildcycle is
    procedure stack_linked_libraries (id : builders; base, filename : String)
    is
       objdump : String := HT.USS (PM.configuration.dir_localbase) & "/toolchain/bin/objdump";
-      command : String := chroot & base & environment_override & objdump & " -p " & filename;
+      command : String := chroot & base & environment_override (id) & objdump & " -p " & filename;
       comres  : String :=  generic_system_command (command);
       markers : HT.Line_Markers;
    begin
@@ -633,7 +645,7 @@ package body PortScan.Buildcycle is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := chroot & root & environment_override &
+         command    : constant String := chroot & root & environment_override (id) &
                       "/usr/bin/pkg-static query %Fp " & pkgname;
          comres  : String :=  generic_system_command (command);
          markers : HT.Line_Markers;
@@ -883,8 +895,8 @@ package body PortScan.Buildcycle is
          end if;
       end attributes;
 
-      command  : constant String := chroot & root & environment_override  & " /usr/bin/mtree -X "
-                 & mtfile & " -cn -k " & attributes (action) & " -p /";
+      command  : constant String := chroot & root & environment_override (id) &
+                 " /usr/bin/mtree -X " & mtfile & " -cn -k " & attributes (action) & " -p /";
       filename : constant String := root & "/tmp/mtree." & action;
 
    begin
@@ -904,9 +916,9 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    procedure interact_with_builder (id : builders)
    is
-      root      : constant String := get_root (id);
-      command   : String := chroot & root & environment_override (enable_tty => True) & "/bin/sh";
-      result    : Boolean;
+      root    : constant String := get_root (id);
+      command : String := chroot & root & environment_override (id, True) & "/bin/sh";
+      result  : Boolean;
    begin
       TIO.Put_Line ("Entering interactive test mode at the builder root directory.");
       TIO.Put_Line ("Type 'exit' when done exploring.");
@@ -932,8 +944,8 @@ package body PortScan.Buildcycle is
       root      : constant String := get_root (id);
       mtfile    : constant String := "/etc/mtree." & action & ".exclude";
       filename  : constant String := root & "/tmp/mtree." & action;
-      command   : constant String := chroot & root & environment_override & "/usr/bin/mtree -X " &
-                                     mtfile & " -f " & filename & " -p /";
+      command   : constant String := chroot & root & environment_override (id) &
+                  "/usr/bin/mtree -X " & mtfile & " -f " & filename & " -p /";
       lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
       lbase     : constant String := lbasewrk (lbasewrk'First + 1 .. lbasewrk'Last);
       lblen     : constant Natural := lbase'Length;
@@ -1294,7 +1306,7 @@ package body PortScan.Buildcycle is
    procedure run_makesum (id : builders)
    is
       root     : constant String := get_root (id);
-      command  : constant String := chroot & root & environment_override &
+      command  : constant String := chroot & root & environment_override (id) &
                  chroot_make_program & " -C /port makesum";
       distinfo : constant String := root & "/port/distinfo";
       result   : constant String := generic_system_command (command);

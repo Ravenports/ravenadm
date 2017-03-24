@@ -112,7 +112,7 @@ private
    function  get_port_variables (id : builders) return String;
    function  generic_system_command (command : String) return String;
    function  get_root (id : builders) return String;
-   function  environment_override (enable_tty : Boolean := False) return String;
+   function  environment_override (id : builders; enable_tty : Boolean := False) return String;
    function  dynamically_linked (base, filename : String) return Boolean;
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
