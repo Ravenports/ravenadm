@@ -1108,6 +1108,10 @@ package body PortScan.Operations is
             return "x86:64";
          elsif arch = "Intel 80386" then
             return "x86:32";
+         elsif arch = "ARM aarch64" then
+            return "aarch64:64";
+         elsif arch = "ARM, EABI5 " then
+            return "armv6:32:el:eabi:softfp";
          else
             return "unknown:" & arch;
          end if;
@@ -1121,6 +1125,10 @@ package body PortScan.Operations is
             return "amd64";
          elsif arch = "Intel 80386" then
             return "i386";
+         elsif arch = "ARM aarch64" then
+            return "arm64";
+         elsif arch = "ARM, EABI5 " then
+            return "armv6";
          else
             return "unknown:" & arch;
          end if;
