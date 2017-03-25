@@ -197,10 +197,11 @@ package body PortScan is
 
 
    --------------------------------------------------------------------------------------------
-   --  convert_origin_to_portkey
+   --  convert_depend_origin_to_portkey
    --------------------------------------------------------------------------------------------
-   function convert_origin_to_portkey (origin : String) return String
+   function convert_depend_origin_to_portkey (origin : String) return String
    is
+      --  expected format: namebase:subpackage:variant
       numcolons : Natural := HT.count_char (origin, LAT.Colon);
    begin
       if numcolons < 2 then
@@ -212,21 +213,23 @@ package body PortScan is
       begin
          return namebase & LAT.Colon & variant;
       end;
-   end convert_origin_to_portkey;
+   end convert_depend_origin_to_portkey;
 
 
    --------------------------------------------------------------------------------------------
-   --  subpackage_from_origin
+   --  subpackage_from_pkgname
    --------------------------------------------------------------------------------------------
-   function subpackage_from_origin (origin : String) return String
+   function subpackage_from_pkgname (pkgname : String) return String
    is
-      numcolons : Natural := HT.count_char (origin, LAT.Colon);
+      --  expected format: namebase-subpackage-variant-version.txz
+      --  support namebase-subpackage-variant too
+      numcolons : Natural := HT.count_char (pkgname, LAT.Hyphen);
    begin
       if numcolons < 2 then
          return "error";
       end if;
-      return HT.specific_field (origin, 2, ":");
-   end subpackage_from_origin;
+      return HT.specific_field (pkgname, 2, "-");
+   end subpackage_from_pkgname;
 
 
    --------------------------------------------------------------------------------------------

@@ -225,7 +225,10 @@ private
 
    --  This function returns "True" if the scanned dependencies match exactly
    --  what the current ports tree has.
-   function passed_dependency_check (query_result : HT.Text; id : port_id) return Boolean;
+   function passed_dependency_check
+     (subpackage   : String;
+      query_result : HT.Text;
+      id           : port_id) return Boolean;
 
    --  Turn on option and dependency debug checks programmatically
    procedure activate_debugging_code;

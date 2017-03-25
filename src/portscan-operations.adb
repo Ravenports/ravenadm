@@ -1314,7 +1314,10 @@ package body PortScan.Operations is
                return;
             end if;
 
-            if passed_dependency_check (query_result => rec.pkg_dep_query, id => target) then
+            if passed_dependency_check (subpackage   => subpackage,
+                                        query_result => rec.pkg_dep_query,
+                                        id           => target)
+            then
                already_built.Append (New_Item => newrec);
                if rec.remote_pkg then
                   fetch_list.Append (New_Item => newrec);
@@ -1586,14 +1589,22 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    --  passed_dependency_check
    --------------------------------------------------------------------------------------------
-   function passed_dependency_check (query_result : HT.Text; id : port_id) return Boolean
+   function passed_dependency_check
+     (subpackage   : String;
+      query_result : HT.Text;
+      id           : port_id) return Boolean
    is
-      content  : String := HT.USS (query_result);
-      req_deps : constant Natural := Natural (all_ports (id).run_deps.Length);
-      headport : constant String := get_port_variant (all_ports (id));
+      content  : String  := HT.USS (query_result);
+      req_deps : Natural := Natural (all_ports (id).run_deps.Length);
+      headport : constant String := HT.USS (all_ports (id).port_namebase) & LAT.Colon &
+                                    subpackage & LAT.Colon & HT.USS (all_ports (id).port_variant);
       counter  : Natural := 0;
       markers  : HT.Line_Markers;
    begin
+      if subpackage = spkg_complete then
+         --  special handling for "complete" metapackage
+         req_deps := Natural (all_ports (id).subpackages.Length) - 1;
+      end if;
       HT.initialize_markers (content, markers);
       loop
          exit when not HT.next_line_present (content, markers);
@@ -1606,11 +1617,9 @@ package body PortScan.Operations is
             declare
                procedure set_available (position : subpackage_crate.Cursor);
 
-               portkey    : String := convert_origin_to_portkey (origin);
-               subpackage : String := subpackage_from_origin (origin);
-               target_id  : port_index := ports_keys.Element (HT.SUS (portkey));
-               target_pkg : String := HT.replace_all (origin, LAT.Colon, LAT.Hyphen) &
-                                      LAT.Hyphen & HT.USS (all_ports (target_id).pkgversion);
+               subpackage : String := subpackage_from_pkgname (deppkg);
+               target_id  : port_index := ports_keys.Element (HT.SUS (origin));
+               target_pkg : String := calculate_package_name (target_id, subpackage);
                found      : Boolean := False;
                available  : Boolean;
 
@@ -1622,7 +1631,7 @@ package body PortScan.Operations is
                     HT.USS (rec.subpackage) = subpackage
                   then
                      available := (rec.remote_pkg or else rec.pkg_present) and then
-                       rec.deletion_due;
+                       not rec.deletion_due;
                      found := True;
                   end if;
                end set_available;
@@ -1632,7 +1641,7 @@ package body PortScan.Operations is
                else
                   --  package seems to have a dependency that has been removed from the conspiracy
                   LOG.obsolete_notice
-                    (message         => portkey & " has been removed from Ravenports",
+                    (message         => origin & " has been removed from Ravenports",
                      write_to_screen => debug_dep_check);
                   return False;
                end if;
@@ -1644,7 +1653,7 @@ package body PortScan.Operations is
                     (write_to_screen => debug_dep_check,
                      message         => headport & " package has more dependencies than the " &
                        "port requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
-                       "Query: " & HT.USS (query_result) & LAT.LF &
+                       "Query: " & LAT.LF & HT.USS (query_result) &
                        "Tripped on: " & line);
                   return False;
                end if;
@@ -1679,7 +1688,7 @@ package body PortScan.Operations is
            (write_to_screen => debug_dep_check,
             message         => headport & " package has less dependencies than the port " &
               "requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
-              "Query: " & HT.USS (query_result));
+              "Query: " & LAT.LF & HT.USS (query_result));
          return False;
       end if;
 
@@ -1691,7 +1700,7 @@ package body PortScan.Operations is
       when issue : others =>
          LOG.obsolete_notice
            (write_to_screen => debug_dep_check,
-            message         => "Dependency check exception" & LAT.LF &
+            message         => content & "Dependency check exception" & LAT.LF &
               EX.Exception_Message (issue));
          return False;
    end passed_dependency_check;

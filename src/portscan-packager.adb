@@ -408,7 +408,7 @@ package body PortScan.Packager is
          exit when not HT.next_line_present (block, markers);
          declare
             line       : constant String  := HT.extract_line (block, markers);
-            portkey    : constant String  := convert_origin_to_portkey (line);
+            portkey    : constant String  := convert_depend_origin_to_portkey (line);
             id         : constant port_id := ports_keys (HT.SUS (portkey));
             pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
             pkgversion : constant String  := HT.USS (all_ports (id).pkgversion);

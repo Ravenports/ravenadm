@@ -59,11 +59,11 @@ package PortScan is
    --  Given an ID and specifying a subpackage, this function returns the package file name.
    function calculate_package_name (id : port_id; subpackage : String) return String;
 
-   --  Takes origin tuplet (namebase-subpkg-variant) and returns namebase-variant
-   function convert_origin_to_portkey (origin : String) return String;
+   --  Takes origin tuplet (namebase:subpkg:variant) and returns namebase:variant
+   function convert_depend_origin_to_portkey (origin : String) return String;
 
-   --  Takes origin tuplet (namebase-subpkg-variant) and returns subpkg
-   function subpackage_from_origin (origin : String) return String;
+   --  Takes origin tuplet (namebase-subpkg-variant-version.txz) and returns subpkg
+   function subpackage_from_pkgname (pkgname : String) return String;
 
    --  Insert unique NV pair into portlist and dupelist.
    procedure insert_into_portlist (port_variant : String);

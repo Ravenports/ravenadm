@@ -535,7 +535,7 @@ package body PortScan.Scan is
          namebase : String := HT.specific_field (tuple, 1, ":");
          variant  : String := HT.specific_field (tuple, 3, ":");
       begin
-         return namebase & LAT.Hyphen & variant;
+         return namebase & LAT.Colon & variant;
       end;
    end convert_tuple_to_portkey;
 
