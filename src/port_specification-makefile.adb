@@ -455,6 +455,7 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
+      send ("USES",             specs.uses, 1);
       dump_catchall;
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
 
