@@ -98,8 +98,7 @@ private
    procedure obtain_custom_environment;
    procedure stack_linked_libraries (id : builders; base, filename : String);
    procedure log_linked_libraries (id : builders; pkgversion : String);
-   function  exec_phase_generic (id : builders; phase : phases) return Boolean;
-   function  exec_phase_depends (id : builders) return Boolean;
+   function  exec_phase_generic   (id : builders; phase : phases) return Boolean;
    function  exec_phase_deinstall (id : builders; pkgversion : String) return Boolean;
    function  exec_phase_install   (id : builders; pkgversion : String) return Boolean;
    function  exec_phase_build (id : builders) return Boolean;
@@ -121,5 +120,9 @@ private
       command    : String;
       dogbite    : out Boolean;
       time_limit : execution_limit) return Boolean;
+   function  exec_phase_depends
+     (specification : PSP.Portspecs;
+      phase_name    : String;
+      id            : builders) return Boolean;
 
 end PortScan.Buildcycle;
