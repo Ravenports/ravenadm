@@ -64,8 +64,13 @@ private
       arch_standard : supported_arch;
       osmajor       : String);
 
+   procedure apply_gmake_module (specs : in out Portspecs);
+   procedure apply_libtool_module (specs : in out Portspecs);
+
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string (value : in out HT.Text);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);
+
+   function argument_present (specs : Portspecs; module, argument : String) return Boolean;
 
 end Port_Specification.Transform;

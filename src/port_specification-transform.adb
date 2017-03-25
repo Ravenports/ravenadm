@@ -193,6 +193,8 @@ package body Port_Specification.Transform is
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_cpe_module (specs, arch_standard, osmajor);
+      apply_gmake_module (specs);
+      apply_libtool_module (specs);
       apply_curly_bracket_conversions (specs);
    end apply_directives;
 
@@ -603,6 +605,39 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_gmake_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gmake_module (specs : in out Portspecs)
+   is
+      text_module : HT.Text := HT.SUS ("gmake");
+      dependency  : HT.Text := HT.SUS ("gmake:single:lite");
+   begin
+      if specs.uses.Contains (text_module) and then
+        not specs.build_deps.Contains (dependency)
+      then
+            specs.build_deps.Append (dependency);
+      end if;
+   end apply_gmake_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gmake_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_libtool_module (specs : in out Portspecs)
+   is
+      module      : String  := "libtool";
+      dependency  : HT.Text := HT.SUS ("libtool:single:standard");
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) and then
+        argument_present (specs, module, "build") and then
+        not specs.build_deps.Contains (dependency)
+      then
+         specs.build_deps.Append (dependency);
+      end if;
+   end apply_libtool_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_curly_bracket_conversions
    --------------------------------------------------------------------------------------------
    procedure apply_curly_bracket_conversions (specs : in out Portspecs) is
@@ -677,5 +712,49 @@ package body Port_Specification.Transform is
    begin
       crate.Iterate (check'Access);
    end apply_cbc_string_crate;
+
+
+   --------------------------------------------------------------------------------------------
+   --  argument_present
+   --------------------------------------------------------------------------------------------
+   function argument_present (specs : Portspecs; module, argument : String) return Boolean
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      found : Boolean := False;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         value_text : HT.Text renames string_crate.Element (position);
+         value      : String := HT.USS (value_text);
+      begin
+         if not found and then HT.count_char (value, LAT.Colon) = 1 then
+            declare
+               modulestr : String := HT.part_1 (value, ":");
+            begin
+               if modulestr = module then
+                  declare
+                     argumentstr : String := HT.part_2 (value, ":");
+                     num_commas  : Natural := HT.count_char (argumentstr, LAT.Comma);
+                  begin
+                     if num_commas = 0 then
+                        found := (argument = argumentstr);
+                     else
+                        for x in 1 .. num_commas + 1 loop
+                           if argument = HT.specific_field (argumentstr, x, ":") then
+                              found := True;
+                              exit;
+                           end if;
+                        end loop;
+                     end if;
+                  end;
+               end if;
+            end;
+         end if;
+      end scan;
+   begin
+      specs.uses.Iterate (scan'Access);
+      return found;
+   end argument_present;
 
 end Port_Specification.Transform;

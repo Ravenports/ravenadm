@@ -311,6 +311,7 @@ private
          deprecated    : HT.Text;
          expire_date   : HT.Text;
          uses          : string_crate.Vector;
+         uses_base     : string_crate.Vector;
          sub_list      : string_crate.Vector;
          sub_files     : string_crate.Vector;
          extract_only  : string_crate.Vector;

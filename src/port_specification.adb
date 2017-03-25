@@ -44,6 +44,7 @@ package body Port_Specification is
       specs.inc_opsys.Clear;
       specs.exc_arch.Clear;
       specs.uses.Clear;
+      specs.uses_base.Clear;
       specs.sub_list.Clear;
       specs.sub_files.Clear;
       specs.extract_only.Clear;
@@ -566,7 +567,18 @@ package body Port_Specification is
             if not valid_uses_module (value) then
                raise wrong_value with "invalid USES module '" & value & "'";
             end if;
-            specs.uses.Append (text_value);
+            if specs.uses.Contains (text_value) then
+               raise wrong_value with "Duplicate USES module '" & value & "'";
+            end if;
+            declare
+               stripped      : String  := HT.part_1 (value, ":");
+               text_stripped : HT.Text := HT.SUS (stripped);
+            begin
+               specs.uses.Append (text_value);
+               if not specs.uses_base.Contains (text_stripped) then
+                  specs.uses_base.Append (text_stripped);
+               end if;
+            end;
          when others =>
             raise wrong_type with field'Img;
       end case;
