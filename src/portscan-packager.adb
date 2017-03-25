@@ -347,8 +347,7 @@ package body PortScan.Packager is
          --  special handling: this is automatically converted to a metaport
          write_complete_metapackage_deps (spec, file_handle, variant, pkgversion);
       else
-         --  TODO: dependencies
-         null;
+         write_down_run_dependencies (spec, file_handle);
       end if;
       TIO.Put_Line (file_handle, "}");
       TIO.Put_Line (file_handle, "options: {"  & spec.get_field_value (PSP.sp_opt_helper) & " }");
@@ -392,6 +391,36 @@ package body PortScan.Packager is
          end;
       end loop;
    end write_complete_metapackage_deps;
+
+
+   --------------------------------------------------------------------------------------------
+   --  write_down_run_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure write_down_run_dependencies
+     (spec        : PSP.Portspecs;
+      file_handle : TIO.File_Type)
+   is
+      block   : constant String := spec.combined_run_dependency_origins;
+      markers : HT.Line_Markers;
+   begin
+      HT.initialize_markers (block, markers);
+      loop
+         exit when not HT.next_line_present (block, markers);
+         declare
+            line       : constant String  := HT.extract_line (block, markers);
+            portkey    : constant String  := convert_origin_to_portkey (line);
+            id         : constant port_id := ports_keys (HT.SUS (portkey));
+            pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
+            pkgversion : constant String  := HT.USS (all_ports (id).pkgversion);
+         begin
+            TIO.Put_Line (file_handle, "  " & quote (pkgname) & " : {");
+            TIO.Put_Line (file_handle,
+                            "    version : " & quote (pkgversion) & "," & LAT.LF &
+                            "    origin : " & quote (portkey) & LAT.LF &
+                            "  },");
+         end;
+      end loop;
+   end write_down_run_dependencies;
 
 
    --------------------------------------------------------------------------------------------

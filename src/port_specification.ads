@@ -193,6 +193,12 @@ package Port_Specification is
    --  Returns True if one or more variants have no defined subpackages.
    function missing_subpackage_definition (specs : Portspecs) return Boolean;
 
+   --  Return string block (delimited by LF) of unique build + buildrun + run depends.
+   function combined_dependency_origins (specs : Portspecs) return String;
+
+   --  Return string block (delimited by LF) of unique buildrun + run depends
+   function combined_run_dependency_origins (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;

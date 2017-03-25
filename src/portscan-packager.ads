@@ -51,6 +51,11 @@ private
       variant     : String;
       pkgversion  : String);
 
+   --  Document buildrun + run dependencies in the "deps" category of the manifest.
+   procedure write_down_run_dependencies
+     (spec        : PSP.Portspecs;
+      file_handle : TIO.File_Type);
+
    --  If there are any package notes, write them to the manifest
    procedure write_package_annotations
      (spec        : PSP.Portspecs;

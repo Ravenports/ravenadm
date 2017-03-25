@@ -1968,6 +1968,76 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  combined_dependency_origins
+   --------------------------------------------------------------------------------------------
+   function combined_dependency_origins (specs : Portspecs) return String
+   is
+      procedure scan  (position : string_crate.Cursor);
+      procedure print (position : string_crate.Cursor);
+
+      combined : string_crate.Vector;
+      result   : HT.Text;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         text_value : HT.Text renames string_crate.Element (position);
+      begin
+         if not combined.Contains (text_value) then
+            combined.Append (text_value);
+         end if;
+      end scan;
+
+      procedure print (position : string_crate.Cursor)
+      is
+         text_value : HT.Text renames string_crate.Element (position);
+      begin
+         HT.SU.Append (result, HT.USS (text_value) & LAT.LF);
+      end print;
+
+   begin
+      specs.build_deps.Iterate (scan'Access);
+      specs.buildrun_deps.Iterate (scan'Access);
+      specs.run_deps.Iterate (scan'Access);
+      combined.Iterate (print'Access);
+      return HT.USS (result);
+   end combined_dependency_origins;
+
+
+   --------------------------------------------------------------------------------------------
+   --  combined_run_dependency_origins
+   --------------------------------------------------------------------------------------------
+   function combined_run_dependency_origins (specs : Portspecs) return String
+   is
+      procedure scan  (position : string_crate.Cursor);
+      procedure print (position : string_crate.Cursor);
+
+      combined : string_crate.Vector;
+      result   : HT.Text;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         text_value : HT.Text renames string_crate.Element (position);
+      begin
+         if not combined.Contains (text_value) then
+            combined.Append (text_value);
+         end if;
+      end scan;
+
+      procedure print (position : string_crate.Cursor)
+      is
+         text_value : HT.Text renames string_crate.Element (position);
+      begin
+         HT.SU.Append (result, HT.USS (text_value) & LAT.LF);
+      end print;
+   begin
+      specs.buildrun_deps.Iterate (scan'Access);
+      specs.run_deps.Iterate (scan'Access);
+      combined.Iterate (print'Access);
+      return HT.USS (result);
+   end combined_run_dependency_origins;
+
+
+   --------------------------------------------------------------------------------------------
    --  valid_uses_module
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
