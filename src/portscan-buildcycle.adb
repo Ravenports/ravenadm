@@ -76,7 +76,7 @@ package body PortScan.Buildcycle is
                end if;
 
             when stage =>
-               REP.unhook_toolchain (id);
+               --  REP.unhook_toolchain (id);
                if testing then
                   mark_file_system (id, "prestage");
                end if;
@@ -463,10 +463,8 @@ package body PortScan.Buildcycle is
 
       function toolchain_path return String is
       begin
-
          if phases'Pos (phase_trackers (id)) < phases'Pos (stage) then
-            return localbase & "/toolchain/gcc6/bin:"
-                 & localbase & "/toolchain/bin:";
+            return localbase & "/toolchain/gcc6/bin:";
          else
             return "";
          end if;
@@ -474,6 +472,7 @@ package body PortScan.Buildcycle is
 
       PATH : constant String := "PATH=/bin:/usr/bin:"
         & toolchain_path
+        & localbase & "/toolchain/bin:"
         & localbase & "/sbin:"
         & localbase & "/bin ";
 
