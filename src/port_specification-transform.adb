@@ -195,6 +195,7 @@ package body Port_Specification.Transform is
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
       apply_libtool_module (specs);
+      apply_info_presence (specs);
       apply_curly_bracket_conversions (specs);
    end apply_directives;
 
@@ -635,6 +636,20 @@ package body Port_Specification.Transform is
          specs.build_deps.Append (dependency);
       end if;
    end apply_libtool_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_info_presence
+   --------------------------------------------------------------------------------------------
+   procedure apply_info_presence (specs : in out Portspecs)
+   is
+      module      : String  := "info";
+      dependency  : HT.Text := HT.SUS ("indexinfo:single:standard");
+   begin
+      if not specs.info.Is_Empty then
+         specs.build_deps.Append (dependency);
+      end if;
+   end apply_info_presence;
 
 
    --------------------------------------------------------------------------------------------

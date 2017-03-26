@@ -422,4 +422,9 @@ private
    --  Returns true if value is a known USES module.
    function valid_uses_module (value : String) return Boolean;
 
+   --  Return true if INFO appendum is valid (compared against existing entries)
+   --  Specifically it's checking the subdirectory (if it exists) to make sure it matches
+   --  previous entries.  It will define INFO_SUBDIR in catchall (once)
+   function valid_info_page (specs : in out Portspecs; value : String) return Boolean;
+
 end Port_Specification;

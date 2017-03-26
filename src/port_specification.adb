@@ -579,6 +579,15 @@ package body Port_Specification is
                   specs.uses_base.Append (text_stripped);
                end if;
             end;
+         when sp_info =>
+            verify_entry_is_post_options;
+            if specs.info.Contains (text_value) then
+               raise wrong_value with "Duplicate INFO entry '" & value & "'";
+            end if;
+            if not specs.valid_info_page (value) then
+               raise wrong_value with "INFO subdirectories must match on every entry";
+            end if;
+            specs.info.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2070,6 +2079,38 @@ package body Port_Specification is
 
       return False;
    end valid_uses_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_info_page
+   --------------------------------------------------------------------------------------------
+   function valid_info_page (specs : in out Portspecs; value : String) return Boolean
+   is
+      --  duplicity has already been checked when we get to this routine
+      --  INFO_SUBDIR is defined in catchall as a result.
+
+      num_sep     : Natural := HT.count_char (value, LAT.Solidus);
+      first_one   : Boolean := specs.info.Is_Empty;
+      INFO_SUBDIR : HT.Text := HT.SUS ("INFO_SUBDIR");
+      NO_SUBDIR   : constant String := ".";
+      saved_value : HT.Text;
+   begin
+      if first_one then
+         if num_sep = 0 then
+            specs.catch_all.Insert (INFO_SUBDIR, HT.SUS (NO_SUBDIR));
+         else
+            specs.catch_all.Insert (INFO_SUBDIR, HT.SUS (HT.head (value, "/")));
+         end if;
+         return True;
+      else
+         saved_value := specs.catch_all.Element (INFO_SUBDIR);
+         if num_sep = 0 then
+            return HT.equivalent (saved_value, NO_SUBDIR);
+         else
+            return HT.equivalent (saved_value, HT.head (value, "/"));
+         end if;
+      end if;
+   end valid_info_page;
 
 
    --------------------------------------------------------------------------------------------

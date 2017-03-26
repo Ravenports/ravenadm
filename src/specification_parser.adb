@@ -886,7 +886,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 81;
+      total_singlets : constant Positive := 82;
 
       type singlet_pair is
          record
@@ -944,6 +944,7 @@ package body Specification_Parser is
          ("GROUPS                ",  6, groups),
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
+         ("INFO_PATH             ",  9, catchall),
          ("INSTALL_REQ_TOOLCHAIN ", 21, shift_install),
          ("INSTALL_TARGET        ", 14, install_tgt),
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
