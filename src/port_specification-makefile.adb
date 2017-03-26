@@ -45,6 +45,7 @@ package body Port_Specification.Makefile is
       procedure dump_broken;
       procedure dump_catchall;
       procedure dump_has_configure   (value  : HT.Text);
+      procedure dump_distname;
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -185,11 +186,48 @@ package body Port_Specification.Makefile is
 
       procedure dump_distfiles (position : string_crate.Cursor)
       is
-         index : Natural := string_crate.To_Index (position);
-         NDX   : String  := HT.USS (varname_prefix)  & "_" & HT.int2str (index) & LAT.Equals_Sign;
+         index : String := HT.int2str (string_crate.To_Index (position));
+         pload : String := HT.USS (string_crate.Element (position));
+         NDX   : String := HT.USS (varname_prefix)  & "_" & index & LAT.Equals_Sign;
       begin
-         send (NDX & HT.USS (string_crate.Element (position)));
+         if HT.leads (pload, "generated:") then
+            declare
+               group  : String := HT.part_2 (pload, ":");
+               dlsite : String :=
+                 HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
+            begin
+               if HT.leads (dlsite, "GITHUB/") or else
+                 HT.leads (dlsite, "GH/")
+               then
+                  send (NDX & generate_github_distfile (dlsite) & ":" & group);
+                  return;
+               else
+                  --  seems like a mistake, fall through
+                  null;
+               end if;
+            end;
+         end if;
+         send (NDX & pload);
       end dump_distfiles;
+
+      procedure dump_distname is
+      begin
+         if not HT.IsBlank (specs.distname) then
+            send ("DISTNAME", specs.distname);
+         else
+            declare
+               first_dlsite : constant String :=
+                 HT.USS (specs.dl_sites.Element (HT.SUS (dlgroup_main)).list.First_Element);
+            begin
+               if HT.leads (first_dlsite, "GITHUB/") or else
+                 HT.leads (first_dlsite, "GH/")
+               then
+                  send ("DISTNAME", generate_github_distname (first_dlsite));
+               end if;
+            end;
+         end if;
+      end dump_distname;
+
 
       procedure dump_makesum (position : string_crate.Cursor)
       is
@@ -443,7 +481,7 @@ package body Port_Specification.Makefile is
       send ("DL_SITES",         specs.dl_sites, 1);
       send ("DISTFILE",         specs.distfiles, 2);
       send ("DIST_SUBDIR",      specs.dist_subdir);
-      send ("DISTNAME",         specs.distname);
+      dump_distname;
       send ("MAKESUM_INDEX",    specs.distfiles, 9);
       send ("DF_INDEX",         specs.df_index, 1);
       send ("SUBPACKAGES",      specs.subpackages, 8);
@@ -539,5 +577,61 @@ package body Port_Specification.Makefile is
          end if;
    end generator;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_github_distfile
+   --------------------------------------------------------------------------------------------
+   function generate_github_distfile (download_site : String) return String
+   is
+      gh_args    : constant String  := HT.part_2 (download_site, "/");
+      num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
+      gh_ext     : constant String  := ".tar.gz";
+   begin
+      if num_colons < 2 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return gh_args & gh_ext;
+      end if;
+      declare
+         acct : constant String := HT.specific_field (gh_args, 1, ":");
+         proj : constant String := HT.specific_field (gh_args, 2, ":");
+         vers : constant String := HT.replace_all (S      => HT.specific_field (gh_args, 3, ":"),
+                                                   reject => LAT.Plus_Sign,
+                                                   shiny  => LAT.Hyphen);
+      begin
+         if vers (vers'First) = 'v' then
+            return acct & LAT.Hyphen & proj & LAT.Hyphen &
+              vers (vers'First + 1 .. vers'Last) & gh_ext;
+         else
+            return acct & LAT.Hyphen & proj & LAT.Hyphen & vers & gh_ext;
+         end if;
+      end;
+   end generate_github_distfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_github_distfile
+   --------------------------------------------------------------------------------------------
+   function generate_github_distname (download_site : String) return String
+   is
+      gh_args    : constant String  := HT.part_2 (download_site, "/");
+      num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
+   begin
+      if num_colons < 2 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return gh_args;
+      end if;
+      declare
+         proj : constant String := HT.specific_field (gh_args, 2, ":");
+         vers : constant String := HT.replace_all (S      => HT.specific_field (gh_args, 3, ":"),
+                                                   reject => LAT.Plus_Sign,
+                                                   shiny  => LAT.Hyphen);
+      begin
+         if vers (vers'First) = 'v' then
+            return proj & LAT.Hyphen & vers (vers'First + 1 .. vers'Last);
+         else
+            return proj & LAT.Hyphen & vers;
+         end if;
+      end;
+   end generate_github_distname;
 
 end Port_Specification.Makefile;
