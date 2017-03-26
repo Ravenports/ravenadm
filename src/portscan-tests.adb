@@ -125,27 +125,32 @@ package body PortScan.Tests is
                      end if;
                   end;
                else
-                  if dossier_list.Contains (line_text) then
-                     result := False;
-                     declare
-                        spkg : String := HT.USS (dossier_list.Element (line_text).subpackage);
-                     begin
-                        TIO.Put_Line
-                          (log_handle,
-                           "Duplicate file entry, " & identifier & line & " already present in "
-                           & spkg & " manifest");
-                     end;
-                  else
-                     dossier_list.Insert (line_text, new_rec);
-                     declare
-                        plistdir : String := DIR.Containing_Directory (line);
-                        dir_text : HT.Text := HT.SUS (plistdir);
-                     begin
-                        if not directory_list.Contains (dir_text) then
-                           directory_list.Insert (dir_text, new_rec);
-                        end if;
-                     end;
-                  end if;
+                  declare
+                     modline : String  := modify_file_if_necessary (line);
+                     ml_text : HT.Text := HT.SUS (modline);
+                  begin
+                     if dossier_list.Contains (ml_text) then
+                        result := False;
+                        declare
+                           spkg : String := HT.USS (dossier_list.Element (ml_text).subpackage);
+                        begin
+                           TIO.Put_Line
+                             (log_handle,
+                              "Duplicate file entry, " & identifier & modline &
+                                " already present in " & spkg & " manifest");
+                        end;
+                     else
+                        dossier_list.Insert (ml_text, new_rec);
+                        declare
+                           plistdir : String := DIR.Containing_Directory (modline);
+                           dir_text : HT.Text := HT.SUS (plistdir);
+                        begin
+                           if not directory_list.Contains (dir_text) then
+                              directory_list.Insert (dir_text, new_rec);
+                           end if;
+                        end;
+                     end if;
+                  end;
                end if;
             end;
          end loop;
@@ -353,7 +358,7 @@ package body PortScan.Tests is
 
    --------------------------------------------------------------------------------------------
    --  orphaned_files_detected
-      --------------------------------------------------------------------------------------------
+   --------------------------------------------------------------------------------------------
    function orphaned_files_detected
      (log_handle    : TIO.File_Type;
       namebase      : String;
@@ -410,5 +415,30 @@ package body PortScan.Tests is
       end loop;
       return result;
    end orphaned_files_detected;
+
+
+   --------------------------------------------------------------------------------------------
+   --  modify_file_if_necessary
+   --------------------------------------------------------------------------------------------
+   function modify_file_if_necessary (original : String) return String
+   is
+      function strip_raw_localbase (wrkstr : String) return String;
+      function strip_raw_localbase (wrkstr : String) return String
+      is
+         rawlbase : constant String  := HT.USS (PM.configuration.dir_localbase) & "/";
+      begin
+         if HT.leads (wrkstr, rawlbase) then
+            return wrkstr (wrkstr'First + rawlbase'Length .. wrkstr'Last);
+         else
+            return wrkstr;
+         end if;
+      end strip_raw_localbase;
+   begin
+      if HT.leads (original, "@info ") then
+         return strip_raw_localbase (original (original'First + 6 .. original 'Last));
+      else
+         return original;
+      end if;
+   end modify_file_if_necessary;
 
 end PortScan.Tests;

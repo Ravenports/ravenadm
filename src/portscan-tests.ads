@@ -72,4 +72,7 @@ private
    --  Set verified to true
    procedure mark_verified (key : HT.Text; Element : in out entry_record);
 
+   --  Remove keywords and other alterations
+   function modify_file_if_necessary (original : String) return String;
+
 end PortScan.Tests;
