@@ -50,8 +50,8 @@ package body PortScan.Packager is
          function convert_stage   (stage   : three) return String;
          subpackage    : constant String :=
                          HT.USS (subpackage_crate.Element (position).subpackage);
-         message_file  : constant String := wrkdir & "/PKG_DISPLAY." & subpackage;
-         descript_file : constant String := wrkdir & "/PKG_DESC." & subpackage;
+         message_file  : constant String := wrkdir & "/.PKG_DISPLAY." & subpackage;
+         descript_file : constant String := wrkdir & "/.PKG_DESC." & subpackage;
          descript : String := "/+DESC";
          manifest : String := "/+MANIFEST";
 
