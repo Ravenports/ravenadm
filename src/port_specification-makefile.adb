@@ -46,6 +46,7 @@ package body Port_Specification.Makefile is
       procedure dump_catchall;
       procedure dump_has_configure   (value  : HT.Text);
       procedure dump_distname;
+      procedure dump_info;
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -457,6 +458,57 @@ package body Port_Specification.Makefile is
          specs.catch_all.Iterate (dump_nv'Access);
       end dump_catchall;
 
+      procedure dump_info
+      is
+         procedure scan (position : string_crate.Cursor);
+         procedure print (position : list_crate.Cursor);
+
+         tempstore : list_crate.Map;
+
+         procedure scan (position : string_crate.Cursor)
+         is
+            procedure update (Key : HT.Text; Element : in out group_list);
+
+            value  : String := HT.USS (string_crate.Element (position));
+            newkey : HT.Text := HT.SUS (HT.part_1 (value, ":"));
+            newval : HT.Text := HT.SUS (HT.part_2 (value, ":"));
+
+            procedure update (Key : HT.Text; Element : in out group_list) is
+            begin
+               Element.list.Append (newval);
+            end update;
+         begin
+            if not tempstore.Contains (newkey) then
+               declare
+                  newrec : group_list;
+               begin
+                  newrec.group := newkey;
+                  tempstore.Insert (newkey, newrec);
+               end;
+            end if;
+            tempstore.Update_Element (Position => tempstore.Find (newkey),
+                                      Process  => update'Access);
+         end scan;
+
+         procedure print (position : list_crate.Cursor)
+         is
+            procedure print_page (position : string_crate.Cursor);
+
+            rec : group_list renames list_crate.Element (position);
+
+            procedure print_page (position : string_crate.Cursor) is
+            begin
+               send (" " & HT.USS (string_crate.Element (position)));
+            end print_page;
+         begin
+            send ("INFO_" & HT.USS (rec.group) & LAT.Equals_Sign, True);
+            rec.list.Iterate (print_page'Access);
+         end print;
+      begin
+         specs.info.Iterate (scan'Access);
+         tempstore.Iterate (print'Access);
+      end dump_info;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -494,6 +546,7 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
       send ("USES",             specs.uses, 1);
+      dump_info;
       dump_catchall;
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
 

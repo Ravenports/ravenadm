@@ -584,6 +584,9 @@ package body Port_Specification is
             if specs.info.Contains (text_value) then
                raise wrong_value with "Duplicate INFO entry '" & value & "'";
             end if;
+            if HT.count_char (value, LAT.Colon) /= 1 then
+               raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
+            end if;
             if not specs.valid_info_page (value) then
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
@@ -1096,6 +1099,9 @@ package body Port_Specification is
                raise wrong_value with "USES '" & value & "' is not recognized";
             end if;
          when info_on =>
+            if HT.count_char (value, LAT.Colon) /= 1 then
+               raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
+            end if;
             if not specs.valid_info_page (value) then
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
