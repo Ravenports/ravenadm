@@ -107,6 +107,8 @@ package body Port_Specification is
       specs.groups.Clear;
       specs.catch_all.Clear;
       specs.pkg_notes.Clear;
+      specs.var_opsys.Clear;
+      specs.var_arch.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -847,6 +849,20 @@ package body Port_Specification is
                raise wrong_value with "duplicate definition: " & key & "=" & value;
             end if;
             specs.catch_all.Insert (text_key, text_value);
+         when sp_var_opsys =>
+            verify_entry_is_post_options;
+            if specs.var_opsys.Contains (text_key) then
+               raise wrong_value with "duplicate definition: " & key & "=" & value;
+            end if;
+            specs.var_opsys.Update_Element (Position => specs.var_opsys.Find (text_key),
+                                            Process  => grow'Access);
+         when sp_var_arch =>
+            verify_entry_is_post_options;
+            if specs.var_arch.Contains (text_key) then
+               raise wrong_value with "duplicate definition: " & key & "=" & value;
+            end if;
+            specs.var_arch.Update_Element (Position => specs.var_arch.Find (text_key),
+                                           Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2425,6 +2441,8 @@ package body Port_Specification is
             when sp_ext_tail         => specs.extract_tail.Iterate (Process => dump'Access);
             when sp_makefile_targets => specs.make_targets.Iterate (Process => dump_target'Access);
             when sp_opt_helper       => specs.ops_helpers.Iterate (Process => dump_option'Access);
+            when sp_var_opsys        => specs.var_opsys.Iterate (dump'Access);
+            when sp_var_arch         => specs.var_arch.Iterate (dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -2581,6 +2599,8 @@ package body Port_Specification is
       print_vector_list ("USERS", sp_users);
       print_vector_list ("GROUPS", sp_groups);
       print_define      (2);  -- catchall
+      print_group_list  ("VAR_OPSYS", sp_var_opsys);
+      print_group_list  ("VAR_ARCH", sp_var_arch);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

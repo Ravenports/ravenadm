@@ -313,6 +313,40 @@ package body Specification_Parser is
                                           "' is not valid (all, <opsys>, <arch>)");
                               exit;
                            end if;
+                        when var_opsys =>
+                           if UTL.valid_lower_opsys (tkey) then
+                              if valid_conditional_variable (tvalue) then
+                                 specification.append_array (field        => PSP.sp_var_opsys,
+                                                             key          => tkey,
+                                                             value        => tvalue,
+                                                             allow_spaces => True);
+                              else
+                                 last_parse_error :=
+                                   HT.SUS (LN & " VAR_OPSYS definition failed validity check.");
+                                 exit;
+                              end if;
+                           else
+                              last_parse_error :=
+                                HT.SUS (LN & "group '" & tkey & "' is not a valid opsys value");
+                              exit;
+                           end if;
+                        when var_arch =>
+                           if UTL.valid_cpu_arch (tkey) then
+                              if valid_conditional_variable (tvalue) then
+                                 specification.append_array (field        => PSP.sp_var_arch,
+                                                             key          => tkey,
+                                                             value        => tvalue,
+                                                             allow_spaces => True);
+                              else
+                                 last_parse_error :=
+                                   HT.SUS (LN & " VAR_ARCH definition failed validity check.");
+                                 exit;
+                              end if;
+                           else
+                              last_parse_error :=
+                                HT.SUS (LN & "group '" & tkey & "' is not a valid arch value");
+                              exit;
+                           end if;
                         when not_array => null;
                      end case;
                   end;
@@ -832,47 +866,67 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_array (line : String) return spec_array
    is
-      function known (index : Positive) return Boolean;
+      subtype array_string is String (1 .. 12);
 
-      total_arrays : constant Positive := 10;
+      total_arrays : constant Positive := 12;
 
       type array_pair is
          record
-            varname : String (1 .. 12);
-            len     : Natural;
+            varname : array_string;
             sparray : spec_array;
          end record;
 
       --  Keep in alphabetical order for future conversion to binary search
       all_arrays : constant array (1 .. total_arrays) of array_pair :=
         (
-         ("BROKEN      ",  6, broken),
-         ("DEF         ",  3, def),
-         ("DISTFILE    ",  8, distfile),
-         ("EXTRACT_HEAD", 12, ext_head),
-         ("EXTRACT_TAIL", 12, ext_tail),
-         ("OPT_ON      ",  6, option_on),
-         ("SDESC       ",  5, sdesc),
-         ("SITES       ",  5, sites),
-         ("SPKGS       ",  5, spkgs),
-         ("VOPTS       ",  5, vopts)
+         ("BROKEN      ", broken),
+         ("DEF         ", def),
+         ("DISTFILE    ", distfile),
+         ("EXTRACT_HEAD", ext_head),
+         ("EXTRACT_TAIL", ext_tail),
+         ("OPT_ON      ", option_on),
+         ("SDESC       ", sdesc),
+         ("SITES       ", sites),
+         ("SPKGS       ", spkgs),
+         ("VAR_ARCH    ", var_arch),
+         ("VAR_OPSYS   ", var_opsys),
+         ("VOPTS       ", vopts)
         );
 
-      function known (index : Positive) return Boolean
-      is
-         len   : Natural renames all_arrays (index).len;
-         apple : constant String  := all_arrays (index).varname (1 .. len);
-      begin
-         return line'Length > len + 6 and then
-           line (line'First .. line'First + len) = apple & LAT.Left_Square_Bracket;
-      end known;
+      bandolier    : array_string := (others => LAT.Space);
+      Low          : Natural := all_arrays'First;
+      High         : Natural := all_arrays'Last;
+      Mid          : Natural;
+      end_varname  : Natural;
+      bullet_len   : Natural;
+
    begin
       if not HT.contains (S => line, fragment => "]=" & LAT.HT) then
          return not_array;
       end if;
-      for index in all_arrays'Range loop
-         if known (index) then
-            return all_arrays (index).sparray;
+
+      end_varname := AS.Fixed.Index (Source => line, Pattern => "[");
+
+      if end_varname = 0 then
+         return not_array;
+      end if;
+
+      bullet_len := end_varname - line'First;
+      if bullet_len < 3 or else bullet_len > array_string'Length then
+         return not_array;
+      end if;
+      bandolier (1 .. bullet_len) := line (line'First .. end_varname - 1);
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_arrays (Mid).varname then
+            return all_arrays (Mid).sparray;
+         elsif bandolier < all_arrays (Mid).varname then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
          end if;
       end loop;
       return not_array;
@@ -1847,6 +1901,53 @@ package body Specification_Parser is
          return "skip";
       end if;
    end tranform_pkg_message;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_conditional_variable
+   --------------------------------------------------------------------------------------------
+   function valid_conditional_variable (candidate : String) return Boolean
+   is
+      is_namepair : constant Boolean := HT.contains (candidate, "=");
+   begin
+      if not is_namepair then
+         return False;
+      end if;
+      declare
+         possible_singlet : String := HT.part_1 (candidate, "=") & LAT.Equals_Sign & LAT.HT;
+         this_singlet     : spec_singlet := determine_singlet (possible_singlet);
+      begin
+         case this_singlet is
+            when cflags | cppflags | cxxflags | ldflags |
+                 config_args | config_env | make_args | make_env |
+                 cmake_args | qmake_args =>
+               null;
+            when others =>
+               return False;
+         end case;
+         declare
+            payload      : String  := HT.part_2 (candidate, "=");
+            mask         : String  := payload;
+            found_spaces : Boolean := HT.contains (payload, " ");
+            Qopened      : Boolean := False;
+         begin
+            if found_spaces then
+               for x in mask'Range loop
+                  if mask (x) = LAT.Quotation then
+                     Qopened := not Qopened;
+                  elsif mask (x) = LAT.Space then
+                     if Qopened then
+                        mask (x) := 'X';
+                     end if;
+                  end if;
+               end loop;
+               return not HT.contains (mask, " ");
+            else
+               return True;
+            end if;
+         end;
+      end;
+   end valid_conditional_variable;
 
 
 end Specification_Parser;

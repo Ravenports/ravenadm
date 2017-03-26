@@ -38,7 +38,7 @@ private
          "="             => HT.SU."=");
 
    type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts,
-                         ext_head, ext_tail, option_on, broken);
+                         ext_head, ext_tail, option_on, broken, var_opsys, var_arch);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                          contacts, dl_groups, dist_subdir, df_index, opt_avail, opt_standard,
                          exc_opsys, inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha,
@@ -167,5 +167,10 @@ private
 
    --  Returns new filename if it matches dynamic pkg-message filename, otherwise return blank
    function tranform_pkg_message (filename, match_opsys, match_arch : String) return String;
+
+   --  Returns True if conditional variable value is a valid name pair.  Validity is determined
+   --  by obtaining a singlet value that is within the accepted valued, and having no
+   --  non-quoted spaces in the string.
+   function valid_conditional_variable (candidate : String) return Boolean;
 
 end Specification_Parser;

@@ -178,7 +178,7 @@ package body Pilot is
                                   opsys         => platform_type,
                                   arch_standard => sysrootver.arch,
                                   osrelease     => HT.USS (sysrootver.release));
-         -- TODO: apply options to settings
+         --  TODO: apply options to settings
          PST.set_option_to_default_values (specs => specification);
          PST.set_outstanding_ignore (specs         => specification,
                                      variant       => get_variant,

@@ -35,7 +35,7 @@ package Port_Specification is
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
-                       sp_notes, sp_inst_tchain);
+                       sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -374,6 +374,8 @@ private
          groups        : string_crate.Vector;
          catch_all     : def_crate.Map;
          pkg_notes     : def_crate.Map;
+         var_opsys     : list_crate.Map;
+         var_arch      : list_crate.Map;
       end record;
 
    --  Compares given keyword against known values
