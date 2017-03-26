@@ -176,18 +176,19 @@ package body Pilot is
          PST.set_option_defaults (specs         => specification,
                                   variant       => get_variant,
                                   opsys         => platform_type,
-                                  arch_standard => x86_64,
-                                  osrelease     => "4.7");
+                                  arch_standard => sysrootver.arch,
+                                  osrelease     => HT.USS (sysrootver.release));
+         -- TODO: apply options to settings
          PST.set_option_to_default_values (specs => specification);
          PST.set_outstanding_ignore (specs         => specification,
                                      variant       => get_variant,
                                      opsys         => platform_type,
-                                     arch_standard => x86_64,
-                                     osrelease     => "4.7",
-                                     osmajor       => "4.7");
+                                     arch_standard => sysrootver.arch,
+                                     osrelease     => HT.USS (sysrootver.release),
+                                     osmajor       => HT.USS (sysrootver.major));
          PST.apply_directives (specs         => specification,
-                               arch_standard => x86_64,
-                               osmajor       => "4.7");
+                               arch_standard => sysrootver.arch,
+                               osmajor       => HT.USS (sysrootver.major));
          PSM.generator (specs         => specification,
                         variant       => get_variant,
                         opsys         => platform_type,
