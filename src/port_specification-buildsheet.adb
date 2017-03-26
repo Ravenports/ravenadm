@@ -295,11 +295,6 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.DF_INDEX_ON, "DF_INDEX_ON");
          dump_helper (name, rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          dump_helper (name, rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
-         dump_helper (name, rec.GH_ACCOUNT_ON, "GH_ACCOUNT_ON");
-         dump_helper (name, rec.GH_PROJECT_ON, "GH_PROJECT_ON");
-         dump_helper (name, rec.GH_SUBDIR_ON, "GH_SUBDIR_ON");
-         dump_helper (name, rec.GH_TAGNAME_ON, "GH_TAGNAME_ON");
-         dump_helper (name, rec.GH_TUPLE_ON, "GH_TUPLE_ON");
          dump_helper (name, rec.IMPLIES_ON, "IMPLIES_ON");
          dump_helper (name, rec.INFO_ON, "INFO_ON");
          dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");

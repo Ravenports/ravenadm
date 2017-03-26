@@ -978,16 +978,6 @@ package body Port_Specification is
                Element.EXTRA_PATCHES_ON.Append (value_text);
             when extract_only_on  =>
                Element.EXTRACT_ONLY_ON.Append (value_text);
-            when gh_account_on =>
-               Element.GH_ACCOUNT_ON.Append (value_text);
-            when gh_project_on =>
-               Element.GH_PROJECT_ON.Append (value_text);
-            when gh_subdir_on =>
-               Element.GH_SUBDIR_ON.Append (value_text);
-            when gh_tagname_on =>
-               Element.GH_TAGNAME_ON.Append (value_text);
-            when gh_tuple_on =>
-               Element.GH_TUPLE_ON.Append (value_text);
             when implies_on =>
                Element.IMPLIES_ON.Append (value_text);
             when info_on =>
@@ -1035,7 +1025,6 @@ package body Port_Specification is
       case field is
          when build_target_on | cmake_bool_f_both | cmake_bool_t_both | configure_enable_both |
               configure_with_both | df_index_on | extra_patches_on | extract_only_on |
-              gh_subdir_on | gh_project_on | gh_account_on | gh_tagname_on | gh_tuple_on |
               implies_on | info_on | install_target_on | keywords_on  | buildrun_depends_on |
               patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
               uses_on =>
@@ -1058,8 +1047,7 @@ package body Port_Specification is
          when broken_on | build_target_on | cflags_on | cmake_args_off | cmake_args_on |
               cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
               configure_enable_both | configure_env_on | configure_with_both |
-              cppflags_on | cxxflags_on | extra_patches_on | gh_tuple_on | gh_tagname_on |
-              gh_account_on | gh_project_on | gh_subdir_on | info_on | install_target_on |
+              cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
               qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description =>
             --  No validation required
@@ -1107,6 +1095,10 @@ package body Port_Specification is
             if not valid_uses_module (value) then
                raise wrong_value with "USES '" & value & "' is not recognized";
             end if;
+         when info_on =>
+            if not specs.valid_info_page (value) then
+               raise wrong_value with "INFO subdirectories must match on every entry";
+            end if;
          when not_supported_helper | not_helper_format =>
             null;
       end case;
@@ -1151,11 +1143,6 @@ package body Port_Specification is
             when description           => return HT.IsBlank (rec.option_description);
             when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
             when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
-            when gh_account_on         => return rec.GH_ACCOUNT_ON.Is_Empty;
-            when gh_project_on         => return rec.GH_PROJECT_ON.Is_Empty;
-            when gh_subdir_on          => return rec.GH_SUBDIR_ON.Is_Empty;
-            when gh_tagname_on         => return rec.GH_TAGNAME_ON.Is_Empty;
-            when gh_tuple_on           => return rec.GH_TUPLE_ON.Is_Empty;
             when implies_on            => return rec.IMPLIES_ON.Is_Empty;
             when info_on               => return rec.INFO_ON.Is_Empty;
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
@@ -2329,11 +2316,6 @@ package body Port_Specification is
          print_opt_vector (rec.DF_INDEX_ON, "DF_INDEX_ON");
          print_opt_vector (rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          print_opt_vector (rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
-         print_opt_vector (rec.GH_ACCOUNT_ON, "GH_ACCOUNT_ON");
-         print_opt_vector (rec.GH_PROJECT_ON, "GH_PROJECT_ON");
-         print_opt_vector (rec.GH_SUBDIR_ON, "GH_SUBDIR_ON");
-         print_opt_vector (rec.GH_TAGNAME_ON, "GH_TAGNAME_ON");
-         print_opt_vector (rec.GH_TUPLE_ON, "GH_TUPLE_ON");
          print_opt_vector (rec.IMPLIES_ON, "IMPLIES_ON");
          print_opt_vector (rec.INFO_ON, "INFO_ON");
          print_opt_vector (rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");

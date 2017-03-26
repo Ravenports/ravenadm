@@ -1036,7 +1036,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 41;
+      total_helpers : constant Positive := 36;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1068,11 +1068,6 @@ package body Specification_Parser is
          ("DF_INDEX_ON          ", PSP.df_index_on),
          ("EXTRACT_ONLY_ON      ", PSP.extra_patches_on),
          ("EXTRA_PATCHES_ON     ", PSP.extra_patches_on),
-         ("GH_ACCOUNT_ON        ", PSP.gh_account_on),
-         ("GH_PROJECT_ON        ", PSP.gh_project_on),
-         ("GH_SUBDIR_ON         ", PSP.gh_subdir_on),
-         ("GH_TAGNAME_ON        ", PSP.gh_tagname_on),
-         ("GH_TUPLE_ON          ", PSP.gh_tuple_on),
          ("IMPLIES_ON           ", PSP.implies_on),
          ("INFO_ON              ", PSP.info_on),
          ("INSTALL_TARGET_ON    ", PSP.install_target_on),
