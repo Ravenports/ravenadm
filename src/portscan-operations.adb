@@ -2517,6 +2517,7 @@ package body PortScan.Operations is
         (specs         => specification,
          variant       => variant,
          opsys         => platform_type,
+         arch          => sysrootver.arch,
          output_file   => makefile);
 
       return CYC.build_package (id            => builder,

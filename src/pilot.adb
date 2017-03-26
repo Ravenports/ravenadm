@@ -192,6 +192,7 @@ package body Pilot is
          PSM.generator (specs         => specification,
                         variant       => get_variant,
                         opsys         => platform_type,
+                        arch          => sysrootver.arch,
                         output_file   => "");
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
@@ -887,6 +888,7 @@ package body Pilot is
          PSM.generator (specs       => specification,
                         variant     => variant,
                         opsys       => platform_type,
+                        arch        => x86_64,
                         output_file => makefile);
       end;
 

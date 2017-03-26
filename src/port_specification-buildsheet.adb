@@ -636,16 +636,15 @@ package body Port_Specification.Buildsheet is
       send ("CPPFLAGS",             specs.cppflags, 1);
       send ("LDFLAGS",              specs.ldflags, 1);
       send ("OPTIMIZER_LEVEL",      specs.optimizer_lvl, 2);
+      send ("VAR_OPSYS",            specs.var_opsys);
+      send ("VAR_ARCH",             specs.var_arch);
 
       --  TODO
-      --  INFO_PATH (needs impl, doc)
-      --  INFO (implemented wrong, needs to be array of spkg, doc)
       --  MANPREFIX[x] (needs imp, doc)
       --  RC_SUBR (array spkg), (needs imp, doc)
       --  CCACHE_BUILD=yes (needs imp, doc, fix README)
       --  CCACHE_DIR (needs imp, doc)
       --  SKIP_CCACHE=yes (needs imp, doc, fix README)
-      --  All Github support
       --  WITH_DEBUG (?)
       --  DEBUG_FLAGS (?)
 

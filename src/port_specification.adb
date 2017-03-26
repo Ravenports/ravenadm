@@ -665,6 +665,10 @@ package body Port_Specification is
             specs.options_on.Insert (text_group, initial_rec);
          when sp_broken =>
             specs.broken.Insert (text_group, initial_rec);
+         when sp_var_opsys =>
+            specs.var_opsys.Insert (text_group, initial_rec);
+         when sp_var_arch =>
+            specs.var_arch.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -854,12 +858,18 @@ package body Port_Specification is
             if specs.var_opsys.Contains (text_key) then
                raise wrong_value with "duplicate definition: " & key & "=" & value;
             end if;
+            if not specs.var_opsys.Contains (text_key) then
+               specs.establish_group (sp_var_opsys, key);
+            end if;
             specs.var_opsys.Update_Element (Position => specs.var_opsys.Find (text_key),
                                             Process  => grow'Access);
          when sp_var_arch =>
             verify_entry_is_post_options;
             if specs.var_arch.Contains (text_key) then
                raise wrong_value with "duplicate definition: " & key & "=" & value;
+            end if;
+            if not specs.var_arch.Contains (text_key) then
+               specs.establish_group (sp_var_arch, key);
             end if;
             specs.var_arch.Update_Element (Position => specs.var_arch.Find (text_key),
                                            Process  => grow'Access);

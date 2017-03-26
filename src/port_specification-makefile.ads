@@ -13,6 +13,7 @@ package Port_Specification.Makefile is
      (specs         : Portspecs;
       variant       : String;
       opsys         : supported_opsys;
+      arch          : supported_arch;
       output_file   : String
      );
 

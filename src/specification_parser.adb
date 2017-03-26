@@ -1914,7 +1914,7 @@ package body Specification_Parser is
          return False;
       end if;
       declare
-         possible_singlet : String := HT.part_1 (candidate, "=") & LAT.Equals_Sign & LAT.HT;
+         possible_singlet : String := HT.part_1 (candidate, "=") & LAT.Equals_Sign & LAT.HT & 'x';
          this_singlet     : spec_singlet := determine_singlet (possible_singlet);
       begin
          case this_singlet is

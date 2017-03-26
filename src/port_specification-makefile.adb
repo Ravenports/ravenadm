@@ -18,6 +18,7 @@ package body Port_Specification.Makefile is
      (specs         : Portspecs;
       variant       : String;
       opsys         : supported_opsys;
+      arch          : supported_arch;
       output_file   : String
      )
    is
@@ -47,6 +48,7 @@ package body Port_Specification.Makefile is
       procedure dump_has_configure   (value  : HT.Text);
       procedure dump_distname;
       procedure dump_info;
+      procedure dump_conditional_vars;
 
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
@@ -509,6 +511,30 @@ package body Port_Specification.Makefile is
          tempstore.Iterate (print'Access);
       end dump_info;
 
+      procedure dump_conditional_vars
+      is
+         procedure print_var (position : string_crate.Cursor);
+
+         key_opsys : HT.Text := HT.SUS (UTL.lower_opsys (opsys));
+         key_arch  : HT.Text := HT.SUS (UTL.cpu_arch (arch));
+
+         procedure print_var (position : string_crate.Cursor)
+         is
+            full : String := HT.USS (string_crate.Element (position));
+            varname : String := HT.part_1 (full, "=");
+            varval  : String := HT.part_2 (full, "=");
+         begin
+            send (varname & "+=" & varval);
+         end print_var;
+      begin
+         if specs.var_opsys.Contains (key_opsys) then
+            specs.var_opsys.Element (key_opsys).list.Iterate (print_var'Access);
+         end if;
+         if specs.var_arch.Contains (key_arch) then
+            specs.var_arch.Element (key_arch).list.Iterate (print_var'Access);
+         end if;
+      end dump_conditional_vars;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -576,6 +602,7 @@ package body Port_Specification.Makefile is
       send ("CXXFLAGS",         specs.cxxflags, 1);
       send ("CPPFLAGS",         specs.cppflags, 1);
       send ("LDFLAGS",          specs.ldflags, 1);
+      dump_conditional_vars;
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("DESTDIRNAME",      specs.destdirname);
