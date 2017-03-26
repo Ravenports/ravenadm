@@ -113,14 +113,15 @@ package body Specification_Parser is
                      line_array := determine_array (line);
                      if line_array = not_array then
                         line_singlet := determine_singlet (line);
-                        if line_singlet /= not_singlet and then
-                          line_singlet /= catchall and then
-                          seen_singlet (line_singlet)
-                        then
-                           last_parse_error :=
-                             HT.SUS (LN & "variable previously defined (use triple tab)");
-                           exit;
-                        end if;
+                        case line_singlet is
+                           when not_singlet | catchall | diode => null;
+                           when others =>
+                              if seen_singlet (line_singlet) then
+                                 last_parse_error :=
+                                   HT.SUS (LN & "variable previously defined (use triple tab)");
+                                 exit;
+                              end if;
+                        end case;
                         seen_singlet (line_singlet) := True;
                      else
                         line_singlet := not_singlet;
@@ -394,6 +395,7 @@ package body Specification_Parser is
                      when users            => build_list (spec, PSP.sp_users, line);
                      when groups           => build_list (spec, PSP.sp_groups, line);
                      when catchall         => build_nvpair (spec, line);
+                     when diode            => null;
                      when not_singlet      => null;
                   end case;
                   last_singlet := line_singlet;
@@ -886,7 +888,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 82;
+      total_singlets : constant Positive := 83;
 
       type singlet_pair is
          record
@@ -945,6 +947,7 @@ package body Specification_Parser is
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
          ("INFO_PATH             ",  9, catchall),
+         ("INFO_SUBDIR           ", 11, diode),
          ("INSTALL_REQ_TOOLCHAIN ", 21, shift_install),
          ("INSTALL_TARGET        ", 14, install_tgt),
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
