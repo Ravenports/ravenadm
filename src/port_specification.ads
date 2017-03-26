@@ -35,7 +35,8 @@ package Port_Specification is
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
-                       sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch);
+                       sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
+                       sp_lic_file, sp_lic_scheme);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -208,6 +209,15 @@ private
                        so_dl_groups, so_dl_sites, so_distfiles, so_distsubdir, so_df_index,
                        so_subpackages, so_opts_avail, so_opts_std, so_vopts);
 
+   type license_type is
+     (AGPLv3, AGPLv3x, APACHE10, APACHE11, APACHE20, ART10, ART20, ARTPERL10,
+      BSD2CLAUSE, BSD3CLAUSE, BSD4CLAUSE,
+      CUSTOM1, CUSTOM2, CUSTOM3, CUSTOM4,
+      GPLv1, GPLv1x, GPLv2, GPLv2x, GPLv3, GPLv3x,
+      GPLv3RLE, GPLv3RLEx, INVALID, ISCL,
+      LGPL20, LGPL20x, LGPL21, LGPL21x, LGPL3, LGPL3x,
+      MIT);
+
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
       Index_Type   => Positive,
@@ -370,6 +380,9 @@ private
 
          make_targets  : list_crate.Map;
          licenses      : string_crate.Vector;
+         lic_names     : string_crate.Vector;
+         lic_files     : string_crate.Vector;
+         lic_scheme    : HT.Text;
          users         : string_crate.Vector;
          groups        : string_crate.Vector;
          catch_all     : def_crate.Map;
@@ -422,5 +435,8 @@ private
    --  Specifically it's checking the subdirectory (if it exists) to make sure it matches
    --  previous entries.  It will define INFO_SUBDIR in catchall (once)
    function valid_info_page (specs : in out Portspecs; value : String) return Boolean;
+
+   --  Checks against a list of known licenses or CUSTOM(1,2,3,4)
+   function determine_license (value : String) return license_type;
 
 end Port_Specification;

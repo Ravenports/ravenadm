@@ -230,6 +230,16 @@ package body Port_Specification is
          when sp_prefix =>
             verify_entry_is_post_options;
             specs.prefix := text_value;
+         when sp_lic_scheme =>
+            verify_entry_is_post_options;
+            if value = "single" or else
+              value = "dual" or else
+              value = "multi"
+            then
+               specs.lic_scheme := text_value;
+            else
+               raise wrong_value with "Not valid license scheme: " & value;
+            end if;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -538,9 +548,6 @@ package body Port_Specification is
          when sp_plist_sub =>
             verify_entry_is_post_options;
             specs.plist_sub.Append (text_value);
-         when sp_licenses =>
-            verify_entry_is_post_options;
-            specs.licenses.Append (text_value);
          when sp_users =>
             verify_entry_is_post_options;
             specs.users.Append (text_value);
@@ -593,6 +600,106 @@ package body Port_Specification is
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
             specs.info.Append (text_value);
+         when sp_licenses =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid LICENSE format, must be subpackage:name";
+            end if;
+            declare
+               testlic : String := HT.part_2 (value, ":");
+               testpkg : String := HT.part_1 (value, ":");
+               lic : license_type := determine_license (value);
+            begin
+               if lic = INVALID then
+                  raise wrong_value with "LICENSE not recognized: " & testlic;
+               end if;
+               if not specs.subpackages.Contains (HT.SUS (testpkg)) then
+                  raise wrong_type with "LICENSE subpackage unrecognized: " & testpkg;
+               end if;
+            end;
+            specs.licenses.Append (text_value);
+         when sp_lic_name =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid LICENSE_NAME format, must be CUSTOMx:" &
+                 LAT.Quotation & "name" & LAT.Quotation;
+            end if;
+            declare
+               procedure scan (position : string_crate.Cursor);
+
+               testlic : String := HT.part_1 (value, ":");
+               name    : String := HT.part_2 (value, ":");
+               lic     : license_type := determine_license (testlic);
+               found   : Boolean := False;
+
+               procedure scan (position : string_crate.Cursor)
+               is
+                  license_val : String := HT.USS (string_crate.Element (position));
+                  name_part   : String := HT.part_1 (license_val, ":");
+               begin
+                  if not found then
+                     if testlic = name_part then
+                        found := True;
+                     end if;
+                  end if;
+               end scan;
+            begin
+               case lic is
+                  when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 => null;
+                  when others =>
+                     raise wrong_value with "LICENSE_NAME only definable with CUSTOMx license";
+               end case;
+               if name (name'First) /= LAT.Quotation or else
+                 name (name'Last) /= LAT.Quotation
+               then
+                  raise wrong_value with "LICENSE_NAME value must be quoted: " & name;
+               end if;
+               specs.licenses.Iterate (scan'Access);
+               if not found then
+                  raise wrong_value with "LICENSE " & testlic & " not previously defined " &
+                    " for " & value;
+               end if;
+            end;
+            specs.lic_names.Append (text_value);
+         when sp_lic_file =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid LICENSE_FILE format, must be LICENSE:path";
+            end if;
+            declare
+               procedure scan (position : string_crate.Cursor);
+
+               testlic : String := HT.part_1 (value, ":");
+               path    : String := HT.part_2 (value, ":");
+               lic     : license_type := determine_license (testlic);
+               found   : Boolean := False;
+
+               procedure scan (position : string_crate.Cursor)
+               is
+                  license_val : String := HT.USS (string_crate.Element (position));
+                  name_part   : String := HT.part_1 (license_val, ":");
+               begin
+                  if not found then
+                     if testlic = name_part then
+                        found := True;
+                     end if;
+                  end if;
+               end scan;
+            begin
+               if lic = INVALID then
+                  raise wrong_value with "LICENSE not recognized: " & testlic;
+               end if;
+               if not HT.contains (path, "/") then
+                  raise wrong_value with "LICENSE_FILE path component missing directory " &
+                    "separator: " & path;
+               end if;
+               specs.licenses.Iterate (scan'Access);
+               if not found then
+                  raise wrong_value with "LICENSE " & testlic & " not previously defined " &
+                    " for " & value;
+               end if;
+            end;
+            specs.lic_files.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2239,6 +2346,87 @@ package body Port_Specification is
       return False;
 
    end keyword_is_valid;
+
+
+   --------------------------------------------------------------------------------------------
+   --  determine_license
+   --------------------------------------------------------------------------------------------
+   function determine_license (value : String) return license_type
+   is
+      total_keywords : constant Positive := license_type'Pos (license_type'Last) + 1;
+
+      subtype keyword_string is String (1 .. 10);
+
+      type keyword_pair is
+         record
+            keyword : keyword_string;
+            keytype : license_type;
+         end record;
+
+      --  It is critical that this list be alphabetized correctly.
+      all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
+        (
+         ("AGPLv3    ", AGPLv3),
+         ("AGPLv3+   ", AGPLv3x),
+         ("APACHE10  ", APACHE10),
+         ("APACHE11  ", APACHE11),
+         ("APACHE20  ", APACHE20),
+         ("ART10     ", ART10),
+         ("ART20     ", ART20),
+         ("ARTPERL10 ", ARTPERL10),
+         ("BSD2CLAUSE", BSD2CLAUSE),
+         ("BSD3CLAUSE", BSD3CLAUSE),
+         ("BSD4CLAUSE", BSD4CLAUSE),
+         ("CUSTOM1   ", CUSTOM1),
+         ("CUSTOM2   ", CUSTOM2),
+         ("CUSTOM3   ", CUSTOM3),
+         ("CUSTOM4   ", CUSTOM4),
+         ("GPLv1     ", GPLv1),
+         ("GPLv1+    ", GPLv1x),
+         ("GPLv2     ", GPLv2),
+         ("GPLv2+    ", GPLv2x),
+         ("GPLv3     ", GPLv3),
+         ("GPLv3+    ", GPLv3x),
+         ("GPLv3RLE  ", GPLv3RLE),
+         ("GPLv3RLE+ ", GPLv3RLEx),
+         ("INVALID   ", INVALID),
+         ("ISCL      ", ISCL),
+         ("LGPL20    ", LGPL20),
+         ("LGPL20+   ", LGPL20x),
+         ("LGPL21    ", LGPL21),
+         ("LGPL21+   ", LGPL21x),
+         ("LGPL3     ", LGPL3),
+         ("LGPL3+    ", LGPL3x),
+         ("MIT       ", MIT)
+        );
+
+      bandolier    : keyword_string := (others => LAT.Space);
+      Low          : Natural := all_keywords'First;
+      High         : Natural := all_keywords'Last;
+      Mid          : Natural;
+   begin
+      if value'Length > keyword_string'Length or else
+        value'Length < 3
+      then
+         return INVALID;
+      end if;
+
+      bandolier (1 .. value'Length) := value;
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_keywords (Mid).keyword  then
+            return all_keywords (Mid).keytype;
+         elsif bandolier < all_keywords (Mid).keyword then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return INVALID;
+   end determine_license;
 
 
    --------------------------------------------------------------------------------------------
