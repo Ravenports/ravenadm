@@ -214,6 +214,8 @@ private
       Index_Type   => Positive,
       "="          => HT.SU."=");
 
+   package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
+
    package def_crate is new CON.Hashed_Maps
         (Key_Type        => HT.Text,
          Element_Type    => HT.Text,

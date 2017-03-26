@@ -421,7 +421,6 @@ package body Port_Specification.Buildsheet is
 
       procedure send_directory (dirname : String; pattern : String := "")
       is
-         package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
          procedure dump_file (cursor : string_crate.Cursor);
 
          Search  : DIR.Search_Type;
@@ -523,16 +522,29 @@ package body Port_Specification.Buildsheet is
 
       procedure send_catchall
       is
-         procedure dump_nv (position : def_crate.Cursor);
-         procedure dump_nv (position : def_crate.Cursor)
+         procedure scan    (position : def_crate.Cursor);
+         procedure dump_nv (position : string_crate.Cursor);
+
+         temp_storage : string_crate.Vector;
+
+         procedure scan (position : def_crate.Cursor) is
+         begin
+            temp_storage.Append (def_crate.Key (position));
+         end scan;
+
+         procedure dump_nv (position : string_crate.Cursor)
          is
-            keystr : String := HT.USS (def_crate.Key (position)) & LAT.Equals_Sign;
-            valstr : String := HT.USS (def_crate.Element (position));
+            text_key : HT.Text renames string_crate.Element (position);
+
+            keystr : String := HT.USS (text_key) & LAT.Equals_Sign;
+            valstr : String := HT.USS (specs.catch_all.Element (text_key));
          begin
             send (align24 (keystr) & valstr);
          end dump_nv;
       begin
-         specs.catch_all.Iterate (dump_nv'Access);
+         specs.catch_all.Iterate (scan'Access);
+         sorter.Sort (temp_storage);
+         temp_storage.Iterate (dump_nv'Access);
       end send_catchall;
 
    begin

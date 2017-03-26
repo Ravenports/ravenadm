@@ -1897,8 +1897,6 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function options_summary (specs : Portspecs) return String
    is
-      package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
-
       procedure scan (position : option_crate.Cursor);
       procedure format (position : string_crate.Cursor);
 
