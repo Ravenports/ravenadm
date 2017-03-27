@@ -3,6 +3,7 @@
 
 with Utilities;
 with Ada.Characters.Latin_1;
+with Parameters;
 
 package body Port_Specification.Transform is
 
@@ -192,6 +193,7 @@ package body Port_Specification.Transform is
       apply_gmake_module (specs);
       apply_libtool_module (specs);
       apply_info_presence (specs);
+      apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
    end apply_directives;
 
@@ -639,13 +641,33 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_info_presence (specs : in out Portspecs)
    is
-      module      : String  := "info";
       dependency  : HT.Text := HT.SUS ("indexinfo:single:standard");
    begin
-      if not specs.info.Is_Empty then
+      if not specs.info.Is_Empty and then
+        not specs.build_deps.Contains (dependency)
+      then
          specs.build_deps.Append (dependency);
       end if;
    end apply_info_presence;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_ccache
+   --------------------------------------------------------------------------------------------
+   procedure apply_ccache (specs : in out Portspecs)
+   is
+      dependency  : HT.Text := HT.SUS ("ccache:primary:standard");
+   begin
+      if specs.skip_build or else specs.skip_ccache then
+         return;
+      end if;
+      if HT.equivalent (Parameters.configuration.dir_ccache, Parameters.no_ccache) then
+         return;
+      end if;
+      if not specs.build_deps.Contains (dependency) then
+         specs.build_deps.Append (dependency);
+      end if;
+   end apply_ccache;
 
 
    --------------------------------------------------------------------------------------------

@@ -509,7 +509,8 @@ package body PortScan.Scan is
       end if;
       depindex := ports_keys.Element (portkey);
       if not all_ports (target).blocked_by.Contains (depindex) then
-         all_ports (target).blocked_by.Insert (Key => depindex, New_Item => depindex);
+         TIO.Put_Line (get_port_variant (target) & " sets blocked-by " & get_port_variant (depindex));
+         all_ports (target).blocked_by.Insert (depindex, depindex);
       end if;
       if dtype in LR_set and then
         not all_ports (target).run_deps.Contains (depindex)
@@ -648,21 +649,23 @@ package body PortScan.Scan is
    is
       procedure set_reverse (cursor : block_crate.Cursor);
 
-      madre : port_index;
+      victim : port_index;
 
-      procedure set_reverse (cursor : block_crate.Cursor) is
+      procedure set_reverse (cursor : block_crate.Cursor)
+      is
+         blocker : port_index renames block_crate.Element (cursor);
       begin
          --  Using conditional insert here causes a finalization error when
          --  the program exists.  Reluctantly, do the condition check manually
-         if not all_ports (block_crate.Element (cursor)).blocks.Contains (Key => madre) then
-            all_ports (block_crate.Element (cursor)).blocks.Insert (madre, madre);
+         if not all_ports (blocker).blocks.Contains (victim) then
+            all_ports (blocker).blocks.Insert (victim, victim);
          end if;
       end set_reverse;
 
    begin
       for port in port_index'First .. last_port loop
          if all_ports (port).scanned then
-            madre := port;
+            victim := port;
             all_ports (port).blocked_by.Iterate (set_reverse'Access);
          end if;
       end loop;

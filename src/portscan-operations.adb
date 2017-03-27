@@ -952,13 +952,13 @@ package body PortScan.Operations is
       procedure cycle (cursor : block_crate.Cursor);
       procedure cycle (cursor : block_crate.Cursor)
       is
-         target : constant port_index := block_crate.Element (cursor);
+         target : port_index renames block_crate.Element (cursor);
       begin
-         if all_ports (target).blocked_by.Contains (Key => id) then
-            all_ports (target).blocked_by.Delete (Key => id);
+         if all_ports (target).blocked_by.Contains (id) then
+            all_ports (target).blocked_by.Delete (id);
          else
             raise seek_failure
-              with  get_port_variant (target) & " was expected to be blocked by " &
+              with get_port_variant (target) & " was expected to be blocked by " &
               get_port_variant (id);
          end if;
       end cycle;
@@ -1445,7 +1445,9 @@ package body PortScan.Operations is
       begin
          all_ports (target).subpackages.Iterate (check_subpackage'Access);
          if glass_full then
-            prune_list.Append (target);
+            if not prune_list.Contains (target) then
+              prune_list.Append (target);
+            end if;
          end if;
       end determine_fully_built;
 
