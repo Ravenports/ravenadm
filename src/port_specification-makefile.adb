@@ -219,6 +219,9 @@ package body Port_Specification.Makefile is
          if not HT.IsBlank (specs.distname) then
             send ("DISTNAME", specs.distname);
          else
+            if HT.equivalent (list_crate.Element (specs.dl_sites.First).group, dlgroup_none) then
+               return;
+            end if;
             declare
                first_dlsite : constant String :=
                  HT.USS (specs.dl_sites.Element (HT.SUS (dlgroup_main)).list.First_Element);

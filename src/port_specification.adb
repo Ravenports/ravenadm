@@ -1494,7 +1494,9 @@ package body Port_Specification is
             end if;
          end;
       end loop;
-      if specs.df_index.Is_Empty then
+      if specs.df_index.Is_Empty and then
+        not specs.distfiles.Is_Empty
+      then
          specs.df_index.Append (HT.SUS ("1"));
       end if;
    end adjust_defaults_port_parse;
