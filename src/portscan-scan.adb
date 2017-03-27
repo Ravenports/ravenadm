@@ -608,7 +608,12 @@ package body PortScan.Scan is
          return False;
       end if;
       begin
-         populate_port_data (conspiracy, unkindness, target, always_build, sysrootver);
+         if all_ports (target).scanned then
+            --  This can happen when a dpendency is also on the build list.
+            return True;
+         else
+            populate_port_data (conspiracy, unkindness, target, always_build, sysrootver);
+         end if;
       exception
          when issue : others =>
             TIO.Put_Line ("Encountered issue with " & two_partid & " or its dependencies" &

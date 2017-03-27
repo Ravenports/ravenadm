@@ -30,30 +30,40 @@ package body PortScan.Tests is
    is
       passed_check : Boolean := True;
       namebase     : constant String := specification.get_namebase;
+      directory_list : entry_crate.Map;
+      dossier_list   : entry_crate.Map;
    begin
-      directory_list.Clear;
-      dossier_list.Clear;
-
       LOG.log_phase_begin (log_handle, phase_name);
       TIO.Put_Line (log_handle, "====> Checking for package manifest issues");
 
-      if not ingest_manifests (specification, log_handle, seq_id, namebase, rootdir) then
+      if not ingest_manifests (specification  => specification,
+                               log_handle     => log_handle,
+                               directory_list => directory_list,
+                               dossier_list   => dossier_list,
+                               seq_id         => seq_id,
+                               namebase       => namebase,
+                               rootdir        => rootdir)
+      then
          passed_check := False;
       end if;
 
-      if orphaned_directories_detected (log_handle, namebase, rootdir) then
+      if orphaned_directories_detected (log_handle     => log_handle,
+                                        directory_list => directory_list,
+                                        namebase       => namebase,
+                                        rootdir        => rootdir)
+      then
          passed_check := False;
       end if;
 
-      if missing_directories_detected (log_handle) then
+      if missing_directories_detected (log_handle, directory_list) then
          passed_check := False;
       end if;
 
-      if orphaned_files_detected (log_handle, namebase, rootdir) then
+      if orphaned_files_detected (log_handle, dossier_list, namebase, rootdir) then
          passed_check := False;
       end if;
 
-      if missing_files_detected (log_handle) then
+      if missing_files_detected (log_handle, dossier_list) then
          passed_check := False;
       end if;
 
@@ -70,11 +80,13 @@ package body PortScan.Tests is
    --  ingest_manifests
    --------------------------------------------------------------------------------------------
    function ingest_manifests
-     (specification : PSP.Portspecs;
-      log_handle    : TIO.File_Type;
-      seq_id        : port_id;
-      namebase      : String;
-      rootdir       : String) return Boolean
+     (specification  : PSP.Portspecs;
+      log_handle     : TIO.File_Type;
+      directory_list : in out entry_crate.Map;
+      dossier_list   : in out entry_crate.Map;
+      seq_id         : port_id;
+      namebase       : String;
+      rootdir        : String) return Boolean
    is
       procedure eat_plist (position : subpackage_crate.Cursor);
       procedure insert_directory (directory : String; subpackage : HT.Text);
@@ -253,9 +265,10 @@ package body PortScan.Tests is
    --  orphaned_directories_detected
    --------------------------------------------------------------------------------------------
    function orphaned_directories_detected
-     (log_handle    : TIO.File_Type;
-      namebase      : String;
-      rootdir       : String) return Boolean
+     (log_handle     : TIO.File_Type;
+      directory_list : in out entry_crate.Map;
+      namebase       : String;
+      rootdir        : String) return Boolean
    is
       rawlbase  : constant String  := HT.USS (PM.configuration.dir_localbase);
       localbase : constant String  := rawlbase (rawlbase'First + 1 .. rawlbase'Last);
@@ -323,7 +336,9 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    --  missing_directories_detected
    --------------------------------------------------------------------------------------------
-   function missing_directories_detected (log_handle : TIO.File_Type) return Boolean
+   function missing_directories_detected
+     (log_handle     : TIO.File_Type;
+      directory_list : in out entry_crate.Map) return Boolean
    is
       procedure check (position : entry_crate.Cursor);
 
@@ -351,7 +366,9 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    --  missing_files_detected
    --------------------------------------------------------------------------------------------
-   function missing_files_detected (log_handle : TIO.File_Type) return Boolean
+   function missing_files_detected
+     (log_handle   : TIO.File_Type;
+      dossier_list : in out entry_crate.Map) return Boolean
    is
       procedure check (position : entry_crate.Cursor);
 
@@ -380,9 +397,10 @@ package body PortScan.Tests is
    --  orphaned_files_detected
    --------------------------------------------------------------------------------------------
    function orphaned_files_detected
-     (log_handle    : TIO.File_Type;
-      namebase      : String;
-      rootdir       : String) return Boolean
+     (log_handle     : TIO.File_Type;
+      dossier_list   : in out entry_crate.Map;
+      namebase       : String;
+      rootdir        : String) return Boolean
    is
       rawlbase  : constant String  := HT.USS (PM.configuration.dir_localbase);
       localbase : constant String  := rawlbase (rawlbase'First + 1 .. rawlbase'Last);

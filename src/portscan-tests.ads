@@ -33,38 +33,43 @@ private
       Hash            => port_hash,
       Equivalent_Keys => HT.equivalent);
 
-   directory_list : entry_crate.Map;
-   dossier_list   : entry_crate.Map;
-
    --  Iterates though subpackages and pulls in associated manifest
    --  If any files are represented by multiple manifests, output the culprit and set result
    --  to false.  Even when error is found, all files are still checked.
    function ingest_manifests
-     (specification : PSP.Portspecs;
-      log_handle    : TIO.File_Type;
-      seq_id        : port_id;
-      namebase      : String;
-      rootdir       : String) return Boolean;
+     (specification  : PSP.Portspecs;
+      log_handle     : TIO.File_Type;
+      directory_list : in out entry_crate.Map;
+      dossier_list   : in out entry_crate.Map;
+      seq_id         : port_id;
+      namebase       : String;
+      rootdir        : String) return Boolean;
 
    --  Scans all directories in stage and returns true if any non-standard orphans are found
    function orphaned_directories_detected
-     (log_handle    : TIO.File_Type;
-      namebase      : String;
-      rootdir       : String) return Boolean;
+     (log_handle     : TIO.File_Type;
+      directory_list : in out entry_crate.Map;
+      namebase       : String;
+      rootdir        : String) return Boolean;
 
    --  Scans all files in stage and returns true if any orphans are found
    function orphaned_files_detected
-     (log_handle    : TIO.File_Type;
-      namebase      : String;
-      rootdir       : String) return Boolean;
+     (log_handle     : TIO.File_Type;
+      dossier_list   : in out entry_crate.Map;
+      namebase       : String;
+      rootdir        : String) return Boolean;
 
    --  Iterates through directory list.  If any directories are listed that weren't in
    --  the stage directory, output the issue and set result to false.
-   function missing_directories_detected (log_handle : TIO.File_Type) return Boolean;
+   function missing_directories_detected
+     (log_handle     : TIO.File_Type;
+      directory_list : in out entry_crate.Map) return Boolean;
 
    --  Iterates through file list.  If any file are listed that weren't in
    --  the stage directory, output the issue and set result to false.
-   function missing_files_detected (log_handle : TIO.File_Type) return Boolean;
+   function missing_files_detected
+     (log_handle   : TIO.File_Type;
+      dossier_list : in out entry_crate.Map) return Boolean;
 
    --  Return True if directory was pre-created by ravenports
    function directory_excluded (candidate : String) return Boolean;
