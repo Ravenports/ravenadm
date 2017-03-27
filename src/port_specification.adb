@@ -1695,7 +1695,13 @@ package body Port_Specification is
          if not HT.IsBlank (joined) then
             HT.SU.Append (joined, ", ");
          end if;
-         HT.SU.Append (joined, string_crate.Element (position));
+         if field = sp_licenses then
+            --  Strip subpackages off of licenses
+            HT.SU.Append (joined,
+                          HT.SUS (HT.part_1 (HT.USS (string_crate.Element (position)), ":")));
+         else
+            HT.SU.Append (joined, string_crate.Element (position));
+         end if;
       end concat;
 
       procedure dump_option (position : option_crate.Cursor)
