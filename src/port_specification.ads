@@ -199,6 +199,9 @@ package Port_Specification is
    --  Return string block (delimited by LF) of unique buildrun + run depends
    function combined_run_dependency_origins (specs : Portspecs) return String;
 
+   --  Runs through specs to ensure all license framework information is present.
+   function post_parse_license_check_passes (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -438,5 +441,8 @@ private
 
    --  Checks against a list of known licenses or CUSTOM(1,2,3,4)
    function determine_license (value : String) return license_type;
+
+   --  Returns true if subpackage exists in any variant.
+   function subpackage_exists (specs : Portspecs; subpackage : String) return Boolean;
 
 end Port_Specification;

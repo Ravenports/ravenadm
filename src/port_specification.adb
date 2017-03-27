@@ -232,7 +232,7 @@ package body Port_Specification is
             specs.prefix := text_value;
          when sp_lic_scheme =>
             verify_entry_is_post_options;
-            if value = "single" or else
+            if value = "solo" or else
               value = "dual" or else
               value = "multi"
             then
@@ -606,14 +606,14 @@ package body Port_Specification is
                raise wrong_value with "Invalid LICENSE format, must be subpackage:name";
             end if;
             declare
-               testlic : String := HT.part_2 (value, ":");
-               testpkg : String := HT.part_1 (value, ":");
-               lic : license_type := determine_license (value);
+               testlic : String := HT.part_1 (value, ":");
+               testpkg : String := HT.part_2 (value, ":");
+               lic    : license_type := determine_license (testlic);
             begin
                if lic = INVALID then
                   raise wrong_value with "LICENSE not recognized: " & testlic;
                end if;
-               if not specs.subpackages.Contains (HT.SUS (testpkg)) then
+               if not specs.subpackage_exists (testpkg) then
                   raise wrong_type with "LICENSE subpackage unrecognized: " & testpkg;
                end if;
             end;
@@ -657,7 +657,7 @@ package body Port_Specification is
                specs.licenses.Iterate (scan'Access);
                if not found then
                   raise wrong_value with "LICENSE " & testlic & " not previously defined " &
-                    " for " & value;
+                    "for " & value;
                end if;
             end;
             specs.lic_names.Append (text_value);
@@ -2427,6 +2427,195 @@ package body Port_Specification is
       end loop;
       return INVALID;
    end determine_license;
+
+
+   --------------------------------------------------------------------------------------------
+   --  dump_specification
+   --------------------------------------------------------------------------------------------
+   function post_parse_license_check_passes (specs : Portspecs) return Boolean
+   is
+      procedure dump_name (position : string_crate.Cursor);
+      procedure check_for_custom_name (position : string_crate.Cursor);
+
+      still_good    : Boolean := True;
+      found_custom  : Boolean := False;
+      lic_count     : Natural;
+      solo_scheme   : constant Boolean :=  HT.equivalent (specs.lic_scheme, "solo");
+      tempstorage   : string_crate.Vector;
+      report_card, card2 : array (1 .. 4) of Boolean := (others => False);
+
+      procedure dump_name (position : string_crate.Cursor)
+      is
+         lic_part : HT.Text := HT.SUS (HT.part_2 (HT.USS (string_crate.Element (position)), ":"));
+         lpstr    : String  := HT.USS (lic_part);
+         lic_type : license_type := determine_license (lpstr);
+      begin
+         if still_good then
+            if tempstorage.Contains (lic_part) then
+               TIO.Put_Line ("Duplicate LICENSE found on multiple subpackage: " & lpstr);
+               still_good := False;
+            else
+               tempstorage.Append (lic_part);
+               case lic_type is
+                  when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
+                     found_custom := True;
+                  when others => null;
+               end case;
+               case lic_type is
+                  when CUSTOM1 => report_card (1) := True;
+                  when CUSTOM2 => report_card (2) := True;
+                  when CUSTOM3 => report_card (3) := True;
+                  when CUSTOM4 => report_card (4) := True;
+                  when others => null;
+               end case;
+            end if;
+         end if;
+      end dump_name;
+
+      procedure check_for_custom_name (position : string_crate.Cursor)
+      is
+         lic_part : HT.Text := HT.SUS (HT.part_1 (HT.USS (string_crate.Element (position)), ":"));
+         lpstr    : String  := HT.USS (lic_part);
+         lic_type : license_type := determine_license (lpstr);
+         err_msg  : String := "Duplicate entries for LICENSE_NAME, CUSTOM";
+      begin
+         --  due to previous check, we already know lic_type is CUSTOM1 .. CUSTOM4
+         --  We also know that all entries have matched against LICENSES
+         if still_good then
+            case lic_type is
+               when CUSTOM1 =>
+                  if card2 (1) then
+                     TIO.Put_Line (err_msg & "1");
+                     still_good := False;
+                  end if;
+                  card2 (1) := True;
+                  report_card (1) := False;
+            when CUSTOM2 =>
+                  if card2 (2) then
+                     TIO.Put_Line (err_msg & "2");
+                     still_good := False;
+                  end if;
+                  card2 (2) := True;
+                  report_card (2) := False;
+            when CUSTOM3 =>
+                  if card2 (3) then
+                     TIO.Put_Line (err_msg & "3");
+                     still_good := False;
+                  end if;
+                  card2 (3) := True;
+                  report_card (3) := False;
+            when CUSTOM4 =>
+                  if card2 (4) then
+                     TIO.Put_Line (err_msg & "4");
+                     still_good := False;
+                  end if;
+                  card2 (4) := True;
+                  report_card (4) := False;
+            when others => null;
+            end case;
+         end if;
+      end check_for_custom_name;
+   begin
+      if specs.licenses.Is_Empty then
+         --  no license case, but make sure everything else is blank too
+         if not specs.lic_names.Is_Empty or else
+           not specs.lic_files.Is_Empty
+         then
+            TIO.Put_Line ("LICENSE is empty but LICENSE_NAMES or LICENSE_FILES is not");
+            return False;
+         end if;
+         if HT.IsBlank (specs.lic_scheme) or else solo_scheme then
+            return True;
+         else
+            TIO.Put_Line ("LICENSE is empty but LICENSE_SCHEME = " & HT.USS (specs.lic_scheme));
+            return False;
+         end if;
+      end if;
+
+      --  Finish checking LICENSE_SCHEME
+      lic_count := Natural (specs.licenses.Length);
+      if HT.IsBlank (specs.lic_scheme) then
+         TIO.Put_Line ("LICENSE_SCHEME must also be defined when LICENSE is defined.");
+         return False;
+      else
+         if lic_count = 1 then
+            if not solo_scheme then
+               TIO.Put_Line ("LICENSE_SCHEME must be 'solo' when there is only one license.");
+               return False;
+            end if;
+         else
+            if solo_scheme then
+               TIO.Put_Line ("LICENSE_SCHEME cannot be 'solo' with multiple licenses.");
+               return False;
+            end if;
+         end if;
+      end if;
+
+      --  We don't need to check the values of LICENSE_FILE because we
+      --  already validated those when the data was input.  What didn't didn't do was check that
+      --  all entries were present, so all we have to do is compare totals.
+
+      if Natural (specs.lic_files.Length) /= lic_count then
+         TIO.Put_Line ("There are less LICENSE_FILES than LICENSES");
+         return False;
+      end if;
+
+      --  LICENSE_NAME only has to be defined for CUSTOM1--4
+      specs.licenses.Iterate (dump_name'Access);
+      if found_custom then
+         specs.lic_names.Iterate (check_for_custom_name'Access);
+         if still_good then
+            if report_card (1) or else
+              report_card (2) or else
+              report_card (3) or else
+              report_card (4)
+            then
+               TIO.Put_Line ("There is at least one CUSTOMx LICENSE that doesn't have a " &
+                               "defined LICENSE_NAME");
+               return False;
+            end if;
+         end if;
+      end if;
+
+      return still_good;
+
+   end post_parse_license_check_passes;
+
+
+   --------------------------------------------------------------------------------------------
+   --  subpackage_exists
+   --------------------------------------------------------------------------------------------
+   function subpackage_exists (specs : Portspecs; subpackage : String) return Boolean
+   is
+      procedure scan_variant    (pos_variant : string_crate.Cursor);
+      procedure scan_subpackage (pos_subpkg : string_crate.Cursor);
+
+      found : Boolean := False;
+
+      procedure scan_variant    (pos_variant : string_crate.Cursor) is
+         variant : HT.Text renames string_crate.Element (pos_variant);
+      begin
+         if not found then
+            if specs.subpackages.Contains (variant) then
+               specs.subpackages.Element (variant).list.Iterate (scan_subpackage'Access);
+            end if;
+         end if;
+      end scan_variant;
+
+      procedure scan_subpackage (pos_subpkg : string_crate.Cursor)
+      is
+         subpkg : HT.Text renames string_crate.Element (pos_subpkg);
+      begin
+         if not found then
+            if subpackage = HT.USS (subpkg) then
+               found := True;
+            end if;
+         end if;
+      end scan_subpackage;
+   begin
+      specs.variants.Iterate (scan_variant'Access);
+      return found;
+   end subpackage_exists;
 
 
    --------------------------------------------------------------------------------------------

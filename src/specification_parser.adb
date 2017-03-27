@@ -375,6 +375,7 @@ package body Specification_Parser is
                      when deprecated       => build_string (spec, PSP.sp_deprecated, line);
                      when expiration       => build_string (spec, PSP.sp_expiration, line);
                      when prefix           => build_string (spec, PSP.sp_prefix, line);
+                     when lic_scheme       => build_string (spec, PSP.sp_lic_scheme, line);
                      when revision         => set_natural (spec, PSP.sp_revision, line);
                      when epoch            => set_natural (spec, PSP.sp_epoch, line);
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
@@ -428,6 +429,8 @@ package body Specification_Parser is
                      when licenses         => build_list (spec, PSP.sp_licenses, line);
                      when users            => build_list (spec, PSP.sp_users, line);
                      when groups           => build_list (spec, PSP.sp_groups, line);
+                     when lic_file         => build_list (spec, PSP.sp_lic_file, line);
+                     when lic_name         => build_list (spec, PSP.sp_lic_name, line);
                      when catchall         => build_nvpair (spec, line);
                      when diode            => null;
                      when not_singlet      => null;
@@ -942,7 +945,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 83;
+      total_singlets : constant Positive := 86;
 
       type singlet_pair is
          record
@@ -1008,6 +1011,9 @@ package body Specification_Parser is
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
          ("LICENSE               ",  7, licenses),
+         ("LICENSE_FILE          ", 12, lic_file),
+         ("LICENSE_NAME          ", 12, lic_name),
+         ("LICENSE_SCHEME        ", 14, lic_scheme),
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
@@ -1495,6 +1501,9 @@ package body Specification_Parser is
       end if;
       if spec.missing_subpackage_definition then
          return HT.SUS ("At least one variant has no subpackages defined.");
+      end if;
+      if not spec.post_parse_license_check_passes then
+         return HT.SUS ("The LICENSE settings are not valid.");
       end if;
       return HT.blank;
    end late_validity_check_error;
