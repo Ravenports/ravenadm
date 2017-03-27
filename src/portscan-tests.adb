@@ -119,7 +119,9 @@ package body PortScan.Tests is
                line_text : HT.Text := HT.SUS (line);
                new_rec   : entry_record := (subpackage, False);
             begin
-               if HT.leads (line, "@dir ") then
+               if HT.leads (line, "@comment ") then
+                  null;
+               elsif HT.leads (line, "@dir ") then
                   declare
                      dir      : String := line (line'First + 5 .. line'Last);
                      dir_text : HT.Text := HT.SUS (dir);

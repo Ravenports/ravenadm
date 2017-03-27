@@ -596,11 +596,11 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_HEAD",         specs.extract_head);
       send ("EXTRACT_TAIL",         specs.extract_tail);
       blank_line;
-      send ("INFO",                 specs.info, 1);
       send ("LICENSE",              specs.licenses, 2);
       send ("LICENSE_NAME",         specs.lic_names, 1);
       send ("LICENSE_SCHEME",       specs.lic_scheme);
       send ("LICENSE_FILE",         specs.lic_files, 1);
+      send ("INFO",                 specs.info, 1);
       send_catchall;
       blank_line;
       send ("PATCH_WRKSRC",         specs.patch_wrksrc);
