@@ -631,6 +631,7 @@ package body Port_Specification.Makefile is
       dump_license;
       dump_info;
       dump_catchall;
+      send ("NO_CCACHE",        specs.skip_ccache, True);
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
 
       dump_has_configure (specs.config_must);

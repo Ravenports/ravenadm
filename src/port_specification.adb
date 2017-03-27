@@ -61,6 +61,7 @@ package body Port_Specification is
 
       specs.skip_build    := False;
       specs.skip_install  := False;
+      specs.skip_ccache   := False;
       specs.destdir_env   := False;
       specs.single_job    := False;
       specs.shift_install := False;
@@ -1051,6 +1052,8 @@ package body Port_Specification is
             specs.apply_f10_fix := value;
          when sp_inst_tchain =>
             specs.shift_install := value;
+         when sp_skip_ccache =>
+            specs.skip_ccache := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2888,6 +2891,7 @@ package body Port_Specification is
             when sp_apply_f10_fix  => TIO.Put_Line (specs.apply_f10_fix'Img);
             when sp_cfg_outsrc     => TIO.Put_Line (specs.config_outsrc'Img);
             when sp_inst_tchain    => TIO.Put_Line (specs.shift_install'Img);
+            when sp_skip_ccache    => TIO.Put_Line (specs.skip_ccache'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -2962,6 +2966,7 @@ package body Port_Specification is
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
       print_boolean     ("SKIP_INSTALL", sp_skip_install);
+      print_boolean     ("SKIP_CCACHE", sp_skip_ccache);
       print_boolean     ("INSTALL_REQ_TOOLCHAIN", sp_inst_tchain);
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);

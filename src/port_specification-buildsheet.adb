@@ -602,6 +602,7 @@ package body Port_Specification.Buildsheet is
       send ("LICENSE_FILE",         specs.lic_files, 1);
       send ("INFO",                 specs.info, 1);
       send_catchall;
+      send ("SKIP_CCACHE",          specs.skip_ccache, True);
       blank_line;
       send ("PATCH_WRKSRC",         specs.patch_wrksrc);
       send ("PATCHFILES",           specs.patchfiles, 1);

@@ -381,6 +381,7 @@ package body Specification_Parser is
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
                      when skip_build       => set_boolean (spec, PSP.sp_skip_build, line);
                      when skip_install     => set_boolean (spec, PSP.sp_skip_install, line);
+                     when skip_ccache      => set_boolean (spec, PSP.sp_skip_ccache, line);
                      when single_job       => set_boolean (spec, PSP.sp_single_job, line);
                      when destdir_env      => set_boolean (spec, PSP.sp_destdir_env, line);
                      when config_outsource => set_boolean (spec, PSP.sp_cfg_outsrc, line);
@@ -945,7 +946,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 86;
+      total_singlets : constant Positive := 87;
 
       type singlet_pair is
          record
@@ -1036,6 +1037,7 @@ package body Specification_Parser is
          ("RUN_DEPENDS           ", 11, run_deps),
          ("SINGLE_JOB            ", 10, single_job),
          ("SKIP_BUILD            ", 10, skip_build),
+         ("SKIP_CCACHE           ", 11, skip_ccache),
          ("SKIP_INSTALL          ", 12, skip_install),
          ("SUB_FILES             ",  9, sub_files),
          ("SUB_LIST              ",  8, sub_list),
