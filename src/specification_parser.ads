@@ -174,4 +174,8 @@ private
    --  non-quoted spaces in the string.
    function valid_conditional_variable (candidate : String) return Boolean;
 
+   --  Look for ${pattern} that match known definitions and replace with the payload if
+   --  found.  Don't do anything if ${pattern} matches no known definition.
+   function transform_target_line (line : String) return String;
+
 end Specification_Parser;

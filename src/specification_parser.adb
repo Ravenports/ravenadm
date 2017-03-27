@@ -460,7 +460,7 @@ package body Specification_Parser is
                      when target_body  =>
                         specification.append_array (field        => PSP.sp_makefile_targets,
                                                     key          => HT.USS (last_index),
-                                                    value        => line,
+                                                    value        => transform_target_line (line),
                                                     allow_spaces => True);
                      when bad_target   => null;
                      when not_target   => null;
@@ -1959,6 +1959,39 @@ package body Specification_Parser is
          end;
       end;
    end valid_conditional_variable;
+
+
+   --------------------------------------------------------------------------------------------
+   --  transform_target_line
+   --------------------------------------------------------------------------------------------
+   function transform_target_line (line : String) return String
+   is
+      procedure apply_def (def_position : def_crate.Cursor);
+
+      canvas : HT.Text := HT.SUS (line);
+
+      procedure apply_def (def_position : def_crate.Cursor)
+      is
+         def_key : HT.Text renames def_crate.Key (def_position);
+         def_val : HT.Text renames def_crate.Element (def_position);
+
+         pattern : String := "${" & HT.USS (def_key) & "}";
+      begin
+         loop
+            exit when not HT.contains (canvas, pattern);
+            canvas := HT.replace_substring (canvas, pattern, HT.USS (def_val));
+         end loop;
+      end apply_def;
+   begin
+      if spec_definitions.Is_Empty then
+         return line;
+      end if;
+
+      spec_definitions.Iterate (apply_def'Access);
+      return HT.USS (canvas);
+
+   end transform_target_line;
+
 
 
 end Specification_Parser;
