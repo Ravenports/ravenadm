@@ -647,9 +647,6 @@ package body Port_Specification.Buildsheet is
       --  TODO
       --  MANPREFIX[x] (needs imp, doc)
       --  RC_SUBR (array spkg), (needs imp, doc)
-      --  CCACHE_BUILD=yes (needs imp, doc, fix README)
-      --  CCACHE_DIR (needs imp, doc)
-      --  SKIP_CCACHE=yes (needs imp, doc, fix README)
       --  WITH_DEBUG (?)
       --  DEBUG_FLAGS (?)
 
@@ -722,29 +719,49 @@ package body Port_Specification.Buildsheet is
    --------------------------------------------------------------------------------------------
    --  print_specification_template
    --------------------------------------------------------------------------------------------
-   procedure print_specification_template
+   procedure print_specification_template (dump_to_file : Boolean)
    is
       tab : constant Character := LAT.HT;
       CR  : constant Character := LAT.LF;
+
+      part1 : constant String :=
+        "# DEF[PORTVERSION]=" & tab & "1.00" & CR &
+        "# ----------------------------------------------------------------------------";
+
+      part2 : constant String := CR &
+        "NAMEBASE=" & tab & tab & "..." & CR &
+        "VERSION=" & tab & tab & "${PORTVERSION}" & CR &
+        "KEYWORDS=" & tab & tab & "..." & CR &
+        "VARIANTS=" & tab & tab & "standard" & CR &
+        "SDESC[standard]=" & tab & "..." & CR &
+        "HOMEPAGE=" & tab & tab & "none" & CR &
+        "CONTACT=" & tab & tab & "Jay_Leno[jay@aarp.org]" & CR & CR &
+        "DOWNLOAD_GROUPS=" & tab & "main" & CR &
+        "SITES[main]=" & tab & tab & "http://www.example.com/" & CR &
+        "DISTFILE[1]=" & tab & tab & "something.tar.gz:main" & CR & CR &
+        "SPKGS[standard]=" & tab & "single" & CR & CR &
+        "OPTIONS_AVAILABLE=" & tab & "none" & CR &
+        "OPTIONS_STANDARD=" & tab & "none";
+
+      template : TIO.File_Type;
+
    begin
-      TIO.Put_Line
-        ("# DEF[PORTVERSION]=" & tab & "1.00" & CR &
-           "# ----------------------------------------------------------------------------");
-      TIO.Put_Line
-        (CR &
-           "NAMEBASE=" & tab & tab & "..." & CR &
-           "VERSION=" & tab & tab & "${PORTVERSION}" & CR &
-           "KEYWORDS=" & tab & tab & "..." & CR &
-           "VARIANTS=" & tab & tab & "standard" & CR &
-           "SDESC[standard]=" & tab & "..." & CR &
-           "HOMEPAGE=" & tab & tab & "none" & CR &
-           "CONTACT=" & tab & tab & "Jay_Leno[jay@aarp.org]" & CR & CR &
-           "DOWNLOAD_GROUPS=" & tab & "main" & CR &
-           "SITES[main]=" & tab & tab & "http://www.example.com/" & CR &
-           "DISTFILE[1]=" & tab & tab & "something.tar.gz:main" & CR & CR &
-           "SPKGS[standard]=" & tab & "single" & CR & CR &
-           "OPTIONS_AVAILABLE=" & tab & "none" & CR &
-           "OPTIONS_STANDARD=" & tab & "none");
+      if dump_to_file then
+         TIO.Create (File => template,
+                     Mode => TIO.Out_File,
+                     Name => "specification");
+         TIO.Put_Line (template, part1);
+         TIO.Put_Line (template, part2);
+         TIO.Close (template);
+      else
+         TIO.Put_Line (part1);
+         TIO.Put_Line (part2);
+      end if;
+   exception
+      when others =>
+         if TIO.Is_Open (template) then
+            TIO.Close (template);
+         end if;
    end print_specification_template;
 
 end Port_Specification.Buildsheet;

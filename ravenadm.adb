@@ -241,7 +241,7 @@ begin
                   when makefile =>
                      Pilot.generate_makefile (get_arg (3), get_arg (4));
                   when template =>
-                     Pilot.print_spec_template;
+                     Pilot.print_spec_template (get_arg (3));
                end case;
             end;
          else

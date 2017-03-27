@@ -87,7 +87,7 @@ package Pilot is
    function store_origins (start_from : Positive) return Boolean;
 
    --  Sends a basic template for writing specifications to standard out.
-   procedure print_spec_template;
+   procedure print_spec_template (save_command : String);
 
    --  Explodes current directory specfication into scan slave and generates a distinfo
    --  file which is copied back to current directory.

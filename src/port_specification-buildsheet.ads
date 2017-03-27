@@ -13,7 +13,7 @@ package Port_Specification.Buildsheet is
 
 
    --  This produces a skeleton of the mandatory specification elements.
-   procedure print_specification_template;
+   procedure print_specification_template (dump_to_file : Boolean);
 
 private
 

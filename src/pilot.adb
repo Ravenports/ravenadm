@@ -847,9 +847,11 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    --  print_spec_template
    --------------------------------------------------------------------------------------------
-   procedure print_spec_template is
+   procedure print_spec_template (save_command : String)
+   is
+      save_here : constant Boolean := (save_command = "save");
    begin
-      PSB.print_specification_template;
+      PSB.print_specification_template (save_here);
    end print_spec_template;
 
 

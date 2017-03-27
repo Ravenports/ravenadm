@@ -509,7 +509,6 @@ package body PortScan.Scan is
       end if;
       depindex := ports_keys.Element (portkey);
       if not all_ports (target).blocked_by.Contains (depindex) then
-         TIO.Put_Line (get_port_variant (target) & " sets blocked-by " & get_port_variant (depindex));
          all_ports (target).blocked_by.Insert (depindex, depindex);
       end if;
       if dtype in LR_set and then
