@@ -1266,7 +1266,7 @@ package body PortScan.Operations is
    is
       procedure prune_packages (cursor : ranking_crate.Cursor);
       procedure check_package (cursor : ranking_crate.Cursor);
-      procedure determine_fully_built (cursor : ranking_crate.Cursor);
+      procedure determine_fully_built (cursor : subpackage_queue.Cursor);
       procedure prune_queue (cursor : subqueue.Cursor);
       procedure print (cursor : subpackage_queue.Cursor);
       procedure fetch (cursor : subpackage_queue.Cursor);
@@ -1408,12 +1408,12 @@ package body PortScan.Operations is
          end if;
       end check;
 
-      procedure determine_fully_built (cursor : ranking_crate.Cursor)
+      procedure determine_fully_built (cursor : subpackage_queue.Cursor)
       is
          procedure check_subpackage (cursor : subpackage_crate.Cursor);
 
          glass_full : Boolean := True;
-         target : port_id := ranking_crate.Element (cursor).ap_index;
+         target : port_id := subpackage_queue.Element (cursor).id;
 
          procedure check_subpackage (cursor : subpackage_crate.Cursor)
          is
@@ -1538,7 +1538,7 @@ package body PortScan.Operations is
          --  All subpackages must be "already_built" before we can prune.
          --  we have iterate through the rank_queue, then subiterate through subpackages.
          --  If all subpackages are present, add port to prune queue.
-         rank_queue.Iterate (determine_fully_built'Access);
+         already_built.Iterate (determine_fully_built'Access);
          prune_list.Iterate (prune_queue'Access);
       end if;
    end limited_sanity_check;
