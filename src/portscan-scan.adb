@@ -773,6 +773,7 @@ package body PortScan.Scan is
                                   fatal        => just_stop_now)
          then
             if just_stop_now then
+               --  backtrace outputs, no need for more information.
                successful := False;
             else
                TIO.Put_Line ("Scan of " & origin & " failed, it will not be considered.");

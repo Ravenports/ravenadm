@@ -36,39 +36,32 @@ package body Port_Specification.Transform is
                itemstr : String := HT.USS (item);
                special : HT.Text;
             begin
-               case field is
-                  when build_depends_on       => specs.build_deps.Append (item);
-                  when build_target_on        => specs.build_target.Append (item);
-                  when cflags_on              => specs.cflags.Append (item);
-                  when cmake_args_on |
-                       cmake_args_off         => specs.cmake_args.Append (item);
-                  when configure_args_on |
-                       configure_args_off     => specs.config_args.Append (item);
-                  when configure_env_on       => specs.config_env.Append (item);
-                  when cppflags_on            => specs.cppflags.Append (item);
-                  when cxxflags_on            => specs.cxxflags.Append (item);
-                  when df_index_on            => specs.df_index.Append (item);
-                  when extract_only_on        => specs.extract_only.Append (item);
-                  when extra_patches_on       => specs.extra_patches.Append (item);
-                  when install_target_on      => specs.install_tgt.Append (item);
-                  when keywords_on            => specs.keywords.Append (item);
-                  when ldflags_on             => specs.ldflags.Append (item);
-                  when buildrun_depends_on    => specs.buildrun_deps.Append (item);
-                  when make_args_on           => specs.make_args.Append (item);
-                  when make_env_on            => specs.make_env.Append (item);
-                  when patchfiles_on          => specs.patchfiles.Append (item);
-                  when plist_sub_on           => specs.plist_sub.Append (item);
-                  when run_depends_on         => specs.run_deps.Append (item);
-                  when sub_files_on           => specs.sub_files.Append (item);
-                  when sub_list_on            => specs.sub_list.Append (item);
-                  when uses_on                => specs.uses.Append (item);
-                  when qmake_off |
-                       qmake_on               => specs.qmake_args.Append (item);
-                  when others => null;
-               end case;
-
                if rec.currently_set_ON then
                   case field is
+                     when build_depends_on    => specs.build_deps.Append (item);
+                     when build_target_on     => specs.build_target.Append (item);
+                     when cflags_on           => specs.cflags.Append (item);
+                     when cmake_args_on       => specs.cmake_args.Append (item);
+                     when configure_args_on   => specs.config_args.Append (item);
+                     when configure_env_on    => specs.config_env.Append (item);
+                     when cppflags_on         => specs.cppflags.Append (item);
+                     when cxxflags_on         => specs.cxxflags.Append (item);
+                     when df_index_on         => specs.df_index.Append (item);
+                     when extract_only_on     => specs.extract_only.Append (item);
+                     when extra_patches_on    => specs.extra_patches.Append (item);
+                     when install_target_on   => specs.install_tgt.Append (item);
+                     when keywords_on         => specs.keywords.Append (item);
+                     when ldflags_on          => specs.ldflags.Append (item);
+                     when buildrun_depends_on => specs.buildrun_deps.Append (item);
+                     when make_args_on        => specs.make_args.Append (item);
+                     when make_env_on         => specs.make_env.Append (item);
+                     when patchfiles_on       => specs.patchfiles.Append (item);
+                     when plist_sub_on        => specs.plist_sub.Append (item);
+                     when run_depends_on      => specs.run_deps.Append (item);
+                     when sub_files_on        => specs.sub_files.Append (item);
+                     when sub_list_on         => specs.sub_list.Append (item);
+                     when uses_on             => specs.uses.Append (item);
+                     when qmake_on            => specs.qmake_args.Append (item);
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL=false");
                         specs.cmake_args.Append (special);
@@ -86,6 +79,9 @@ package body Port_Specification.Transform is
                   end case;
                else
                   case field is
+                     when cmake_args_off      => specs.cmake_args.Append (item);
+                     when configure_args_off  => specs.config_args.Append (item);
+                     when qmake_off           => specs.qmake_args.Append (item);
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL-true");
                         specs.cmake_args.Append (special);
