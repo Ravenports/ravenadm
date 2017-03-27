@@ -77,8 +77,29 @@ package body PortScan.Tests is
       rootdir       : String) return Boolean
    is
       procedure eat_plist (position : subpackage_crate.Cursor);
+      procedure insert_directory (directory : String; subpackage : HT.Text);
 
       result   : Boolean := True;
+
+      procedure insert_directory (directory : String; subpackage : HT.Text)
+      is
+         numsep : Natural := HT.count_char (directory, LAT.Solidus);
+         canvas : HT.Text := HT.SUS (directory);
+      begin
+         for x in 1 .. numsep + 1 loop
+            declare
+               paint      : String := HT.USS (canvas);
+               my_new_rec : entry_record := (subpackage, False);
+            begin
+               if paint /= "" then
+                  if not directory_list.Contains (canvas) then
+                     directory_list.Insert (canvas, my_new_rec);
+                  end if;
+                  canvas := HT.SUS (HT.head (paint, "/"));
+               end if;
+            end;
+         end loop;
+      end insert_directory;
 
       procedure eat_plist (position : subpackage_crate.Cursor)
       is
@@ -121,7 +142,7 @@ package body PortScan.Tests is
                            end if;
                         end;
                      else
-                        directory_list.Insert (dir_text, new_rec);
+                        insert_directory (dir, subpackage);
                      end if;
                   end;
                else
@@ -143,11 +164,8 @@ package body PortScan.Tests is
                         dossier_list.Insert (ml_text, new_rec);
                         declare
                            plistdir : String := DIR.Containing_Directory (modline);
-                           dir_text : HT.Text := HT.SUS (plistdir);
                         begin
-                           if not directory_list.Contains (dir_text) then
-                              directory_list.Insert (dir_text, new_rec);
-                           end if;
+                           insert_directory (plistdir, subpackage);
                         end;
                      end if;
                   end;
