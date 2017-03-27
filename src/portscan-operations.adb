@@ -1429,13 +1429,17 @@ package body PortScan.Operations is
                if not found then
                   if HT.equivalent (builtrec.subpackage, rec.subpackage) then
                      found := True;
+                     if rec.deletion_due or else
+                       not (rec.pkg_present or else rec.remote_pkg)
+                     then
+                        glass_full := False;
+                     end if;
                   end if;
                end if;
             end check_already_built;
          begin
             if glass_full then
                already_built.Iterate (check_already_built'Access);
-               glass_full := found;
             end if;
          end check_subpackage;
       begin
