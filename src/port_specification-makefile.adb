@@ -47,6 +47,7 @@ package body Port_Specification.Makefile is
       procedure dump_catchall;
       procedure dump_has_configure   (value  : HT.Text);
       procedure dump_distname;
+      procedure dump_license;
       procedure dump_info;
       procedure dump_conditional_vars;
 
@@ -535,6 +536,61 @@ package body Port_Specification.Makefile is
          end if;
       end dump_conditional_vars;
 
+      procedure dump_license is
+         procedure dump_lic_file (position : string_crate.Cursor);
+         procedure dump_spkg_licenses (position : string_crate.Cursor);
+
+         procedure dump_lic_file (position : string_crate.Cursor)
+         is
+            value : String := HT.USS (string_crate.Element (position));
+            lic   : String := HT.part_1 (value, ":");
+            path  : String := HT.part_2 (value, ":");
+         begin
+            send ("LICENSE_FILE_" & lic & LAT.Equals_Sign & path);
+         end dump_lic_file;
+
+         procedure dump_spkg_licenses (position : string_crate.Cursor)
+         is
+            procedure search (name_pos : string_crate.Cursor);
+
+            value : String  := HT.USS (string_crate.Element (position));
+            lic   : String  := HT.part_1 (value, ":");
+            spkg  : String  := HT.part_2 (value, ":");
+            LNAME : String  := "LICENSE_NAME_" & lic & LAT.Equals_Sign;
+            ltype : license_type := determine_license (lic);
+            cname : HT.Text;
+
+            procedure search (name_pos : string_crate.Cursor)
+            is
+               inner_value : String  := HT.USS (string_crate.Element (position));
+               inner_lic   : String  := HT.part_1 (inner_value, ":");
+               inner_desc  : String  := HT.part_2 (inner_value, ":");
+            begin
+               if inner_lic = lic  then
+                  cname := HT.SUS (inner_desc);
+               end if;
+            end search;
+         begin
+            send ("LICENSE_" & spkg & LAT.Equals_Sign & lic);
+            case ltype is
+               when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
+                  specs.lic_names.Iterate (search'Access);
+                  send (LNAME & HT.USS (cname));
+               when others =>
+                  send (LNAME & LAT.Quotation & standard_license_names (ltype) & LAT.Quotation);
+            end case;
+         end dump_spkg_licenses;
+      begin
+         if specs.licenses.Is_Empty then
+            return;
+         else
+            send ("LICENSE_SET=yes");
+         end if;
+         send ("LICENSE_SCHEME=" & HT.USS (specs.lic_scheme));
+         specs.lic_files.Iterate (dump_lic_file'Access);
+         specs.licenses.Iterate (dump_spkg_licenses'Access);
+      end dump_license;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -572,6 +628,7 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
       send ("USES",             specs.uses, 1);
+      dump_license;
       dump_info;
       dump_catchall;
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
@@ -713,5 +770,53 @@ package body Port_Specification.Makefile is
          end if;
       end;
    end generate_github_distname;
+
+
+   --------------------------------------------------------------------------------------------
+   --  standard_license_names
+   --------------------------------------------------------------------------------------------
+   function standard_license_names (license : license_type) return String
+   is
+      AGPL  : constant String := "GNU Affero General Public License version ";
+      GPL   : constant String := "GNU General Public License version ";
+      LGPL  : constant String := "GNU Library General Public License version ";
+      RLE3  : constant String := "GNU GPL version 3 Runtime Library Exception";
+      AL    : constant String := "Apache License ";
+      ART   : constant String := "Artistic License version ";
+      later : constant String := " (or later)";
+   begin
+      case license is
+         when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 => return "Don't use for custom licenses";
+         when INVALID    => return "error, invalid license";
+
+         when AGPLv3     => return AGPL & "3";
+         when AGPLv3x    => return AGPL & "3" & later;
+         when APACHE10   => return AL & "1.0";
+         when APACHE11   => return AL & "1.1";
+         when APACHE20   => return AL & "2.0";
+         when ART10      => return ART & "1.0";
+         when ART20      => return ART & "2.0";
+         when ARTPERL10  => return "Artistic License (perl) version 1.0";
+         when BSD2CLAUSE => return "BSD 2-clause 'Simplified' License";
+         when BSD3CLAUSE => return "BSD 3-clause 'New' or 'Revised' License";
+         when BSD4CLAUSE => return "BSD 4-clause 'Original' or 'Old' License";
+         when GPLv1      => return GPL & "1";
+         when GPLv1x     => return GPL & "1" & later;
+         when GPLv2      => return GPL & "2";
+         when GPLv2x     => return GPL & "2" & later;
+         when GPLv3      => return GPL & "3";
+         when GPLv3x     => return GPL & "3" & later;
+         when GPLv3RLE   => return RLE3;
+         when GPLv3RLEx  => return RLE3 & later;
+         when LGPL20     => return LGPL & "2.0";
+         when LGPL20x    => return LGPL & "2.0" & later;
+         when LGPL21     => return LGPL & "2.1";
+         when LGPL21x    => return LGPL & "2.1" & later;
+         when LGPL3      => return LGPL & "3.0";
+         when LGPL3x     => return LGPL & "3.0" & later;
+         when ISCL       => return "Internet Systems Consortium License";
+         when MIT        => return "MIT license / X11 license";
+      end case;
+   end standard_license_names;
 
 end Port_Specification.Makefile;

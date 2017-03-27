@@ -29,4 +29,7 @@ private
    --  distname per github rules.  Also works for GH/ prefix.
    function generate_github_distname (download_site : String) return String;
 
+   --  Used for non-custom (and not invalid) licenses, returns the full license name
+   function standard_license_names (license : license_type) return String;
+
 end Port_Specification.Makefile;

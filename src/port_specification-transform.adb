@@ -674,6 +674,7 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.ldflags);
       apply_cbc_string_crate (specs.cmake_args);
       apply_cbc_string_crate (specs.qmake_args);
+      apply_cbc_string_crate (specs.lic_files);
 
    end apply_curly_bracket_conversions;
 
