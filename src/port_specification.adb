@@ -2186,13 +2186,14 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 5;
+      total_modules : constant Positive := 6;
 
       subtype uses_string is String (1 .. 12);
 
       --  Keep in alphabetical order for future conversion to binary search
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
+         "charsetfix  ",
          "cpe         ",
          "gettext     ",
          "gmake       ",

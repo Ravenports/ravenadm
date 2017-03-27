@@ -946,7 +946,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 87;
+      total_singlets : constant Positive := 88;
 
       type singlet_pair is
          record
@@ -964,6 +964,7 @@ package body Specification_Parser is
          ("BUILD_TARGET          ", 12, build_target),
          ("BUILD_WRKSRC          ", 12, build_wrksrc),
          ("CFLAGS                ",  6, cflags),
+         ("CHARSETFIX_MAKEFILEIN ", 21, catchall),
          ("CMAKE_ARGS            ", 10, cmake_args),
          ("CONFIGURE_ARGS        ", 14, config_args),
          ("CONFIGURE_ENV         ", 13, config_env),
