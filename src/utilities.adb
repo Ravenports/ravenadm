@@ -2,9 +2,10 @@
 --  Reference: ../License.txt
 
 with GNAT.SHA1;
-with HelperText;
 
 package body Utilities is
+
+   package HT renames HelperText;
 
    --------------------------------------------------------------------------------------------
    --  lower_opsys
@@ -107,5 +108,35 @@ package body Utilities is
    begin
       return HelperText.uppercase (hashstr (hashstr'First .. hashstr'First + 1));
    end bucket;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_cbc_string
+   --------------------------------------------------------------------------------------------
+   procedure apply_cbc_string (value : in out HT.Text)
+   is
+      opening : Natural;
+      closing : Natural;
+      wrkstr  : HT.Text;
+   begin
+      loop
+         opening := HT.SU.Index (value, "{{");
+         if opening = 0 then
+            return;
+         end if;
+         closing := HT.SU.Index (value, "}}");
+         if closing < opening then
+            --  covers the closing = 0 case too
+            return;
+         end if;
+         declare
+            wrkstr : String := HT.SU.Slice (value, 1, opening - 1) & "${" &
+              HT.SU.Slice (value, opening + 2, closing - 1) & "}" &
+              HT.SU.Slice (value, closing + 2, HT.SU.Length (value));
+         begin
+            value := HT.SUS (wrkstr);
+         end;
+      end loop;
+   end apply_cbc_string;
 
 end Utilities;

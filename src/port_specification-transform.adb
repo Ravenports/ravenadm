@@ -708,12 +708,12 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_curly_bracket_conversions (specs : in out Portspecs) is
    begin
-      apply_cbc_string (specs.install_wrksrc);
-      apply_cbc_string (specs.build_wrksrc);
-      apply_cbc_string (specs.patch_wrksrc);
-      apply_cbc_string (specs.config_wrksrc);
-      apply_cbc_string (specs.config_prefix);
-      apply_cbc_string (specs.config_script);
+      UTL.apply_cbc_string (specs.install_wrksrc);
+      UTL.apply_cbc_string (specs.build_wrksrc);
+      UTL.apply_cbc_string (specs.patch_wrksrc);
+      UTL.apply_cbc_string (specs.config_wrksrc);
+      UTL.apply_cbc_string (specs.config_prefix);
+      UTL.apply_cbc_string (specs.config_script);
 
       apply_cbc_string_crate (specs.config_args);
       apply_cbc_string_crate (specs.config_env);
@@ -731,36 +731,6 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_cbc_string
-   --------------------------------------------------------------------------------------------
-   procedure apply_cbc_string (value : in out HT.Text)
-   is
-      opening : Natural;
-      closing : Natural;
-      wrkstr  : HT.Text;
-   begin
-      loop
-         opening := HT.SU.Index (value, "{{");
-         if opening = 0 then
-            return;
-         end if;
-         closing := HT.SU.Index (value, "}}");
-         if closing < opening then
-            --  covers the closing = 0 case too
-            return;
-         end if;
-         declare
-            wrkstr : String := HT.SU.Slice (value, 1, opening - 1) & "${" &
-              HT.SU.Slice (value, opening + 2, closing - 1) & "}" &
-              HT.SU.Slice (value, closing + 2, HT.SU.Length (value));
-         begin
-            value := HT.SUS (wrkstr);
-         end;
-      end loop;
-   end apply_cbc_string;
-
-
-   --------------------------------------------------------------------------------------------
    --  apply_cbc_string_crate
    --------------------------------------------------------------------------------------------
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector)
@@ -769,7 +739,7 @@ package body Port_Specification.Transform is
       procedure swap_braces (Element : in out HT.Text);
       procedure swap_braces (Element : in out HT.Text) is
       begin
-         apply_cbc_string (Element);
+         UTL.apply_cbc_string (Element);
       end swap_braces;
 
       procedure check (position : string_crate.Cursor) is

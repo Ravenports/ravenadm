@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with Definitions; use Definitions;
+with HelperText;
 
 package Utilities is
 
@@ -27,5 +28,8 @@ package Utilities is
 
    --  Returns first two hexidecimal digits (uppercase) from sha1 digest
    function bucket (palabra : String) return String;
+
+   --  Replaces {{x}} with ${x}
+   procedure apply_cbc_string (value : in out HelperText.Text);
 
 end Utilities;

@@ -1982,10 +1982,13 @@ package body Specification_Parser is
          def_val : HT.Text renames def_crate.Element (def_position);
 
          pattern : String := "${" & HT.USS (def_key) & "}";
+         valcopy : HT.Text := def_val;
       begin
+         UTL.apply_cbc_string (valcopy);
          loop
             exit when not HT.contains (canvas, pattern);
-            canvas := HT.replace_substring (canvas, pattern, HT.USS (def_val));
+
+            canvas := HT.replace_substring (canvas, pattern, HT.USS (valcopy));
          end loop;
       end apply_def;
    begin

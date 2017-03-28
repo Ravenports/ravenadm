@@ -75,7 +75,6 @@ private
    procedure apply_ccache          (specs : in out Portspecs);
 
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
-   procedure apply_cbc_string (value : in out HT.Text);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);
 
    function argument_present (specs : Portspecs; module, argument : String) return Boolean;
