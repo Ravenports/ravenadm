@@ -202,6 +202,9 @@ package Port_Specification is
    --  Runs through specs to ensure all license framework information is present.
    function post_parse_license_check_passes (specs : Portspecs) return Boolean;
 
+   --  Return "single", "dual" or "multi";
+   function get_license_scheme (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;

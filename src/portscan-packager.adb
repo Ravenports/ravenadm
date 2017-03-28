@@ -285,7 +285,7 @@ package body PortScan.Packager is
       filename   : String)
    is
       function get_prefix return String;
-      procedure single_if_defined (name, value : String);
+      procedure single_if_defined (name, value, not_value : String);
       procedure array_if_defined (name, value : String);
 
       file_handle : TIO.File_Type;
@@ -301,9 +301,10 @@ package body PortScan.Packager is
          end if;
       end get_prefix;
 
-      procedure single_if_defined (name, value : String) is
+      procedure single_if_defined (name, value, not_value : String) is
       begin
-         if value /= "" then
+         if value /= "" and then value /= not_value
+         then
             TIO.Put_Line (file_handle, name & ": " & quote (value));
          end if;
       end single_if_defined;
@@ -336,9 +337,10 @@ package body PortScan.Packager is
            "maintainer: " & quote (spec.get_field_value (PSP.sp_contacts)) & LAT.LF &
            "prefix: " & quote (get_prefix) & LAT.LF &
            "categories: [ " & spec.get_field_value (PSP.sp_keywords) & " ]" & LAT.LF &
-           "licenselogic: " & quote ("single")  -- TODO: IMPLEMENT
+           "licenselogic: " & quote (spec.get_license_scheme)
         );
-      single_if_defined ("www",      spec.get_field_value (PSP.sp_homepage));
+      --  We prefer "none" to "WWW : UNKNOWN" in the package manifest
+      single_if_defined ("www",      spec.get_field_value (PSP.sp_homepage), "");
       array_if_defined  ("licenses", spec.get_field_value (PSP.sp_licenses));
       array_if_defined  ("users",    spec.get_field_value (PSP.sp_users));
       array_if_defined  ("groups",   spec.get_field_value (PSP.sp_groups));

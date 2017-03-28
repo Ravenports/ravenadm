@@ -2684,6 +2684,20 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_license_scheme
+   --------------------------------------------------------------------------------------------
+   function get_license_scheme (specs : Portspecs) return String
+   is
+      actual : String := HT.USS (specs.lic_scheme);
+   begin
+      if actual = "dual" or else actual = "multi" then
+         return actual;
+      end if;
+      return "single";
+   end get_license_scheme;
+
+
+   --------------------------------------------------------------------------------------------
    --  dump_specification
    --------------------------------------------------------------------------------------------
    procedure dump_specification (specs : Portspecs)
