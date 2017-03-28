@@ -628,8 +628,8 @@ package body PortScan.Buildcycle is
       log_linked_libraries (id, pkgversion);
       all_ports (trackers (id).seq_id).subpackages.Iterate (deinstall_it'Access);
       if still_good then
-         still_good := detect_leftovers_and_MIA (id, "prestage",
-                                             "between staging and package deinstallation");
+         still_good := detect_leftovers_and_MIA
+           (id, "prestage", "between staging and package deinstallation");
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
@@ -693,8 +693,8 @@ package body PortScan.Buildcycle is
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := chroot & root & environment_override (id) &
                       "/usr/bin/pkg-static query %Fp " & pkgname;
-         comres  : String :=  generic_system_command (command);
-         markers : HT.Line_Markers;
+         comres     : String :=  generic_system_command (command);
+         markers    : HT.Line_Markers;
       begin
          trackers (id).dynlink.Clear;
          HT.initialize_markers (comres, markers);
@@ -726,13 +726,18 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    function  dynamically_linked (base, filename : String) return Boolean
    is
-      command : String := chroot & base & " /usr/bin/file -b -L -e ascii -e encoding -e tar " &
-                "-e compress " & LAT.Quotation & filename & LAT.Quotation;
-      comres  : constant String := generic_system_command (command);
+      command : String :=
+        chroot & base & " /usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
+        "-m /usr/share/file/magic.mgc " & LAT.Quotation & filename & LAT.Quotation;
    begin
-      return HT.contains (comres,  "dynamically linked");
-   exception
-      when others => return False;
+      declare
+         comres  : constant String := generic_system_command (command);
+      begin
+         return HT.contains (comres,  "dynamically linked");
+      exception
+         when others =>
+            return False;
+      end;
    end dynamically_linked;
 
 
