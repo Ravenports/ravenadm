@@ -1691,8 +1691,9 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function get_field_value (specs : Portspecs; field : spec_field) return String
    is
-      procedure concat (position : string_crate.Cursor);
+      procedure concat       (position : string_crate.Cursor);
       procedure scan_contact (position : string_crate.Cursor);
+      procedure dump_license (position : string_crate.Cursor);
       procedure dump_option  (position : option_crate.Cursor);
 
       joined : HT.Text;
@@ -1702,14 +1703,40 @@ package body Port_Specification is
          if not HT.IsBlank (joined) then
             HT.SU.Append (joined, ", ");
          end if;
-         if field = sp_licenses then
-            --  Strip subpackages off of licenses
-            HT.SU.Append (joined,
-                          HT.SUS (HT.part_1 (HT.USS (string_crate.Element (position)), ":")));
-         else
-            HT.SU.Append (joined, string_crate.Element (position));
-         end if;
+         HT.SU.Append (joined, string_crate.Element (position));
       end concat;
+
+      procedure dump_license (position : string_crate.Cursor)
+      is
+         lic_desc : HT.Text;
+      begin
+         if not HT.IsBlank (joined) then
+            HT.SU.Append (joined, ", ");
+         end if;
+         declare
+            procedure scan_lic_names (position : string_crate.Cursor);
+
+            lic     : String := HT.part_1 (HT.USS (string_crate.Element (position)), ":");
+            lictype : license_type := determine_license (lic);
+
+            procedure scan_lic_names (position : string_crate.Cursor)
+            is
+               raw : String := HT.USS (string_crate.Element (position));
+            begin
+               if HT.leads (raw, lic) then
+                  lic_desc := HT.SUS (HT.part_2 (raw, ":"));
+               end if;
+            end scan_lic_names;
+         begin
+            case lictype is
+               when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
+                  specs.lic_names.Iterate (scan_lic_names'Access);
+                  HT.SU.Append (joined, lic_desc);
+               when others =>
+                  HT.SU.Append (joined, LAT.Quotation & lic & LAT.Quotation);
+            end case;
+         end;
+      end dump_license;
 
       procedure dump_option (position : option_crate.Cursor)
       is
@@ -1761,7 +1788,7 @@ package body Port_Specification is
             specs.keywords.Iterate (concat'Access);
             return HT.USS (joined);
          when sp_licenses =>
-            specs.licenses.Iterate (concat'Access);
+            specs.licenses.Iterate (dump_license'Access);
             return HT.USS (joined);
          when sp_users =>
             specs.users.Iterate (concat'Access);
