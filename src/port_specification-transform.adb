@@ -644,9 +644,9 @@ package body Port_Specification.Transform is
       dependency  : HT.Text := HT.SUS ("indexinfo:single:standard");
    begin
       if not specs.info.Is_Empty and then
-        not specs.build_deps.Contains (dependency)
+        not specs.buildrun_deps.Contains (dependency)
       then
-         specs.build_deps.Append (dependency);
+         specs.buildrun_deps.Append (dependency);
       end if;
    end apply_info_presence;
 
