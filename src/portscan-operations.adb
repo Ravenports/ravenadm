@@ -2519,6 +2519,10 @@ package body PortScan.Operations is
          arch_standard => sysrootver.arch,
          osmajor       => HT.USS (sysrootver.major));
 
+      PST.shift_extra_patches
+        (specs         => specification,
+         extract_dir   => portloc);
+
       PSM.generator
         (specs         => specification,
          variant       => variant,

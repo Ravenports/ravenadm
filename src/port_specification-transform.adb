@@ -3,12 +3,14 @@
 
 with Utilities;
 with Ada.Characters.Latin_1;
+with Ada.Directories;
 with Parameters;
 
 package body Port_Specification.Transform is
 
    package UTL renames Utilities;
    package LAT renames Ada.Characters.Latin_1;
+   package DIR renames Ada.Directories;
 
    --------------------------------------------------------------------------------------------
    --  apply_directives
@@ -789,5 +791,28 @@ package body Port_Specification.Transform is
       specs.uses.Iterate (scan'Access);
       return found;
    end argument_present;
+
+
+   --------------------------------------------------------------------------------------------
+   --  argument_present
+   --------------------------------------------------------------------------------------------
+   procedure shift_extra_patches
+     (specs         : Portspecs;
+      extract_dir   : String)
+   is
+      num_extra_patch : Natural := specs.get_list_length (sp_extra_patches);
+   begin
+      for item in 1 .. num_extra_patch loop
+         declare
+            patch  : String := specs.get_list_item (sp_extra_patches, item);
+            xp_loc : String := extract_dir & "/files/" & patch;
+         begin
+            if DIR.Exists (xp_loc) then
+               DIR.Rename (Old_Name => xp_loc,
+                           New_Name => extract_dir & "/patches/patch-zzz-" & patch);
+            end if;
+         end;
+      end loop;
+   end shift_extra_patches;
 
 end Port_Specification.Transform;

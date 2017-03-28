@@ -47,6 +47,10 @@ package Port_Specification.Transform is
       osrelease     : String;
       osmajor       : String);
 
+   procedure shift_extra_patches
+     (specs         : Portspecs;
+      extract_dir   : String);
+
 private
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
