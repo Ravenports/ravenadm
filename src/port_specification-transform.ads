@@ -68,10 +68,11 @@ private
       arch_standard : supported_arch;
       osmajor       : String);
 
-   procedure apply_gmake_module (specs : in out Portspecs);
-   procedure apply_libtool_module (specs : in out Portspecs);
-   procedure apply_info_presence (specs : in out Portspecs);
-   procedure apply_ccache (specs : in out Portspecs);
+   procedure apply_gmake_module    (specs : in out Portspecs);
+   procedure apply_libtool_module  (specs : in out Portspecs);
+   procedure apply_libiconv_module (specs : in out Portspecs);
+   procedure apply_info_presence   (specs : in out Portspecs);
+   procedure apply_ccache          (specs : in out Portspecs);
 
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string (value : in out HT.Text);

@@ -63,8 +63,17 @@ package body Port_Specification.Transform is
                      when run_depends_on      => specs.run_deps.Append (item);
                      when sub_files_on        => specs.sub_files.Append (item);
                      when sub_list_on         => specs.sub_list.Append (item);
-                     when uses_on             => specs.uses.Append (item);
                      when qmake_on            => specs.qmake_args.Append (item);
+                     when uses_on             =>
+                        declare
+                           stripped      : String  := HT.part_1 (itemstr, ":");
+                           text_stripped : HT.Text := HT.SUS (stripped);
+                        begin
+                           specs.uses.Append (item);
+                           if not specs.uses_base.Contains (text_stripped) then
+                              specs.uses_base.Append (text_stripped);
+                           end if;
+                        end;
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL=false");
                         specs.cmake_args.Append (special);
@@ -192,6 +201,7 @@ package body Port_Specification.Transform is
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
+      apply_libiconv_module (specs);
       apply_libtool_module (specs);
       apply_info_presence (specs);
       apply_ccache (specs);
@@ -625,8 +635,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_libtool_module (specs : in out Portspecs)
    is
-      module      : String  := "libtool";
-      dependency  : HT.Text := HT.SUS ("libtool:single:standard");
+      module     : String  := "libtool";
+      dependency : HT.Text := HT.SUS ("libtool:single:standard");
    begin
       if specs.uses_base.Contains (HT.SUS (module)) and then
         argument_present (specs, module, "build") and then
@@ -635,6 +645,28 @@ package body Port_Specification.Transform is
          specs.build_deps.Append (dependency);
       end if;
    end apply_libtool_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_libiconv_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_libiconv_module (specs : in out Portspecs)
+   is
+      module     : String  := "iconv";
+      dependency : HT.Text := HT.SUS ("libiconv:single:standard");
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         if argument_present (specs, module, "build") then
+            if not specs.build_deps.Contains (dependency) then
+               specs.build_deps.Append (dependency);
+            end if;
+         else
+            if not specs.buildrun_deps.Contains (dependency) then
+               specs.buildrun_deps.Append (dependency);
+            end if;
+         end if;
+      end if;
+   end apply_libiconv_module;
 
 
    --------------------------------------------------------------------------------------------

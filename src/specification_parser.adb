@@ -519,8 +519,7 @@ package body Specification_Parser is
                      elsif subdir = "files" then
                         declare
                            newname : constant String :=
-                             tranform_filename (spec        => specification,
-                                                filename    => filename,
+                             tranform_filename (filename    => filename,
                                                 match_opsys => match_opsys,
                                                 match_arch  => match_arch);
                         begin
@@ -1884,8 +1883,7 @@ package body Specification_Parser is
    --  tranform_filenames
    --------------------------------------------------------------------------------------------
    function tranform_filename
-     (spec        : PSP.Portspecs;
-      filename    : String;
+     (filename    : String;
       match_opsys : String;
       match_arch  : String) return String
    is
