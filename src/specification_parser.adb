@@ -515,13 +515,14 @@ package body Specification_Parser is
                        subdir = "scripts" or else
                        subdir = "descriptions"
                      then
-                        FOP.create_subdirectory (extraction_dir, subdir);
                         FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & filename);
                      elsif subdir = "files" then
-                        FOP.create_subdirectory (extraction_dir, subdir);
                         declare
                            newname : constant String :=
-                             tranform_pkg_message (filename, match_opsys, match_arch);
+                             tranform_filename (spec        => specification,
+                                                filename    => filename,
+                                                match_opsys => match_opsys,
+                                                match_arch  => match_arch);
                         begin
                            if newname = "" then
                               FOP.dump_contents_to_file (fileguts,
@@ -533,7 +534,6 @@ package body Specification_Parser is
                            end if;
                         end;
                      elsif subdir = match_opsys then
-                        FOP.create_subdirectory (extraction_dir, "opsys");
                         declare
                            newname : String :=
                              extraction_dir & "/opsys/" & HT.part_2 (filename, "/");
@@ -1129,7 +1129,7 @@ package body Specification_Parser is
          ("CPPFLAGS_ON          ", PSP.cppflags_on),
          ("DESCRIPTION          ", PSP.description),
          ("DF_INDEX_ON          ", PSP.df_index_on),
-         ("EXTRACT_ONLY_ON      ", PSP.extra_patches_on),
+         ("EXTRACT_ONLY_ON      ", PSP.extract_only_on),
          ("EXTRA_PATCHES_ON     ", PSP.extra_patches_on),
          ("IMPLIES_ON           ", PSP.implies_on),
          ("INFO_ON              ", PSP.info_on),
@@ -1881,38 +1881,45 @@ package body Specification_Parser is
 
 
    --------------------------------------------------------------------------------------------
-   --  tranform_pkg_message
+   --  tranform_filenames
    --------------------------------------------------------------------------------------------
-   function tranform_pkg_message (filename, match_opsys, match_arch : String) return String
+   function tranform_filename
+     (spec        : PSP.Portspecs;
+      filename    : String;
+      match_opsys : String;
+      match_arch  : String) return String
    is
-      pm    : constant String := "pkg-message-";
-      sub   : constant String := ".in";
-      sys   : constant String := "opsys";
-      arc   : constant String := "arch";
-      pmlen : constant Natural := pm'Length;
+      pm       : constant String := "pkg-message-";
+      sub      : constant String := ".in";
+      sys      : constant String := "opsys";
+      arc      : constant String := "arch";
+      files    : constant String := "files/";
+      pmlen    : constant Natural := pm'Length;
+      justfile : constant String := HT.part_2 (filename, "/");
    begin
-      if filename'Length < pmlen + 4 or else
-        filename (filename'First .. filename'First + pmlen - 1) /= pm
+      if justfile'Length < pmlen + 4 or else
+        justfile (justfile'First .. justfile'First + pmlen - 1) /= pm
       then
          return "";
       end if;
 
-      if filename = pm & match_opsys then
-         return pm & sys;
-      elsif filename = pm & match_opsys & sub then
-         return pm & sys & sub;
-      elsif filename = pm & match_opsys & LAT.Hyphen & match_arch then
-         return pm & sys & LAT.Hyphen & arc;
-      elsif filename = pm & match_opsys & LAT.Hyphen & match_arch & sub then
-         return pm & sys & LAT.Hyphen & arc & sub;
-      elsif filename = pm & match_arch then
-         return pm & arc;
-      elsif filename = pm & match_arch & sub then
-         return pm & arc & sub;
+      if justfile = pm & match_opsys then
+         return files & pm & sys;
+      elsif justfile = pm & match_opsys & sub then
+         return files & pm & sys & sub;
+      elsif justfile = pm & match_opsys & LAT.Hyphen & match_arch then
+         return files & pm & sys & LAT.Hyphen & arc;
+      elsif justfile = pm & match_opsys & LAT.Hyphen & match_arch & sub then
+         return files & pm & sys & LAT.Hyphen & arc & sub;
+      elsif justfile = pm & match_arch then
+         return files & pm & arc;
+      elsif justfile = pm & match_arch & sub then
+         return files & pm & arc & sub;
       else
          return "skip";
       end if;
-   end tranform_pkg_message;
+
+   end tranform_filename;
 
 
    --------------------------------------------------------------------------------------------

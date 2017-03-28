@@ -166,8 +166,13 @@ private
    --  Return true if all final validity checks pass
    function late_validity_check_error (spec : PSP.Portspecs) return HT.Text;
 
-   --  Returns new filename if it matches dynamic pkg-message filename, otherwise return blank
-   function tranform_pkg_message (filename, match_opsys, match_arch : String) return String;
+   --  Returns new filename if it matches dynamic pkg-message filename or an extra
+   --  patch, otherwise return blank
+   function tranform_filename
+     (spec        : PSP.Portspecs;
+      filename    : String;
+      match_opsys : String;
+      match_arch  : String) return String;
 
    --  Returns True if conditional variable value is a valid name pair.  Validity is determined
    --  by obtaining a singlet value that is within the accepted valued, and having no

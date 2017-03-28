@@ -58,6 +58,7 @@ package body File_Operations is
 
       file_handle : File_String_IO.File_Type;
    begin
+      mkdirp_from_filename (dossier);
       File_String_IO.Create (File => file_handle,
                              Mode => File_String_IO.Out_File,
                              Name => dossier);

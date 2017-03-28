@@ -159,7 +159,6 @@ package body Port_Specification.Transform is
             augment (cxxflags_on,         rec.CXXFLAGS_ON);
             augment (df_index_on,         rec.DF_INDEX_ON);
             augment (extra_patches_on,    rec.EXTRA_PATCHES_ON);
---              --  GH stuff (rethink)
             augment (install_target_on,   rec.INSTALL_TARGET_ON);
             augment (keywords_on,         rec.KEYWORDS_ON);
             augment (ldflags_on,          rec.LDFLAGS_ON);

@@ -1862,6 +1862,7 @@ package body Port_Specification is
          when sp_opts_standard => return Natural (specs.ops_standard.Length);
          when sp_opts_avail    => return Natural (specs.ops_avail.Length);
          when sp_notes         => return Natural (specs.pkg_notes.Length);
+         when sp_extra_patches => return Natural (specs.extra_patches.Length);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1908,6 +1909,7 @@ package body Port_Specification is
          when sp_opts_avail    => specs.ops_avail.Iterate (scan'Access);
          when sp_variants      => specs.variants.Iterate (scan'Access);
          when sp_notes         => specs.pkg_notes.Iterate (scan_note'Access);
+         when sp_extra_patches => specs.extra_patches.Iterate (scan'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
