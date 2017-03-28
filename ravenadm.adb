@@ -19,7 +19,8 @@ procedure Ravenadm is
    function scan_dev_command_word return dev_mandate;
    function get_arg (arg_number : Positive) return String;
 
-   mandate : mandate_type := unset;
+   mandate    : mandate_type := unset;
+   low_rights : Boolean := False;
 
    procedure scan_first_command_word
    is
@@ -110,6 +111,7 @@ begin
 
    case mandate is
       when build | test =>
+
          if Parameters.configuration.avec_ncurses and then
            not Pilot.TERM_defined_in_environment
          then
@@ -127,7 +129,8 @@ begin
    end case;
 
    case mandate is
-      when help => null;
+      when help | locate => null;
+         low_rights := True;
       when others =>
          if Pilot.insufficient_privileges then
             return;
@@ -172,8 +175,10 @@ begin
       when others => null;
    end case;
 
-   Pilot.create_pidfile;
-   Unix.ignore_background_tty;
+   if not low_rights then
+      Pilot.create_pidfile;
+      Unix.ignore_background_tty;
+   end if;
 
    if mandate /= configure then
       Unix.cone_of_silence (deploy => True);
@@ -285,6 +290,9 @@ begin
    end case;
 
    Unix.cone_of_silence (deploy => False);
-   Pilot.destroy_pidfile;
+
+   if not low_rights then
+      Pilot.destroy_pidfile;
+   end if;
 
 end Ravenadm;
