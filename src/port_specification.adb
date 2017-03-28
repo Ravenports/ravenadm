@@ -963,7 +963,9 @@ package body Port_Specification is
             specs.catch_all.Insert (text_key, text_value);
          when sp_var_opsys =>
             verify_entry_is_post_options;
-            if specs.var_opsys.Contains (text_key) then
+            if specs.var_opsys.Contains (text_key) and then
+              specs.var_opsys.Element (text_key).list.Contains (text_value)
+            then
                raise wrong_value with "duplicate definition: " & key & "=" & value;
             end if;
             if not specs.var_opsys.Contains (text_key) then
@@ -973,7 +975,9 @@ package body Port_Specification is
                                             Process  => grow'Access);
          when sp_var_arch =>
             verify_entry_is_post_options;
-            if specs.var_arch.Contains (text_key) then
+            if specs.var_arch.Contains (text_key) and then
+              specs.var_arch.Element (text_key).list.Contains (text_value)
+            then
                raise wrong_value with "duplicate definition: " & key & "=" & value;
             end if;
             if not specs.var_arch.Contains (text_key) then
@@ -2256,7 +2260,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 66;
+      total_keywords : constant Positive := 67;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -2294,6 +2298,7 @@ package body Port_Specification is
          "japanese     ",
          "java         ",
          "javascript   ",
+         "korean       ",
          "lang         ",
          "lisp         ",
          "mail         ",
