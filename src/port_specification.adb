@@ -1692,7 +1692,8 @@ package body Port_Specification is
    function get_field_value (specs : Portspecs; field : spec_field) return String
    is
       procedure concat (position : string_crate.Cursor);
-      procedure dump_option (position : option_crate.Cursor);
+      procedure scan_contact (position : string_crate.Cursor);
+      procedure dump_option  (position : option_crate.Cursor);
 
       joined : HT.Text;
 
@@ -1724,6 +1725,24 @@ package body Port_Specification is
             HT.SU.Append (joined, " " & optname & ": off,");
          end if;
       end dump_option;
+
+      procedure scan_contact (position : string_crate.Cursor)
+      is
+         contact : String := HT.USS (string_crate.Element (position));
+         email   : String := HT.part_2 (contact, "[");
+         guy     : String := HT.replace_all (S      => HT.part_1 (contact, "["),
+                                             reject => LAT.Low_Line,
+                                             shiny  => LAT.Space);
+      begin
+         if not HT.IsBlank (joined) then
+            HT.SU.Append (joined, ", ");
+         end if;
+         if contact = contact_nobody then
+            HT.SU.Append (joined, contact);
+         else
+            HT.SU.Append (joined, guy & " [" & email);
+         end if;
+      end scan_contact;
    begin
       case field is
          when sp_namebase   => return HT.USS (specs.namebase);
@@ -1736,7 +1755,7 @@ package body Port_Specification is
          when sp_deprecated => return HT.USS (specs.deprecated);
          when sp_expiration => return HT.USS (specs.expire_date);
          when sp_contacts   =>
-            specs.contacts.Iterate (concat'Access);
+            specs.contacts.Iterate (scan_contact'Access);
             return HT.USS (joined);
          when sp_keywords =>
             specs.keywords.Iterate (concat'Access);
