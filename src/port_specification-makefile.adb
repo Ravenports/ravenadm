@@ -574,7 +574,7 @@ package body Port_Specification.Makefile is
                end if;
             end search;
          begin
-            send ("LICENSE_" & spkg & LAT.Equals_Sign & lic);
+            send ("LICENSE_" & spkg & LAT.Plus_Sign & LAT.Equals_Sign & lic);
             case ltype is
                when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
                   specs.lic_names.Iterate (search'Access);
