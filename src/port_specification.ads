@@ -36,7 +36,7 @@ package Port_Specification is
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
-                       sp_lic_file, sp_lic_scheme, sp_skip_ccache);
+                       sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
                          build_target_on, cflags_on, cmake_args_off, cmake_args_on,
@@ -382,6 +382,7 @@ private
          qmake_args    : string_crate.Vector;
          info          : string_crate.Vector;
          install_tgt   : string_crate.Vector;
+         test_tgt      : string_crate.Vector;
          install_wrksrc : HT.Text;
          plist_sub     : string_crate.Vector;
 

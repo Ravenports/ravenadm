@@ -110,6 +110,7 @@ package body Port_Specification is
       specs.pkg_notes.Clear;
       specs.var_opsys.Clear;
       specs.var_arch.Clear;
+      specs.test_tgt.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -516,6 +517,9 @@ package body Port_Specification is
          when sp_install_tgt =>
             verify_entry_is_post_options;
             specs.install_tgt.Append (text_value);
+         when sp_test_tgt =>
+            verify_entry_is_post_options;
+            specs.test_tgt.Append (text_value);
          when sp_cflags =>
             verify_entry_is_post_options;
             specs.cflags.Append (text_value);
@@ -2889,6 +2893,7 @@ package body Port_Specification is
             when sp_licenses      => specs.licenses.Iterate (Process => print_item'Access);
             when sp_users         => specs.users.Iterate (Process => print_item'Access);
             when sp_groups        => specs.groups.Iterate (Process => print_item'Access);
+            when sp_test_tgt      => specs.test_tgt.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -3069,6 +3074,7 @@ package body Port_Specification is
       print_define      (2);  -- catchall
       print_group_list  ("VAR_OPSYS", sp_var_opsys);
       print_group_list  ("VAR_ARCH", sp_var_arch);
+      print_vector_list ("TEST_TARGET", sp_test_tgt);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

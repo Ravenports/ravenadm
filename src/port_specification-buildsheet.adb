@@ -641,6 +641,7 @@ package body Port_Specification.Buildsheet is
       send ("CPPFLAGS",             specs.cppflags, 1);
       send ("LDFLAGS",              specs.ldflags, 1);
       send ("OPTIMIZER_LEVEL",      specs.optimizer_lvl, 2);
+      send ("TEST_TARGET",          specs.test_tgt, 2);
       send ("VAR_OPSYS",            specs.var_opsys);
       send ("VAR_ARCH",             specs.var_arch);
 

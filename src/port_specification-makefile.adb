@@ -667,6 +667,7 @@ package body Port_Specification.Makefile is
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("DESTDIRNAME",      specs.destdirname);
+      send ("TEST_TARGET",      specs.test_tgt, 1);
 
       declare
          function get_phasestr (index : Positive) return String;
