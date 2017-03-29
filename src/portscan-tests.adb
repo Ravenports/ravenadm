@@ -141,7 +141,7 @@ package body PortScan.Tests is
                      if directory_list.Contains (dir_text) then
                         result := False;
                         declare
-                           spkg : String := HT.USS (dossier_list.Element (line_text).subpackage);
+                           spkg : String := HT.USS (directory_list.Element (dir_text).subpackage);
                         begin
                            if spkg /= "" then
                               TIO.Put_Line
