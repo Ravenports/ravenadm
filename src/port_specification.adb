@@ -2467,8 +2467,8 @@ package body Port_Specification is
          ("LGPL3     ", LGPL3),
          ("LGPL3+    ", LGPL3x),
          ("MIT       ", MIT),
-         ("PUBDOM    ", PUBDOM),
-         ("OpenSSL   ", OPENSSL)
+         ("OpenSSL   ", OPENSSL),
+         ("PUBDOM    ", PUBDOM)
         );
 
       bandolier    : keyword_string := (others => LAT.Space);
@@ -2517,7 +2517,7 @@ package body Port_Specification is
 
       procedure dump_name (position : string_crate.Cursor)
       is
-         lic_part : HT.Text := HT.SUS (HT.part_2 (HT.USS (string_crate.Element (position)), ":"));
+         lic_part : HT.Text := HT.SUS (HT.part_1 (HT.USS (string_crate.Element (position)), ":"));
          lpstr    : String  := HT.USS (lic_part);
          lic_type : license_type := determine_license (lpstr);
       begin
