@@ -867,6 +867,9 @@ package body Port_Specification.Transform is
    is
       num_extra_patch : Natural := specs.get_list_length (sp_extra_patches);
    begin
+      if num_extra_patch > 0 then
+         DIR.Create_Directory (extract_dir & "/patches");
+      end if;
       for item in 1 .. num_extra_patch loop
          declare
             patch  : String := specs.get_list_item (sp_extra_patches, item);

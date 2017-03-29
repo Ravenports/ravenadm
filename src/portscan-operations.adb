@@ -201,13 +201,17 @@ package body PortScan.Operations is
                         then
                            run_complete := True;
                            builder_states (slave) := shutdown;
-                           DPY.insert_history
-                             (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                           if curses_support then
+                              DPY.insert_history
+                                (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                           end if;
                         else
                            if shutdown_recommended (available) then
                               builder_states (slave) := shutdown;
-                              DPY.insert_history
-                                (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                              if curses_support then
+                                 DPY.insert_history
+                                   (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                              end if;
                               available := available - 1;
                            end if;
                         end if;
@@ -269,8 +273,10 @@ package body PortScan.Operations is
                   instructions (slave) := port_match_failed;
                   if run_complete then
                      builder_states (slave) := shutdown;
-                     DPY.insert_history
-                       (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                     if curses_support then
+                        DPY.insert_history
+                          (CYC.assemble_history_record (slave, 0, DPY.action_shutdown));
+                     end if;
                   else
                      builder_states (slave) := idle;
                   end if;
@@ -579,7 +585,10 @@ package body PortScan.Operations is
          QR := ranking_crate.Element (Position => cursor);
          if all_ports (QR.ap_index).ignored then
             result := QR.ap_index;
-            DPY.insert_history (CYC.assemble_history_record (1, QR.ap_index, DPY.action_ignored));
+            if curses_support then
+               DPY.insert_history
+                 (CYC.assemble_history_record (1, QR.ap_index, DPY.action_ignored));
+            end if;
             run_package_hook (pkg_ignored, QR.ap_index);
             exit;
          end if;
@@ -933,7 +942,9 @@ package body PortScan.Operations is
             numskipped := numskipped + 1;
             LOG.scribe (PortScan.total, "           Skipped: " & get_port_variant (purged), False);
             LOG.scribe (PortScan.skipped, get_port_variant (purged) & " by " & culprit, False);
-            DPY.insert_history (CYC.assemble_history_record (1, purged, DPY.action_skipped));
+            if curses_support then
+               DPY.insert_history (CYC.assemble_history_record (1, purged, DPY.action_skipped));
+            end if;
             record_history_skipped (elapsed => LOG.elapsed_now,
                                     origin  => get_port_variant (purged),
                                     reason  => culprit);

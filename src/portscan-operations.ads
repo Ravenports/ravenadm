@@ -163,7 +163,7 @@ private
    pkgscan_total    : Natural := 0;
    history          : progress_history;
    abi_formats      : package_abi;
-   curses_support   : Boolean;
+   curses_support   : Boolean := False;
 
    external_repository : HT.Text;
 
