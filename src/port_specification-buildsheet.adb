@@ -64,6 +64,7 @@ package body Port_Specification.Buildsheet is
       write_to_file   : constant Boolean := (output_file /= "");
       makefile_handle : TIO.File_Type;
       varname_prefix  : HT.Text;
+      save_variant    : HT.Text;
       current_len     : Natural;
       currently_blank : Boolean := True;
       desc_prefix     : constant String := "descriptions/desc.";
@@ -456,12 +457,22 @@ package body Port_Specification.Buildsheet is
       is
          item : HT.Text renames string_crate.Element (position);
          subpkg : String := HT.USS (item);
+         fullkey   : HT.Text;
+         fullplist : String := plist_prefix & subpkg & "." & HT.USS (save_variant);
       begin
-         if DIR.Exists (ravensrcdir & "/" & plist_prefix & subpkg) and then
-           not temp_storage.Contains (item)
-         then
-            temp_storage.Append (item);
-            send_plist (plist_prefix & subpkg);
+         if DIR.Exists (ravensrcdir & "/" & fullplist) then
+            fullkey := HT.SUS (subpkg & "." & HT.USS (save_variant));
+            if not temp_storage.Contains (fullkey) then
+               temp_storage.Append (fullkey);
+               send_plist (fullplist);
+            end if;
+         else
+            if DIR.Exists (ravensrcdir & "/" & plist_prefix & subpkg) and then
+              not temp_storage.Contains (item)
+            then
+               temp_storage.Append (item);
+               send_plist (plist_prefix & subpkg);
+            end if;
          end if;
       end dump_manifest2;
 
@@ -469,6 +480,7 @@ package body Port_Specification.Buildsheet is
       is
          variant : HT.Text renames string_crate.Element (position);
       begin
+         save_variant := variant;
          specs.subpackages.Element (variant).list.Iterate (dump_manifest2'Access);
       end dump_manifest;
 
