@@ -2466,7 +2466,8 @@ package body Port_Specification is
          ("LGPL21+   ", LGPL21x),
          ("LGPL3     ", LGPL3),
          ("LGPL3+    ", LGPL3x),
-         ("MIT       ", MIT)
+         ("MIT       ", MIT),
+         ("PUBDOM    ", PUBDOM)
         );
 
       bandolier    : keyword_string := (others => LAT.Space);

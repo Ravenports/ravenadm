@@ -64,6 +64,7 @@ package body Port_Specification.Transform is
                      when sub_files_on        => specs.sub_files.Append (item);
                      when sub_list_on         => specs.sub_list.Append (item);
                      when qmake_on            => specs.qmake_args.Append (item);
+                     when test_target_on      => specs.test_tgt.Append (item);
                      when uses_on             =>
                         declare
                            stripped      : String  := HT.part_1 (itemstr, ":");
@@ -182,7 +183,7 @@ package body Port_Specification.Transform is
             augment (run_depends_on,      rec.RUN_DEPENDS_ON);
             augment (sub_files_on,        rec.SUB_FILES_ON);
             augment (sub_list_on,         rec.SUB_LIST_ON);
---              --  test-target on
+            augment (test_target_on,      rec.TEST_TARGET_ON);
             augment (uses_on,             rec.USES_ON);
          else
             augment (cmake_args_off,     rec.CMAKE_ARGS_OFF);
