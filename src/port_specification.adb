@@ -1093,6 +1093,8 @@ package body Port_Specification is
                Element.BUILD_DEPENDS_ON.Append (value_text);
             when build_target_on =>
                Element.BUILD_TARGET_ON.Append (value_text);
+            when cflags_off =>
+               Element.CFLAGS_OFF.Append (value_text);
             when cflags_on =>
                Element.CFLAGS_ON.Append (value_text);
             when cmake_args_off =>
@@ -1193,7 +1195,7 @@ package body Port_Specification is
       case field is
          when broken_on | build_target_on | cflags_on | cmake_args_off | cmake_args_on |
               cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
-              configure_enable_both | configure_env_on | configure_with_both |
+              configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
               qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description =>
@@ -1277,6 +1279,7 @@ package body Port_Specification is
             when broken_on             => return HT.IsBlank (rec.BROKEN_ON);
             when build_depends_on      => return rec.BUILD_DEPENDS_ON.Is_Empty;
             when build_target_on       => return rec.BUILD_TARGET_ON.Is_Empty;
+            when cflags_off            => return rec.CFLAGS_OFF.Is_Empty;
             when cflags_on             => return rec.CFLAGS_ON.Is_Empty;
             when cmake_args_off        => return rec.CMAKE_ARGS_OFF.Is_Empty;
             when cmake_args_on         => return rec.CMAKE_ARGS_ON.Is_Empty;
@@ -2796,6 +2799,7 @@ package body Port_Specification is
          TIO.Put_Line ("      DESCRIPTION=" & LAT.HT & LAT.HT & HT.USS (rec.option_description));
          print_opt_vector (rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
          print_opt_vector (rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
+         print_opt_vector (rec.CFLAGS_OFF, "CFLAGS_OFF");
          print_opt_vector (rec.CFLAGS_ON, "CFLAGS_ON");
          print_opt_vector (rec.CMAKE_ARGS_OFF, "CMAKE_ARGS_OFF");
          print_opt_vector (rec.CMAKE_ARGS_ON, "CMAKE_ARGS_ON");

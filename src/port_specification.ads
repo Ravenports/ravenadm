@@ -39,7 +39,7 @@ package Port_Specification is
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
-                         build_target_on, cflags_on, cmake_args_off, cmake_args_on,
+                         build_target_on, cflags_off, cflags_on, cmake_args_off, cmake_args_on,
                          cmake_bool_f_both, cmake_bool_t_both, configure_args_off,
                          configure_args_on, configure_enable_both, configure_env_on,
                          configure_with_both, cppflags_on, cxxflags_on, df_index_on,
@@ -260,6 +260,7 @@ private
          BUILDRUN_DEPENDS_ON   : string_crate.Vector;
          BUILD_DEPENDS_ON      : string_crate.Vector;
          BUILD_TARGET_ON       : string_crate.Vector;
+         CFLAGS_OFF            : string_crate.Vector;
          CFLAGS_ON             : string_crate.Vector;
          CMAKE_ARGS_OFF        : string_crate.Vector;
          CMAKE_ARGS_ON         : string_crate.Vector;

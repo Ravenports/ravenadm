@@ -1100,7 +1100,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 36;
+      total_helpers : constant Positive := 37;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1117,6 +1117,7 @@ package body Specification_Parser is
          ("BUILDRUN_DEPENDS_ON  ", PSP.buildrun_depends_on),
          ("BUILD_DEPENDS_ON     ", PSP.build_depends_on),
          ("BUILD_TARGET_ON      ", PSP.build_target_on),
+         ("CFLAGS_OFF           ", PSP.cflags_off),
          ("CFLAGS_ON            ", PSP.cflags_on),
          ("CMAKE_ARGS_OFF       ", PSP.cmake_args_off),
          ("CMAKE_ARGS_ON        ", PSP.cmake_args_on),

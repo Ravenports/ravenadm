@@ -163,6 +163,7 @@ package body Port_Specification.Transform is
             handle_broken;
             augment (build_depends_on,    rec.BUILD_DEPENDS_ON);
             augment (build_target_on,     rec.BUILD_TARGET_ON);
+            augment (cflags_off,          rec.CFLAGS_OFF);
             augment (cflags_on,           rec.CFLAGS_ON);
             augment (cmake_args_on,       rec.CMAKE_ARGS_ON);
             augment (configure_args_on,   rec.CONFIGURE_ARGS_ON);

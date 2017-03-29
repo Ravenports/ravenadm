@@ -280,6 +280,7 @@ package body Port_Specification.Buildsheet is
          end if;
          dump_helper (name, rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
          dump_helper (name, rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
+         dump_helper (name, rec.CFLAGS_OFF, "CFLAGS_OFF");
          dump_helper (name, rec.CFLAGS_ON, "CFLAGS_ON");
          dump_helper (name, rec.CMAKE_ARGS_OFF, "CMAKE_ARGS_OFF");
          dump_helper (name, rec.CMAKE_ARGS_ON, "CMAKE_ARGS_ON");
