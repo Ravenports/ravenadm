@@ -822,6 +822,7 @@ package body Port_Specification.Makefile is
          when ISCL       => return "Internet Systems Consortium License";
          when MIT        => return "MIT license / X11 license";
          when PUBDOM     => return "Public Domain";
+         when OPENSSL    => return "OpenSSL License";
       end case;
    end standard_license_names;
 

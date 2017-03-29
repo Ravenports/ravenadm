@@ -222,7 +222,7 @@ private
       GPLv1, GPLv1x, GPLv2, GPLv2x, GPLv3, GPLv3x,
       GPLv3RLE, GPLv3RLEx, INVALID, ISCL,
       LGPL20, LGPL20x, LGPL21, LGPL21x, LGPL3, LGPL3x,
-      MIT, PUBDOM);
+      MIT, PUBDOM, OPENSSL);
 
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,

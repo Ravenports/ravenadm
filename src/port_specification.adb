@@ -2467,7 +2467,8 @@ package body Port_Specification is
          ("LGPL3     ", LGPL3),
          ("LGPL3+    ", LGPL3x),
          ("MIT       ", MIT),
-         ("PUBDOM    ", PUBDOM)
+         ("PUBDOM    ", PUBDOM),
+         ("OpenSSL   ", OPENSSL)
         );
 
       bandolier    : keyword_string := (others => LAT.Space);
