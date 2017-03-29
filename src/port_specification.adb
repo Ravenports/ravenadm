@@ -2242,7 +2242,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 6;
+      total_modules : constant Positive := 7;
 
       subtype uses_string is String (1 .. 12);
 
@@ -2254,7 +2254,8 @@ package body Port_Specification is
          "gettext     ",
          "gmake       ",
          "iconv       ",
-         "libtool     "
+         "libtool     ",
+         "pkgconfig   "
         );
       bandolier : uses_string := (others => ' ');
 

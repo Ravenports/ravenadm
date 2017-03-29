@@ -204,6 +204,7 @@ package body Port_Specification.Transform is
       apply_gmake_module (specs);
       apply_libiconv_module (specs);
       apply_libtool_module (specs);
+      apply_pkgconfig_module (specs);
       apply_info_presence (specs);
       apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
@@ -705,6 +706,36 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_pkgconfig_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_pkgconfig_module (specs : in out Portspecs)
+   is
+      module     : String  := "pkgconfig";
+      dependency : HT.Text := HT.SUS ("pkgconfig:single:standard");
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         if no_arguments_present (specs, module) or else
+           argument_present (specs, module, "build")
+         then
+            if not specs.build_deps.Contains (dependency) then
+               specs.build_deps.Append (dependency);
+            end if;
+         else
+            if argument_present (specs, module, "buildrun") then
+               if not specs.buildrun_deps.Contains (dependency) then
+                  specs.buildrun_deps.Append (dependency);
+               end if;
+            elsif argument_present (specs, module, "run") then
+               if not specs.run_deps.Contains (dependency) then
+                  specs.run_deps.Append (dependency);
+               end if;
+            end if;
+         end if;
+      end if;
+   end apply_pkgconfig_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_curly_bracket_conversions
    --------------------------------------------------------------------------------------------
    procedure apply_curly_bracket_conversions (specs : in out Portspecs) is
@@ -794,6 +825,36 @@ package body Port_Specification.Transform is
       specs.uses.Iterate (scan'Access);
       return found;
    end argument_present;
+
+
+   --------------------------------------------------------------------------------------------
+   --  no_arguments_present
+   --------------------------------------------------------------------------------------------
+   function no_arguments_present (specs : Portspecs; module : String) return Boolean
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      found : Boolean := False;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         value_text : HT.Text renames string_crate.Element (position);
+         value      : String := HT.USS (value_text);
+      begin
+         if not found and then HT.count_char (value, LAT.Colon) = 1 then
+            declare
+               modulestr : String := HT.part_1 (value, ":");
+            begin
+               if modulestr = module then
+                  found := True;
+               end if;
+            end;
+         end if;
+      end scan;
+   begin
+      specs.uses.Iterate (scan'Access);
+      return not found;
+   end no_arguments_present;
 
 
    --------------------------------------------------------------------------------------------

@@ -68,15 +68,17 @@ private
       arch_standard : supported_arch;
       osmajor       : String);
 
-   procedure apply_gmake_module    (specs : in out Portspecs);
-   procedure apply_libtool_module  (specs : in out Portspecs);
-   procedure apply_libiconv_module (specs : in out Portspecs);
-   procedure apply_info_presence   (specs : in out Portspecs);
-   procedure apply_ccache          (specs : in out Portspecs);
+   procedure apply_gmake_module     (specs : in out Portspecs);
+   procedure apply_libtool_module   (specs : in out Portspecs);
+   procedure apply_libiconv_module  (specs : in out Portspecs);
+   procedure apply_info_presence    (specs : in out Portspecs);
+   procedure apply_ccache           (specs : in out Portspecs);
+   procedure apply_pkgconfig_module (specs : in out Portspecs);
 
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);
 
    function argument_present (specs : Portspecs; module, argument : String) return Boolean;
+   function no_arguments_present (specs : Portspecs; module : String) return Boolean;
 
 end Port_Specification.Transform;
