@@ -821,6 +821,7 @@ package body Port_Specification.Makefile is
          when LGPL3x     => return LGPL & "3.0" & later;
          when ISCL       => return "Internet Systems Consortium License";
          when MIT        => return "MIT license / X11 license";
+         when PUBDOM     => return "Public Domain";
       end case;
    end standard_license_names;
 
