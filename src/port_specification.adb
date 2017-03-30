@@ -606,6 +606,23 @@ package body Port_Specification is
             if HT.count_char (value, LAT.Colon) /= 1 then
                raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
             end if;
+            declare
+               canspkg : String := HT.part_1 (value, ":");
+            begin
+               if not specs.subpackage_exists (canspkg) then
+                  declare
+                     otherside : String := HT.part_2 (value, ":");
+                  begin
+                     if specs.subpackage_exists (otherside) then
+                        raise wrong_value with "INFO entry '" & value & "' is reversed; " &
+                          "the subpackage must be listed first";
+                     else
+                        raise wrong_value with "INFO entry '" & value & "' is not prefixed " &
+                          "by a recognized subpackage";
+                     end if;
+                  end;
+               end if;
+            end;
             if not specs.valid_info_page (value) then
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
