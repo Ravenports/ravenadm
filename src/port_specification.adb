@@ -593,6 +593,11 @@ package body Port_Specification is
                   specs.uses_base.Append (text_stripped);
                end if;
             end;
+            if HT.leads (value, "terminfo") and then
+              specs.terminfo_failed (value)
+            then
+               raise wrong_value with "Terminfo USES module doesn't have a subpackage argument";
+            end if;
          when sp_info =>
             verify_entry_is_post_options;
             if specs.info.Contains (text_value) then
@@ -2245,7 +2250,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 8;
+      total_modules : constant Positive := 9;
 
       subtype uses_string is String (1 .. 12);
 
@@ -2259,16 +2264,21 @@ package body Port_Specification is
          "iconv       ",
          "libtool     ",
          "pkgconfig   ",
-         "shebangfix  "
+         "shebangfix  ",
+         "terminfo    "
         );
       bandolier : uses_string := (others => ' ');
 
    begin
-      if value'Length > uses_string'Length then
-         return False;
-      end if;
+      declare
+         module : String := HT.part_1 (value, ":");
+      begin
+         if module'Length > uses_string'Length then
+            return False;
+         end if;
 
-      bandolier (1 .. value'Length) := value;
+         bandolier (1 .. module'Length) := module;
+      end;
 
       for index in all_keywords'Range loop
          if all_keywords (index) = bandolier then
@@ -2706,6 +2716,50 @@ package body Port_Specification is
       end if;
       return "single";
    end get_license_scheme;
+
+
+   --------------------------------------------------------------------------------------------
+   --  terminfo_failed
+   --------------------------------------------------------------------------------------------
+   function terminfo_failed (specs : Portspecs; module : String) return Boolean
+   is
+      procedure check_variant    (position : string_crate.Cursor);
+      procedure check_subpackage (position : string_crate.Cursor);
+      --  Assume module starts with "terminfo" for sure.
+      --  If we match any known subpackage, we pass
+
+      candidate : HT.Text;
+      matched   : Boolean := False;
+
+      procedure check_variant (position : string_crate.Cursor)
+      is
+         variant : HT.Text renames string_crate.Element (position);
+      begin
+         if not matched then
+            specs.subpackages.Element (variant).list.Iterate (check_subpackage'Access);
+         end if;
+      end check_variant;
+
+      procedure check_subpackage (position : string_crate.Cursor) is
+         spkg : HT.Text renames string_crate.Element (position);
+      begin
+         if not matched then
+            if HT.equivalent (spkg, candidate) then
+               matched := True;
+            end if;
+         end if;
+      end check_subpackage;
+
+   begin
+      if not HT.leads (module, "terminfo:") then
+         return True;
+      end if;
+
+      candidate := HT.SUS (HT.part_2 (module, ":"));
+      specs.variants.Iterate (check_variant'Access);
+
+      return not matched;
+   end terminfo_failed;
 
 
    --------------------------------------------------------------------------------------------

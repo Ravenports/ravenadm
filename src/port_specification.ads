@@ -451,4 +451,7 @@ private
    --  Returns true if subpackage exists in any variant.
    function subpackage_exists (specs : Portspecs; subpackage : String) return Boolean;
 
+   --  Returns True if terminfo module exists and it doesn't have a subpackage argument
+   function terminfo_failed (specs : Portspecs; module : String) return Boolean;
+
 end Port_Specification;
