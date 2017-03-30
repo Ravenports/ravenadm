@@ -946,7 +946,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 89;
+      total_singlets : constant Positive := 93;
 
       type singlet_pair is
          record
@@ -1036,6 +1036,10 @@ package body Specification_Parser is
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),
+         ("SHEBANG_FILES         ", 13, catchall),
+         ("SHEBANG_GLOB          ", 12, catchall),
+         ("SHEBANG_LANG          ", 12, catchall),
+         ("SHEBANG_REGEX         ", 13, catchall),
          ("SINGLE_JOB            ", 10, single_job),
          ("SKIP_BUILD            ", 10, skip_build),
          ("SKIP_CCACHE           ", 11, skip_ccache),
