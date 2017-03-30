@@ -459,10 +459,11 @@ package body Specification_Parser is
                            last_index := HT.SUS (target);
                         end;
                      when target_body  =>
-                        specification.append_array (field        => PSP.sp_makefile_targets,
-                                                    key          => HT.USS (last_index),
-                                                    value        => transform_target_line (line),
-                                                    allow_spaces => True);
+                        specification.append_array
+                          (field        => PSP.sp_makefile_targets,
+                           key          => HT.USS (last_index),
+                           value        => transform_target_line (line, stop_at_files),
+                           allow_spaces => True);
                      when bad_target   => null;
                      when not_target   => null;
                   end case;
@@ -1978,33 +1979,61 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  transform_target_line
    --------------------------------------------------------------------------------------------
-   function transform_target_line (line : String) return String
+   function transform_target_line (line : String; skipping_extraction : Boolean) return String
    is
-      procedure apply_def (def_position : def_crate.Cursor);
+      arrow1      : Natural := 0;
+      arrow2      : Natural := 0;
+      back_marker : Natural := 0;
+      canvas      : HT.Text := HT.blank;
 
-      canvas : HT.Text := HT.SUS (line);
-
-      procedure apply_def (def_position : def_crate.Cursor)
-      is
-         def_key : HT.Text renames def_crate.Key (def_position);
-         def_val : HT.Text renames def_crate.Element (def_position);
-
-         pattern : String := "${" & HT.USS (def_key) & "}";
-         valcopy : HT.Text := def_val;
-      begin
-         UTL.apply_cbc_string (valcopy);
-         loop
-            exit when not HT.contains (canvas, pattern);
-
-            canvas := HT.replace_substring (canvas, pattern, HT.USS (valcopy));
-         end loop;
-      end apply_def;
    begin
-      if spec_definitions.Is_Empty then
+      if not skipping_extraction or else
+        spec_definitions.Is_Empty or else
+        line = ""
+      then
          return line;
       end if;
 
-      spec_definitions.Iterate (apply_def'Access);
+      back_marker := line'First;
+      loop
+         arrow1 := AS.Fixed.Index (Source  => line,
+                                  Pattern => "${",
+                                  From    => back_marker);
+         if arrow1 = 0 then
+            HT.SU.Append (canvas, line (back_marker .. line'Last));
+            exit;
+         end if;
+         arrow2 := AS.Fixed.Index (Source  => line,
+                                  Pattern => "}",
+                                  From    => arrow1 + 2);
+         if arrow2 = 0 then
+            HT.SU.Append (canvas, line (back_marker .. line'Last));
+            exit;
+         end if;
+         --  We've found a candidate.  Save the leader and attempt to replace.
+         if arrow1 > back_marker then
+            HT.SU.Append (canvas, line (back_marker .. arrow1 - 1));
+         end if;
+         back_marker := arrow2 + 1;
+         if arrow2 - 1 > arrow1 + 2 then
+            begin
+               declare
+                  newval : String := expand_value (line (arrow1 .. arrow2));
+               begin
+                  HT.SU.Append (canvas, newval);
+               end;
+            exception
+               when others =>
+                  --  It didn't expand, so keep it.
+                  HT.SU.Append (canvas, line (arrow1 .. arrow2));
+            end;
+         else
+            --  This is "${}", just keep it.
+            HT.SU.Append (canvas, line (arrow1 .. arrow2));
+         end if;
+         exit when back_marker > line'Last;
+      end loop;
+
       return HT.USS (canvas);
 
    end transform_target_line;

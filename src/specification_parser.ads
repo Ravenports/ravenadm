@@ -180,6 +180,10 @@ private
 
    --  Look for ${pattern} that match known definitions and replace with the payload if
    --  found.  Don't do anything if ${pattern} matches no known definition.
-   function transform_target_line (line : String) return String;
+   --  It works with modifiers too.  If the skipping_extraction value is false, there will
+   --  not be any transformation.  The logic is that that is done only on the final buildsheet
+   --  which already has had the transformation done on it, so avoid a lot of calculations that
+   --  result in no change.
+   function transform_target_line (line : String; skipping_extraction : Boolean)  return String;
 
 end Specification_Parser;
