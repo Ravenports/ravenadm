@@ -524,11 +524,12 @@ package body Port_Specification.Makefile is
 
             procedure print_page (position : string_crate.Cursor) is
             begin
-               send (" " & HT.USS (string_crate.Element (position)));
+               send (" " & HT.USS (string_crate.Element (position)), True);
             end print_page;
          begin
             send ("INFO_" & HT.USS (rec.group) & LAT.Equals_Sign, True);
             rec.list.Iterate (print_page'Access);
+            send ("");
          end print;
       begin
          specs.info.Iterate (scan'Access);
