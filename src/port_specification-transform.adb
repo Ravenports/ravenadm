@@ -206,6 +206,7 @@ package body Port_Specification.Transform is
       apply_libiconv_module (specs);
       apply_libtool_module (specs);
       apply_pkgconfig_module (specs);
+      apply_ncurses_module (specs);
       apply_info_presence (specs);
       apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
@@ -625,12 +626,38 @@ package body Port_Specification.Transform is
       text_module : HT.Text := HT.SUS ("gmake");
       dependency  : HT.Text := HT.SUS ("gmake:single:lite");
    begin
-      if specs.uses.Contains (text_module) and then
+      if specs.uses_base.Contains (text_module) and then
         not specs.build_deps.Contains (dependency)
       then
-            specs.build_deps.Append (dependency);
+         specs.build_deps.Append (dependency);
       end if;
    end apply_gmake_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_ncurses_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_ncurses_module (specs : in out Portspecs)
+   is
+      module            : String  := "ncurses";
+      text_module       : HT.Text := HT.SUS (module);
+      full_dependency   : HT.Text := HT.SUS ("ncurses:primary:standard");
+      static_dependency : HT.Text := HT.SUS ("ncurses:primary:static");
+   begin
+      if not specs.uses_base.Contains (text_module) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         if not specs.buildrun_deps.Contains (full_dependency) then
+            specs.buildrun_deps.Append (full_dependency);
+         end if;
+      elsif argument_present (specs, module, "static") then
+         if not specs.build_deps.Contains (static_dependency) then
+            specs.build_deps.Append (static_dependency);
+         end if;
+      end if;
+
+   end apply_ncurses_module;
 
 
    --------------------------------------------------------------------------------------------

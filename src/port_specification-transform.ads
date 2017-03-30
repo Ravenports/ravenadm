@@ -74,6 +74,7 @@ private
    procedure apply_info_presence    (specs : in out Portspecs);
    procedure apply_ccache           (specs : in out Portspecs);
    procedure apply_pkgconfig_module (specs : in out Portspecs);
+   procedure apply_ncurses_module   (specs : in out Portspecs);
 
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);

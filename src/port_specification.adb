@@ -2250,7 +2250,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 9;
+      total_modules : constant Positive := 10;
 
       subtype uses_string is String (1 .. 12);
 
@@ -2263,6 +2263,7 @@ package body Port_Specification is
          "gmake       ",
          "iconv       ",
          "libtool     ",
+         "ncurses     ",
          "pkgconfig   ",
          "shebangfix  ",
          "terminfo    "
