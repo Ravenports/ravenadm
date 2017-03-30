@@ -30,6 +30,7 @@ package body Replicant is
       rcconf : constant String := "/rc.conf";
       hints  : constant String := "/ld-elf.so.hints";
       nhints : constant String := "/ld.so.hints";
+      trmcap : constant String := "/termcap";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
@@ -80,6 +81,7 @@ package body Replicant is
               macos     |
               sunos     => null;
       end case;
+      DIR.Copy_File (sretc & trmcap, mm & trmcap);
       create_mtree_exc_preinst (mm);
       create_mtree_exc_preconfig (mm);
 
@@ -1055,6 +1057,7 @@ package body Replicant is
       group  : constant String := "/group";
       mtree1 : constant String := "/mtree.preconfig.exclude";
       mtree2 : constant String := "/mtree.prestage.exclude";
+      trmcap : constant String := "/termcap";
 
       procedure install (filename : String) is
       begin
@@ -1071,6 +1074,7 @@ package body Replicant is
       install (group);
       install (mtree1);
       install (mtree2);
+      install (trmcap);
    end install_passwd_and_group;
 
 
