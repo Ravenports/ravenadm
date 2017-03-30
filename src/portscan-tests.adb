@@ -133,6 +133,8 @@ package body PortScan.Tests is
             begin
                if HT.leads (line, "@comment ") then
                   null;
+               elsif HT.leads (line, "@terminfo") then
+                  null;
                elsif HT.leads (line, "@dir ") then
                   declare
                      dir      : String := line (line'First + 5 .. line'Last);
