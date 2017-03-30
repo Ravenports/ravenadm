@@ -30,6 +30,7 @@ package body Port_Specification.Makefile is
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send (varname : String; value, default : Integer);
       procedure print_item (position : string_crate.Cursor);
+      procedure print_module (position : string_crate.Cursor);
       procedure dump_list (position : list_crate.Cursor);
       procedure dump_variant_index (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
@@ -111,10 +112,6 @@ package body Port_Specification.Makefile is
             when 2 =>
                varname_prefix := HT.SUS (varname);
                crate.Iterate (Process => dump_distfiles'Access);
-            when 9 =>
-               send (varname & "=", True);
-               crate.Iterate (Process => dump_makesum'Access);
-               send ("");
             when 3 =>
                crate.Iterate (Process => dump_ext_zip'Access);
             when 4 =>
@@ -123,6 +120,14 @@ package body Port_Specification.Makefile is
                crate.Iterate (Process => dump_ext_lha'Access);
             when 7 =>
                crate.Iterate (Process => dump_dirty_extract'Access);
+            when 9 =>
+               send (varname & "=", True);
+               crate.Iterate (Process => dump_makesum'Access);
+               send ("");
+            when 10 =>
+               send (varname & "=", True);
+               crate.Iterate (Process => print_module'Access);
+               send ("");
             when others =>
                raise dev_error;
          end case;
@@ -182,6 +187,21 @@ package body Port_Specification.Makefile is
          end if;
          send (HT.USS (string_crate.Element (position)), True);
       end print_item;
+
+      procedure print_module (position : string_crate.Cursor)
+      is
+         --  Some modules are implemented entirely in ravenadm, so don't output them
+         --  to the makefile which add unnecessary includes commands.
+         module : String := HT.USS (string_crate.Element (position));
+      begin
+         if module = "cpe" or else
+           module = "pkgconfig"
+         then
+            null;
+         else
+            send (module & " ", True);
+         end if;
+      end print_module;
 
       procedure dump_line (position : string_crate.Cursor) is
       begin
@@ -630,7 +650,7 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
-      send ("USES",             specs.uses, 1);
+      send ("USES",             specs.uses, 10);
       dump_license;
       dump_info;
       dump_catchall;
