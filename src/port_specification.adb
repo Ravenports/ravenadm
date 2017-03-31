@@ -2267,23 +2267,24 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 10;
+      total_modules : constant Positive := 11;
 
-      subtype uses_string is String (1 .. 12);
+      subtype uses_string is String (1 .. 15);
 
       --  Keep in alphabetical order for future conversion to binary search
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
-         "charsetfix  ",
-         "cpe         ",
-         "gettext     ",
-         "gmake       ",
-         "iconv       ",
-         "libtool     ",
-         "ncurses     ",
-         "pkgconfig   ",
-         "shebangfix  ",
-         "terminfo    "
+         "charsetfix     ",
+         "cpe            ",
+         "gettext-runtime",
+         "gettext-tools  ",
+         "gmake          ",
+         "iconv          ",
+         "libtool        ",
+         "ncurses        ",
+         "pkgconfig      ",
+         "shebangfix     ",
+         "terminfo       "
         );
       bandolier : uses_string := (others => ' ');
 

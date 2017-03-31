@@ -208,6 +208,8 @@ package body Port_Specification.Transform is
       apply_pkgconfig_module (specs);
       apply_ncurses_module (specs);
       apply_info_presence (specs);
+      apply_gettext_runtime_module (specs);
+      apply_gettext_tools_module (specs);
       apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
    end apply_directives;
@@ -669,7 +671,7 @@ package body Port_Specification.Transform is
       dependency : HT.Text := HT.SUS ("libtool:single:standard");
    begin
       if specs.uses_base.Contains (HT.SUS (module)) and then
-        argument_present (specs, module, "build") and then
+        argument_present (specs, module, BUILD) and then
         not specs.build_deps.Contains (dependency)
       then
          specs.build_deps.Append (dependency);
@@ -686,7 +688,7 @@ package body Port_Specification.Transform is
       dependency : HT.Text := HT.SUS ("libiconv:single:standard");
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
-         if argument_present (specs, module, "build") then
+         if argument_present (specs, module, BUILD) then
             if not specs.build_deps.Contains (dependency) then
                specs.build_deps.Append (dependency);
             end if;
@@ -743,17 +745,17 @@ package body Port_Specification.Transform is
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if no_arguments_present (specs, module) or else
-           argument_present (specs, module, "build")
+           argument_present (specs, module, BUILD)
          then
             if not specs.build_deps.Contains (dependency) then
                specs.build_deps.Append (dependency);
             end if;
          else
-            if argument_present (specs, module, "buildrun") then
+            if argument_present (specs, module, BUILDRUN) then
                if not specs.buildrun_deps.Contains (dependency) then
                   specs.buildrun_deps.Append (dependency);
                end if;
-            elsif argument_present (specs, module, "run") then
+            elsif argument_present (specs, module, RUN) then
                if not specs.run_deps.Contains (dependency) then
                   specs.run_deps.Append (dependency);
                end if;
@@ -761,6 +763,99 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_pkgconfig_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gettext_tools_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gettext_tools_module (specs : in out Portspecs)
+   is
+      module     : String  := "gettext-tools";
+      dependency : HT.Text := HT.SUS ("gettext:tools:standard");
+      hit_run    : Boolean;
+      hit_build  : Boolean;
+      hit_both   : Boolean;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build := True;
+         hit_both  := False;
+         hit_run   := False;
+      else
+         hit_build := argument_present (specs, module, BUILD);
+         hit_both  := argument_present (specs, module, BUILDRUN);
+         hit_run   := argument_present (specs, module, RUN);
+      end if;
+
+      if hit_both or else (hit_build and hit_run) then
+         if not specs.buildrun_deps.Contains (dependency) then
+            specs.buildrun_deps.Append (dependency);
+         end if;
+      elsif hit_build then
+         if not specs.build_deps.Contains (dependency) then
+            specs.build_deps.Append (dependency);
+         end if;
+      else
+         if not specs.run_deps.Contains (dependency) then
+            specs.run_deps.Append (dependency);
+         end if;
+      end if;
+   end apply_gettext_tools_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gettext_runtime_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gettext_runtime_module (specs : in out Portspecs)
+   is
+      module     : String  := "gettext-runtime";
+      dependency : HT.Text := HT.SUS ("gettext:runtime:standard");
+      asprintf   : HT.Text := HT.SUS ("gettext:asprintf:standard");
+      hit_run    : Boolean;
+      hit_build  : Boolean;
+      hit_both   : Boolean;
+      hit_aspr   : Boolean;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build := False;
+         hit_both  := True;
+         hit_run   := False;
+         hit_aspr  := False;
+      else
+         hit_build := argument_present (specs, module, BUILD);
+         hit_both  := argument_present (specs, module, BUILDRUN);
+         hit_run   := argument_present (specs, module, RUN);
+         hit_aspr  := argument_present (specs, module, "asprintf");
+      end if;
+
+      if hit_both or else (hit_build and hit_run) then
+         if not specs.buildrun_deps.Contains (dependency) then
+            specs.buildrun_deps.Append (dependency);
+         end if;
+         if hit_aspr and then not specs.buildrun_deps.Contains (asprintf) then
+            specs.buildrun_deps.Append (asprintf);
+         end if;
+      elsif hit_build then
+         if not specs.build_deps.Contains (dependency) then
+            specs.build_deps.Append (dependency);
+         end if;
+         if hit_aspr and then not specs.build_deps.Contains (asprintf) then
+            specs.build_deps.Append (asprintf);
+         end if;
+      else
+         if not specs.run_deps.Contains (dependency) then
+            specs.run_deps.Append (dependency);
+         end if;
+         if hit_aspr and then not specs.run_deps.Contains (asprintf) then
+            specs.run_deps.Append (asprintf);
+         end if;
+      end if;
+   end apply_gettext_runtime_module;
 
 
    --------------------------------------------------------------------------------------------

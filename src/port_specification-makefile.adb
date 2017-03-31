@@ -195,7 +195,9 @@ package body Port_Specification.Makefile is
          module : String := HT.USS (string_crate.Element (position));
       begin
          if module = "cpe" or else
-           module = "pkgconfig"
+           module = "pkgconfig" or else
+           module = "gettext-runtime" or else
+           module = "gettext-tools"
          then
             null;
          else

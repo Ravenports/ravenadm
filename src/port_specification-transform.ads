@@ -53,6 +53,10 @@ package Port_Specification.Transform is
 
 private
 
+   BUILD    : constant String := "build";
+   BUILDRUN : constant String := "buildrun";
+   RUN      : constant String := "run";
+
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;
 
@@ -75,6 +79,9 @@ private
    procedure apply_ccache           (specs : in out Portspecs);
    procedure apply_pkgconfig_module (specs : in out Portspecs);
    procedure apply_ncurses_module   (specs : in out Portspecs);
+
+   procedure apply_gettext_runtime_module (specs : in out Portspecs);
+   procedure apply_gettext_tools_module   (specs : in out Portspecs);
 
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);
