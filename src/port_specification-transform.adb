@@ -626,7 +626,7 @@ package body Port_Specification.Transform is
    procedure apply_gmake_module (specs : in out Portspecs)
    is
       text_module : HT.Text := HT.SUS ("gmake");
-      dependency  : HT.Text := HT.SUS ("gmake:single:lite");
+      dependency  : HT.Text := HT.SUS ("gmake:single:standard");
    begin
       if specs.uses_base.Contains (text_module) and then
         not specs.build_deps.Contains (dependency)
