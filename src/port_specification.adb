@@ -1215,7 +1215,7 @@ package body Port_Specification is
               configure_with_both | df_index_on | extra_patches_on | extract_only_on |
               implies_on | info_on | install_target_on | keywords_on  | buildrun_depends_on |
               patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
-              uses_on =>
+              uses_on | uses_off | buildrun_depends_off | run_depends_off | build_depends_on =>
             allow_spaces := False;
          when others =>
             allow_spaces := True;

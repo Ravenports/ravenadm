@@ -41,6 +41,7 @@ package body Port_Specification.Transform is
             begin
                if rec.currently_set_ON then
                   case field is
+                     when buildrun_depends_on => specs.buildrun_deps.Append (item);
                      when build_depends_on    => specs.build_deps.Append (item);
                      when build_target_on     => specs.build_target.Append (item);
                      when cflags_on           => specs.cflags.Append (item);
@@ -55,7 +56,6 @@ package body Port_Specification.Transform is
                      when install_target_on   => specs.install_tgt.Append (item);
                      when keywords_on         => specs.keywords.Append (item);
                      when ldflags_on          => specs.ldflags.Append (item);
-                     when buildrun_depends_on => specs.buildrun_deps.Append (item);
                      when make_args_on        => specs.make_args.Append (item);
                      when make_env_on         => specs.make_env.Append (item);
                      when patchfiles_on       => specs.patchfiles.Append (item);
@@ -92,9 +92,12 @@ package body Port_Specification.Transform is
                   end case;
                else
                   case field is
-                     when cmake_args_off      => specs.cmake_args.Append (item);
-                     when configure_args_off  => specs.config_args.Append (item);
-                     when qmake_off           => specs.qmake_args.Append (item);
+                     when build_depends_off    => specs.build_deps.Append (item);
+                     when run_depends_off      => specs.run_deps.Append (item);
+                     when uses_off             => specs.uses.Append (item);
+                     when cmake_args_off       => specs.cmake_args.Append (item);
+                     when configure_args_off   => specs.config_args.Append (item);
+                     when qmake_off            => specs.qmake_args.Append (item);
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL-true");
                         specs.cmake_args.Append (special);

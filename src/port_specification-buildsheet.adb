@@ -279,6 +279,9 @@ package body Port_Specification.Buildsheet is
             send (align40 (LAT.Left_Square_Bracket & name & "].BROKEN_ON=") &
                     HT.USS (rec.BROKEN_ON));
          end if;
+         dump_helper (name, rec.BUILDRUN_DEPENDS_OFF, "BUILDRUN_DEPENDS_OFF");
+         dump_helper (name, rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
+         dump_helper (name, rec.BUILD_DEPENDS_OFF, "BUILD_DEPENDS_OFF");
          dump_helper (name, rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
          dump_helper (name, rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
          dump_helper (name, rec.CFLAGS_OFF, "CFLAGS_OFF");
@@ -287,8 +290,8 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.CMAKE_ARGS_ON, "CMAKE_ARGS_ON");
          dump_helper (name, rec.CMAKE_BOOL_T_BOTH, "CMAKE_BOOL_T_BOTH");
          dump_helper (name, rec.CMAKE_BOOL_F_BOTH, "CMAKE_BOOL_F_BOTH");
-         dump_helper (name, rec.CONFIGURE_ARGS_ON, "CONFIGURE_ARGS_ON");
          dump_helper (name, rec.CONFIGURE_ARGS_OFF, "CONFIGURE_ARGS_OFF");
+         dump_helper (name, rec.CONFIGURE_ARGS_ON, "CONFIGURE_ARGS_ON");
          dump_helper (name, rec.CONFIGURE_ENABLE_BOTH, "CONFIGURE_ENABLE_BOTH");
          dump_helper (name, rec.CONFIGURE_ENV_ON, "CONFIGURE_ENV_ON");
          dump_helper (name, rec.CONFIGURE_WITH_BOTH, "CONFIGURE_WITH_BOTH");
@@ -302,7 +305,6 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          dump_helper (name, rec.KEYWORDS_ON, "KEYWORDS_ON");
          dump_helper (name, rec.LDFLAGS_ON, "LDFLAGS_ON");
-         dump_helper (name, rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
          dump_helper (name, rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          dump_helper (name, rec.MAKE_ENV_ON, "MAKE_ENV_ON");
          dump_helper (name, rec.PATCHFILES_ON, "PATCHFILES_ON");
@@ -310,10 +312,12 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.PREVENTS_ON, "PREVENTS_ON");
          dump_helper (name, rec.QMAKE_OFF, "QMAKE_OFF");
          dump_helper (name, rec.QMAKE_ON, "QMAKE_ON");
+         dump_helper (name, rec.RUN_DEPENDS_OFF, "RUN_DEPENDS_OFF");
          dump_helper (name, rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
          dump_helper (name, rec.SUB_FILES_ON, "SUB_FILES_ON");
          dump_helper (name, rec.SUB_LIST_ON, "SUB_LIST_ON");
          dump_helper (name, rec.TEST_TARGET_ON, "TEST_TARGET_ON");
+         dump_helper (name, rec.USES_OFF, "USES_OFF");
          dump_helper (name, rec.USES_ON, "USES_ON");
       end expand_option_record;
 
