@@ -260,6 +260,7 @@ package body Port_Specification is
       procedure verify_entry_is_post_options;
       procedure verify_df_index;
       procedure verify_special_exraction;
+      procedure set_as_standard_option (Key : HT.Text; Element : in out Option_Helper);
 
       text_value : HT.Text := HT.SUS (value);
 
@@ -286,6 +287,11 @@ package body Port_Specification is
             raise dupe_list_value with value;
          end if;
       end verify_special_exraction;
+
+      procedure set_as_standard_option (Key : HT.Text; Element : in out Option_Helper) is
+      begin
+         Element.standard_option := True;
+      end set_as_standard_option;
    begin
       if contains_nonquoted_spaces (value) then
          raise contains_spaces;
@@ -440,6 +446,9 @@ package body Port_Specification is
                if not specs.ops_avail.Contains (text_value) then
                   raise wrong_value with "'" & value & "' must be present in OPTIONS_AVAILABLE";
                end if;
+               specs.ops_helpers.Update_Element
+                 (Position => specs.ops_helpers.Find (text_value),
+                  Process  => set_as_standard_option'Access);
             end if;
             specs.ops_standard.Append (text_value);
             specs.last_set := so_opts_std;
@@ -1716,6 +1725,38 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_options_list
+   --------------------------------------------------------------------------------------------
+   function get_options_list (specs : Portspecs; variant : String) return String
+   is
+      procedure dump_option  (position : option_crate.Cursor);
+
+      joined : HT.Text;
+      is_standard : constant Boolean := (variant = variant_standard);
+
+      procedure dump_option (position : option_crate.Cursor)
+      is
+         rec : Option_Helper renames option_crate.Element (position);
+         optname : String := HT.USS (rec.option_name);
+      begin
+         if optname = "none" then
+            return;
+         end if;
+         if is_standard and then not rec.standard_option then
+            return;
+         end if;
+         if rec.currently_set_ON then
+            HT.SU.Append (joined, " " & optname & ": on,");
+         else
+            HT.SU.Append (joined, " " & optname & ": off,");
+         end if;
+      end dump_option;
+   begin
+      specs.ops_helpers.Iterate (dump_option'Access);
+      return HT.USS (joined);
+   end get_options_list;
+
+   --------------------------------------------------------------------------------------------
    --  get_field_value
    --------------------------------------------------------------------------------------------
    function get_field_value (specs : Portspecs; field : spec_field) return String
@@ -1723,7 +1764,6 @@ package body Port_Specification is
       procedure concat       (position : string_crate.Cursor);
       procedure scan_contact (position : string_crate.Cursor);
       procedure dump_license (position : string_crate.Cursor);
-      procedure dump_option  (position : option_crate.Cursor);
 
       joined : HT.Text;
 
@@ -1767,21 +1807,6 @@ package body Port_Specification is
          end;
       end dump_license;
 
-      procedure dump_option (position : option_crate.Cursor)
-      is
-         rec : Option_Helper renames option_crate.Element (position);
-         optname : String := HT.USS (rec.option_name);
-      begin
-         if optname = "none" then
-            return;
-         end if;
-         if rec.currently_set_ON then
-            HT.SU.Append (joined, " " & optname & ": on,");
-         else
-            HT.SU.Append (joined, " " & optname & ": off,");
-         end if;
-      end dump_option;
-
       procedure scan_contact (position : string_crate.Cursor)
       is
          contact : String := HT.USS (string_crate.Element (position));
@@ -1824,9 +1849,6 @@ package body Port_Specification is
             return HT.USS (joined);
          when sp_groups =>
             specs.groups.Iterate (concat'Access);
-            return HT.USS (joined);
-         when sp_opt_helper =>
-            specs.ops_helpers.Iterate (dump_option'Access);
             return HT.USS (joined);
          when sp_variants =>
             specs.variants.Iterate (concat'Access);

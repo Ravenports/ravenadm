@@ -14,15 +14,6 @@ package Port_Specification.Transform is
    --     osversion (string)
    --     and the current option settings (if variant is not "standard"):
    --  Apply all the changes dictated by option helpers and the IGNORE calculation
---     procedure apply_directives
---       (specs         : in out Portspecs;
---        variant       : String;
---        opsys         : supported_opsys;
---        arch_standard : supported_arch;
---        osrelease     : String;
---        osmajor       : String;
---        osversion     : String
---       );
    procedure apply_directives
      (specs         : in out Portspecs;
       arch_standard : supported_arch;

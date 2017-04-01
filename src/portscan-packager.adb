@@ -352,7 +352,7 @@ package body PortScan.Packager is
          write_down_run_dependencies (spec, file_handle);
       end if;
       TIO.Put_Line (file_handle, "}");
-      TIO.Put_Line (file_handle, "options: {"  & spec.get_field_value (PSP.sp_opt_helper) & " }");
+      TIO.Put_Line (file_handle, "options: {"  & spec.get_options_list (variant) & " }");
       write_package_annotations (spec, file_handle);
       TIO.Close (file_handle);
 

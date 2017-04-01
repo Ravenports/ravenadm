@@ -160,6 +160,9 @@ package Port_Specification is
    --  Generic retrieve data function
    function get_field_value (specs : Portspecs; field : spec_field) return String;
 
+   --  Specialized variant-specific list esp. for package manifest
+   function get_options_list (specs : Portspecs; variant : String) return String;
+
    --  Retrieve the tagline on a given variant
    function get_tagline (specs : Portspecs; variant : String) return String;
 
@@ -256,6 +259,7 @@ private
          option_description    : HT.Text;
          currently_set_ON      : Boolean := False;
          set_ON_by_default     : Boolean := False;
+         standard_option       : Boolean := False;
          BROKEN_ON             : HT.Text;
          BUILDRUN_DEPENDS_ON   : string_crate.Vector;
          BUILD_DEPENDS_ON      : string_crate.Vector;
