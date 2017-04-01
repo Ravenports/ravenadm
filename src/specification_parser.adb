@@ -1106,7 +1106,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 37;
+      total_helpers : constant Positive := 41;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1120,7 +1120,9 @@ package body Specification_Parser is
       all_helpers : constant array (1 .. total_helpers) of helper_pair :=
         (
          ("BROKEN_ON            ", PSP.broken_on),
+         ("BUILDRUN_DEPENDS_OFF ", PSP.buildrun_depends_off),
          ("BUILDRUN_DEPENDS_ON  ", PSP.buildrun_depends_on),
+         ("BUILD_DEPENDS_OFF    ", PSP.build_depends_off),
          ("BUILD_DEPENDS_ON     ", PSP.build_depends_on),
          ("BUILD_TARGET_ON      ", PSP.build_target_on),
          ("CFLAGS_OFF           ", PSP.cflags_off),
@@ -1151,10 +1153,12 @@ package body Specification_Parser is
          ("PREVENTS_ON          ", PSP.prevents_on),
          ("QMAKE_OFF            ", PSP.qmake_off),
          ("QMAKE_ON             ", PSP.qmake_on),
+         ("RUN_DEPENDS_OFF      ", PSP.run_depends_off),
          ("RUN_DEPENDS_ON       ", PSP.run_depends_on),
          ("SUB_FILES_ON         ", PSP.sub_files_on),
          ("SUB_LIST_ON          ", PSP.sub_list_on),
          ("TEST_TARGET_ON       ", PSP.test_target_on),
+         ("USES_OFF             ", PSP.uses_off),
          ("USES_ON              ", PSP.uses_on)
         );
 

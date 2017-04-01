@@ -38,16 +38,17 @@ package Port_Specification is
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt);
 
-   type spec_option  is (not_helper_format, not_supported_helper, broken_on, build_depends_on,
+   type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
+                         buildrun_depends_on, build_depends_off, build_depends_on,
                          build_target_on, cflags_off, cflags_on, cmake_args_off, cmake_args_on,
                          cmake_bool_f_both, cmake_bool_t_both, configure_args_off,
                          configure_args_on, configure_enable_both, configure_env_on,
                          configure_with_both, cppflags_on, cxxflags_on, df_index_on,
                          extra_patches_on, extract_only_on, implies_on, info_on,
-                         install_target_on, keywords_on, ldflags_on, buildrun_depends_on,
-                         make_args_on, make_env_on, patchfiles_on, plist_sub_on, prevents_on,
-                         qmake_off, qmake_on, run_depends_on, sub_files_on, sub_list_on,
-                         test_target_on, uses_on, description);
+                         install_target_on, keywords_on, ldflags_on, make_args_on, make_env_on,
+                         patchfiles_on, plist_sub_on, prevents_on, qmake_off, qmake_on,
+                         run_depends_off, run_depends_on, sub_files_on, sub_list_on,
+                         test_target_on, uses_off, uses_on, description);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -261,7 +262,9 @@ private
          set_ON_by_default     : Boolean := False;
          standard_option       : Boolean := False;
          BROKEN_ON             : HT.Text;
+         BUILDRUN_DEPENDS_OFF  : string_crate.Vector;
          BUILDRUN_DEPENDS_ON   : string_crate.Vector;
+         BUILD_DEPENDS_OFF     : string_crate.Vector;
          BUILD_DEPENDS_ON      : string_crate.Vector;
          BUILD_TARGET_ON       : string_crate.Vector;
          CFLAGS_OFF            : string_crate.Vector;
@@ -292,10 +295,12 @@ private
          PREVENTS_ON           : string_crate.Vector;
          QMAKE_OFF             : string_crate.Vector;
          QMAKE_ON              : string_crate.Vector;
+         RUN_DEPENDS_OFF       : string_crate.Vector;
          RUN_DEPENDS_ON        : string_crate.Vector;
          SUB_FILES_ON          : string_crate.Vector;
          SUB_LIST_ON           : string_crate.Vector;
          TEST_TARGET_ON        : string_crate.Vector;
+         USES_OFF              : string_crate.Vector;
          USES_ON               : string_crate.Vector;
       end record;
 

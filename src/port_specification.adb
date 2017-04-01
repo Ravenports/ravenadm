@@ -1120,6 +1120,12 @@ package body Port_Specification is
          case field is
             when broken_on =>
                Element.BROKEN_ON := value_text;
+            when buildrun_depends_off =>
+               Element.BUILDRUN_DEPENDS_OFF.Append (value_text);
+            when buildrun_depends_on =>
+               Element.BUILDRUN_DEPENDS_ON.Append (value_text);
+            when build_depends_off =>
+               Element.BUILD_DEPENDS_OFF.Append (value_text);
             when build_depends_on =>
                Element.BUILD_DEPENDS_ON.Append (value_text);
             when build_target_on =>
@@ -1168,8 +1174,6 @@ package body Port_Specification is
                Element.KEYWORDS_ON.Append (value_text);
             when ldflags_on =>
                Element.LDFLAGS_ON.Append (value_text);
-            when buildrun_depends_on =>
-               Element.BUILDRUN_DEPENDS_ON.Append (value_text);
             when make_args_on =>
                Element.MAKE_ARGS_ON.Append (value_text);
             when make_env_on =>
@@ -1184,6 +1188,8 @@ package body Port_Specification is
                Element.QMAKE_OFF.Append (value_text);
             when qmake_on =>
                Element.QMAKE_ON.Append (value_text);
+            when run_depends_off =>
+               Element.RUN_DEPENDS_OFF.Append (value_text);
             when run_depends_on =>
                Element.RUN_DEPENDS_ON.Append (value_text);
             when sub_files_on =>
@@ -1192,6 +1198,8 @@ package body Port_Specification is
                Element.SUB_LIST_ON.Append (value_text);
             when test_target_on =>
                Element.TEST_TARGET_ON.Append (value_text);
+            when uses_off =>
+               Element.USES_OFF.Append (value_text);
             when uses_on =>
                Element.USES_ON.Append (value_text);
             when not_helper_format | not_supported_helper =>
@@ -1232,7 +1240,8 @@ package body Port_Specification is
               qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description =>
             --  No validation required
             null;
-         when build_depends_on | buildrun_depends_on | run_depends_on =>
+         when build_depends_on | buildrun_depends_on | run_depends_on |
+              build_depends_off | buildrun_depends_off | run_depends_off =>
             if not valid_dependency_format (value) then
                raise wrong_value with "invalid dependency format '" & value & "'";
             end if;
@@ -1271,7 +1280,7 @@ package body Port_Specification is
             if option_crate.Element (mycursor).KEYWORDS_ON.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
-         when uses_on =>
+         when uses_on | uses_off =>
             if not valid_uses_module (value) then
                raise wrong_value with "USES '" & value & "' is not recognized";
             end if;
@@ -1308,6 +1317,9 @@ package body Port_Specification is
       begin
          case field is
             when broken_on             => return HT.IsBlank (rec.BROKEN_ON);
+            when buildrun_depends_off  => return rec.BUILDRUN_DEPENDS_OFF.Is_Empty;
+            when buildrun_depends_on   => return rec.BUILDRUN_DEPENDS_ON.Is_Empty;
+            when build_depends_off     => return rec.BUILD_DEPENDS_OFF.Is_Empty;
             when build_depends_on      => return rec.BUILD_DEPENDS_ON.Is_Empty;
             when build_target_on       => return rec.BUILD_TARGET_ON.Is_Empty;
             when cflags_off            => return rec.CFLAGS_OFF.Is_Empty;
@@ -1332,7 +1344,6 @@ package body Port_Specification is
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
             when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
             when ldflags_on            => return rec.LDFLAGS_ON.Is_Empty;
-            when buildrun_depends_on   => return rec.BUILDRUN_DEPENDS_ON.Is_Empty;
             when make_args_on          => return rec.MAKE_ARGS_ON.Is_Empty;
             when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
@@ -1340,10 +1351,12 @@ package body Port_Specification is
             when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
             when qmake_off             => return rec.QMAKE_OFF.Is_Empty;
             when qmake_on              => return rec.QMAKE_ON.Is_Empty;
+            when run_depends_off       => return rec.RUN_DEPENDS_OFF.Is_Empty;
             when run_depends_on        => return rec.RUN_DEPENDS_ON.Is_Empty;
             when sub_files_on          => return rec.SUB_FILES_ON.Is_Empty;
             when sub_list_on           => return rec.SUB_LIST_ON.Is_Empty;
             when test_target_on        => return rec.TEST_TARGET_ON.Is_Empty;
+            when uses_off              => return rec.USES_OFF.Is_Empty;
             when uses_on               => return rec.USES_ON.Is_Empty;
             when not_helper_format     => return False;
             when not_supported_helper  => return False;
@@ -2893,6 +2906,9 @@ package body Port_Specification is
          TIO.Put_Line ("   " & NDX & LAT.Colon);
          TIO.Put_Line ("      BROKEN_ON=" & LAT.HT & LAT.HT & HT.USS (rec.BROKEN_ON));
          TIO.Put_Line ("      DESCRIPTION=" & LAT.HT & LAT.HT & HT.USS (rec.option_description));
+         print_opt_vector (rec.BUILDRUN_DEPENDS_OFF, "BUILDRUN_DEPENDS_OFF");
+         print_opt_vector (rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
+         print_opt_vector (rec.BUILD_DEPENDS_OFF, "BUILD_DEPENDS_OFF");
          print_opt_vector (rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
          print_opt_vector (rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
          print_opt_vector (rec.CFLAGS_OFF, "CFLAGS_OFF");
@@ -2916,7 +2932,6 @@ package body Port_Specification is
          print_opt_vector (rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          print_opt_vector (rec.KEYWORDS_ON, "KEYWORDS_ON");
          print_opt_vector (rec.LDFLAGS_ON, "LDFLAGS_ON");
-         print_opt_vector (rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
          print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
          print_opt_vector (rec.PATCHFILES_ON, "PATCHFILES_ON");
@@ -2924,10 +2939,12 @@ package body Port_Specification is
          print_opt_vector (rec.PREVENTS_ON, "PREVENTS_ON");
          print_opt_vector (rec.QMAKE_OFF, "QMAKE_OFF");
          print_opt_vector (rec.QMAKE_ON, "QMAKE_ON");
+         print_opt_vector (rec.RUN_DEPENDS_OFF, "RUN_DEPENDS_OFF");
          print_opt_vector (rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
          print_opt_vector (rec.SUB_FILES_ON, "SUB_FILES_ON");
          print_opt_vector (rec.SUB_LIST_ON, "SUB_LIST_ON");
          print_opt_vector (rec.TEST_TARGET_ON, "TEST_TARGET_ON");
+         print_opt_vector (rec.USES_OFF, "USES_OFF");
          print_opt_vector (rec.USES_ON, "USES_ON");
       end dump_option;
 
