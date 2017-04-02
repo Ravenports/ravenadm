@@ -93,6 +93,7 @@ package body Port_Specification.Transform is
                else
                   case field is
                      when build_depends_off    => specs.build_deps.Append (item);
+                     when buildrun_depends_off => specs.buildrun_deps.Append (item);
                      when run_depends_off      => specs.run_deps.Append (item);
                      when uses_off             => specs.uses.Append (item);
                      when cmake_args_off       => specs.cmake_args.Append (item);
