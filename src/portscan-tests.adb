@@ -476,6 +476,8 @@ package body PortScan.Tests is
    begin
       if HT.leads (original, "@info ") then
          return strip_raw_localbase (original (original'First + 6 .. original 'Last));
+      elsif HT.leads (original, "@sample ") then
+         return strip_raw_localbase (original (original'First + 8 .. original 'Last));
       else
          return original;
       end if;
