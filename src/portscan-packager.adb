@@ -31,6 +31,7 @@ package body PortScan.Packager is
    is
       procedure metadata   (position : subpackage_crate.Cursor);
       procedure package_it (position : subpackage_crate.Cursor);
+      procedure find_main  (position : subpackage_crate.Cursor);
 
       namebase   : String  := HT.USS (all_ports (seq_id).port_namebase);
       conbase    : String  := "/construction/" & namebase;
@@ -42,6 +43,7 @@ package body PortScan.Packager is
       display    : String  := "/+DISPLAY";
       pkgvers    : String  := HT.USS (all_ports (seq_id).pkgversion);
       still_good : Boolean := True;
+      main_pkg   : HT.Text;
 
       procedure metadata (position : subpackage_crate.Cursor)
       is
@@ -103,7 +105,8 @@ package body PortScan.Packager is
                                  subpackage => subpackage,
                                  variant    => HT.USS (all_ports (seq_id).port_variant),
                                  pkgversion => pkgvers,
-                                 filename   => spkgdir & subpackage & manifest);
+                                 filename   => spkgdir & subpackage & manifest,
+                                 prime_pkg  => HT.equivalent (main_pkg, subpackage));
       end metadata;
 
       procedure package_it (position : subpackage_crate.Cursor)
@@ -164,9 +167,27 @@ package body PortScan.Packager is
                       Name => log_name);
          end if;
       end package_it;
+
+      procedure find_main (position : subpackage_crate.Cursor)
+      is
+         text_pkg   : HT.Text renames subpackage_crate.Element (position).subpackage;
+         subpackage : constant String := HT.USS (text_pkg);
+      begin
+         if HT.IsBlank (main_pkg) then
+            if not
+              (subpackage = spkg_complete or else
+               subpackage = spkg_docs or else
+               subpackage = spkg_complete)
+            then
+               main_pkg := text_pkg;
+            end if;
+         end if;
+      end find_main;
+
    begin
       LOG.log_phase_begin (log_handle, phase_name);
 
+      all_ports (seq_id).subpackages.Iterate (find_main'Access);
       all_ports (seq_id).subpackages.Iterate (metadata'Access);
 
       check_deprecation (specification, log_handle);
@@ -282,7 +303,8 @@ package body PortScan.Packager is
       subpackage : String;
       variant    : String;
       pkgversion : String;
-      filename   : String)
+      filename   : String;
+      prime_pkg  : Boolean)
    is
       function get_prefix return String;
       procedure single_if_defined (name, value, not_value : String);
@@ -349,7 +371,7 @@ package body PortScan.Packager is
          --  special handling: this is automatically converted to a metaport
          write_complete_metapackage_deps (spec, file_handle, variant, pkgversion);
       else
-         write_down_run_dependencies (spec, file_handle);
+         write_down_run_dependencies (spec, file_handle, prime_pkg);
       end if;
       TIO.Put_Line (file_handle, "}");
       TIO.Put_Line (file_handle, "options: {"  & spec.get_options_list (variant) & " }");
@@ -400,13 +422,26 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    procedure write_down_run_dependencies
      (spec        : PSP.Portspecs;
-      file_handle : TIO.File_Type)
+      file_handle : TIO.File_Type;
+      prime_pkg   : Boolean)
    is
+      procedure write_pkg_dep (pkgname, pkgversion, portkey : String);
+
       block   : constant String := spec.combined_run_dependency_origins;
       markers : HT.Line_Markers;
+
+      procedure write_pkg_dep (pkgname, pkgversion, portkey : String) is
+      begin
+         TIO.Put_Line (file_handle, "  " & quote (pkgname) & " : {");
+         TIO.Put_Line (file_handle,
+                         "    version : " & quote (pkgversion) & "," & LAT.LF &
+                         "    origin : " & quote (portkey) & LAT.LF &
+                         "  },");
+      end write_pkg_dep;
    begin
       HT.initialize_markers (block, markers);
       loop
+         exit when not prime_pkg;
          exit when not HT.next_line_present (block, markers);
          declare
             line       : constant String  := HT.extract_line (block, markers);
@@ -415,13 +450,10 @@ package body PortScan.Packager is
             pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
             pkgversion : constant String  := HT.USS (all_ports (id).pkgversion);
          begin
-            TIO.Put_Line (file_handle, "  " & quote (pkgname) & " : {");
-            TIO.Put_Line (file_handle,
-                            "    version : " & quote (pkgversion) & "," & LAT.LF &
-                            "    origin : " & quote (portkey) & LAT.LF &
-                            "  },");
+            write_pkg_dep (pkgname, pkgversion, portkey);
          end;
       end loop;
+      --  TODO : write EXRUN now.
    end write_down_run_dependencies;
 
 

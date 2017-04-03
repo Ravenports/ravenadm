@@ -283,6 +283,11 @@ package body Specification_Parser is
                                                        key          => tkey,
                                                        value        => tvalue,
                                                        allow_spaces => True);
+                        when extra_rundep =>
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_exrun,
+                                             key   => tkey,
+                                             value => tvalue);
                         when option_on =>
                            if tkey = options_all or else
                              UTL.valid_lower_opsys (tkey) or else
@@ -873,7 +878,7 @@ package body Specification_Parser is
    is
       subtype array_string is String (1 .. 12);
 
-      total_arrays : constant Positive := 12;
+      total_arrays : constant Positive := 13;
 
       type array_pair is
          record
@@ -887,6 +892,7 @@ package body Specification_Parser is
          ("BROKEN      ", broken),
          ("DEF         ", def),
          ("DISTFILE    ", distfile),
+         ("EXRUN       ", extra_rundep),
          ("EXTRACT_HEAD", ext_head),
          ("EXTRACT_TAIL", ext_tail),
          ("OPT_ON      ", option_on),

@@ -21,6 +21,8 @@ package Definitions is
    boolean_yes       : constant String := "yes";
    homepage_none     : constant String := "none";
    spkg_complete     : constant String := "complete";
+   spkg_docs         : constant String := "docs";
+   spkg_examples     : constant String := "examples";
    jobs_per_cpu      : constant := 2;
 
    type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);

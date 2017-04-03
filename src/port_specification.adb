@@ -111,6 +111,7 @@ package body Port_Specification is
       specs.var_opsys.Clear;
       specs.var_arch.Clear;
       specs.test_tgt.Clear;
+      specs.extra_rundeps.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -812,6 +813,8 @@ package body Port_Specification is
             specs.var_opsys.Insert (text_group, initial_rec);
          when sp_var_arch =>
             specs.var_arch.Insert (text_group, initial_rec);
+         when sp_exrun =>
+            specs.extra_rundeps.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -896,6 +899,9 @@ package body Port_Specification is
               not specs.subpackages.Element (text_key).list.Is_Empty
             then
                raise wrong_value with "The '" & value & "' subpackage must be set first";
+            end if;
+            if key'Length > 15 then
+               raise wrong_value with "'" & value & "' value is too long (15-char limit)";
             end if;
             specs.subpackages.Update_Element (Position => specs.subpackages.Find (text_key),
                                               Process  => grow'Access);
@@ -1020,6 +1026,24 @@ package body Port_Specification is
             end if;
             specs.var_arch.Update_Element (Position => specs.var_arch.Find (text_key),
                                            Process  => grow'Access);
+         when sp_exrun =>
+            verify_entry_is_post_options;
+            if not specs.subpackage_exists (key) then
+               raise wrong_type with "subpackage key '" & key & "' has not been defined.";
+            end if;
+            if not valid_dependency_format (value) then
+               raise wrong_value with "invalid dependency format '" & value & "'";
+            end if;
+            if specs.extra_rundeps.Contains (text_key) and then
+              specs.extra_rundeps.Element (text_key).list.Contains (text_value)
+            then
+               raise wrong_value with "duplicate definition: " & key & "=" & value;
+            end if;
+            if not specs.extra_rundeps.Contains (text_key) then
+               specs.establish_group (sp_exrun, key);
+            end if;
+            specs.extra_rundeps.Update_Element (Position => specs.extra_rundeps.Find (text_key),
+                                                Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3034,6 +3058,7 @@ package body Port_Specification is
             when sp_opt_helper       => specs.ops_helpers.Iterate (Process => dump_option'Access);
             when sp_var_opsys        => specs.var_opsys.Iterate (dump'Access);
             when sp_var_arch         => specs.var_arch.Iterate (dump'Access);
+            when sp_exrun            => specs.extra_rundeps.Iterate (dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -3135,6 +3160,7 @@ package body Port_Specification is
       print_vector_list ("BUILD_DEPENDS", sp_build_deps);
       print_vector_list ("BUILDRUN_DEPENDS", sp_buildrun_deps);
       print_vector_list ("RUN_DEPENDS", sp_run_deps);
+      print_group_list  ("EXRUN", sp_exrun);
       print_vector_list ("USES", sp_uses);
       print_vector_list ("SUB_LIST", sp_sub_list);
       print_vector_list ("SUB_FILES", sp_sub_files);

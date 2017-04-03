@@ -24,7 +24,8 @@ private
       subpackage : String;
       variant    : String;
       pkgversion : String;
-      filename   : String);
+      filename   : String;
+      prime_pkg  : Boolean);
 
    --  Alert if port is deprecated
    procedure check_deprecation (spec : PSP.Portspecs; log_handle : TIO.File_Type);
@@ -54,7 +55,8 @@ private
    --  Document buildrun + run dependencies in the "deps" category of the manifest.
    procedure write_down_run_dependencies
      (spec        : PSP.Portspecs;
-      file_handle : TIO.File_Type);
+      file_handle : TIO.File_Type;
+      prime_pkg  : Boolean);
 
    --  If there are any package notes, write them to the manifest
    procedure write_package_annotations

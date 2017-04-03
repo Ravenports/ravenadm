@@ -37,8 +37,8 @@ private
          Equivalent_Keys => HT.equivalent,
          "="             => HT.SU."=");
 
-   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts,
-                         ext_head, ext_tail, option_on, broken, var_opsys, var_arch);
+   type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts, ext_head,
+                         ext_tail, option_on, broken, var_opsys, var_arch, extra_rundep);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                          contacts, dl_groups, dist_subdir, df_index, opt_avail, opt_standard,
                          exc_opsys, inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha,
