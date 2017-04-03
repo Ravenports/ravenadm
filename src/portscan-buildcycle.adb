@@ -78,11 +78,11 @@ package body PortScan.Buildcycle is
                end if;
 
             when stage =>
-               --  REP.unhook_toolchain (id);
                if testing then
                   mark_file_system (id, "prestage");
                end if;
                R := exec_phase_generic (id, phase);
+               REP.unhook_toolchain (id);
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
