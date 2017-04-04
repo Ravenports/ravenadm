@@ -1106,7 +1106,8 @@ package body PortScan.Operations is
       function even      (fileinfo : String) return String;
 
       sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
-      command : constant String := sysroot & "/usr/bin/file -b " & sysroot & "/bin/sh";
+      command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
+                                   "/usr/share/file/magic.mgc -b " & sysroot & "/bin/sh";
       status  : Integer;
       arch    : filearch;
       UN      : HT.Text;
