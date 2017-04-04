@@ -2326,7 +2326,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 11;
+      total_modules : constant Positive := 12;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2341,6 +2341,7 @@ package body Port_Specification is
          "iconv          ",
          "libtool        ",
          "ncurses        ",
+         "perl-interp    ",
          "pkgconfig      ",
          "shebangfix     ",
          "terminfo       "

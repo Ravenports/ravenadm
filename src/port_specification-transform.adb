@@ -877,6 +877,7 @@ package body Port_Specification.Transform is
       UTL.apply_cbc_string (specs.config_wrksrc);
       UTL.apply_cbc_string (specs.config_prefix);
       UTL.apply_cbc_string (specs.config_script);
+      UTL.apply_cbc_string (specs.distname);
 
       apply_cbc_string_crate (specs.config_args);
       apply_cbc_string_crate (specs.config_env);
