@@ -569,6 +569,12 @@ package body Port_Specification is
          when sp_groups =>
             verify_entry_is_post_options;
             specs.groups.Append (text_value);
+         when sp_sub_list =>
+            verify_entry_is_post_options;
+            specs.sub_list.Append (text_value);
+         when sp_sub_files =>
+            verify_entry_is_post_options;
+            specs.sub_files.Append (text_value);
          when sp_build_deps | sp_buildrun_deps | sp_run_deps =>
             verify_entry_is_post_options;
             if not valid_dependency_format (value) then

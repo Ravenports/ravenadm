@@ -678,6 +678,8 @@ package body Port_Specification.Makefile is
       send ("INSTALL_WRKSRC",   specs.install_wrksrc);
       send ("INSTALL_TARGET",   specs.install_tgt, 1);
       send ("PLIST_SUB",        specs.plist_sub, 1);
+      send ("SUB_FILES",        specs.sub_files, 1);
+      send ("SUB_LIST",         specs.sub_list, 1);
       send ("MAKEFILE",         specs.makefile);
       send ("MAKE_ENV",         specs.make_env, 1);
       send ("MAKE_ARGS",        specs.make_args, 1);
