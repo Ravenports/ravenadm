@@ -79,6 +79,9 @@ package HelperText is
                                old_string : String;
                                new_string : String) return Text;
 
+   --  returns S(S'First + left_offset .. S'Last - right_offset)
+   function substring (S : String; left_offset, right_offset : Natural) return String;
+
    --  Iterate though block of text, LF is delimiter
    procedure initialize_markers
      (block_text : in String;

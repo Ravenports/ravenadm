@@ -332,6 +332,15 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  substring
+   --------------------------------------------------------------------------------------------
+   function substring (S : String; left_offset, right_offset : Natural) return String is
+   begin
+      return S (S'First + left_offset .. S'Last - right_offset);
+   end substring;
+
+
+   --------------------------------------------------------------------------------------------
    --  replace_substring
    --------------------------------------------------------------------------------------------
    function replace_substring (US : Text;

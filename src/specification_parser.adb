@@ -195,8 +195,7 @@ package body Specification_Parser is
                              HT.trails (tvalue, ")")
                            then
                               spec_definitions.Insert
-                                (defkey, extract_version
-                                   (tvalue (tvalue'First + 16 .. tvalue'Last - 1)));
+                                (defkey, extract_version (HT.substring (tvalue, 16, 1)));
                            else
                               spec_definitions.Insert (defkey, defvalue);
                            end if;
