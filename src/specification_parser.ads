@@ -186,4 +186,7 @@ private
    --  result in no change.
    function transform_target_line (line : String; skipping_extraction : Boolean)  return String;
 
+   --  loads raven.versions.mk and returns result of "make -V <varname>"
+   function extract_version (varname : String) return HT.Text;
+
 end Specification_Parser;

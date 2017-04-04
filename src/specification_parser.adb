@@ -1,7 +1,9 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Unix;
 with Utilities;
+with Parameters;
 with File_Operations;
 with Package_Manifests;
 with Ada.Characters.Latin_1;
@@ -188,9 +190,15 @@ package body Specification_Parser is
                            end if;
                            if spec_definitions.Contains (defkey) then
                               raise duplicate_key with HT.USS (defkey);
+                           end if;
+                           if HT.leads (tvalue, "EXTRACT_VERSION(") and then
+                             HT.trails (tvalue, ")")
+                           then
+                              spec_definitions.Insert
+                                (defkey, extract_version
+                                   (tvalue (tvalue'First + 16 .. tvalue'Last - 1)));
                            else
-                              spec_definitions.Insert (Key      => defkey,
-                                                       New_Item => defvalue);
+                              spec_definitions.Insert (defkey, defvalue);
                            end if;
                         when sdesc =>
                            if HT.SU.Length (defvalue) > 50 then
@@ -2050,5 +2058,19 @@ package body Specification_Parser is
    end transform_target_line;
 
 
+   --------------------------------------------------------------------------------------------
+   --  extract_version
+   --------------------------------------------------------------------------------------------
+   function extract_version (varname : String) return HT.Text
+   is
+      consdir : String := HT.USS (Parameters.configuration.dir_conspiracy);
+      extmake : String := HT.USS (Parameters.configuration.dir_sysroot) & "/usr/bin/make -m " &
+                          consdir & "/Mk";
+      command : String := extmake & " -f " & consdir & "/Mk/raven.versions.mk -V " & varname;
+      status  : Integer;
+      result  : HT.Text := Unix.piped_command (command, status);
+   begin
+      return HT.SUS (HT.specific_line (HT.USS (result), 1));
+   end extract_version;
 
 end Specification_Parser;
