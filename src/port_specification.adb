@@ -1534,18 +1534,8 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function contains_nonquoted_spaces (word : String) return Boolean
    is
-      mask    : String  := word;
-      Qopened : Boolean := False;
+      mask    : String  := UTL.mask_quoted_string (word);
    begin
-      for x in mask'Range loop
-         if mask (x) = LAT.Quotation then
-            Qopened := not Qopened;
-         elsif mask (x) = LAT.Space then
-            if Qopened then
-               mask (x) := 'X';
-            end if;
-         end if;
-      end loop;
       return HT.contains (S => mask, fragment => " ");
    end contains_nonquoted_spaces;
 

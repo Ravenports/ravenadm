@@ -32,4 +32,9 @@ package Utilities is
    --  Replaces {{x}} with ${x}
    procedure apply_cbc_string (value : in out HelperText.Text);
 
+   --  Quotation mask.  Returns the given string with all data between
+   --  double quotation marks replaced with an "X".  It will replace
+   --  escaped double-quotes inside quotes with an "X" as well.
+   function mask_quoted_string (raw : String) return String;
+
 end Utilities;

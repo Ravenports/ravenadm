@@ -2,10 +2,12 @@
 --  Reference: ../License.txt
 
 with GNAT.SHA1;
+with Ada.Characters.Latin_1;
 
 package body Utilities is
 
-   package HT renames HelperText;
+   package HT  renames HelperText;
+   package LAT renames Ada.Characters.Latin_1;
 
    --------------------------------------------------------------------------------------------
    --  lower_opsys
@@ -138,5 +140,43 @@ package body Utilities is
          end;
       end loop;
    end apply_cbc_string;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mask_quoted_string
+   --------------------------------------------------------------------------------------------
+   function mask_quoted_string (raw : String) return String
+   is
+      mask    : String := raw;
+      Qopened : Boolean := False;
+      switch  : Boolean;
+   begin
+      --  Check for multiple space error or leading space error
+      --  We start by masking all spaces between quotations so we can accurately detect them
+      for x in mask'Range loop
+         switch := False;
+         if mask (x) = LAT.Quotation then
+            if not Qopened then
+               switch := True;
+            else
+               --  We must be at least mask'First + 1 if we are here
+               if not (mask (x - 1) = LAT.Reverse_Solidus) then
+                  switch := True;
+               end if;
+            end if;
+         end if;
+
+         if switch then
+            Qopened := not Qopened;
+         elsif mask (x) = LAT.Space then
+            if Qopened then
+               mask (x) := 'X';
+            end if;
+         end if;
+      end loop;
+
+      return mask;
+
+   end mask_quoted_string;
 
 end Utilities;

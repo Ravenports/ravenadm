@@ -1356,22 +1356,15 @@ package body Specification_Parser is
    is
       strkey   : constant String := HT.part_1 (line, LAT.Equals_Sign & LAT.HT);
       strvalue : constant String := retrieve_single_value (line);
-      mask     : String := strvalue;
-      Qopened  : Boolean := False;
    begin
       if HT.contains (S => strvalue, fragment => " ") then
-         for x in mask'Range loop
-            if mask (x) = LAT.Quotation then
-               Qopened := not Qopened;
-            elsif mask (x) = LAT.Space then
-               if Qopened then
-                  mask (x) := 'X';
-               end if;
+         declare
+            mask : constant String := UTL.mask_quoted_string (strvalue);
+         begin
+            if HT.contains (S => mask, fragment => " ") then
+               raise extra_spaces;
             end if;
-         end loop;
-         if HT.contains (S => strvalue, fragment => " ") then
-            raise extra_spaces;
-         end if;
+         end;
       end if;
 
       spec.append_array (field        => PSP.sp_catchall,
@@ -1391,8 +1384,6 @@ package body Specification_Parser is
       arrow      : Natural;
       word_start : Natural;
       strvalue   : constant String := retrieve_single_value (line);
-      mask       : String := strvalue;
-      Qopened    : Boolean := False;
       --  let any exceptions cascade
 
       procedure insert_item (data : String) is
@@ -1417,35 +1408,28 @@ package body Specification_Parser is
          return;
       end if;
 
-      --  Check for multiple space error or leading space error
-      --  We start by masking all spaces between quotations so we can accurately detect them
-      for x in mask'Range loop
-         if mask (x) = LAT.Quotation then
-            Qopened := not Qopened;
-         elsif mask (x) = LAT.Space then
-            if Qopened then
-               mask (x) := 'X';
-            end if;
+      declare
+         mask : constant String := UTL.mask_quoted_string (strvalue);
+      begin
+         if HT.contains (S => mask, fragment => "  ") or else
+           mask (mask'First) = LAT.Space
+         then
+            raise extra_spaces;
          end if;
-      end loop;
-      if HT.contains (S => mask, fragment => "  ") or else
-        mask (mask'First) = LAT.Space
-      then
-         raise extra_spaces;
-      end if;
 
-      --  Now we have multiple list items separated by single spaces
-      --  We know the original line has no trailing spaces too, btw.
-      word_start := strvalue'First;
-      arrow := word_start;
-      loop
-         exit when arrow > strvalue'Last;
-         if mask (arrow) = LAT.Space then
-            insert_item (strvalue (word_start .. arrow - 1));
-            word_start := arrow + 1;
-         end if;
-         arrow := arrow + 1;
-      end loop;
+         --  Now we have multiple list items separated by single spaces
+         --  We know the original line has no trailing spaces too, btw.
+         word_start := strvalue'First;
+         arrow := word_start;
+         loop
+            exit when arrow > strvalue'Last;
+            if mask (arrow) = LAT.Space then
+               insert_item (strvalue (word_start .. arrow - 1));
+               word_start := arrow + 1;
+            end if;
+            arrow := arrow + 1;
+         end loop;
+      end;
       insert_item (strvalue (word_start .. strvalue'Last));
 
    end build_list;
@@ -1464,15 +1448,13 @@ package body Specification_Parser is
 
       arrow      : Natural;
       word_start : Natural;
-      mask       : String := value;
-      Qopened    : Boolean := False;
 
       procedure insert_item (data : String) is
       begin
          spec.append_array (field        => field,
-                                     key          => key,
-                                     value        => data,
-                                     allow_spaces => False);
+                            key          => key,
+                            value        => data,
+                            allow_spaces => False);
       end insert_item;
    begin
       --  Handle single item case
@@ -1481,35 +1463,28 @@ package body Specification_Parser is
          return;
       end if;
 
-      --  Check for multiple space error or leading space error
-      --  We start by masking all spaces between quotations so we can accurately detect them
-      for x in mask'Range loop
-         if mask (x) = LAT.Quotation then
-            Qopened := not Qopened;
-         elsif mask (x) = LAT.Space then
-            if Qopened then
-               mask (x) := 'X';
-            end if;
+      declare
+         mask : constant String := UTL.mask_quoted_string (value);
+      begin
+         if HT.contains (S => mask, fragment => "  ") or else
+           mask (mask'First) = LAT.Space
+         then
+            raise extra_spaces;
          end if;
-      end loop;
-      if HT.contains (S => mask, fragment => "  ") or else
-        mask (mask'First) = LAT.Space
-      then
-         raise extra_spaces;
-      end if;
 
-      --  Now we have multiple list items separated by single spaces
-      --  We know the original line has no trailing spaces too, btw.
-      word_start := value'First;
-      arrow := word_start;
-      loop
-         exit when arrow > value'Last;
-         if mask (arrow) = LAT.Space then
-            insert_item (value (word_start .. arrow - 1));
-            word_start := arrow + 1;
-         end if;
-         arrow := arrow + 1;
-      end loop;
+         --  Now we have multiple list items separated by single spaces
+         --  We know the original line has no trailing spaces too, btw.
+         word_start := value'First;
+         arrow := word_start;
+         loop
+            exit when arrow > value'Last;
+            if mask (arrow) = LAT.Space then
+               insert_item (value (word_start .. arrow - 1));
+               word_start := arrow + 1;
+            end if;
+            arrow := arrow + 1;
+         end loop;
+      end;
       insert_item (value (word_start .. value'Last));
 
    end build_group_list;
@@ -1741,8 +1716,6 @@ package body Specification_Parser is
       arrow      : Natural;
       word_start : Natural;
       strvalue   : constant String := retrieve_single_option_value (line);
-      mask       : String := strvalue;
-      Qopened    : Boolean := False;
       --  let any exceptions cascade
 
       procedure insert_item (data : String) is
@@ -1756,8 +1729,8 @@ package body Specification_Parser is
    begin
       if field = PSP.broken_on or else field = PSP.description then
          spec.build_option_helper (field  => field,
-                                            option => option,
-                                            value  => strvalue);
+                                   option => option,
+                                   value  => strvalue);
          return;
       end if;
 
@@ -1767,35 +1740,28 @@ package body Specification_Parser is
          return;
       end if;
 
-      --  Check for multiple space error or leading space error
-      --  We start by masking all spaces between quotations so we can accurately detect them
-      for x in mask'Range loop
-         if mask (x) = LAT.Quotation then
-            Qopened := not Qopened;
-         elsif mask (x) = LAT.Space then
-            if Qopened then
-               mask (x) := 'X';
-            end if;
+      declare
+         mask : constant String := UTL.mask_quoted_string (strvalue);
+      begin
+         if HT.contains (S => mask, fragment => "  ") or else
+           mask (mask'First) = LAT.Space
+         then
+            raise extra_spaces;
          end if;
-      end loop;
-      if HT.contains (S => mask, fragment => "  ") or else
-        mask (mask'First) = LAT.Space
-      then
-         raise extra_spaces;
-      end if;
 
-      --  Now we have multiple list items separated by single spaces
-      --  We know the original line has no trailing spaces too, btw.
-      word_start := strvalue'First;
-      arrow := word_start;
-      loop
-         exit when arrow > strvalue'Last;
-         if mask (arrow) = LAT.Space then
-            insert_item (strvalue (word_start .. arrow - 1));
-            word_start := arrow + 1;
-         end if;
-         arrow := arrow + 1;
-      end loop;
+         --  Now we have multiple list items separated by single spaces
+         --  We know the original line has no trailing spaces too, btw.
+         word_start := strvalue'First;
+         arrow := word_start;
+         loop
+            exit when arrow > strvalue'Last;
+            if mask (arrow) = LAT.Space then
+               insert_item (strvalue (word_start .. arrow - 1));
+               word_start := arrow + 1;
+            end if;
+            arrow := arrow + 1;
+         end loop;
+      end;
       insert_item (strvalue (word_start .. strvalue'Last));
 
    end build_list;
@@ -1973,20 +1939,10 @@ package body Specification_Parser is
          end case;
          declare
             payload      : String  := HT.part_2 (candidate, "=");
-            mask         : String  := payload;
+            mask         : String  := UTL.mask_quoted_string (payload);
             found_spaces : Boolean := HT.contains (payload, " ");
-            Qopened      : Boolean := False;
          begin
             if found_spaces then
-               for x in mask'Range loop
-                  if mask (x) = LAT.Quotation then
-                     Qopened := not Qopened;
-                  elsif mask (x) = LAT.Space then
-                     if Qopened then
-                        mask (x) := 'X';
-                     end if;
-                  end if;
-               end loop;
                return not HT.contains (mask, " ");
             else
                return True;
