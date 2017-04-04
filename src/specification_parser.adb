@@ -445,6 +445,7 @@ package body Specification_Parser is
                      when groups           => build_list (spec, PSP.sp_groups, line);
                      when lic_file         => build_list (spec, PSP.sp_lic_file, line);
                      when lic_name         => build_list (spec, PSP.sp_lic_name, line);
+                     when mandirs          => build_list (spec, PSP.sp_mandirs, line);
                      when catchall         => build_nvpair (spec, line);
                      when diode            => null;
                      when not_singlet      => null;
@@ -960,7 +961,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 94;
+      total_singlets : constant Positive := 95;
 
       type singlet_pair is
          record
@@ -1033,6 +1034,7 @@ package body Specification_Parser is
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
+         ("MANDIRS               ",  7, mandirs),
          ("MUST_CONFIGURE        ", 14, must_configure),
          ("NAMEBASE              ",  8, namebase),
          ("NCURSES_RPATH         ", 13, catchall),

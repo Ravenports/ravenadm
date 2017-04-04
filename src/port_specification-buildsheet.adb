@@ -651,6 +651,7 @@ package body Port_Specification.Buildsheet is
       send ("INSTALL_WRKSRC",       specs.install_wrksrc);
       send ("INSTALL_TARGET",       specs.install_tgt, 2);
       send ("INSTALL_REQ_TOOLCHAIN", specs.shift_install, True);
+      send ("MANDIRS",              specs.mandirs, 1);
       send ("PLIST_SUB",            specs.plist_sub, 1);
       send ("SUB_FILES",            specs.sub_files, 1);
       send ("SUB_LIST",             specs.sub_list, 1);

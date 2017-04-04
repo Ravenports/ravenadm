@@ -112,6 +112,7 @@ package body Port_Specification is
       specs.var_arch.Clear;
       specs.test_tgt.Clear;
       specs.extra_rundeps.Clear;
+      specs.mandirs.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -575,6 +576,9 @@ package body Port_Specification is
          when sp_sub_files =>
             verify_entry_is_post_options;
             specs.sub_files.Append (text_value);
+         when sp_mandirs =>
+            verify_entry_is_post_options;
+            specs.mandirs.Append (text_value);
          when sp_build_deps | sp_buildrun_deps | sp_run_deps =>
             verify_entry_is_post_options;
             if not valid_dependency_format (value) then
@@ -3044,6 +3048,7 @@ package body Port_Specification is
             when sp_users         => specs.users.Iterate (Process => print_item'Access);
             when sp_groups        => specs.groups.Iterate (Process => print_item'Access);
             when sp_test_tgt      => specs.test_tgt.Iterate (print_item'Access);
+            when sp_mandirs       => specs.mandirs.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -3223,6 +3228,7 @@ package body Port_Specification is
       print_vector_list ("LICENSES", sp_licenses);
       print_vector_list ("USERS", sp_users);
       print_vector_list ("GROUPS", sp_groups);
+      print_vector_list ("MANDIRS", sp_mandirs);
       print_define      (2);  -- catchall
       print_group_list  ("VAR_OPSYS", sp_var_opsys);
       print_group_list  ("VAR_ARCH", sp_var_arch);

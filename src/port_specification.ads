@@ -36,7 +36,8 @@ package Port_Specification is
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
-                       sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun);
+                       sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun,
+                       sp_mandirs);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -403,6 +404,7 @@ private
          lic_scheme    : HT.Text;
          users         : string_crate.Vector;
          groups        : string_crate.Vector;
+         mandirs       : string_crate.Vector;
          catch_all     : def_crate.Map;
          pkg_notes     : def_crate.Map;
          var_opsys     : list_crate.Map;
