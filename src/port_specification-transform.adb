@@ -218,6 +218,7 @@ package body Port_Specification.Transform is
       apply_info_presence (specs);
       apply_gettext_runtime_module (specs);
       apply_gettext_tools_module (specs);
+      apply_perl_module (specs);
       apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
    end apply_directives;
@@ -864,6 +865,73 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_gettext_runtime_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_perl_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_perl_module (specs : in out Portspecs)
+   is
+      module        : String  := "perl";
+      dependency    : HT.Text := HT.SUS ("perl-5.24:primary:standard");
+      pmodbuild     : HT.Text := HT.SUS ("p5-Module-Build:primary:standard");
+      pmodbuildtiny : HT.Text := HT.SUS ("p5-Module-Build-Tiny:primary:standard");
+      hit_run       : Boolean;
+      hit_build     : Boolean;
+      hit_both      : Boolean;
+      hit_bmod      : Boolean;
+      hit_bmodtiny  : Boolean;
+      hit_config    : Boolean;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build    := False;
+         hit_both     := True;
+         hit_run      := False;
+         hit_bmod     := False;
+         hit_bmodtiny := False;
+         hit_config   := False;
+      else
+         hit_build    := argument_present (specs, module, BUILD);
+         hit_run      := argument_present (specs, module, RUN);
+         hit_bmod     := argument_present (specs, module, "buildmod");
+         hit_bmodtiny := argument_present (specs, module, "buildmodtiny");
+         hit_config   := argument_present (specs, module, "configure");
+         hit_both     := hit_config or else
+           (hit_run and hit_bmod) or else
+           (hit_run and hit_bmodtiny);
+
+         if hit_bmod or else hit_bmodtiny then
+            hit_build := True;
+         end if;
+      end if;
+      if hit_both or else (hit_build and hit_run) then
+         if not specs.buildrun_deps.Contains (dependency) then
+            specs.buildrun_deps.Append (dependency);
+         end if;
+      elsif hit_build then
+         if not specs.build_deps.Contains (dependency) then
+            specs.build_deps.Append (dependency);
+         end if;
+      elsif hit_run then
+         if not specs.run_deps.Contains (dependency) then
+            specs.run_deps.Append (dependency);
+         end if;
+      end if;
+
+      if hit_bmod then
+         if not specs.build_deps.Contains (pmodbuild) then
+            specs.build_deps.Append (pmodbuild);
+         end if;
+      elsif hit_bmodtiny then
+         if not specs.build_deps.Contains (pmodbuildtiny) then
+            specs.build_deps.Append (pmodbuildtiny);
+         end if;
+      end if;
+
+   end apply_perl_module;
 
 
    --------------------------------------------------------------------------------------------

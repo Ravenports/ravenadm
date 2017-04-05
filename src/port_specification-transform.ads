@@ -70,6 +70,7 @@ private
    procedure apply_ccache           (specs : in out Portspecs);
    procedure apply_pkgconfig_module (specs : in out Portspecs);
    procedure apply_ncurses_module   (specs : in out Portspecs);
+   procedure apply_perl_module      (specs : in out Portspecs);
 
    procedure apply_gettext_runtime_module (specs : in out Portspecs);
    procedure apply_gettext_tools_module   (specs : in out Portspecs);

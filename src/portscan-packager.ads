@@ -56,7 +56,7 @@ private
    procedure write_down_run_dependencies
      (spec        : PSP.Portspecs;
       file_handle : TIO.File_Type;
-      prime_pkg  : Boolean);
+      prime_pkg   : Boolean);
 
    --  If there are any package notes, write them to the manifest
    procedure write_package_annotations
