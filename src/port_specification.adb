@@ -332,6 +332,9 @@ package body Port_Specification is
             if specs.variants.Contains (text_value) then
                raise dupe_list_value with value;
             end if;
+            if HT.contains (value, "-") then
+               raise wrong_value with "hyphens are not allowed in variant names (" & value & ")";
+            end if;
             specs.variants.Append (text_value);
             specs.last_set := so_variants;
          when sp_contacts =>
@@ -912,6 +915,9 @@ package body Port_Specification is
             end if;
             if key'Length > 15 then
                raise wrong_value with "'" & value & "' value is too long (15-char limit)";
+            end if;
+            if HT.contains (value, "-") then
+               raise wrong_value with "subpackage names cannot contain hyphens (" & value & ")";
             end if;
             specs.subpackages.Update_Element (Position => specs.subpackages.Find (text_key),
                                               Process  => grow'Access);
