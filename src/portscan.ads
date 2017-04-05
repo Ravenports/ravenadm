@@ -96,16 +96,6 @@ private
          reverse_score : port_index;
       end record;
 
-   type subpackage_record is
-      record
-         subpackage    : HT.Text := HT.blank;
-         pkg_dep_query : HT.Text := HT.blank;
-         pkg_present   : Boolean := False;
-         remote_pkg    : Boolean := False;
-         never_remote  : Boolean := False;
-         deletion_due  : Boolean := False;
-      end record;
-
    --  Functions for ranking_crate definitions
    function "<" (L, R : queue_record) return Boolean;
 
@@ -124,10 +114,6 @@ private
      (Element_Type => HT.Text,
       Index_Type   => port_index,
       "="          => HT.SU."=");
-
-   package subpackage_crate is new CON.Vectors
-     (Element_Type => subpackage_record,
-      Index_Type   => Positive);
 
    package ranking_crate is new CON.Ordered_Sets
      (Element_Type => queue_record);
@@ -149,6 +135,31 @@ private
       Element_Type    => port_index,
       Hash            => block_hash,
       Equivalent_Keys => block_ekey);
+
+   type subpackage_identifier is
+      record
+         port          : port_index;
+         spkg_index    : Positive;
+      end record;
+
+   package spkg_id_crate is new CON.Vectors
+     (Element_Type => subpackage_identifier,
+      Index_Type   => Positive);
+
+   type subpackage_record is
+      record
+         subpackage    : HT.Text := HT.blank;
+         pkg_dep_query : HT.Text := HT.blank;
+         pkg_present   : Boolean := False;
+         remote_pkg    : Boolean := False;
+         never_remote  : Boolean := False;
+         deletion_due  : Boolean := False;
+         spkg_run_deps : spkg_id_crate.Vector;
+      end record;
+
+   package subpackage_crate is new CON.Vectors
+     (Element_Type => subpackage_record,
+      Index_Type   => Positive);
 
    type port_record is
       record

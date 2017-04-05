@@ -189,6 +189,15 @@ package Port_Specification is
       variant : String;
       item    : Natural) return String;
 
+   --  Return number of extra runtime dependences on a named subpackage
+   function get_number_extra_run (specs : Portspecs; subpackage : String) return Natural;
+
+   --  Return extra runtime specification of a named subpackage given an index
+   function get_extra_runtime
+     (specs      : Portspecs;
+      subpackage : String;
+      item       : Natural) return String;
+
    --  Return aggregate and formatted reason(s) for ignoring the port.
    function aggregated_ignore_reason (specs : Portspecs) return String;
 

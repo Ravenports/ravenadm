@@ -390,6 +390,7 @@ package body PortScan.Scan is
       successful : Boolean;
       variant    : constant String := HT.USS (rec.port_variant);
       osrelease  : constant String := HT.USS (sysrootver.release);
+      prime_pkg  : HT.Text := HT.blank;
 
       function calc_dossier return String
       is
@@ -452,10 +453,82 @@ package body PortScan.Scan is
       end loop;
       for item in Positive range 1 .. thespec.get_subpackage_length (variant) loop
          declare
-            newrec : subpackage_record;
+            newrec     : subpackage_record;
+            subpackage : String := thespec.get_subpackage_item (variant, item);
+            is_primary : Boolean := False;
          begin
-            newrec.subpackage   := HT.SUS (thespec.get_subpackage_item (variant, item));
+            newrec.subpackage   := HT.SUS (subpackage);
             newrec.never_remote := always_build;
+
+            if subpackage /= spkg_complete and then
+              subpackage /= spkg_examples and then
+              subpackage /= spkg_docs and then
+              not HT.IsBlank (prime_pkg)
+            then
+               prime_pkg := newrec.subpackage;
+               is_primary := True;
+            end if;
+
+            for subitem in Positive range 1 .. thespec.get_number_extra_run (subpackage) loop
+               declare
+                  dep : String := thespec.get_extra_runtime (subpackage, subitem);
+               begin
+                  populate_set_depends (target, dep, extra_runtime);
+                  declare
+                     --  These will pass because populate_set_depends didn't throw exception
+                     portkey  : HT.Text := HT.SUS (convert_tuple_to_portkey (dep));
+                     depindex : port_index := ports_keys.Element (portkey);
+                     idrec    : subpackage_identifier;
+                  begin
+                     idrec.port := depindex;
+                     idrec.spkg_index := vector_position (depindex, dep);
+                     newrec.spkg_run_deps.Append (idrec);
+                  end;
+               end;
+            end loop;
+
+            if is_primary then
+               for si in Positive range 1 .. thespec.get_list_length (PSP.sp_buildrun_deps) loop
+                  declare
+                     dep      : String := thespec.get_list_item (PSP.sp_buildrun_deps, si);
+                     portkey  : HT.Text := HT.SUS (convert_tuple_to_portkey (dep));
+                     depindex : port_index := ports_keys.Element (portkey);
+                     idrec    : subpackage_identifier;
+                  begin
+                     idrec.port := depindex;
+                     idrec.spkg_index := vector_position (depindex, dep);
+                     newrec.spkg_run_deps.Append (idrec);
+                  end;
+               end loop;
+               for si in Positive range 1 .. thespec.get_list_length (PSP.sp_run_deps) loop
+                  declare
+                     dep      : String := thespec.get_list_item (PSP.sp_run_deps, si);
+                     portkey  : HT.Text := HT.SUS (convert_tuple_to_portkey (dep));
+                     depindex : port_index := ports_keys.Element (portkey);
+                     idrec    : subpackage_identifier;
+                  begin
+                     idrec.port := depindex;
+                     idrec.spkg_index := vector_position (depindex, dep);
+                     newrec.spkg_run_deps.Append (idrec);
+                  end;
+               end loop;
+            end if;
+
+            if subpackage = spkg_complete then
+               for si in Positive range 1 .. thespec.get_subpackage_length (variant) loop
+                  declare
+                     innersub : constant String := thespec.get_subpackage_item (variant, si);
+                     idrec    : subpackage_identifier;
+                  begin
+                     if innersub /= spkg_complete then
+                        idrec.port := target;
+                        idrec.spkg_index := si;
+                        newrec.spkg_run_deps.Append (idrec);
+                     end if;
+                  end;
+               end loop;
+            end if;
+
             rec.subpackages.Append (newrec);
          end;
       end loop;
@@ -538,6 +611,20 @@ package body PortScan.Scan is
          return namebase & LAT.Colon & variant;
       end;
    end convert_tuple_to_portkey;
+
+
+   --------------------------------------------------------------------------------------------
+   --  extract_subpackage
+   --------------------------------------------------------------------------------------------
+   function extract_subpackage (tuple : String) return String
+   is
+      --  tuple format is <namebase>:<subpackage>:<variant>
+   begin
+      if HT.count_char (tuple, LAT.Colon) /= 2 then
+         raise populate_error with "tuple has invalid format: " & tuple;
+      end if;
+      return  HT.specific_field (tuple, 2, ":");
+   end extract_subpackage;
 
 
    --------------------------------------------------------------------------------------------
@@ -791,5 +878,38 @@ package body PortScan.Scan is
       portlist.Iterate (Process => scan'Access);
       return successful;
    end scan_provided_list_of_ports;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scan_provided_list_of_ports
+   --------------------------------------------------------------------------------------------
+   function vector_position (ptid : port_index; tuplet : String) return Positive
+   is
+      procedure scan (position : subpackage_crate.Cursor);
+
+      --  Consider the ptid valid, only the subpackage_name is unconfirmed
+      found   : Boolean := False;
+      depspkg : String  := extract_subpackage (tuplet);
+      index   : Positive;
+      counter : Natural := 0;
+
+      procedure scan (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+      begin
+         if not found then
+            counter := counter + 1;
+            if HT.equivalent (rec.subpackage, depspkg) then
+               found := True;
+               index := counter;
+            end if;
+         end if;
+      end scan;
+   begin
+      if not found then
+         raise populate_error with "subpackage does not exist (" & tuplet & ")";
+      end if;
+      return index;
+   end vector_position;
 
 end PortScan.Scan;

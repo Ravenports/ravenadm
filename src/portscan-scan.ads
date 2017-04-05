@@ -37,8 +37,8 @@ package PortScan.Scan is
 
 private
 
-   type dependency_type is (build, buildrun, runtime);
-   subtype LR_set is dependency_type range buildrun .. runtime;
+   type dependency_type is (build, buildrun, runtime, extra_runtime);
+   subtype LR_set is dependency_type range buildrun .. extra_runtime;
 
    --  subroutines for populate_port_data
    procedure prescan_ports_tree
@@ -86,5 +86,7 @@ private
     --  some helper routines
    function get_max_lots return scanners;
    function convert_tuple_to_portkey (tuple : String) return String;
+   function extract_subpackage (tuple : String) return String;
+   function vector_position (ptid : port_index; tuplet : String) return Positive;
 
 end PortScan.Scan;

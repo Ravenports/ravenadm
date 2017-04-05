@@ -1612,17 +1612,28 @@ package body PortScan.Operations is
       query_result : HT.Text;
       id           : port_id) return Boolean
    is
+      procedure get_rundeps (position : subpackage_crate.Cursor);
+
       content  : String  := HT.USS (query_result);
-      req_deps : Natural := Natural (all_ports (id).run_deps.Length);
       headport : constant String := HT.USS (all_ports (id).port_namebase) & LAT.Colon &
                                     subpackage & LAT.Colon & HT.USS (all_ports (id).port_variant);
       counter  : Natural := 0;
+      req_deps : Natural := 0;
       markers  : HT.Line_Markers;
+      pkgfound : Boolean := False;
+
+      procedure get_rundeps (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+      begin
+         if not pkgfound then
+            if HT.equivalent (rec.subpackage, subpackage) then
+               req_deps := Natural (rec.spkg_run_deps.Length);
+               pkgfound := True;
+            end if;
+         end if;
+      end get_rundeps;
    begin
-      if subpackage = spkg_complete then
-         --  special handling for "complete" metapackage
-         req_deps := Natural (all_ports (id).subpackages.Length) - 1;
-      end if;
       HT.initialize_markers (content, markers);
       loop
          exit when not HT.next_line_present (content, markers);
@@ -1638,23 +1649,23 @@ package body PortScan.Operations is
                subpackage : String := subpackage_from_pkgname (deppkg);
                target_id  : port_index := ports_keys.Element (HT.SUS (origin));
                target_pkg : String := calculate_package_name (target_id, subpackage);
-               found      : Boolean := False;
                available  : Boolean;
 
                procedure set_available (position : subpackage_crate.Cursor)
                is
                   rec : subpackage_record renames subpackage_crate.Element (position);
                begin
-                  if not found and then
+                  if not pkgfound and then
                     HT.USS (rec.subpackage) = subpackage
                   then
                      available := (rec.remote_pkg or else rec.pkg_present) and then
                        not rec.deletion_due;
-                     found := True;
+                     pkgfound := True;
                   end if;
                end set_available;
             begin
                if valid_port_id (target_id) then
+                  pkgfound := False;
                   all_ports (target_id).subpackages.Iterate (set_available'Access);
                else
                   --  package seems to have a dependency that has been removed from the conspiracy

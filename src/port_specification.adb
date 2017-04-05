@@ -2098,6 +2098,52 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_number_extra_run
+   --------------------------------------------------------------------------------------------
+   function get_number_extra_run (specs : Portspecs; subpackage : String) return Natural
+   is
+      spkg_text : HT.Text := HT.SUS (subpackage);
+   begin
+      if specs.extra_rundeps.Contains (spkg_text) then
+         return Natural (specs.extra_rundeps.Element (spkg_text).list.Length);
+      else
+         return 0;
+      end if;
+   end get_number_extra_run;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_extra_runtime
+   --------------------------------------------------------------------------------------------
+   function get_extra_runtime
+     (specs      : Portspecs;
+      subpackage : String;
+      item       : Natural) return String
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      spkg_text : HT.Text := HT.SUS (subpackage);
+      counter   : Natural := 0;
+      result    : HT.Text;
+
+      procedure scan (position : string_crate.Cursor) is
+      begin
+         if HT.IsBlank (result) then
+            counter := counter + 1;
+            if counter = item then
+               result := string_crate.Element (position);
+            end if;
+         end if;
+      end scan;
+   begin
+      if specs.extra_rundeps.Contains (spkg_text) then
+         specs.extra_rundeps.Element (spkg_text).list.Iterate (scan'Access);
+      end if;
+      return HT.USS (result);
+   end get_extra_runtime;
+
+
+   --------------------------------------------------------------------------------------------
    --  aggregated_ignore_reason
    --------------------------------------------------------------------------------------------
    function aggregated_ignore_reason (specs : Portspecs) return String
