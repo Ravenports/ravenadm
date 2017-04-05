@@ -591,7 +591,7 @@ package body Port_Specification is
               specs.buildrun_deps.Contains (text_value) or else
               specs.run_deps.Contains (text_value)
             then
-               raise wrong_value with "Duplicate dependency '" & value & "'";
+               raise dupe_list_value with "Duplicate dependency '" & value & "'";
             end if;
             case field is
                when sp_build_deps    => specs.build_deps.Append (text_value);
@@ -605,7 +605,7 @@ package body Port_Specification is
                raise wrong_value with "invalid USES module '" & value & "'";
             end if;
             if specs.uses.Contains (text_value) then
-               raise wrong_value with "Duplicate USES module '" & value & "'";
+               raise dupe_list_value with "Duplicate USES module '" & value & "'";
             end if;
             declare
                stripped      : String  := HT.part_1 (value, ":");
@@ -624,7 +624,7 @@ package body Port_Specification is
          when sp_info =>
             verify_entry_is_post_options;
             if specs.info.Contains (text_value) then
-               raise wrong_value with "Duplicate INFO entry '" & value & "'";
+               raise dupe_list_value with "Duplicate INFO entry '" & value & "'";
             end if;
             if HT.count_char (value, LAT.Colon) /= 1 then
                raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
