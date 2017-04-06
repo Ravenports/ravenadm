@@ -482,20 +482,11 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function file_is_executable (filename : String) return Boolean
    is
-      function spit_command return String;
-      function spit_command return String is
-      begin
-         case platform_type is
-         when dragonfly | freebsd | netbsd | openbsd | macos | linux =>
-            return "/usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
-                LAT.Quotation & filename & LAT.Quotation;
-         when sunos =>
-            return "/usr/bin/file " & LAT.Quotation & filename & LAT.Quotation;
-         end case;
-      end spit_command;
-
-      status : Integer;
-      cmdout : String := HT.USS (Unix.piped_command (spit_command, status));
+      status  : Integer;
+      sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
+      command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
+                                   "/usr/share/file/magic.mgc -b " & sysroot & "/bin/sh";
+      cmdout  : String := HT.USS (Unix.piped_command (command, status));
    begin
       if status = 0 then
          return HT.contains (cmdout, "executable");
