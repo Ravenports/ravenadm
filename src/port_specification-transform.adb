@@ -219,6 +219,7 @@ package body Port_Specification.Transform is
       apply_gettext_runtime_module (specs);
       apply_gettext_tools_module (specs);
       apply_perl_module (specs);
+      apply_bdb_module (specs);
       apply_bison_module (specs);
       apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
