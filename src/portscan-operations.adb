@@ -1634,6 +1634,7 @@ package body PortScan.Operations is
          end if;
       end get_rundeps;
    begin
+      all_ports (id).subpackages.Iterate (get_rundeps'Access);
       HT.initialize_markers (content, markers);
       loop
          exit when not HT.next_line_present (content, markers);

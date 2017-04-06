@@ -225,10 +225,10 @@ package body PortScan is
       --  support namebase-subpackage-variant too
       numcolons : Natural := HT.count_char (pkgname, LAT.Hyphen);
    begin
-      if numcolons < 2 then
+      if numcolons < 3 then
          return "error";
       end if;
-      return HT.specific_field (pkgname, 2, "-");
+      return HT.tail (HT.head (HT.head (pkgname, "-"), "-"), "-");
    end subpackage_from_pkgname;
 
 

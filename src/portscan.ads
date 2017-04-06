@@ -139,7 +139,7 @@ private
    type subpackage_identifier is
       record
          port          : port_index;
-         spkg_index    : Positive;
+         subpackage    : HT.Text;
       end record;
 
    package spkg_id_crate is new CON.Vectors

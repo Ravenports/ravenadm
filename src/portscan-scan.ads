@@ -87,6 +87,5 @@ private
    function get_max_lots return scanners;
    function convert_tuple_to_portkey (tuple : String) return String;
    function extract_subpackage (tuple : String) return String;
-   function vector_position (ptid : port_index; tuplet : String) return Positive;
 
 end PortScan.Scan;

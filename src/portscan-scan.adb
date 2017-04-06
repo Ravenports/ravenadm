@@ -463,7 +463,7 @@ package body PortScan.Scan is
             if subpackage /= spkg_complete and then
               subpackage /= spkg_examples and then
               subpackage /= spkg_docs and then
-              not HT.IsBlank (prime_pkg)
+              HT.IsBlank (prime_pkg)
             then
                prime_pkg := newrec.subpackage;
                is_primary := True;
@@ -481,7 +481,7 @@ package body PortScan.Scan is
                      idrec    : subpackage_identifier;
                   begin
                      idrec.port := depindex;
-                     idrec.spkg_index := vector_position (depindex, dep);
+                     idrec.subpackage := HT.SUS (extract_subpackage (dep));
                      newrec.spkg_run_deps.Append (idrec);
                   end;
                end;
@@ -496,7 +496,7 @@ package body PortScan.Scan is
                      idrec    : subpackage_identifier;
                   begin
                      idrec.port := depindex;
-                     idrec.spkg_index := vector_position (depindex, dep);
+                     idrec.subpackage := HT.SUS (extract_subpackage (dep));
                      newrec.spkg_run_deps.Append (idrec);
                   end;
                end loop;
@@ -508,7 +508,7 @@ package body PortScan.Scan is
                      idrec    : subpackage_identifier;
                   begin
                      idrec.port := depindex;
-                     idrec.spkg_index := vector_position (depindex, dep);
+                     idrec.subpackage := HT.SUS (extract_subpackage (dep));
                      newrec.spkg_run_deps.Append (idrec);
                   end;
                end loop;
@@ -522,7 +522,7 @@ package body PortScan.Scan is
                   begin
                      if innersub /= spkg_complete then
                         idrec.port := target;
-                        idrec.spkg_index := si;
+                        idrec.subpackage := HT.SUS (innersub);
                         newrec.spkg_run_deps.Append (idrec);
                      end if;
                   end;
@@ -623,7 +623,7 @@ package body PortScan.Scan is
       if HT.count_char (tuple, LAT.Colon) /= 2 then
          raise populate_error with "tuple has invalid format: " & tuple;
       end if;
-      return  HT.specific_field (tuple, 2, ":");
+      return  HT.tail (HT.head (tuple, ":"), ":");
    end extract_subpackage;
 
 
@@ -878,38 +878,5 @@ package body PortScan.Scan is
       portlist.Iterate (Process => scan'Access);
       return successful;
    end scan_provided_list_of_ports;
-
-
-   --------------------------------------------------------------------------------------------
-   --  scan_provided_list_of_ports
-   --------------------------------------------------------------------------------------------
-   function vector_position (ptid : port_index; tuplet : String) return Positive
-   is
-      procedure scan (position : subpackage_crate.Cursor);
-
-      --  Consider the ptid valid, only the subpackage_name is unconfirmed
-      found   : Boolean := False;
-      depspkg : String  := extract_subpackage (tuplet);
-      index   : Positive;
-      counter : Natural := 0;
-
-      procedure scan (position : subpackage_crate.Cursor)
-      is
-         rec : subpackage_record renames subpackage_crate.Element (position);
-      begin
-         if not found then
-            counter := counter + 1;
-            if HT.equivalent (rec.subpackage, depspkg) then
-               found := True;
-               index := counter;
-            end if;
-         end if;
-      end scan;
-   begin
-      if not found then
-         raise populate_error with "subpackage does not exist (" & tuplet & ")";
-      end if;
-      return index;
-   end vector_position;
 
 end PortScan.Scan;
