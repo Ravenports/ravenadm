@@ -1106,9 +1106,12 @@ package body Port_Specification.Transform is
       extract_dir   : String)
    is
       num_extra_patch : Natural := specs.get_list_length (sp_extra_patches);
+      patchdir : constant String := extract_dir & "/patches";
    begin
       if num_extra_patch > 0 then
-         DIR.Create_Directory (extract_dir & "/patches");
+         if not DIR.Exists (patchdir) then
+            DIR.Create_Directory (patchdir);
+         end if;
       end if;
       for item in 1 .. num_extra_patch loop
          declare
@@ -1117,7 +1120,7 @@ package body Port_Specification.Transform is
          begin
             if DIR.Exists (xp_loc) then
                DIR.Rename (Old_Name => xp_loc,
-                           New_Name => extract_dir & "/patches/patch-zzz-" & patch);
+                           New_Name => patchdir & "/patch-zzz-" & patch);
             end if;
          end;
       end loop;
