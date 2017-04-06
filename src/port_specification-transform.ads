@@ -70,6 +70,7 @@ private
    procedure apply_ccache           (specs : in out Portspecs);
    procedure apply_pkgconfig_module (specs : in out Portspecs);
    procedure apply_ncurses_module   (specs : in out Portspecs);
+   procedure apply_bdb_module       (specs : in out Portspecs);
    procedure apply_perl_module      (specs : in out Portspecs);
    procedure apply_bison_module     (specs : in out Portspecs);
 
@@ -81,5 +82,9 @@ private
 
    function argument_present (specs : Portspecs; module, argument : String) return Boolean;
    function no_arguments_present (specs : Portspecs; module : String) return Boolean;
+
+   procedure add_build_depends    (specs : in out Portspecs; dependency : String);
+   procedure add_buildrun_depends (specs : in out Portspecs; dependency : String);
+   procedure add_run_depends      (specs : in out Portspecs; dependency : String);
 
 end Port_Specification.Transform;

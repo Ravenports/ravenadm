@@ -635,13 +635,11 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gmake_module (specs : in out Portspecs)
    is
-      text_module : HT.Text := HT.SUS ("gmake");
-      dependency  : HT.Text := HT.SUS ("gmake:single:standard");
+      module     : String := "gmake";
+      dependency : String := "gmake:single:standard";
    begin
-      if specs.uses_base.Contains (text_module) and then
-        not specs.build_deps.Contains (dependency)
-      then
-         specs.build_deps.Append (dependency);
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dependency);
       end if;
    end apply_gmake_module;
 
@@ -651,22 +649,17 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ncurses_module (specs : in out Portspecs)
    is
-      module            : String  := "ncurses";
-      text_module       : HT.Text := HT.SUS (module);
-      full_dependency   : HT.Text := HT.SUS ("ncurses:primary:standard");
-      static_dependency : HT.Text := HT.SUS ("ncurses:primary:static");
+      module            : String := "ncurses";
+      full_dependency   : String := "ncurses:primary:standard";
+      static_dependency : String := "ncurses:primary:static";
    begin
-      if not specs.uses_base.Contains (text_module) then
+      if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
       if no_arguments_present (specs, module) then
-         if not specs.buildrun_deps.Contains (full_dependency) then
-            specs.buildrun_deps.Append (full_dependency);
-         end if;
+         add_buildrun_depends (specs, full_dependency);
       elsif argument_present (specs, module, "static") then
-         if not specs.build_deps.Contains (static_dependency) then
-            specs.build_deps.Append (static_dependency);
-         end if;
+         add_build_depends (specs, static_dependency);
       end if;
 
    end apply_ncurses_module;
@@ -677,14 +670,13 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_libtool_module (specs : in out Portspecs)
    is
-      module     : String  := "libtool";
-      dependency : HT.Text := HT.SUS ("libtool:single:standard");
+      module     : String := "libtool";
+      dependency : String := "libtool:single:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) and then
-        argument_present (specs, module, BUILD) and then
-        not specs.build_deps.Contains (dependency)
+        argument_present (specs, module, BUILD)
       then
-         specs.build_deps.Append (dependency);
+         add_build_depends (specs, dependency);
       end if;
    end apply_libtool_module;
 
@@ -694,18 +686,14 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_libiconv_module (specs : in out Portspecs)
    is
-      module     : String  := "iconv";
-      dependency : HT.Text := HT.SUS ("libiconv:single:standard");
+      module     : String := "iconv";
+      dependency : String := "libiconv:single:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if argument_present (specs, module, BUILD) then
-            if not specs.build_deps.Contains (dependency) then
-               specs.build_deps.Append (dependency);
-            end if;
+            add_build_depends (specs, dependency);
          else
-            if not specs.buildrun_deps.Contains (dependency) then
-               specs.buildrun_deps.Append (dependency);
-            end if;
+            add_buildrun_depends (specs, dependency);
          end if;
       end if;
    end apply_libiconv_module;
@@ -716,12 +704,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_info_presence (specs : in out Portspecs)
    is
-      dependency  : HT.Text := HT.SUS ("indexinfo:single:standard");
+      dependency : String := "indexinfo:single:standard";
    begin
-      if not specs.info.Is_Empty and then
-        not specs.buildrun_deps.Contains (dependency)
-      then
-         specs.buildrun_deps.Append (dependency);
+      if not specs.info.Is_Empty then
+         add_buildrun_depends (specs, dependency);
       end if;
    end apply_info_presence;
 
@@ -731,17 +717,15 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ccache (specs : in out Portspecs)
    is
-      dependency  : HT.Text := HT.SUS ("ccache:primary:standard");
+      dependency : String := "ccache:primary:standard";
    begin
-      if specs.skip_build or else specs.skip_ccache then
+      if specs.skip_build or else
+        specs.skip_ccache or else
+        HT.equivalent (Parameters.configuration.dir_ccache, Parameters.no_ccache)
+      then
          return;
       end if;
-      if HT.equivalent (Parameters.configuration.dir_ccache, Parameters.no_ccache) then
-         return;
-      end if;
-      if not specs.build_deps.Contains (dependency) then
-         specs.build_deps.Append (dependency);
-      end if;
+      add_build_depends (specs, dependency);
    end apply_ccache;
 
 
@@ -750,26 +734,22 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_pkgconfig_module (specs : in out Portspecs)
    is
-      module     : String  := "pkgconfig";
-      dependency : HT.Text := HT.SUS ("pkgconfig:single:standard");
+      module     : String := "pkgconfig";
+      dependency : String := "pkgconfig:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         if no_arguments_present (specs, module) or else
-           argument_present (specs, module, BUILD)
-         then
-            if not specs.build_deps.Contains (dependency) then
-               specs.build_deps.Append (dependency);
-            end if;
-         else
-            if argument_present (specs, module, BUILDRUN) then
-               if not specs.buildrun_deps.Contains (dependency) then
-                  specs.buildrun_deps.Append (dependency);
-               end if;
-            elsif argument_present (specs, module, RUN) then
-               if not specs.run_deps.Contains (dependency) then
-                  specs.run_deps.Append (dependency);
-               end if;
-            end if;
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+
+      if no_arguments_present (specs, module) or else
+        argument_present (specs, module, BUILD)
+      then
+         add_build_depends (specs, dependency);
+      else
+         if argument_present (specs, module, BUILDRUN) then
+            add_buildrun_depends (specs, dependency);
+         elsif argument_present (specs, module, RUN) then
+            add_run_depends (specs, dependency);
          end if;
       end if;
    end apply_pkgconfig_module;
@@ -780,8 +760,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gettext_tools_module (specs : in out Portspecs)
    is
-      module     : String  := "gettext-tools";
-      dependency : HT.Text := HT.SUS ("gettext:tools:standard");
+      module     : String := "gettext-tools";
+      dependency : String := "gettext:tools:standard";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
@@ -800,17 +780,11 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_both or else (hit_build and hit_run) then
-         if not specs.buildrun_deps.Contains (dependency) then
-            specs.buildrun_deps.Append (dependency);
-         end if;
+         add_buildrun_depends (specs, dependency);
       elsif hit_build then
-         if not specs.build_deps.Contains (dependency) then
-            specs.build_deps.Append (dependency);
-         end if;
+         add_build_depends (specs, dependency);
       else
-         if not specs.run_deps.Contains (dependency) then
-            specs.run_deps.Append (dependency);
-         end if;
+         add_run_depends (specs, dependency);
       end if;
    end apply_gettext_tools_module;
 
@@ -820,9 +794,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gettext_runtime_module (specs : in out Portspecs)
    is
-      module     : String  := "gettext-runtime";
-      dependency : HT.Text := HT.SUS ("gettext:runtime:standard");
-      asprintf   : HT.Text := HT.SUS ("gettext:asprintf:standard");
+      module     : String := "gettext-runtime";
+      dependency : String := "gettext:runtime:standard";
+      asprintf   : String := "gettext:asprintf:standard";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
@@ -844,25 +818,19 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_both or else (hit_build and hit_run) then
-         if not specs.buildrun_deps.Contains (dependency) then
-            specs.buildrun_deps.Append (dependency);
-         end if;
-         if hit_aspr and then not specs.buildrun_deps.Contains (asprintf) then
-            specs.buildrun_deps.Append (asprintf);
+         add_buildrun_depends (specs, dependency);
+         if hit_aspr then
+            add_buildrun_depends (specs, asprintf);
          end if;
       elsif hit_build then
-         if not specs.build_deps.Contains (dependency) then
-            specs.build_deps.Append (dependency);
-         end if;
-         if hit_aspr and then not specs.build_deps.Contains (asprintf) then
-            specs.build_deps.Append (asprintf);
+         add_build_depends (specs, dependency);
+         if hit_aspr then
+            add_build_depends (specs, asprintf);
          end if;
       else
-         if not specs.run_deps.Contains (dependency) then
-            specs.run_deps.Append (dependency);
-         end if;
-         if hit_aspr and then not specs.run_deps.Contains (asprintf) then
-            specs.run_deps.Append (asprintf);
+         add_run_depends (specs, dependency);
+         if hit_aspr then
+            add_run_depends (specs, asprintf);
          end if;
       end if;
    end apply_gettext_runtime_module;
@@ -873,8 +841,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_bison_module (specs : in out Portspecs)
    is
-      module     : String  := "bison";
-      dependency : HT.Text := HT.SUS ("bison:primary:standard");
+      module     : String := "bison";
+      dependency : String := "bison:primary:standard";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
@@ -893,19 +861,51 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_both or else (hit_build and hit_run) then
-         if not specs.buildrun_deps.Contains (dependency) then
-            specs.buildrun_deps.Append (dependency);
-         end if;
+         add_buildrun_depends (specs, dependency);
       elsif hit_build then
-         if not specs.build_deps.Contains (dependency) then
-            specs.build_deps.Append (dependency);
-         end if;
+         add_build_depends (specs, dependency);
       else
-         if not specs.run_deps.Contains (dependency) then
-            specs.run_deps.Append (dependency);
-         end if;
+         add_run_depends (specs, dependency);
       end if;
    end apply_bison_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_bdb_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_bdb_module (specs : in out Portspecs)
+   is
+      module       : String  := "bdb";
+      dep_static_5 : String  := "db5:static:standard";
+      dep_static_6 : String  := "db6:static:standard";
+      dep_shared_5 : String  := "db5:complete:standard";
+      dep_shared_6 : String  := "db6:complete:standard";
+      need_static  : Boolean := False;
+      need_six     : Boolean := False;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if argument_present (specs, module, "static") then
+         need_static := True;
+      end if;
+      if argument_present (specs, module, "6") then
+         need_six := True;
+      end if;
+      if need_static then
+         if need_six then
+            add_build_depends (specs, dep_static_6);
+         else
+            add_build_depends (specs, dep_static_5);
+         end if;
+      else
+         if need_six then
+            add_buildrun_depends (specs, dep_shared_6);
+         else
+            add_buildrun_depends (specs, dep_shared_5);
+         end if;
+      end if;
+   end apply_bdb_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -913,10 +913,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_perl_module (specs : in out Portspecs)
    is
-      module        : String  := "perl";
-      dependency    : HT.Text := HT.SUS ("perl-5.24:primary:standard");
-      pmodbuild     : HT.Text := HT.SUS ("p5-Module-Build:primary:standard");
-      pmodbuildtiny : HT.Text := HT.SUS ("p5-Module-Build-Tiny:primary:standard");
+      module        : String := "perl";
+      dependency    : String := "perl-5.24:primary:standard";
+      pmodbuild     : String := "p5-Module-Build:primary:standard";
+      pmodbuildtiny : String := "p5-Module-Build-Tiny:primary:standard";
       hit_run       : Boolean;
       hit_build     : Boolean;
       hit_both      : Boolean;
@@ -949,27 +949,17 @@ package body Port_Specification.Transform is
          end if;
       end if;
       if hit_both or else (hit_build and hit_run) then
-         if not specs.buildrun_deps.Contains (dependency) then
-            specs.buildrun_deps.Append (dependency);
-         end if;
+         add_buildrun_depends (specs, dependency);
       elsif hit_build then
-         if not specs.build_deps.Contains (dependency) then
-            specs.build_deps.Append (dependency);
-         end if;
+         add_build_depends (specs, dependency);
       elsif hit_run then
-         if not specs.run_deps.Contains (dependency) then
-            specs.run_deps.Append (dependency);
-         end if;
+         add_run_depends (specs, dependency);
       end if;
 
       if hit_bmod then
-         if not specs.build_deps.Contains (pmodbuild) then
-            specs.build_deps.Append (pmodbuild);
-         end if;
+         add_build_depends (specs, pmodbuild);
       elsif hit_bmodtiny then
-         if not specs.build_deps.Contains (pmodbuildtiny) then
-            specs.build_deps.Append (pmodbuildtiny);
-         end if;
+         add_build_depends (specs, pmodbuildtiny);
       end if;
 
    end apply_perl_module;
@@ -1125,5 +1115,43 @@ package body Port_Specification.Transform is
          end;
       end loop;
    end shift_extra_patches;
+
+   --------------------------------------------------------------------------------------------
+   --  add_build_depends
+   --------------------------------------------------------------------------------------------
+   procedure add_build_depends (specs : in out Portspecs; dependency : String)
+   is
+      dependency_text : HT.Text := HT.SUS (dependency);
+   begin
+      if not specs.build_deps.Contains (dependency_text) then
+         specs.build_deps.Append (dependency_text);
+      end if;
+   end add_build_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  add_buildrun_depends
+   --------------------------------------------------------------------------------------------
+   procedure add_buildrun_depends (specs : in out Portspecs; dependency : String)
+   is
+      dependency_text : HT.Text := HT.SUS (dependency);
+   begin
+      if not specs.buildrun_deps.Contains (dependency_text) then
+         specs.buildrun_deps.Append (dependency_text);
+      end if;
+   end add_buildrun_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  add_run_depends
+   --------------------------------------------------------------------------------------------
+   procedure add_run_depends (specs : in out Portspecs; dependency : String)
+   is
+      dependency_text : HT.Text := HT.SUS (dependency);
+   begin
+      if not specs.run_deps.Contains (dependency_text) then
+         specs.run_deps.Append (dependency_text);
+      end if;
+   end add_run_depends;
 
 end Port_Specification.Transform;
