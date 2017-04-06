@@ -602,6 +602,7 @@ package body Port_Specification.Buildsheet is
       send ("BUILD_DEPENDS",        specs.build_deps, 1);
       send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, 1);
       send ("RUN_DEPENDS",          specs.run_deps, 1);
+      send ("EXRUN",                specs.extra_rundeps);
       send ("USES",                 specs.uses, 2);
       blank_line;
       send ("DISTNAME",             specs.distname);

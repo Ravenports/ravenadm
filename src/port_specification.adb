@@ -2310,6 +2310,7 @@ package body Port_Specification is
    is
       procedure scan  (position : string_crate.Cursor);
       procedure print (position : string_crate.Cursor);
+      procedure scan_package (position : list_crate.Cursor);
 
       combined : string_crate.Vector;
       result   : HT.Text;
@@ -2330,10 +2331,19 @@ package body Port_Specification is
          HT.SU.Append (result, HT.USS (text_value) & LAT.LF);
       end print;
 
+      procedure scan_package (position : list_crate.Cursor)
+      is
+         rec : group_list renames list_crate.Element (position);
+      begin
+         rec.list.Iterate (scan'Access);
+      end scan_package;
+
    begin
       specs.build_deps.Iterate (scan'Access);
       specs.buildrun_deps.Iterate (scan'Access);
       specs.run_deps.Iterate (scan'Access);
+      specs.extra_rundeps.Iterate (scan_package'Access);
+
       combined.Iterate (print'Access);
       return HT.USS (result);
    end combined_dependency_origins;
@@ -2366,6 +2376,8 @@ package body Port_Specification is
          HT.SU.Append (result, HT.USS (text_value) & LAT.LF);
       end print;
    begin
+      --  EXRUN[package] are handled at the scan routine
+      --  In fact, is this routine even still used?
       specs.buildrun_deps.Iterate (scan'Access);
       specs.run_deps.Iterate (scan'Access);
       combined.Iterate (print'Access);
