@@ -219,6 +219,7 @@ package body Port_Specification.Transform is
       apply_gettext_runtime_module (specs);
       apply_gettext_tools_module (specs);
       apply_perl_module (specs);
+      apply_bison_module (specs);
       apply_ccache (specs);
       apply_curly_bracket_conversions (specs);
    end apply_directives;
@@ -865,6 +866,46 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_gettext_runtime_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_bison_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_bison_module (specs : in out Portspecs)
+   is
+      module     : String  := "bison";
+      dependency : HT.Text := HT.SUS ("bison:primary:standard");
+      hit_run    : Boolean;
+      hit_build  : Boolean;
+      hit_both   : Boolean;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build := True;
+         hit_both  := False;
+         hit_run   := False;
+      else
+         hit_build := argument_present (specs, module, BUILD);
+         hit_both  := argument_present (specs, module, BUILDRUN);
+         hit_run   := argument_present (specs, module, RUN);
+      end if;
+
+      if hit_both or else (hit_build and hit_run) then
+         if not specs.buildrun_deps.Contains (dependency) then
+            specs.buildrun_deps.Append (dependency);
+         end if;
+      elsif hit_build then
+         if not specs.build_deps.Contains (dependency) then
+            specs.build_deps.Append (dependency);
+         end if;
+      else
+         if not specs.run_deps.Contains (dependency) then
+            specs.run_deps.Append (dependency);
+         end if;
+      end if;
+   end apply_bison_module;
 
 
    --------------------------------------------------------------------------------------------

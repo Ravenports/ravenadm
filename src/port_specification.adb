@@ -2378,13 +2378,14 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 13;
+      total_modules : constant Positive := 14;
 
       subtype uses_string is String (1 .. 15);
 
       --  Keep in alphabetical order for future conversion to binary search
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
+         "bison          ",
          "charsetfix     ",
          "cpe            ",
          "gettext-runtime",
