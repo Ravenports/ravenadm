@@ -155,12 +155,12 @@ package body Utilities is
       --  We start by masking all spaces between quotations so we can accurately detect them
       for x in mask'Range loop
          switch := False;
-         if mask (x) = LAT.Quotation then
+         if raw (x) = LAT.Quotation then
             if not Qopened then
                switch := True;
             else
                --  We must be at least mask'First + 1 if we are here
-               if not (mask (x - 1) = LAT.Reverse_Solidus) then
+               if not (raw (x - 1) = LAT.Reverse_Solidus) then
                   switch := True;
                end if;
             end if;
@@ -168,10 +168,8 @@ package body Utilities is
 
          if switch then
             Qopened := not Qopened;
-         elsif mask (x) = LAT.Space then
-            if Qopened then
-               mask (x) := 'X';
-            end if;
+         elsif Qopened then
+            mask (x) := 'X';
          end if;
       end loop;
 

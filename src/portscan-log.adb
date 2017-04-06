@@ -7,6 +7,7 @@ with Ada.Characters.Latin_1;
 with Ada.Directories;
 with File_Operations;
 with Parameters;
+with Utilities;
 
 package body PortScan.Log is
 
@@ -16,6 +17,7 @@ package body PortScan.Log is
    package LAT renames Ada.Characters.Latin_1;
    package FOP renames File_Operations;
    package PM  renames Parameters;
+   package UTL renames Utilities;
 
    --------------------------------------------------------------------------------------------
    --  log_duration
@@ -213,15 +215,15 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    function split_collection (line : String; title : String) return String
    is
-      --  Support spaces in two ways
-      --  1) quoted,  e.g. TYPING="The Quick Brown Fox"
-      --  2) Escaped, e.g. TYPING=The\ Quick\ Brown\ Fox
+      --  Everything, including spaces, between quotes is preserved.
+      --  Quotes preceded by backslashes within quotes are considered literals.
+      --  Also supported is escaped spaces outside of quotes, e.g.
+      --  TYPING=The\ Quick\ Brown\ Fox
 
+      mask    : String := UTL.mask_quoted_string (line);
       linelen : constant Natural := line'Length;
-      waiting : Boolean := True;
-      escaped : Boolean := False;
-      quoted  : Boolean := False;
       keepit  : Boolean;
+      newline : Boolean := True;
       counter : Natural := 0;
       meatlen : Natural := 0;
       onechar : Character;
@@ -230,44 +232,24 @@ package body PortScan.Log is
       loop
          exit when counter = linelen;
          keepit  := True;
-         onechar := line (line'First + counter);
-
-         if onechar = LAT.Reverse_Solidus then
-            --  A) if inside quotes, it's literal
-            --  B) if it's first RS, don't keep but mark escaped
-            --  C) If it's second RS, it's literal, remove escaped
-            --  D) RS can never start a new NV pair
-            if not quoted then
-               if not escaped then
-                  keepit := False;
-               end if;
-               escaped := not escaped;
-            end if;
-         elsif escaped then
-            --  E) by definition, next character after an escape is literal
-            --     We know it's not inside quotes. Keep this (could be a space)
-            waiting := False;
-            escaped := not escaped;
-         elsif onechar = LAT.Space then
-            if waiting then
+         if mask (mask'First + counter) = LAT.Reverse_Solidus then
+            keepit := False;
+         elsif mask (mask'First + counter) = LAT.Space then
+            if newline then
                keepit := False;
+            elsif mask (mask'First + counter - 1) = LAT.Reverse_Solidus then
+               onechar := LAT.Space;
             else
-               if not quoted then
-                  --  name-pair ended, reset
-                  waiting := True;
-                  quoted  := False;
-                  onechar := LAT.LF;
-               end if;
+               onechar := LAT.LF;
             end if;
          else
-            waiting := False;
-            if onechar = LAT.Quotation then
-               quoted := not quoted;
-            end if;
+            onechar := line (mask'First + counter);
          end if;
+
          if keepit then
             meatlen := meatlen + 1;
             meatstr (meatlen) := onechar;
+            newline := (onechar = LAT.LF);
          end if;
          counter := counter + 1;
       end loop;
