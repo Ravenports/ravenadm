@@ -300,14 +300,15 @@ package body PortScan.Tests is
             if line /= "" then
                if HT.leads (line, localbase) then
                   declare
-                     plist_dir : HT.Text := HT.SUS (line (line'First + lblen + 1 .. line'Last));
+                     shortline : String := line (line'First + lblen + 1 .. line'Last);
+                     plist_dir : HT.Text := HT.SUS (shortline);
                   begin
                      if directory_list.Contains (plist_dir) then
                         directory_list.Update_Element (Position => directory_list.Find (plist_dir),
                                                        Process  => mark_verified'Access);
                      else
                         if not directory_excluded (line) then
-                           TIO.Put_Line (log_handle, errprefix & line);
+                           TIO.Put_Line (log_handle, errprefix & shortline);
                            result := True;
                         end if;
                      end if;
