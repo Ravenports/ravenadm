@@ -72,17 +72,20 @@ package body PortScan.Buildcycle is
             when build =>
                R := exec_phase_build (id);
 
-            when test =>
-               if testing and run_selftest then
-                  R := exec_phase_generic (id, phase);
-               end if;
-
             when stage =>
                if testing then
                   mark_file_system (id, "prestage");
                end if;
                R := exec_phase_generic (id, phase);
-               REP.unhook_toolchain (id);
+               if not testing or else not run_selftest then
+                  REP.unhook_toolchain (id);
+               end if;
+
+            when test =>
+               if testing and run_selftest then
+                  R := exec_phase_generic (id, phase);
+                  REP.unhook_toolchain (id);
+               end if;
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
@@ -512,7 +515,9 @@ package body PortScan.Buildcycle is
 
       function toolchain_path return String is
       begin
-         if phases'Pos (phase_trackers (id)) < phases'Pos (stage) then
+         if phases'Pos (phase_trackers (id)) < phases'Pos (stage)
+           or else phase_trackers (id) = test
+         then
             return localbase & "/toolchain/gcc6/bin:";
          else
             return "";
