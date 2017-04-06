@@ -947,6 +947,17 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  hook_toolchain
+   --------------------------------------------------------------------------------------------
+   procedure hook_toolchain (id : builders)
+   is
+      slave_base : constant String := get_slave_mount (id);
+   begin
+      mount_nullfs (mount_target (toolchain), location (slave_base, toolchain));
+   end hook_toolchain;
+
+
+   --------------------------------------------------------------------------------------------
    --  unhook_toolchain
    --------------------------------------------------------------------------------------------
    procedure unhook_toolchain (id : builders)

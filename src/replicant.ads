@@ -36,9 +36,13 @@ package Replicant is
    procedure launch_slave  (id : builders; need_procfs : Boolean := False);
    procedure destroy_slave (id : builders; need_procfs : Boolean := False);
 
-   --  After the build phase, the toolchain is removed.  This detects building during
+   --  After the stage phase, the toolchain is removed.  This detects building during
    --  installation phases.  Sequence: launch_slave, unhook_toolchain, destroy_slave
    procedure unhook_toolchain (id : builders);
+
+   --  During test phase, we need to rehook toolchain temporarily to check the
+   --  dynamic linkages.
+   procedure hook_toolchain (id : builders);
 
    --  returns "SLXX" where XX is a zero-padded integer (01 .. 32)
    function slave_name (id : builders) return String;

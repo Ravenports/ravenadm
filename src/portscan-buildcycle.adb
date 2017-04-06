@@ -108,7 +108,9 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
+                  REP.hook_toolchain (id);
                   R := exec_phase_deinstall (id, pkgversion);
+                  REP.unhook_toolchain (id);
                end if;
          end case;
          exit when R = False;
@@ -643,24 +645,27 @@ package body PortScan.Buildcycle is
    is
       objdump : String := HT.USS (PM.configuration.dir_localbase) & "/toolchain/bin/objdump";
       command : String := chroot & base & environment_override (id) & objdump & " -p " & filename;
-      comres  : String :=  generic_system_command (command);
-      markers : HT.Line_Markers;
    begin
-      HT.initialize_markers (comres, markers);
-      loop
-         exit when not HT.next_line_present (comres, markers);
-         declare
-            line      : constant String := HT.extract_line (comres, markers);
-            line_text : HT.Text := HT.SUS (line);
-         begin
-            if not HT.IsBlank (line) and then
-              HT.contains (line, "NEEDED") and then
-              not trackers (id).dynlink.Contains (line_text)
-            then
-               trackers (id).dynlink.Append (line_text);
-            end if;
-         end;
-      end loop;
+      declare
+         comres  : String :=  generic_system_command (command);
+         markers : HT.Line_Markers;
+      begin
+         HT.initialize_markers (comres, markers);
+         loop
+            exit when not HT.next_line_present (comres, markers);
+            declare
+               line      : constant String := HT.extract_line (comres, markers);
+               line_text : HT.Text := HT.SUS (line);
+            begin
+               if not HT.IsBlank (line) and then
+                 HT.contains (line, "NEEDED") and then
+                 not trackers (id).dynlink.Contains (line_text)
+               then
+                  trackers (id).dynlink.Append (line_text);
+               end if;
+            end;
+         end loop;
+      end;
    exception
          --  the command result was not zero, so it was an expected format
          --  or static file.  Just skip it.  (Should never happen)
@@ -734,10 +739,10 @@ package body PortScan.Buildcycle is
          comres  : constant String := generic_system_command (command);
       begin
          return HT.contains (comres,  "dynamically linked");
-      exception
-         when others =>
-            return False;
       end;
+   exception
+      when others =>
+         return False;
    end dynamically_linked;
 
 
