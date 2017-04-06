@@ -687,14 +687,15 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_libiconv_module (specs : in out Portspecs)
    is
-      module     : String := "iconv";
-      dependency : String := "libiconv:single:standard";
+      module            : String := "iconv";
+      full_dependency   : String := "libiconv:complete:standard";
+      static_dependency : String := "libiconv:static:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if argument_present (specs, module, BUILD) then
-            add_build_depends (specs, dependency);
+            add_build_depends (specs, static_dependency);
          else
-            add_buildrun_depends (specs, dependency);
+            add_buildrun_depends (specs, full_dependency);
          end if;
       end if;
    end apply_libiconv_module;
