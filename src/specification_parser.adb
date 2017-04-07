@@ -191,11 +191,16 @@ package body Specification_Parser is
                            if spec_definitions.Contains (defkey) then
                               raise duplicate_key with HT.USS (defkey);
                            end if;
-                           if HT.leads (tvalue, "EXTRACT_VERSION(") and then
-                             HT.trails (tvalue, ")")
-                           then
-                              spec_definitions.Insert
-                                (defkey, extract_version (HT.substring (tvalue, 16, 1)));
+                           if HT.trails (tvalue, ")") then
+                              if HT.leads (tvalue, "EXTRACT_VERSION(") then
+                                 spec_definitions.Insert
+                                   (defkey, extract_version (HT.substring (tvalue, 16, 1)));
+                              elsif HT.leads (tvalue, "EXTRACT_INFO(") then
+                                 spec_definitions.Insert
+                                   (defkey, extract_information (HT.substring (tvalue, 13, 1)));
+                              else
+                                 spec_definitions.Insert (defkey, defvalue);
+                              end if;
                            else
                               spec_definitions.Insert (defkey, defvalue);
                            end if;
@@ -388,6 +393,7 @@ package body Specification_Parser is
                      when expiration       => build_string (spec, PSP.sp_expiration, line);
                      when prefix           => build_string (spec, PSP.sp_prefix, line);
                      when lic_scheme       => build_string (spec, PSP.sp_lic_scheme, line);
+                     when configure_target => build_string (spec, PSP.sp_config_target, line);
                      when revision         => set_natural (spec, PSP.sp_revision, line);
                      when epoch            => set_natural (spec, PSP.sp_epoch, line);
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
@@ -426,7 +432,6 @@ package body Specification_Parser is
                      when sub_list         => build_list (spec, PSP.sp_sub_list, line);
                      when config_args      => build_list (spec, PSP.sp_config_args, line);
                      when config_env       => build_list (spec, PSP.sp_config_env, line);
-                     when configure_target => build_list (spec, PSP.sp_config_target, line);
                      when build_deps       => build_list (spec, PSP.sp_build_deps, line);
                      when buildrun_deps    => build_list (spec, PSP.sp_buildrun_deps, line);
                      when run_deps         => build_list (spec, PSP.sp_run_deps, line);
@@ -2031,5 +2036,22 @@ package body Specification_Parser is
    begin
       return HT.SUS (HT.specific_line (HT.USS (result), 1));
    end extract_version;
+
+
+   --------------------------------------------------------------------------------------------
+   --  extract_information
+   --------------------------------------------------------------------------------------------
+   function extract_information (varname : String) return HT.Text
+   is
+      consdir : String := HT.USS (Parameters.configuration.dir_conspiracy);
+      extmake : String := HT.USS (Parameters.configuration.dir_sysroot) & "/usr/bin/make -m " &
+                          consdir & "/Mk";
+      command : String := extmake & " -f " & consdir & "/Mk/raven.information.mk -V " & varname;
+      status  : Integer;
+      result  : HT.Text := Unix.piped_command (command, status);
+   begin
+      return HT.SUS (HT.specific_line (HT.USS (result), 1));
+   end extract_information;
+
 
 end Specification_Parser;

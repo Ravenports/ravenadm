@@ -189,4 +189,7 @@ private
    --  loads raven.versions.mk and returns result of "make -V <varname>"
    function extract_version (varname : String) return HT.Text;
 
+   --  loads raven.information.mk and returns result of "make -V <varname>"
+   function extract_information (varname : String) return HT.Text;
+
 end Specification_Parser;
