@@ -113,6 +113,7 @@ package body Port_Specification is
       specs.test_tgt.Clear;
       specs.extra_rundeps.Clear;
       specs.mandirs.Clear;
+      specs.mk_verbatim.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -1214,6 +1215,10 @@ package body Port_Specification is
                Element.KEYWORDS_ON.Append (value_text);
             when ldflags_on =>
                Element.LDFLAGS_ON.Append (value_text);
+            when makefile_off =>
+               Element.MAKEFILE_OFF.Append (value_text);
+            when makefile_on =>
+               Element.MAKEFILE_ON.Append (value_text);
             when make_args_on =>
                Element.MAKE_ARGS_ON.Append (value_text);
             when make_env_on =>
@@ -1277,7 +1282,8 @@ package body Port_Specification is
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
-              qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description =>
+              qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description |
+              makefile_on | makefile_off =>
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on |
@@ -1384,6 +1390,8 @@ package body Port_Specification is
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
             when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
             when ldflags_on            => return rec.LDFLAGS_ON.Is_Empty;
+            when makefile_off          => return rec.MAKEFILE_OFF.Is_Empty;
+            when makefile_on           => return rec.MAKEFILE_ON.Is_Empty;
             when make_args_on          => return rec.MAKE_ARGS_ON.Is_Empty;
             when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
@@ -3024,6 +3032,8 @@ package body Port_Specification is
          print_opt_vector (rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          print_opt_vector (rec.KEYWORDS_ON, "KEYWORDS_ON");
          print_opt_vector (rec.LDFLAGS_ON, "LDFLAGS_ON");
+         print_opt_vector (rec.MAKEFILE_OFF, "MAKEFILE_OFF");
+         print_opt_vector (rec.MAKEFILE_ON, "MAKEFILE_ON");
          print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
          print_opt_vector (rec.PATCHFILES_ON, "PATCHFILES_ON");

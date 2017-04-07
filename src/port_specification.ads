@@ -49,7 +49,8 @@ package Port_Specification is
                          install_target_on, keywords_on, ldflags_on, make_args_on, make_env_on,
                          patchfiles_on, plist_sub_on, prevents_on, qmake_off, qmake_on,
                          run_depends_off, run_depends_on, sub_files_on, sub_list_on,
-                         test_target_on, uses_off, uses_on, description);
+                         test_target_on, uses_off, uses_on, makefile_on, makefile_off,
+                         description);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -298,6 +299,8 @@ private
          INSTALL_TARGET_ON     : string_crate.Vector;
          KEYWORDS_ON           : string_crate.Vector;
          LDFLAGS_ON            : string_crate.Vector;
+         MAKEFILE_OFF          : string_crate.Vector;
+         MAKEFILE_ON           : string_crate.Vector;
          MAKE_ARGS_ON          : string_crate.Vector;
          MAKE_ENV_ON           : string_crate.Vector;
          PATCHFILES_ON         : string_crate.Vector;
@@ -414,6 +417,7 @@ private
          users         : string_crate.Vector;
          groups        : string_crate.Vector;
          mandirs       : string_crate.Vector;
+         mk_verbatim   : string_crate.Vector;
          catch_all     : def_crate.Map;
          pkg_notes     : def_crate.Map;
          var_opsys     : list_crate.Map;

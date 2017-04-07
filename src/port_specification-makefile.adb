@@ -31,6 +31,7 @@ package body Port_Specification.Makefile is
       procedure send (varname : String; value, default : Integer);
       procedure print_item (position : string_crate.Cursor);
       procedure print_module (position : string_crate.Cursor);
+      procedure print_verbation (position : string_crate.Cursor);
       procedure dump_list (position : list_crate.Cursor);
       procedure dump_variant_index (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
@@ -618,6 +619,11 @@ package body Port_Specification.Makefile is
          specs.licenses.Iterate (dump_spkg_licenses'Access);
       end dump_license;
 
+      procedure print_verbation (position : string_crate.Cursor) is
+      begin
+         send (HT.USS (string_crate.Element (position)), False);
+      end print_verbation;
+
    begin
       if not specs.variant_exists (variant) then
          TIO.Put_Line ("Error : Variant '" & variant & "' does not exist!");
@@ -695,6 +701,8 @@ package body Port_Specification.Makefile is
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("DESTDIRNAME",      specs.destdirname);
       send ("TEST_TARGET",      specs.test_tgt, 1);
+
+      specs.mk_verbatim.Iterate (print_verbation'Access);
 
       declare
          function get_phasestr (index : Positive) return String;

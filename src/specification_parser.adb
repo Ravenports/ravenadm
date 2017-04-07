@@ -1121,7 +1121,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 42;
+      total_helpers : constant Positive := 44;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1162,6 +1162,8 @@ package body Specification_Parser is
          ("INSTALL_TARGET_ON    ", PSP.install_target_on),
          ("KEYWORDS_ON          ", PSP.keywords_on),
          ("LDFLAGS_ON           ", PSP.ldflags_on),
+         ("MAKEFILE_OFF         ", PSP.makefile_off),
+         ("MAKEFILE_ON          ", PSP.makefile_on),
          ("MAKE_ARGS_ON         ", PSP.make_args_on),
          ("MAKE_ENV_ON          ", PSP.make_env_on),
          ("PATCHFILES_ON        ", PSP.patchfiles_on),
@@ -1930,7 +1932,7 @@ package body Specification_Parser is
          this_singlet     : spec_singlet := determine_singlet (possible_singlet);
       begin
          case this_singlet is
-            when cflags | cppflags | cxxflags | ldflags |
+            when cflags | cppflags | cxxflags | ldflags | plist_sub |
                  config_args | config_env | make_args | make_env |
                  cmake_args | qmake_args =>
                null;
