@@ -662,6 +662,7 @@ package body Port_Specification.Makefile is
       dump_broken;
       send ("USES",             specs.uses, 10);
       dump_license;
+      send ("PREFIX",           HT.USS (specs.prefix));
       dump_info;
       dump_catchall;
       send ("NO_CCACHE",        specs.skip_ccache, True);
