@@ -187,6 +187,7 @@ package body Port_Specification.Buildsheet is
          if current_len + len + 1 > 76 then
             current_len := 0;
             send ("");
+            send (LAT.HT & LAT.HT & LAT.HT, True);
          end if;
          if current_len > 0 then
             send (" ", True);
