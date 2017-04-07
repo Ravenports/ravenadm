@@ -43,6 +43,7 @@ private
       dossier_list   : in out entry_crate.Map;
       seq_id         : port_id;
       namebase       : String;
+      port_prefix    : String;
       rootdir        : String) return Boolean;
 
    --  Scans all directories in stage and returns true if any non-standard orphans are found
@@ -50,6 +51,7 @@ private
      (log_handle     : TIO.File_Type;
       directory_list : in out entry_crate.Map;
       namebase       : String;
+      port_prefix    : String;
       rootdir        : String) return Boolean;
 
    --  Scans all files in stage and returns true if any orphans are found
@@ -72,12 +74,12 @@ private
       dossier_list : in out entry_crate.Map) return Boolean;
 
    --  Return True if directory was pre-created by ravenports
-   function directory_excluded (candidate : String) return Boolean;
+   function directory_excluded (port_prefix, candidate : String) return Boolean;
 
    --  Set verified to true
    procedure mark_verified (key : HT.Text; Element : in out entry_record);
 
    --  Remove keywords and other alterations
-   function modify_file_if_necessary (original : String) return String;
+   function modify_file_if_necessary (port_prefix, original : String) return String;
 
 end PortScan.Tests;

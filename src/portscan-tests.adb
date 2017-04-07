@@ -28,10 +28,25 @@ package body PortScan.Tests is
       seq_id        : port_id;
       rootdir       : String) return Boolean
    is
+      function get_prefix return String;
+
       passed_check : Boolean := True;
       namebase     : constant String := specification.get_namebase;
       directory_list : entry_crate.Map;
       dossier_list   : entry_crate.Map;
+
+      function get_prefix return String
+      is
+         spec_prefix : String := specification.get_field_value (PSP.sp_prefix);
+      begin
+         if spec_prefix = "" then
+            return HT.USS (PM.configuration.dir_localbase);
+         else
+            return spec_prefix;
+         end if;
+      end get_prefix;
+
+      port_prefix : String := get_prefix;
    begin
       LOG.log_phase_begin (log_handle, phase_name);
       TIO.Put_Line (log_handle, "====> Checking for package manifest issues");
@@ -42,6 +57,7 @@ package body PortScan.Tests is
                                dossier_list   => dossier_list,
                                seq_id         => seq_id,
                                namebase       => namebase,
+                               port_prefix    => port_prefix,
                                rootdir        => rootdir)
       then
          passed_check := False;
@@ -50,6 +66,7 @@ package body PortScan.Tests is
       if orphaned_directories_detected (log_handle     => log_handle,
                                         directory_list => directory_list,
                                         namebase       => namebase,
+                                        port_prefix    => port_prefix,
                                         rootdir        => rootdir)
       then
          passed_check := False;
@@ -86,6 +103,7 @@ package body PortScan.Tests is
       dossier_list   : in out entry_crate.Map;
       seq_id         : port_id;
       namebase       : String;
+      port_prefix    : String;
       rootdir        : String) return Boolean
    is
       procedure eat_plist (position : subpackage_crate.Cursor);
@@ -120,8 +138,7 @@ package body PortScan.Tests is
                          HT.USS (subpackage) & ".mktmp";
          contents      : String := FOP.get_file_contents (rootdir & manifest_file);
          identifier    : constant String := HT.USS (subpackage) & " manifest: ";
-
-         markers : HT.Line_Markers;
+         markers       : HT.Line_Markers;
       begin
          HT.initialize_markers (contents, markers);
          loop
@@ -165,7 +182,7 @@ package body PortScan.Tests is
                   end;
                else
                   declare
-                     modline : String  := modify_file_if_necessary (line);
+                     modline : String  := modify_file_if_necessary (port_prefix, line);
                      ml_text : HT.Text := HT.SUS (modline);
                   begin
                      if dossier_list.Contains (ml_text) then
@@ -203,11 +220,10 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    --  directory_excluded
    --------------------------------------------------------------------------------------------
-   function directory_excluded (candidate : String) return Boolean
+   function directory_excluded (port_prefix, candidate : String) return Boolean
    is
       --  mandatory candidate has ${STAGEDIR}/ stripped (no leading slash)
-      rawlbase  : constant String  := HT.USS (PM.configuration.dir_localbase);
-      localbase : constant String  := rawlbase (rawlbase'First + 1 .. rawlbase'Last);
+      localbase : constant String  := port_prefix (port_prefix'First + 1 .. port_prefix'Last);
       lblen     : constant Natural := localbase'Length;
    begin
       if candidate = localbase then
@@ -272,10 +288,10 @@ package body PortScan.Tests is
      (log_handle     : TIO.File_Type;
       directory_list : in out entry_crate.Map;
       namebase       : String;
+      port_prefix    : String;
       rootdir        : String) return Boolean
    is
-      rawlbase  : constant String  := HT.USS (PM.configuration.dir_localbase);
-      localbase : constant String  := rawlbase (rawlbase'First + 1 .. rawlbase'Last);
+      localbase : constant String  := port_prefix (port_prefix'First + 1 .. port_prefix'Last);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir & " -type d -printf " &
                   LAT.Quotation & "%P\n" & LAT.Quotation;
@@ -307,7 +323,7 @@ package body PortScan.Tests is
                         directory_list.Update_Element (Position => directory_list.Find (plist_dir),
                                                        Process  => mark_verified'Access);
                      else
-                        if not directory_excluded (line) then
+                        if not directory_excluded (port_prefix, line) then
                            TIO.Put_Line (log_handle, errprefix & shortline);
                            result := True;
                         end if;
@@ -463,12 +479,12 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    --  modify_file_if_necessary
    --------------------------------------------------------------------------------------------
-   function modify_file_if_necessary (original : String) return String
+   function modify_file_if_necessary (port_prefix, original : String) return String
    is
       function strip_raw_localbase (wrkstr : String) return String;
       function strip_raw_localbase (wrkstr : String) return String
       is
-         rawlbase : constant String  := HT.USS (PM.configuration.dir_localbase) & "/";
+         rawlbase : constant String  := port_prefix & "/";
       begin
          if HT.leads (wrkstr, rawlbase) then
             return wrkstr (wrkstr'First + rawlbase'Length .. wrkstr'Last);

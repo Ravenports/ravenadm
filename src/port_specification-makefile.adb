@@ -32,6 +32,7 @@ package body Port_Specification.Makefile is
       procedure print_item (position : string_crate.Cursor);
       procedure print_module (position : string_crate.Cursor);
       procedure print_verbation (position : string_crate.Cursor);
+      procedure print_if_defined (varname, value : String);
       procedure dump_list (position : list_crate.Cursor);
       procedure dump_variant_index (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
@@ -73,6 +74,13 @@ package body Port_Specification.Makefile is
             end if;
          end if;
       end send;
+
+      procedure print_if_defined (varname, value : String) is
+      begin
+         if value /= "" then
+            send (varname & LAT.Equals_Sign & value);
+         end if;
+      end print_if_defined;
 
       procedure send (varname, value : String) is
       begin
@@ -662,7 +670,7 @@ package body Port_Specification.Makefile is
       dump_broken;
       send ("USES",             specs.uses, 10);
       dump_license;
-      send ("PREFIX",           HT.USS (specs.prefix));
+      print_if_defined ("PREFIX", HT.USS (specs.prefix));
       dump_info;
       dump_catchall;
       send ("NO_CCACHE",        specs.skip_ccache, True);
