@@ -213,6 +213,7 @@ package body Port_Specification.Transform is
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
+      apply_makeinfo_module (specs);
       apply_libiconv_module (specs);
       apply_libtool_module (specs);
       apply_pkgconfig_module (specs);
@@ -645,6 +646,20 @@ package body Port_Specification.Transform is
          add_build_depends (specs, dependency);
       end if;
    end apply_gmake_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_makeinfo_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_makeinfo_module  (specs : in out Portspecs)
+   is
+      module     : String := "makeinfo";
+      dependency : String := "texinfo:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dependency);
+      end if;
+   end apply_makeinfo_module;
 
 
    --------------------------------------------------------------------------------------------
