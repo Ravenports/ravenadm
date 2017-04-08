@@ -588,6 +588,14 @@ package body PortScan.Scan is
             raise populate_error with tuple & " can't depend on itself";
          end if;
       end if;
+      if HT.USS (all_ports (depindex).port_namebase) = default_compiler then
+         if dtype = extra_runtime then
+            return;
+         else
+            raise populate_error with tuple & " belongs to the default compiler which is a " &
+              "special case that can only be specified via EXRUN";
+         end if;
+      end if;
       if not all_ports (target).blocked_by.Contains (depindex) then
          all_ports (target).blocked_by.Insert (depindex, depindex);
       end if;
