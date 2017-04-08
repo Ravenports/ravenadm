@@ -609,6 +609,7 @@ package body PortScan.Buildcycle is
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
       PKG_DELETE : constant String := "/usr/bin/pkg-static delete -f -y ";
       still_good : Boolean := True;
+      dyn_good   : Boolean;
       timed_out  : Boolean;
 
       procedure deinstall_it (position : subpackage_crate.Cursor)
@@ -633,14 +634,14 @@ package body PortScan.Buildcycle is
       end deinstall_it;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
-      log_linked_libraries (id, pkgversion);
+      dyn_good := log_linked_libraries (id, pkgversion);
       all_ports (trackers (id).seq_id).subpackages.Iterate (deinstall_it'Access);
       if still_good then
          still_good := detect_leftovers_and_MIA
            (id, "prestage", "between staging and package deinstallation");
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
-      return still_good;
+      return still_good and then dyn_good;
    end exec_phase_deinstall;
 
 
@@ -655,17 +656,42 @@ package body PortScan.Buildcycle is
       declare
          comres  : String :=  generic_system_command (command);
          markers : HT.Line_Markers;
+         pathstr : HT.Text := HT.blank;
          initial : String := "  NEEDED";
+         runpath : String := "  RUNPATH";
+         rpath   : String := "  RPATH";
       begin
+         HT.initialize_markers (comres, markers);
+         if HT.next_line_with_content_present (comres, runpath, markers) then
+            declare
+               line : constant String := HT.extract_line (comres, markers);
+            begin
+               pathstr := HT.SUS (HT.trim (HT.part_2 (line, runpath)));
+            end;
+         else
+            HT.initialize_markers (comres, markers);
+            if HT.next_line_with_content_present (comres, rpath, markers) then
+               declare
+                  line : constant String := HT.extract_line (comres, markers);
+               begin
+                  pathstr := HT.SUS (HT.trim (HT.part_2 (line, rpath)));
+               end;
+            end if;
+         end if;
          HT.initialize_markers (comres, markers);
          loop
             exit when not HT.next_line_with_content_present (comres, initial, markers);
             declare
                line      : constant String := HT.extract_line (comres, markers);
+               shlib     : constant String := " " & HT.trim (HT.part_2 (line, initial));
+               shpayload : HT.Text := HT.SUS (HT.USS (pathstr) & shlib);
                line_text : HT.Text := HT.SUS (line);
             begin
                if not trackers (id).dynlink.Contains (line_text) then
                   trackers (id).dynlink.Append (line_text);
+               end if;
+               if not trackers (id).runpaths.Contains (shpayload) then
+                  trackers (id).runpaths.Append (shpayload);
                end if;
             end;
          end loop;
@@ -680,13 +706,14 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  log_linked_libraries
    --------------------------------------------------------------------------------------------
-   procedure log_linked_libraries (id : builders; pkgversion : String)
+   function log_linked_libraries (id : builders; pkgversion : String) return Boolean
    is
       procedure log_dump (position : string_crate.Cursor);
       procedure check_package (position : subpackage_crate.Cursor);
 
       root     : constant String := get_root (id);
       namebase : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
+      result   : Boolean := True;
 
       procedure log_dump (position : string_crate.Cursor)
       is
@@ -706,20 +733,26 @@ package body PortScan.Buildcycle is
          markers    : HT.Line_Markers;
       begin
          trackers (id).dynlink.Clear;
+         trackers (id).runpaths.Clear;
+         trackers (id).checkpaths.Clear;
          HT.initialize_markers (comres, markers);
          loop
             exit when not HT.next_line_present (comres, markers);
             declare
-               line : constant String := HT.extract_line (comres, markers);
+               filename   : constant String := HT.extract_line (comres, markers);
                unstripped : Boolean;
             begin
-               if dynamically_linked (root, line, unstripped) then
-                  stack_linked_libraries (id, root, line);
+               if dynamically_linked (root, filename, unstripped) then
+                  stack_linked_libraries (id, root, filename);
+                  if not passed_runpath_check (id) then
+                     result := False;
+                  end if;
                end if;
                if unstripped then
                   TIO.Put_Line
                     (trackers (id).log_handle,
-                     "### WARNING ###  " & line & " is not stripped.  See Ravenporter's guide.");
+                     "### WARNING ###  " & filename & " is not stripped.  " &
+                       "See Ravenporter's guide.");
                end if;
             end;
          end loop;
@@ -733,6 +766,7 @@ package body PortScan.Buildcycle is
    begin
       TIO.Put_Line (trackers (id).log_handle, "=> Checking shared library dependencies");
       all_ports (trackers (id).seq_id).subpackages.Iterate (check_package'Access);
+      return result;
    end log_linked_libraries;
 
 
@@ -769,6 +803,73 @@ package body PortScan.Buildcycle is
       when others =>
          return False;
    end dynamically_linked;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_runpath_check
+   --------------------------------------------------------------------------------------------
+   function passed_runpath_check (id : builders) return Boolean
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      result : Boolean := True;
+      root   : constant String := get_root (id);
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         line      : String := HT.USS (string_crate.Element (position));
+         paths     : String := HT.part_1 (line, " ");
+         library   : String := HT.part_2 (line, " ");
+         lib_text  : HT.Text := HT.SUS (library);
+         numfields : Natural := HT.count_char (paths, LAT.Colon) + 1;
+         tempstor  : string_crate.Vector;
+         errmsg    : String := "### ERROR ###  " & library & " is not in located in /usr/lib " &
+                     "or within the RUNPATH";
+         systemlib : String := "/usr/lib/" & library;
+      begin
+         --  Check /usr/lib first
+         if not trackers (id).checkpaths.Contains (HT.SUS (systemlib)) then
+            if DIR.Exists (root & systemlib) then
+               return;
+            else
+               tempstor.Append (HT.SUS ("/usr/lib"));
+            end if;
+            trackers (id).checkpaths.Append (HT.SUS (systemlib));
+         end if;
+
+         if paths = "" then
+            TIO.Put_Line (trackers (id).log_handle, errmsg);
+            result := False;
+            return;
+         end if;
+
+         for n in 1 .. numfields loop
+            declare
+               testpath      : String := HT.specific_field (paths, n, ":");
+               test_library  : String := testpath & "/" & library;
+               testpath_text : HT.Text := HT.SUS (testpath);
+            begin
+               if not trackers (id).checkpaths.Contains (HT.SUS (test_library)) then
+                  if not tempstor.Contains (testpath_text) then
+                     if DIR.Exists (root & test_library) then
+                        return;
+                     else
+                        tempstor.Append (testpath_text);
+                     end if;
+                  end if;
+                  trackers (id).checkpaths.Append (HT.SUS (test_library));
+               end if;
+            end;
+         end loop;
+
+         TIO.Put_Line (trackers (id).log_handle, errmsg);
+         result := False;
+
+      end scan;
+   begin
+      trackers (id).runpaths.Iterate (scan'Access);
+      return result;
+   end passed_runpath_check;
 
 
    --------------------------------------------------------------------------------------------

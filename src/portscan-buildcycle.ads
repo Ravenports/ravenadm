@@ -60,6 +60,8 @@ private
          tail_time  : CAL.Time;
          log_handle : aliased TIO.File_Type;
          dynlink    : string_crate.Vector;
+         runpaths   : string_crate.Vector;
+         checkpaths : string_crate.Vector;
          loglines   : Natural := 0;
       end record;
 
@@ -97,7 +99,7 @@ private
    procedure set_uname_mrv;
    procedure obtain_custom_environment;
    procedure stack_linked_libraries (id : builders; base, filename : String);
-   procedure log_linked_libraries (id : builders; pkgversion : String);
+   function  log_linked_libraries (id : builders; pkgversion : String) return Boolean;
    function  exec_phase_generic   (id : builders; phase : phases) return Boolean;
    function  exec_phase_deinstall (id : builders; pkgversion : String) return Boolean;
    function  exec_phase_install   (id : builders; pkgversion : String) return Boolean;
@@ -113,6 +115,7 @@ private
    function  get_root (id : builders) return String;
    function  environment_override (id : builders; enable_tty : Boolean := False) return String;
    function  dynamically_linked (base, filename : String; unstripped : out Boolean) return Boolean;
+   function  passed_runpath_check (id : builders) return Boolean;
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
    function  get_port_prefix (id : builders) return String;
