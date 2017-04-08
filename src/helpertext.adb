@@ -431,6 +431,58 @@ package body HelperText is
 
 
    --------------------------------------------------------------------------------------------
+   --  next_line_with_content_present
+   --------------------------------------------------------------------------------------------
+   function next_line_with_content_present
+     (block_text : in String;
+      start_with : in String;
+      shuttle    : in out Line_Markers) return Boolean
+   is
+      ndx : Natural;
+   begin
+      if shuttle.front_marker + 2 > block_text'Last then
+         return False;
+      end if;
+      if shuttle.utilized then
+         ndx := AS.Fixed.Index (Source  => block_text,
+                                Pattern => LAT.LF & start_with,
+                                From    => shuttle.front_marker + 2);
+         if ndx = 0 then
+            return False;
+         else
+            shuttle.back_marker := ndx + 1;
+         end if;
+      else
+         if start_with'Length = 0 then
+            return False;
+         end if;
+         if leads (block_text, start_with) then
+            shuttle.back_marker := block_text'First;
+         else
+            ndx := AS.Fixed.Index (block_text, LAT.LF & start_with);
+            if ndx = 0 then
+               return False;
+            else
+               shuttle.back_marker := ndx + 1;
+            end if;
+         end if;
+      end if;
+      shuttle.utilized    := True;
+      shuttle.zero_length := False;
+      ndx := AS.Fixed.Index (Source  => block_text,
+                             Pattern => single_LF,
+                             From    => shuttle.back_marker + 1);
+      if ndx = 0 then
+         shuttle.front_marker := block_text'Last;
+      else
+         shuttle.front_marker := ndx - 1;
+      end if;
+      return True;
+
+   end next_line_with_content_present;
+
+
+   --------------------------------------------------------------------------------------------
    --  extract_file
    --------------------------------------------------------------------------------------------
    function extract_file

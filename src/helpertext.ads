@@ -92,6 +92,12 @@ package HelperText is
       shuttle    : in out Line_Markers)
       return Boolean;
 
+   function next_line_with_content_present
+     (block_text : in String;
+      start_with : in String;
+      shuttle    : in out Line_Markers)
+      return Boolean;
+
    function extract_line
      (block_text : in String;
       shuttle    : in Line_Markers)

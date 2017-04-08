@@ -655,18 +655,16 @@ package body PortScan.Buildcycle is
       declare
          comres  : String :=  generic_system_command (command);
          markers : HT.Line_Markers;
+         initial : String := "  NEEDED";
       begin
          HT.initialize_markers (comres, markers);
          loop
-            exit when not HT.next_line_present (comres, markers);
+            exit when not HT.next_line_with_content_present (comres, initial, markers);
             declare
                line      : constant String := HT.extract_line (comres, markers);
                line_text : HT.Text := HT.SUS (line);
             begin
-               if not HT.IsBlank (line) and then
-                 HT.contains (line, "NEEDED") and then
-                 not trackers (id).dynlink.Contains (line_text)
-               then
+               if not trackers (id).dynlink.Contains (line_text) then
                   trackers (id).dynlink.Append (line_text);
                end if;
             end;
