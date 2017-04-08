@@ -581,6 +581,13 @@ package body PortScan.Scan is
          raise populate_error with "dependency on non-existent port " & tuple;
       end if;
       depindex := ports_keys.Element (portkey);
+      if target = depindex then
+         if dtype = extra_runtime then
+            return;
+         else
+            raise populate_error with tuple & " can't depend on itself";
+         end if;
+      end if;
       if not all_ports (target).blocked_by.Contains (depindex) then
          all_ports (target).blocked_by.Insert (depindex, depindex);
       end if;
