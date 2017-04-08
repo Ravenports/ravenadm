@@ -114,9 +114,7 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
-                  REP.hook_toolchain (id);
                   R := exec_phase_deinstall (id, pkgversion);
-                  REP.unhook_toolchain (id);
                end if;
          end case;
          exit when R = False;
@@ -651,7 +649,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    procedure stack_linked_libraries (id : builders; base, filename : String)
    is
-      objdump : String := HT.USS (PM.configuration.dir_localbase) & "/toolchain/bin/objdump";
+      objdump : String := "/usr/bin/objdump-sysroot";
       command : String := chroot & base & environment_override (id) & objdump & " -p " & filename;
    begin
       declare
@@ -1393,7 +1391,7 @@ package body PortScan.Buildcycle is
                  chroot_make_program & " -C /port -V PREFIX";
       result   : constant String := generic_system_command (command);
    begin
-      return HT.specific_line (result, 1);
+      return HT.first_line (result);
    end get_port_prefix;
 
 
