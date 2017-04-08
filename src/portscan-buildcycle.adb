@@ -711,9 +711,15 @@ package body PortScan.Buildcycle is
             exit when not HT.next_line_present (comres, markers);
             declare
                line : constant String := HT.extract_line (comres, markers);
+               unstripped : Boolean;
             begin
-               if dynamically_linked (root, line) then
+               if dynamically_linked (root, line, unstripped) then
                   stack_linked_libraries (id, root, line);
+               end if;
+               if unstripped then
+                  TIO.Put_Line
+                    (trackers (id).log_handle,
+                     "### WARNING ###  " & line & " is not stripped.  See Ravenporter's guide.");
                end if;
             end;
          end loop;
@@ -733,16 +739,31 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  dynamically_linked
    --------------------------------------------------------------------------------------------
-   function  dynamically_linked (base, filename : String) return Boolean
+   function dynamically_linked (base, filename : String; unstripped : out Boolean) return Boolean
    is
       command : String :=
         chroot & base & " /usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
         "-m /usr/share/file/magic.mgc " & LAT.Quotation & filename & LAT.Quotation;
+      dynlinked  : Boolean;
+      statlinked : Boolean;
    begin
+      unstripped := False;
       declare
          comres  : constant String := generic_system_command (command);
       begin
-         return HT.contains (comres,  "dynamically linked");
+         dynlinked  := HT.contains (comres,  "dynamically linked");
+         if dynlinked then
+            statlinked := False;
+         else
+            statlinked := HT.contains (comres,  "statically linked");
+         end if;
+
+         if dynlinked or else statlinked then
+            if HT.contains (comres, ", not stripped") then
+               unstripped := True;
+            end if;
+         end if;
+         return dynlinked;
       end;
    exception
       when others =>
