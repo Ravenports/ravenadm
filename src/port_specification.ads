@@ -211,9 +211,6 @@ package Port_Specification is
    --  Return string block (delimited by LF) of unique build + buildrun + run depends.
    function combined_dependency_origins (specs : Portspecs) return String;
 
-   --  Return string block (delimited by LF) of unique buildrun + run depends
-   function combined_run_dependency_origins (specs : Portspecs) return String;
-
    --  Runs through specs to ensure all license framework information is present.
    function post_parse_license_check_passes (specs : Portspecs) return Boolean;
 
