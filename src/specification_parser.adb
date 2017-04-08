@@ -2034,7 +2034,7 @@ package body Specification_Parser is
       status  : Integer;
       result  : HT.Text := Unix.piped_command (command, status);
    begin
-      return HT.SUS (HT.specific_line (HT.USS (result), 1));
+      return HT.SUS (HT.first_line (HT.USS (result)));
    end extract_version;
 
 
@@ -2050,7 +2050,7 @@ package body Specification_Parser is
       status  : Integer;
       result  : HT.Text := Unix.piped_command (command, status);
    begin
-      return HT.SUS (HT.specific_line (HT.USS (result), 1));
+      return HT.SUS (HT.first_line (HT.USS (result)));
    end extract_information;
 
 
