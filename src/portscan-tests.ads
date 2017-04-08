@@ -78,6 +78,9 @@ private
    --  Return True if directory was pre-created by ravenports
    function directory_excluded (port_prefix, candidate : String) return Boolean;
 
+   --  Return True if the file is a created during an automated process
+   function file_excluded (port_prefix, candidate : String) return Boolean;
+
    --  Set verified to true
    procedure mark_verified (key : HT.Text; Element : in out entry_record);
 
