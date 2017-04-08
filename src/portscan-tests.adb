@@ -440,7 +440,11 @@ package body PortScan.Tests is
                   dossier_list.Update_Element (Position => dossier_list.Find (plist_file),
                                                Process  => mark_verified'Access);
                else
-                  TIO.Put_Line (log_handle, errprefix & line);
+                  if HT.leads (line, localbase) then
+                     TIO.Put_Line (log_handle, errprefix & HT.substring (line, lblen + 1, 0));
+                  else
+                     TIO.Put_Line (log_handle, errprefix & line);
+                  end if;
                   result := True;
                end if;
             end if;
