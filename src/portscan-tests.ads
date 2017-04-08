@@ -17,6 +17,7 @@ package PortScan.Tests is
       log_handle    : TIO.File_Type;
       phase_name    : String;
       seq_id        : port_id;
+      port_prefix   : String;
       rootdir       : String) return Boolean;
 
 private
@@ -59,6 +60,7 @@ private
      (log_handle     : TIO.File_Type;
       dossier_list   : in out entry_crate.Map;
       namebase       : String;
+      port_prefix    : String;
       rootdir        : String) return Boolean;
 
    --  Iterates through directory list.  If any directories are listed that weren't in
@@ -81,5 +83,10 @@ private
 
    --  Remove keywords and other alterations
    function modify_file_if_necessary (port_prefix, original : String) return String;
+
+   --  If "raw" starts with "/" then assume it's already an absolute path, but remove the
+   --  leading slash before returning.  Otherwise assume it's missing the prefix and
+   --  prepend "raw" with the prefix minus the leading slash.
+   function convert_to_absolute_path (port_prefix, raw : String) return String;
 
 end PortScan.Tests;

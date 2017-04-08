@@ -35,6 +35,7 @@ package body PortScan.Buildcycle is
       break_phase  : constant phases := valid_test_phase (interphase);
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
       pkgversion   : constant String := HT.USS (all_ports (trackers (id).seq_id).pkgversion);
+      port_prefix  : constant String := get_port_prefix (id);
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
@@ -93,6 +94,7 @@ package body PortScan.Buildcycle is
                                             log_name      => LOG.log_name (trackers (id).seq_id),
                                             phase_name    => phase2str (phase),
                                             seq_id        => trackers (id).seq_id,
+                                            port_prefix   => port_prefix,
                                             rootdir       => get_root (id));
 
             when install =>
@@ -106,6 +108,7 @@ package body PortScan.Buildcycle is
                                              log_handle    => trackers (id).log_handle,
                                              phase_name    => phase2str (phase),
                                              seq_id        => trackers (id).seq_id,
+                                             port_prefix   => port_prefix,
                                              rootdir       => get_root (id));
                end if;
 
@@ -1378,5 +1381,20 @@ package body PortScan.Buildcycle is
          DIR.Copy_File (distinfo, "distinfo");
       end if;
    end run_makesum;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_port_prefix
+   --------------------------------------------------------------------------------------------
+   function get_port_prefix (id : builders) return String
+   is
+      root     : constant String := get_root (id);
+      command  : constant String := chroot & root & environment_override (id) &
+                 chroot_make_program & " -C /port -V PREFIX";
+      result   : constant String := generic_system_command (command);
+   begin
+      return HT.specific_line (result, 1);
+   end get_port_prefix;
+
 
 end PortScan.Buildcycle;

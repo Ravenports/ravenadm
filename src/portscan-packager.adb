@@ -27,6 +27,7 @@ package body PortScan.Packager is
       log_name      : String;
       phase_name    : String;
       seq_id        : port_id;
+      port_prefix   : String;
       rootdir       : String) return Boolean
    is
       procedure metadata   (position : subpackage_crate.Cursor);
@@ -99,11 +100,12 @@ package body PortScan.Packager is
             end loop;
          end loop;
 
-         write_package_manifest (spec       => specification,
-                                 subpackage => subpackage,
-                                 seq_id     => seq_id,
-                                 pkgversion => pkgvers,
-                                 filename   => spkgdir & subpackage & manifest);
+         write_package_manifest (spec        => specification,
+                                 port_prefix => port_prefix,
+                                 subpackage  => subpackage,
+                                 seq_id      => seq_id,
+                                 pkgversion  => pkgvers,
+                                 filename    => spkgdir & subpackage & manifest);
       end metadata;
 
       procedure package_it (position : subpackage_crate.Cursor)
@@ -279,29 +281,18 @@ package body PortScan.Packager is
    --  write_package_manifest
    --------------------------------------------------------------------------------------------
    procedure write_package_manifest
-     (spec       : PSP.Portspecs;
-      subpackage : String;
-      seq_id     : port_id;
-      pkgversion : String;
-      filename   : String)
+     (spec        : PSP.Portspecs;
+      port_prefix : String;
+      subpackage  : String;
+      seq_id      : port_id;
+      pkgversion  : String;
+      filename    : String)
    is
-      function get_prefix return String;
       procedure single_if_defined (name, value, not_value : String);
       procedure array_if_defined (name, value : String);
 
       file_handle : TIO.File_Type;
       variant     : String := HT.USS (all_ports (seq_id).port_variant);
-
-      function get_prefix return String
-      is
-         prefix : String := spec.get_field_value (PSP.sp_prefix);
-      begin
-         if prefix = "" then
-            return HT.USS (PM.configuration.dir_localbase);
-         else
-            return prefix;
-         end if;
-      end get_prefix;
 
       procedure single_if_defined (name, value, not_value : String) is
       begin
@@ -337,7 +328,7 @@ package body PortScan.Packager is
            spec.get_tagline (variant) & " (" & subpackage & ")" & LAT.LF &
            "EOD" & LAT.LF &
            "maintainer: " & quote (spec.get_field_value (PSP.sp_contacts)) & LAT.LF &
-           "prefix: " & quote (get_prefix) & LAT.LF &
+           "prefix: " & quote (port_prefix) & LAT.LF &
            "categories: [ " & spec.get_field_value (PSP.sp_keywords) & " ]" & LAT.LF &
            "licenselogic: " & quote (spec.get_license_scheme)
         );

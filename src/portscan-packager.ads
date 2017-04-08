@@ -14,17 +14,19 @@ package PortScan.Packager is
       log_name      : String;
       phase_name    : String;
       seq_id        : port_id;
+      port_prefix   : String;
       rootdir       : String) return Boolean;
 
 private
 
    --  create +MANIFEST file for each subpackage
    procedure write_package_manifest
-     (spec       : PSP.Portspecs;
-      subpackage : String;
-      seq_id     : port_id;
-      pkgversion : String;
-      filename   : String);
+     (spec          : PSP.Portspecs;
+      port_prefix   : String;
+      subpackage    : String;
+      seq_id        : port_id;
+      pkgversion    : String;
+      filename      : String);
 
    --  Alert if port is deprecated
    procedure check_deprecation (spec : PSP.Portspecs; log_handle : TIO.File_Type);

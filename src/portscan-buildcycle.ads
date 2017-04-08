@@ -115,6 +115,7 @@ private
    function  dynamically_linked (base, filename : String) return Boolean;
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
+   function  get_port_prefix (id : builders) return String;
    function  generic_execute
      (id         : builders;
       command    : String;

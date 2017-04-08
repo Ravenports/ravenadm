@@ -26,27 +26,13 @@ package body PortScan.Tests is
       log_handle    : TIO.File_Type;
       phase_name    : String;
       seq_id        : port_id;
+      port_prefix   : String;
       rootdir       : String) return Boolean
    is
-      function get_prefix return String;
-
       passed_check : Boolean := True;
       namebase     : constant String := specification.get_namebase;
       directory_list : entry_crate.Map;
       dossier_list   : entry_crate.Map;
-
-      function get_prefix return String
-      is
-         spec_prefix : String := specification.get_field_value (PSP.sp_prefix);
-      begin
-         if spec_prefix = "" then
-            return HT.USS (PM.configuration.dir_localbase);
-         else
-            return spec_prefix;
-         end if;
-      end get_prefix;
-
-      port_prefix : String := get_prefix;
    begin
       LOG.log_phase_begin (log_handle, phase_name);
       TIO.Put_Line (log_handle, "====> Checking for package manifest issues");
@@ -76,7 +62,12 @@ package body PortScan.Tests is
          passed_check := False;
       end if;
 
-      if orphaned_files_detected (log_handle, dossier_list, namebase, rootdir) then
+      if orphaned_files_detected (log_handle   => log_handle,
+                                  dossier_list => dossier_list,
+                                  namebase     => namebase,
+                                  port_prefix  => port_prefix,
+                                  rootdir      => rootdir)
+      then
          passed_check := False;
       end if;
 
@@ -156,26 +147,37 @@ package body PortScan.Tests is
                   null;
                elsif HT.leads (line, "@dir ") then
                   declare
-                     dir      : String := line (line'First + 5 .. line'Last);
-                     dir_text : HT.Text := HT.SUS (dir);
+                     dir : String :=
+                           convert_to_absolute_path (port_prefix, HT.substring (line, 5, 0));
+                     dir_text  : HT.Text := HT.SUS (dir);
+                     excludeit : Boolean;
                   begin
                      if directory_list.Contains (dir_text) then
-                        result := False;
-                        declare
-                           spkg : String := HT.USS (directory_list.Element (dir_text).subpackage);
-                        begin
-                           if spkg /= "" then
-                              TIO.Put_Line
-                                (log_handle,
-                                 "Redundant @dir symbol, " & identifier & dir &
-                                   " will already be created by the " & spkg & " manifest");
-                           else
-                              TIO.Put_Line
-                                (log_handle,
-                                 "Redundant @dir symbol, " & identifier & dir &
-                                   " will already be created by another manifest");
-                           end if;
-                        end;
+                        --  There is one case where a redundant @dir symbol is desired:
+                        --  *) when a non-standard PREFIX is used.  Pkg(8) needs to be given an
+                        --     explicit command to remove the package's root directory.
+                        excludeit := (LAT.Solidus & dir = port_prefix) and then
+                          (port_prefix /= HT.USS (PM.configuration.dir_localbase));
+
+                        if not excludeit then
+                           result := False;
+                           declare
+                              spkg : String :=
+                                HT.USS (directory_list.Element (dir_text).subpackage);
+                           begin
+                              if spkg /= "" then
+                                 TIO.Put_Line
+                                   (log_handle,
+                                    "Redundant @dir symbol, " & identifier & dir &
+                                      " will already be created by the " & spkg & " manifest");
+                              else
+                                 TIO.Put_Line
+                                   (log_handle,
+                                    "Redundant @dir symbol, " & identifier & dir &
+                                      " will already be created by another manifest");
+                              end if;
+                           end;
+                        end if;
                      else
                         insert_directory (dir, subpackage);
                      end if;
@@ -223,19 +225,15 @@ package body PortScan.Tests is
    function directory_excluded (port_prefix, candidate : String) return Boolean
    is
       --  mandatory candidate has ${STAGEDIR}/ stripped (no leading slash)
-      localbase : constant String  := port_prefix (port_prefix'First + 1 .. port_prefix'Last);
+      localbase : constant String  := HT.substring (port_prefix, 1, 0);
       lblen     : constant Natural := localbase'Length;
    begin
       if candidate = localbase then
          return True;
       end if;
-      if not HT.leads (candidate, localbase & "/") then
-         --  This should never happen
-         return False;
-      end if;
 
       declare
-         shortcan : String := candidate (candidate'First + lblen + 1 .. candidate'Last);
+         shortcan : String := HT.substring (candidate, lblen + 1, 0);
       begin
          if shortcan = "bin" or else
            shortcan = "etc" or else
@@ -257,7 +255,7 @@ package body PortScan.Tests is
       end;
 
       declare
-         shortcan : String := candidate (candidate'First + lblen + 7 .. candidate'Last);
+         shortcan : String := HT.substring (candidate, lblen + 7, 0);
       begin
          if shortcan = "doc" or else
            shortcan = "examples" or else
@@ -291,7 +289,7 @@ package body PortScan.Tests is
       port_prefix    : String;
       rootdir        : String) return Boolean
    is
-      localbase : constant String  := port_prefix (port_prefix'First + 1 .. port_prefix'Last);
+      localbase : constant String  := HT.substring (port_prefix, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir & " -type d -printf " &
                   LAT.Quotation & "%P\n" & LAT.Quotation;
@@ -311,30 +309,19 @@ package body PortScan.Tests is
          exit when not HT.next_line_present (comres, markers);
          declare
             line      : constant String := HT.extract_line (comres, markers);
-            line_text : HT.Text := HT.SUS (line);
+            plist_dir : HT.Text := HT.SUS (line);
          begin
             if line /= "" then
-               if HT.leads (line, localbase) then
-                  declare
-                     shortline : String := line (line'First + lblen + 1 .. line'Last);
-                     plist_dir : HT.Text := HT.SUS (shortline);
-                  begin
-                     if directory_list.Contains (plist_dir) then
-                        directory_list.Update_Element (Position => directory_list.Find (plist_dir),
-                                                       Process  => mark_verified'Access);
-                     else
-                        if not directory_excluded (port_prefix, line) then
-                           TIO.Put_Line (log_handle, errprefix & shortline);
-                           result := True;
-                        end if;
-                     end if;
-                  end;
+               if directory_list.Contains (plist_dir) then
+                  directory_list.Update_Element (Position => directory_list.Find (plist_dir),
+                                                 Process  => mark_verified'Access);
                else
-                  if directory_list.Contains (line_text) then
-                     directory_list.Update_Element (Position => directory_list.Find (line_text),
-                                                    Process  => mark_verified'Access);
-                  else
-                     TIO.Put_Line (log_handle, errprefix & line);
+                  if not directory_excluded (port_prefix, line) then
+                     if HT.leads (line, localbase) then
+                        TIO.Put_Line (log_handle, errprefix & HT.substring (line, lblen + 1, 0));
+                     else
+                        TIO.Put_Line (log_handle, errprefix & line);
+                     end if;
                      result := True;
                   end if;
                end if;
@@ -421,10 +408,11 @@ package body PortScan.Tests is
      (log_handle     : TIO.File_Type;
       dossier_list   : in out entry_crate.Map;
       namebase       : String;
+      port_prefix    : String;
       rootdir        : String) return Boolean
    is
       rawlbase  : constant String  := HT.USS (PM.configuration.dir_localbase);
-      localbase : constant String  := rawlbase (rawlbase'First + 1 .. rawlbase'Last);
+      localbase : constant String  := HT.substring (rawlbase, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir &
                   " \( -type f -o -type l \) -printf " &
@@ -444,30 +432,16 @@ package body PortScan.Tests is
       loop
          exit when not HT.next_line_present (comres, markers);
          declare
-            line      : constant String := HT.extract_line (comres, markers);
-            line_text : HT.Text := HT.SUS (line);
+            line       : constant String := HT.extract_line (comres, markers);
+            plist_file : HT.Text := HT.SUS (line);
          begin
-            if line /= "" then
-               if HT.leads (line, localbase) then
-                  declare
-                     plist_file : HT.Text := HT.SUS (line (line'First + lblen + 1 .. line'Last));
-                  begin
-                     if dossier_list.Contains (plist_file) then
-                        dossier_list.Update_Element (Position => dossier_list.Find (plist_file),
-                                                     Process  => mark_verified'Access);
-                     else
-                        TIO.Put_Line (log_handle, errprefix & line);
-                        result := True;
-                     end if;
-                  end;
+            if not HT.IsBlank (plist_file) then
+               if dossier_list.Contains (plist_file) then
+                  dossier_list.Update_Element (Position => dossier_list.Find (plist_file),
+                                               Process  => mark_verified'Access);
                else
-                  if dossier_list.Contains (line_text) then
-                     dossier_list.Update_Element (Position => dossier_list.Find (line_text),
-                                                  Process  => mark_verified'Access);
-                  else
-                     TIO.Put_Line (log_handle, errprefix & line);
-                     result := True;
-                  end if;
+                  TIO.Put_Line (log_handle, errprefix & line);
+                  result := True;
                end if;
             end if;
          end;
@@ -479,27 +453,30 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    --  modify_file_if_necessary
    --------------------------------------------------------------------------------------------
-   function modify_file_if_necessary (port_prefix, original : String) return String
-   is
-      function strip_raw_localbase (wrkstr : String) return String;
-      function strip_raw_localbase (wrkstr : String) return String
-      is
-         rawlbase : constant String  := port_prefix & "/";
-      begin
-         if HT.leads (wrkstr, rawlbase) then
-            return wrkstr (wrkstr'First + rawlbase'Length .. wrkstr'Last);
-         else
-            return wrkstr;
-         end if;
-      end strip_raw_localbase;
+   function modify_file_if_necessary (port_prefix, original : String) return String is
    begin
       if HT.leads (original, "@info ") then
-         return strip_raw_localbase (original (original'First + 6 .. original 'Last));
+         return convert_to_absolute_path (port_prefix, HT.substring (original, 6, 0));
       elsif HT.leads (original, "@sample ") then
-         return strip_raw_localbase (original (original'First + 8 .. original 'Last));
+         return convert_to_absolute_path (port_prefix, HT.substring (original, 8, 0));
       else
-         return original;
+         return convert_to_absolute_path (port_prefix, original);
       end if;
    end modify_file_if_necessary;
+
+
+   --------------------------------------------------------------------------------------------
+   --  convert_to_absolute_path
+   --------------------------------------------------------------------------------------------
+   function convert_to_absolute_path (port_prefix, raw : String) return String is
+   begin
+      if raw'Length < 2 then
+         return raw;
+      end if;
+      if raw (raw'First) = LAT.Solidus then
+         return HT.substring (raw, 1, 0);
+      end if;
+      return HT.substring (port_prefix, 1, 0) & LAT.Solidus & raw;
+   end convert_to_absolute_path;
 
 end PortScan.Tests;
