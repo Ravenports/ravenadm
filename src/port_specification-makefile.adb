@@ -204,11 +204,16 @@ package body Port_Specification.Makefile is
          module : String := HT.USS (string_crate.Element (position));
       begin
          if module = "cpe" or else
-           module = "bison" or else
            module = "makeinfo" or else
            module = "pkgconfig" or else
            module = "gettext-runtime" or else
-           module = "gettext-tools"
+           module = "gettext-tools" or else
+           module = "bison" or else
+           module = "ada" or else
+           module = "c++" or else
+           module = "cclibs" or else
+           module = "compiler" or else
+           module = "fortran"
          then
             null;
          else

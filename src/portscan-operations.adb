@@ -2531,6 +2531,7 @@ package body PortScan.Operations is
 
       PST.apply_directives
         (specs         => specification,
+         variant       => variant,
          arch_standard => sysrootver.arch,
          osmajor       => HT.USS (sysrootver.major));
 

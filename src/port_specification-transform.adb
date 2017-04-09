@@ -17,6 +17,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_directives
      (specs         : in out Portspecs;
+      variant       : String;
       arch_standard : supported_arch;
       osmajor       : String)
    is
@@ -225,6 +226,11 @@ package body Port_Specification.Transform is
       apply_bdb_module (specs);
       apply_bison_module (specs);
       apply_ccache (specs);
+      apply_gcc_run_module (specs, variant, "ada", "ada_run");
+      apply_gcc_run_module (specs, variant, "c++", "cxx_run");
+      apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
+      apply_gcc_run_module (specs, variant, "cclibs", "libs");
+      apply_gcc_run_module (specs, variant, "compiler", "complete");
       apply_curly_bracket_conversions (specs);
    end apply_directives;
 
@@ -660,6 +666,33 @@ package body Port_Specification.Transform is
          add_build_depends (specs, dependency);
       end if;
    end apply_makeinfo_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gcc_run_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gcc_run_module (specs : in out Portspecs;
+                                   variant : String;
+                                   module  : String;
+                                   gccsubpackage : String)
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      dependency : String := default_compiler & ":" & gccsubpackage & ":" & variant_standard;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         subpackage : String := HT.USS (string_crate.Element (position));
+      begin
+         if argument_present (specs, module, subpackage) then
+            add_exrun_depends (specs, dependency, subpackage);
+         end if;
+      end scan;
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         specs.subpackages.Element (HT.SUS (variant)).list.Iterate (scan'Access);
+      end if;
+   end apply_gcc_run_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -1175,5 +1208,29 @@ package body Port_Specification.Transform is
          specs.run_deps.Append (dependency_text);
       end if;
    end add_run_depends;
+
+   --------------------------------------------------------------------------------------------
+   --  add_exrun_depends
+   --------------------------------------------------------------------------------------------
+   procedure add_exrun_depends (specs : in out Portspecs; dependency, subpackage : String)
+   is
+      procedure grow (Key : HT.Text; Element : in out group_list);
+
+      dependency_text : HT.Text := HT.SUS (dependency);
+      group           : HT.Text := HT.SUS (subpackage);
+
+      procedure grow (Key : HT.Text; Element : in out group_list) is
+      begin
+         Element.list.Append (dependency_text);
+      end grow;
+   begin
+      if not specs.extra_rundeps.Contains (group) then
+         specs.establish_group (sp_exrun, subpackage);
+      end if;
+      if not specs.extra_rundeps.Element (group).list.Contains (dependency_text) then
+         specs.extra_rundeps.Update_Element (Position => specs.extra_rundeps.Find (group),
+                                             Process  => grow'Access);
+      end if;
+   end add_exrun_depends;
 
 end Port_Specification.Transform;

@@ -434,6 +434,7 @@ package body PortScan.Scan is
 
       PST.apply_directives
         (specs         => thespec,
+         variant       => variant,
          arch_standard => sysrootver.arch,
          osmajor       => HT.USS (sysrootver.major));
 

@@ -16,6 +16,7 @@ package Port_Specification.Transform is
    --  Apply all the changes dictated by option helpers and the IGNORE calculation
    procedure apply_directives
      (specs         : in out Portspecs;
+      variant       : String;
       arch_standard : supported_arch;
       osmajor       : String);
 
@@ -74,6 +75,10 @@ private
    procedure apply_perl_module      (specs : in out Portspecs);
    procedure apply_bison_module     (specs : in out Portspecs);
    procedure apply_makeinfo_module  (specs : in out Portspecs);
+   procedure apply_gcc_run_module   (specs : in out Portspecs;
+                                     variant : String;
+                                     module  : String;
+                                     gccsubpackage : String);
 
    procedure apply_gettext_runtime_module (specs : in out Portspecs);
    procedure apply_gettext_tools_module   (specs : in out Portspecs);
@@ -87,5 +92,6 @@ private
    procedure add_build_depends    (specs : in out Portspecs; dependency : String);
    procedure add_buildrun_depends (specs : in out Portspecs; dependency : String);
    procedure add_run_depends      (specs : in out Portspecs; dependency : String);
+   procedure add_exrun_depends    (specs : in out Portspecs; dependency, subpackage : String);
 
 end Port_Specification.Transform;

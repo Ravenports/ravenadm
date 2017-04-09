@@ -187,6 +187,7 @@ package body Pilot is
                                      osrelease     => HT.USS (sysrootver.release),
                                      osmajor       => HT.USS (sysrootver.major));
          PST.apply_directives (specs         => specification,
+                               variant       => get_variant,
                                arch_standard => sysrootver.arch,
                                osmajor       => HT.USS (sysrootver.major));
          PSM.generator (specs         => specification,
