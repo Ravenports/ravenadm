@@ -24,6 +24,8 @@ package Definitions is
    spkg_docs         : constant String := "docs";
    spkg_examples     : constant String := "examples";
    default_compiler  : constant String := "gcc6";
+   compiler_version  : constant String := "6.20170202";
+   arc_ext           : constant String := ".txz";
    jobs_per_cpu      : constant := 2;
 
    type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);

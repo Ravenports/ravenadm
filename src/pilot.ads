@@ -103,6 +103,10 @@ package Pilot is
    --  given on the command line, then return True
    function interact_with_single_builder return Boolean;
 
+   --  If the toolchain compiler packages are missing from the packages directory, copy
+   --  the missing ones from the system root.  Returns True on success.
+   function install_compiler_packages return Boolean;
+
 private
 
    package HT renames HelperText;

@@ -76,7 +76,6 @@ private
    package CON renames Ada.Containers;
 
    max_ports : constant := 2000;
-   arc_ext   : constant String := ".txz";
 
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;

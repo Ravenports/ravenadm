@@ -963,4 +963,49 @@ package body Pilot is
       return CYC.valid_test_phase (Unix.env_variable_value (brkname));
    end interact_with_single_builder;
 
+
+   --------------------------------------------------------------------------------------------
+   --  install_compiler_packages
+   --------------------------------------------------------------------------------------------
+   function install_compiler_packages return Boolean
+   is
+      function package_copy (subpackage : String) return Boolean;
+      function package_copy (subpackage : String) return Boolean
+      is
+         pkgname   : constant String := default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
+                     variant_standard & LAT.Hyphen & compiler_version & arc_ext;
+         src_path  : constant String := HT.USS (PM.configuration.dir_sysroot) &
+                     "/usr/share/compiler-packages/" & pkgname;
+         dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
+         dest_path : constant String := dest_dir & LAT.Solidus & pkgname;
+      begin
+         if not DIR.Exists (dest_path) then
+            if DIR.Exists (src_path) then
+               if DIR.Exists (dest_dir) then
+                  DIR.Copy_File (Source_Name => src_path, Target_Name => dest_path);
+               else
+                  TIO.Put_Line ("Package directory " & dest_path & " does not exist");
+                  return False;
+               end if;
+            else
+               TIO.Put_Line ("Compiler package " & src_path & " does not exist");
+               return False;
+            end if;
+         end if;
+         return True;
+      exception
+         when others =>
+            TIO.Put_Line ("Failed to copy " & src_path & " to " & dest_path);
+            return False;
+      end package_copy;
+   begin
+      return package_copy ("ada_run") and then
+        package_copy ("compilers") and then
+        package_copy ("complete") and then
+        package_copy ("cxx_run") and then
+        package_copy ("fortran") and then
+        package_copy ("infopages") and then
+        package_copy ("libs");
+   end install_compiler_packages;
+
 end Pilot;

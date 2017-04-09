@@ -416,7 +416,11 @@ package body PortScan.Packager is
          pkgname    : String := namebase & LAT.Hyphen & HT.USS (sprec.subpackage) & LAT.Hyphen &
                                 variant;
       begin
-         write_pkg_dep (pkgname, pkgversion, portkey);
+         if namebase = default_compiler then
+            write_pkg_dep (pkgname, compiler_version, portkey);
+         else
+            write_pkg_dep (pkgname, pkgversion, portkey);
+         end if;
       end assemble_origins;
 
       procedure scan (position : subpackage_crate.Cursor)

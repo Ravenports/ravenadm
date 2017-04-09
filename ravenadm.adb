@@ -208,7 +208,8 @@ begin
          --------------------------------
          --  build command
          --------------------------------
-         if Pilot.scan_stack_of_single_ports (always_build => False) and then
+         if Pilot.install_compiler_packages and then
+           Pilot.scan_stack_of_single_ports (always_build => False) and then
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
@@ -218,7 +219,8 @@ begin
          --------------------------------
          --  force command
          --------------------------------
-         if Pilot.scan_stack_of_single_ports (always_build => False) and then
+         if Pilot.install_compiler_packages and then
+           Pilot.scan_stack_of_single_ports (always_build => False) and then
            Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
@@ -263,7 +265,8 @@ begin
          --------------------------------
          --  test command
          --------------------------------
-         if Pilot.scan_stack_of_single_ports (always_build => True) and then
+         if Pilot.install_compiler_packages and then
+           Pilot.scan_stack_of_single_ports (always_build => True) and then
            Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
          then
             if Pilot.interact_with_single_builder then
