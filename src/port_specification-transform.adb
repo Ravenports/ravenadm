@@ -1044,6 +1044,7 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.qmake_args);
       apply_cbc_string_crate (specs.lic_files);
       apply_cbc_string_crate (specs.plist_sub);
+      apply_cbc_string_crate (specs.mk_verbatim);
 
    end apply_curly_bracket_conversions;
 
