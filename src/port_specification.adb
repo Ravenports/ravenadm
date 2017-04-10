@@ -65,6 +65,7 @@ package body Port_Specification is
       specs.destdir_env   := False;
       specs.single_job    := False;
       specs.shift_install := False;
+      specs.fatal_rpath   := True;
       specs.build_wrksrc  := HT.blank;
       specs.makefile      := HT.blank;
       specs.destdirname   := HT.blank;
@@ -1134,6 +1135,8 @@ package body Port_Specification is
             specs.shift_install := value;
          when sp_skip_ccache =>
             specs.skip_ccache := value;
+         when sp_rpath_warning =>
+            specs.fatal_rpath := False;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2446,6 +2449,15 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  rpath_check_errors_are_fatal
+   --------------------------------------------------------------------------------------------
+   function rpath_check_errors_are_fatal (specs : Portspecs) return Boolean is
+   begin
+      return specs.fatal_rpath;
+   end rpath_check_errors_are_fatal;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
@@ -3166,6 +3178,7 @@ package body Port_Specification is
             when sp_cfg_outsrc     => TIO.Put_Line (specs.config_outsrc'Img);
             when sp_inst_tchain    => TIO.Put_Line (specs.shift_install'Img);
             when sp_skip_ccache    => TIO.Put_Line (specs.skip_ccache'Img);
+            when sp_rpath_warning  => TIO.Put_Line (specs.fatal_rpath'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -3237,6 +3250,7 @@ package body Port_Specification is
       print_vector_list ("CONFIGURE_ARGS", sp_config_args);
       print_vector_list ("CONFIGURE_ENV", sp_config_env);
       print_single      ("GNU_CONFIGURE_PREFIX", sp_gnu_cfg_prefix);
+      print_boolean     ("RPATH_CHECK_FATAL", sp_rpath_warning);
       print_boolean     ("APPLY_F10_FIX", sp_apply_f10_fix);
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);

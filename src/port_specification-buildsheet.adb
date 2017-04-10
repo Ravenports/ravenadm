@@ -34,7 +34,7 @@ package body Port_Specification.Buildsheet is
       procedure send (varname : String; crate : string_crate.Vector; flavor : Positive);
       procedure send (varname : String; crate : def_crate.Map);
       procedure send (varname : String; crate : list_crate.Map);
-      procedure send (varname : String; value : Boolean; dummy : Boolean);
+      procedure send (varname : String; value : Boolean; show_when : Boolean);
       procedure send_options;
       procedure send_targets;
       procedure send_descriptions;
@@ -147,9 +147,9 @@ package body Port_Specification.Buildsheet is
          crate.Iterate (Process => dump_sites'Access);
       end send;
 
-      procedure send (varname : String; value : Boolean; dummy : Boolean) is
+      procedure send (varname : String; value : Boolean; show_when : Boolean) is
       begin
-         if value then
+         if value = show_when then
             send (align24 (varname & LAT.Equals_Sign) & "yes");
          end if;
       end send;
@@ -632,6 +632,7 @@ package body Port_Specification.Buildsheet is
       send ("PATCH_STRIP",          specs.patch_strip, 2);
       send ("PATCHFILES_STRIP",     specs.patchfiles, 2);
       blank_line;
+      send ("INVALID_RPATH",        specs.fatal_rpath, False);
       send ("MUST_CONFIGURE",       specs.config_must);
       send ("GNU_CONFIGURE_PREFIX", specs.config_prefix);
       send ("CONFIGURE_OUTSOURCE",  specs.config_outsrc, True);

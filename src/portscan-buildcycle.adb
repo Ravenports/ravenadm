@@ -39,6 +39,7 @@ package body PortScan.Buildcycle is
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
+      trackers (id).path_fatal := specification.rpath_check_errors_are_fatal;
       if not LOG.initialize_log (log_handle => trackers (id).log_handle,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
@@ -815,9 +816,20 @@ package body PortScan.Buildcycle is
    function passed_runpath_check (id : builders) return Boolean
    is
       procedure scan (position : string_crate.Cursor);
+      function errmsg_prefix return String;
 
       result : Boolean := True;
       root   : constant String := get_root (id);
+      fail_result : Boolean := not trackers (id).path_fatal;
+
+      function errmsg_prefix return String is
+      begin
+         if trackers (id).path_fatal then
+            return "### FATAL ERROR ###  ";
+         else
+            return "### WARNING ###  ";
+         end if;
+      end errmsg_prefix;
 
       procedure scan (position : string_crate.Cursor)
       is
@@ -827,7 +839,7 @@ package body PortScan.Buildcycle is
          lib_text  : HT.Text := HT.SUS (library);
          numfields : Natural := HT.count_char (paths, LAT.Colon) + 1;
          tempstor  : string_crate.Vector;
-         errmsg    : String := "### FATAL ERROR ###  " & library &
+         errmsg    : String := errmsg_prefix & library &
                      " is not in located in /usr/lib or within the RPATH/RUNPATH";
          systemlib : String := "/usr/lib/" & library;
          attempted : Boolean := False;
@@ -845,7 +857,7 @@ package body PortScan.Buildcycle is
 
          if paths = "" then
             TIO.Put_Line (trackers (id).log_handle, errmsg);
-            result := False;
+            result := fail_result;
             return;
          end if;
 
@@ -872,7 +884,7 @@ package body PortScan.Buildcycle is
          if attempted then
             TIO.Put_Line (trackers (id).log_handle, errmsg);
          end if;
-         result := False;
+         result := fail_result;
       end scan;
    begin
       trackers (id).runpaths.Iterate (scan'Access);

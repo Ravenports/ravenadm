@@ -404,6 +404,7 @@ package body Specification_Parser is
                      when destdir_env      => set_boolean (spec, PSP.sp_destdir_env, line);
                      when config_outsource => set_boolean (spec, PSP.sp_cfg_outsrc, line);
                      when shift_install    => set_boolean (spec, PSP.sp_inst_tchain, line);
+                     when invalid_rpath    => set_boolean (spec, PSP.sp_rpath_warning, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -966,7 +967,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 95;
+      total_singlets : constant Positive := 96;
 
       type singlet_pair is
          record
@@ -1030,6 +1031,7 @@ package body Specification_Parser is
          ("INSTALL_REQ_TOOLCHAIN ", 21, shift_install),
          ("INSTALL_TARGET        ", 14, install_tgt),
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
+         ("INVALID_RPATH         ", 13, invalid_rpath),
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
          ("LICENSE               ",  7, licenses),
