@@ -214,6 +214,7 @@ package body Port_Specification.Transform is
       end copy_option_over;
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
+      apply_extraction_deps (specs);
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
       apply_makeinfo_module (specs);
@@ -1235,5 +1236,18 @@ package body Port_Specification.Transform is
                                              Process  => grow'Access);
       end if;
    end add_exrun_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_extraction_deps
+   --------------------------------------------------------------------------------------------
+   procedure apply_extraction_deps (specs : in out Portspecs) is
+   begin
+      --  unzip is already in base
+      if not specs.extract_7z.Is_Empty then
+         add_build_depends (specs, "p7zip:primary:standard");
+      end if;
+      --  TODO: placeholder for LHA
+   end apply_extraction_deps;
 
 end Port_Specification.Transform;

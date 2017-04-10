@@ -293,7 +293,7 @@ package body Port_Specification.Makefile is
       is
          N : String := HT.USS (string_crate.Element (position));
       begin
-         send ("EXTRACT_HEAD_" & N & "=7z x -bd -y -o${EXTRACT_WRKDIR_" & N & "} >/dev/null");
+         send ("EXTRACT_HEAD_" & N & "=7z x -y -o${EXTRACT_WRKDIR_" & N & "} >/dev/null");
          send ("EXTRACT_TAIL_" & N & "=# empty");
       end dump_ext_7z;
 
