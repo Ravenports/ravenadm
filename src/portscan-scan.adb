@@ -892,6 +892,20 @@ package body PortScan.Scan is
       end scan;
    begin
       portlist.Iterate (Process => scan'Access);
+      if successful and then
+        not portlist.Contains (HT.SUS (default_compiler & ":" & variant_standard))
+      then
+         --  We always need current information on the default compiler
+         if not scan_single_port (namebase     => default_compiler,
+                                  variant      => variant_standard,
+                                  always_build => always_build,
+                                  sysrootver   => sysrootver,
+                                  fatal        => just_stop_now)
+         then
+            TIO.Put_Line ("Scan of the compiler port failed, fatal issue");
+            successful := False;
+         end if;
+      end if;
       return successful;
    end scan_provided_list_of_ports;
 
