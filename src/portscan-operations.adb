@@ -529,6 +529,10 @@ package body PortScan.Operations is
    procedure delete_existing_packages_of_ports_list
    is
       procedure force_delete (plcursor : string_crate.Cursor);
+
+      compkey  : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      compiler : constant port_index := ports_keys.Element (compkey);
+
       procedure force_delete (plcursor : string_crate.Cursor)
       is
          procedure delete_subpackage (position : subpackage_crate.Cursor);
@@ -544,8 +548,11 @@ package body PortScan.Operations is
             tball      : constant String := repo &
                          PortScan.calculate_package_name (pndx, subpackage) & arc_ext;
          begin
-            if DIR.Exists (tball) then
-               DIR.Delete_File (tball);
+            --  Never delete the port compiler's packages
+            if pndx /= compiler then
+               if DIR.Exists (tball) then
+                  DIR.Delete_File (tball);
+               end if;
             end if;
          end delete_subpackage;
 
@@ -1263,9 +1270,10 @@ package body PortScan.Operations is
    --  limited_sanity_check
    --------------------------------------------------------------------------------------------
    procedure limited_sanity_check
-     (repository      : String;
-      dry_run         : Boolean;
-      suppress_remote : Boolean)
+     (repository       : String;
+      dry_run          : Boolean;
+      rebuild_compiler : Boolean;
+      suppress_remote  : Boolean)
    is
       procedure prune_packages (cursor : ranking_crate.Cursor);
       procedure check_package (cursor : ranking_crate.Cursor);
@@ -1277,6 +1285,8 @@ package body PortScan.Operations is
       procedure set_delete  (Element : in out subpackage_record);
       procedure kill_remote (Element : in out subpackage_record);
 
+      compkey       : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      compiler      : constant port_index := ports_keys.Element (compkey);
       already_built : subpackage_queue.Vector;
       fetch_list    : subpackage_queue.Vector;
       prune_list    : subqueue.Vector;
@@ -1321,9 +1331,13 @@ package body PortScan.Operations is
                                         query_result => rec.pkg_dep_query,
                                         id           => target)
             then
-               already_built.Append (New_Item => newrec);
-               if rec.remote_pkg then
-                  fetch_list.Append (New_Item => newrec);
+               if not rebuild_compiler or else
+                 target /= compiler
+               then
+                  already_built.Append (New_Item => newrec);
+                  if rec.remote_pkg then
+                     fetch_list.Append (New_Item => newrec);
+                  end if;
                end if;
             else
                if rec.remote_pkg then

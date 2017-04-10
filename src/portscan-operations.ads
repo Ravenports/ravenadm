@@ -72,9 +72,10 @@ package PortScan.Operations is
    --  unrelated to upcoming build) are not removed; this would occur in
    --  clean_repository().  These old packages will not interfere at this step.
    procedure limited_sanity_check
-     (repository      : String;
-      dry_run         : Boolean;
-      suppress_remote : Boolean);
+     (repository       : String;
+      dry_run          : Boolean;
+      rebuild_compiler : Boolean;
+      suppress_remote  : Boolean);
 
    --  Unconditionally copies web assets to <log directory/report directory
    --  It also provides an initial summary.json data file just the report has something to load

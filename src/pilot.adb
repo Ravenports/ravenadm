@@ -616,9 +616,10 @@ package body Pilot is
       end if;
 
       OPS.run_start_hook;
-      OPS.limited_sanity_check (repository => HT.USS (PM.configuration.dir_repository),
-                                dry_run    => dry_run,
-                                suppress_remote => block_remote);
+      OPS.limited_sanity_check (repository       => HT.USS (PM.configuration.dir_repository),
+                                dry_run          => dry_run,
+                                rebuild_compiler => delete_first,
+                                suppress_remote  => block_remote);
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
       if dry_run then
          return True;
@@ -1004,7 +1005,7 @@ package body Pilot is
         package_copy ("compilers") and then
         package_copy ("complete") and then
         package_copy ("cxx_run") and then
-        package_copy ("fortran") and then
+        package_copy ("fortran_run") and then
         package_copy ("infopages") and then
         package_copy ("libs");
    end install_compiler_packages;
