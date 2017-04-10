@@ -78,6 +78,12 @@ private
       option_name   : String;
       setting       : Boolean);
 
+   procedure skeleton_compiler_data
+     (conspiracy    : String;
+      unkindness    : String;
+      target        : port_index;
+      sysrootver    : sysroot_characteristics);
+
    procedure iterate_reverse_deps;
    procedure iterate_drill_down;
 

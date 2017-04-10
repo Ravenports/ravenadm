@@ -374,6 +374,78 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
+   --  skeleton_compiler_data
+   --------------------------------------------------------------------------------------------
+   procedure skeleton_compiler_data
+     (conspiracy    : String;
+      unkindness    : String;
+      target        : port_index;
+      sysrootver    : sysroot_characteristics)
+   is
+      rec : port_record renames all_ports (target);
+      function calc_dossier return String;
+
+      thespec    : PSP.Portspecs;
+      successful : Boolean;
+      variant    : constant String := HT.USS (rec.port_variant);
+      osrelease  : constant String := HT.USS (sysrootver.release);
+
+      function calc_dossier return String
+      is
+         buildsheet : String := "/bucket_" & rec.bucket & "/" & HT.USS (rec.port_namebase);
+      begin
+         if rec.unkind_custom then
+            return unkindness & buildsheet;
+         else
+            return conspiracy & buildsheet;
+         end if;
+      end calc_dossier;
+   begin
+      PAR.parse_specification_file (dossier         => calc_dossier,
+                                    specification   => thespec,
+                                    opsys_focus     => platform_type,
+                                    arch_focus      => sysrootver.arch,
+                                    success         => successful,
+                                    stop_at_targets => True);
+      if not successful then
+         raise bsheet_parsing
+           with calc_dossier & "-> " & PAR.get_parse_error;
+      end if;
+
+      PST.set_option_defaults
+        (specs         => thespec,
+         variant       => variant,
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => osrelease);
+
+      --  TODO: implement option caching and determination (changes next line)
+      PST.set_option_to_default_values (specs => thespec);
+
+      PST.set_outstanding_ignore
+        (specs         => thespec,
+         variant       => variant,
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => osrelease,
+         osmajor       => HT.USS (sysrootver.major));
+
+      PST.apply_directives
+        (specs         => thespec,
+         variant       => variant,
+         arch_standard => sysrootver.arch,
+         osmajor       => HT.USS (sysrootver.major));
+
+      rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
+      rec.ignore_reason := HT.SUS (thespec.aggregated_ignore_reason);
+      rec.ignored       := not HT.IsBlank (rec.ignore_reason);
+      rec.scanned       := False;
+
+   end skeleton_compiler_data;
+
+
+
+   --------------------------------------------------------------------------------------------
    --  populate_port_data
    --------------------------------------------------------------------------------------------
    procedure populate_port_data
@@ -860,8 +932,9 @@ package body PortScan.Scan is
    is
       procedure scan (plcursor : string_crate.Cursor);
 
-      successful : Boolean := True;
+      successful    : Boolean := True;
       just_stop_now : Boolean;
+      compiler_key  : HT.Text := HT.SUS (default_compiler & ":" & variant_standard);
 
       procedure scan (plcursor : string_crate.Cursor)
       is
@@ -893,18 +966,19 @@ package body PortScan.Scan is
    begin
       portlist.Iterate (Process => scan'Access);
       if successful and then
-        not portlist.Contains (HT.SUS (default_compiler & ":" & variant_standard))
+        not portlist.Contains (compiler_key)
       then
          --  We always need current information on the default compiler
-         if not scan_single_port (namebase     => default_compiler,
-                                  variant      => variant_standard,
-                                  always_build => always_build,
-                                  sysrootver   => sysrootver,
-                                  fatal        => just_stop_now)
-         then
-            TIO.Put_Line ("Scan of the compiler port failed, fatal issue");
-            successful := False;
-         end if;
+         begin
+            skeleton_compiler_data (conspiracy => HT.USS (PM.configuration.dir_conspiracy),
+                                    unkindness => HT.USS (PM.configuration.dir_unkindness),
+                                    target     => ports_keys.Element (compiler_key),
+                                    sysrootver => sysrootver);
+         exception
+            when others =>
+               TIO.Put_Line ("Scan of the compiler port failed, fatal issue");
+               successful := False;
+         end;
       end if;
       return successful;
    end scan_provided_list_of_ports;
