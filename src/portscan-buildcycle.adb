@@ -61,7 +61,11 @@ package body PortScan.Buildcycle is
                                         phase_name    => phase2str (phase),
                                         id            => id);
 
-            when  fetch | checksum | extract | patch =>
+            when  fetch =>
+               REP.hook_toolchain (id);
+               R := exec_phase_generic (id, phase);
+
+            when  checksum | extract | patch =>
                R := exec_phase_generic (id, phase);
 
             when configure =>

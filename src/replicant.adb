@@ -861,7 +861,6 @@ package body Replicant is
       folder_access (location (slave_base, root), lock);
 
       mount_nullfs (mount_target (xports),    location (slave_base, xports));
-      mount_nullfs (mount_target (toolchain), location (slave_base, toolchain));
       mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
