@@ -183,6 +183,7 @@ package body Port_Specification.Transform is
             augment (install_target_on,    rec.INSTALL_TARGET_ON);
             augment (keywords_on,          rec.KEYWORDS_ON);
             augment (ldflags_on,           rec.LDFLAGS_ON);
+            augment (makefile_on,          rec.MAKEFILE_ON);
             augment (make_args_on,         rec.MAKE_ARGS_ON);
             augment (make_env_on,          rec.MAKE_ENV_ON);
             augment (patchfiles_on,        rec.PATCHFILES_ON);
@@ -198,6 +199,7 @@ package body Port_Specification.Transform is
             augment (build_depends_off,    rec.BUILD_DEPENDS_OFF);
             augment (cmake_args_off,       rec.CMAKE_ARGS_OFF);
             augment (configure_args_off,   rec.CONFIGURE_ARGS_OFF);
+            augment (makefile_off,         rec.MAKEFILE_OFF);
             augment (qmake_off,            rec.QMAKE_OFF);
             augment (run_depends_off,      rec.RUN_DEPENDS_OFF);
             augment (uses_off,             rec.USES_OFF);
