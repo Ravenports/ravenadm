@@ -468,9 +468,7 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    --  ravenexec_missing
    --------------------------------------------------------------------------------------------
-   function ravenexec_missing return Boolean
-   is
-      ravenexec : constant String := host_localbase & "/libexec/ravenexec";
+   function ravenexec_missing return Boolean is
    begin
       if DIR.Exists (ravenexec) then
          return False;

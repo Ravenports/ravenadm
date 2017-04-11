@@ -1383,7 +1383,6 @@ package body PortScan.Buildcycle is
       lock_lines  : Natural;
       quartersec  : one_minute := one_minute'First;
       hangmonitor : constant Boolean := True;
-      ravenexec   : constant String := host_localbase & "/libexec/ravenexec";
       truecommand : constant String := ravenexec & " " &
                              LOG.log_name (trackers (id).seq_id) & " " & command;
    begin

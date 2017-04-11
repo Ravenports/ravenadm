@@ -60,7 +60,7 @@ private
 
    abnormal_cmd_logname : constant String := "05_abnormal_command_output.log";
 
-   raven_sysroot   : constant String := host_localbase & "/share/raven-sysroot/" &
+   raven_sysroot   : constant String := host_localbase & "/share/raven/sysroot/" &
                                          UTL.mixed_opsys (platform_type);
 
    type mount_mode is (readonly, readwrite);

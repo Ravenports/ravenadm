@@ -470,7 +470,6 @@ package body PortScan.Packager is
       pid         : Unix.pid_t;
       status      : Unix.process_exit;
       hangmonitor : constant Boolean := True;
-      ravenexec   : constant String := host_localbase & "/libexec/ravenexec";
       truecommand : constant String := ravenexec & " " & name_of_log & " " & command;
    begin
       pid := Unix.launch_process (truecommand);
