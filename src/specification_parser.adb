@@ -37,6 +37,7 @@ package body Specification_Parser is
 
       contents      : constant String  := FOP.get_file_contents (dossier);
       stop_at_files : constant Boolean := (extraction_dir = "");
+      converting    : constant Boolean := not stop_at_targets and then stop_at_files;
       match_opsys   : constant String  := UTL.lower_opsys (opsys_focus);
       match_arch    : constant String  := UTL.cpu_arch (arch_focus);
       markers       : HT.Line_Markers;
@@ -456,16 +457,20 @@ package body Specification_Parser is
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
-                        verify_extra_file_exists (specfile  => dossier,
-                                                  line      => line,
-                                                  is_option => False,
-                                                  sub_file  => False);
+                        if converting then
+                           verify_extra_file_exists (specfile  => dossier,
+                                                     line      => line,
+                                                     is_option => False,
+                                                     sub_file  => False);
+                        end if;
                      when sub_files        =>
                         build_list (spec, PSP.sp_sub_files, line);
-                        verify_extra_file_exists (specfile  => dossier,
-                                                  line      => line,
-                                                  is_option => False,
-                                                  sub_file  => True);
+                        if converting then
+                           verify_extra_file_exists (specfile  => dossier,
+                                                     line      => line,
+                                                     is_option => False,
+                                                     sub_file  => True);
+                        end if;
                      when diode            => null;
                      when not_singlet      => null;
                   end case;
@@ -523,17 +528,19 @@ package body Specification_Parser is
                      end if;
                      build_list (specification, line_option, option_name, line);
                      last_optindex := HT.SUS (option_name);
-                     if line_option = PSP.extra_patches_on then
-                        verify_extra_file_exists (specfile  => dossier,
-                                                  line      => line,
-                                                  is_option => True,
-                                                  sub_file  => False);
-                     end if;
-                     if line_option = PSP.sub_files_on then
-                        verify_extra_file_exists (specfile  => dossier,
-                                                  line      => line,
-                                                  is_option => True,
-                                                  sub_file  => True);
+                     if converting then
+                        if line_option = PSP.extra_patches_on then
+                           verify_extra_file_exists (specfile  => dossier,
+                                                     line      => line,
+                                                     is_option => True,
+                                                     sub_file  => False);
+                        end if;
+                        if line_option = PSP.sub_files_on then
+                           verify_extra_file_exists (specfile  => dossier,
+                                                     line      => line,
+                                                     is_option => True,
+                                                     sub_file  => True);
+                        end if;
                      end if;
                   end;
                   last_option := line_option;
