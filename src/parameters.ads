@@ -129,9 +129,9 @@ private
    std_localbase  : constant String := "/raven";
    std_distfiles  : constant String := raven_var & "/distfiles";
    std_conspiracy : constant String := raven_var & "/conspiracy";
-   std_sysroot    : constant String := std_localbase & "/share/raven-sysroot/" &
+   std_sysroot    : constant String := std_localbase & "/share/raven/sysroot/" &
                                        UTL.mixed_opsys (platform_type);
-   std_toolchain  : constant String := std_localbase & "/toolchain";
+   std_toolchain  : constant String := std_localbase & "/share/raven/toolchain";
 
    procedure query_physical_memory;
    procedure query_physical_memory_linux;
