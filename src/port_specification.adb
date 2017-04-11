@@ -2461,6 +2461,15 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  debugging_is_on
+   --------------------------------------------------------------------------------------------
+   function debugging_is_on (specs : Portspecs) return Boolean is
+   begin
+      return specs.debugging_on;
+   end debugging_is_on;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean

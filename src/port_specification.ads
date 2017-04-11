@@ -220,6 +220,9 @@ package Port_Specification is
    --  Return True if rpath check failures need to break the build.
    function rpath_check_errors_are_fatal (specs : Portspecs) return Boolean;
 
+   --  Return True if debugging is set on.
+   function debugging_is_on (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;

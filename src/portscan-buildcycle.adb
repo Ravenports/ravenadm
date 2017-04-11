@@ -39,7 +39,8 @@ package body PortScan.Buildcycle is
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
-      trackers (id).path_fatal := specification.rpath_check_errors_are_fatal;
+      trackers (id).check_strip := not specification.debugging_is_on;
+      trackers (id).rpath_fatal := specification.rpath_check_errors_are_fatal;
       if not LOG.initialize_log (log_handle => trackers (id).log_handle,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
@@ -747,7 +748,11 @@ package body PortScan.Buildcycle is
                filename   : constant String := HT.extract_line (comres, markers);
                unstripped : Boolean;
             begin
-               if dynamically_linked (root, filename, unstripped) then
+               if dynamically_linked (base        => root,
+                                      filename    => filename,
+                                      strip_check => trackers (id).check_strip,
+                                      unstripped  => unstripped)
+               then
                   stack_linked_libraries (id, root, filename);
                   if not passed_runpath_check (id) then
                      result := False;
@@ -778,7 +783,11 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  dynamically_linked
    --------------------------------------------------------------------------------------------
-   function dynamically_linked (base, filename : String; unstripped : out Boolean) return Boolean
+   function dynamically_linked
+     (base        : String;
+      filename    : String;
+      strip_check : Boolean;
+      unstripped  : out Boolean) return Boolean
    is
       command : String :=
         chroot & base & " /usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
@@ -797,9 +806,11 @@ package body PortScan.Buildcycle is
             statlinked := HT.contains (comres,  "statically linked");
          end if;
 
-         if dynlinked or else statlinked then
-            if HT.contains (comres, ", not stripped") then
-               unstripped := True;
+         if strip_check then
+            if dynlinked or else statlinked then
+               if HT.contains (comres, ", not stripped") then
+                  unstripped := True;
+               end if;
             end if;
          end if;
          return dynlinked;
@@ -820,11 +831,11 @@ package body PortScan.Buildcycle is
 
       result : Boolean := True;
       root   : constant String := get_root (id);
-      fail_result : Boolean := not trackers (id).path_fatal;
+      fail_result : Boolean := not trackers (id).rpath_fatal;
 
       function errmsg_prefix return String is
       begin
-         if trackers (id).path_fatal then
+         if trackers (id).rpath_fatal then
             return "### FATAL ERROR ###  ";
          else
             return "### WARNING ###  ";

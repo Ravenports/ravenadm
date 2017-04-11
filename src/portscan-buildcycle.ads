@@ -55,15 +55,16 @@ private
 
    type trackrec is
       record
-         seq_id     : port_id;
-         head_time  : CAL.Time;
-         tail_time  : CAL.Time;
-         log_handle : aliased TIO.File_Type;
-         dynlink    : string_crate.Vector;
-         runpaths   : string_crate.Vector;
-         checkpaths : string_crate.Vector;
-         path_fatal : Boolean;
-         loglines   : Natural := 0;
+         seq_id      : port_id;
+         head_time   : CAL.Time;
+         tail_time   : CAL.Time;
+         log_handle  : aliased TIO.File_Type;
+         dynlink     : string_crate.Vector;
+         runpaths    : string_crate.Vector;
+         checkpaths  : string_crate.Vector;
+         rpath_fatal : Boolean;
+         check_strip : Boolean;
+         loglines    : Natural := 0;
       end record;
 
    type dim_trackers       is array (builders) of trackrec;
@@ -115,19 +116,26 @@ private
    function  generic_system_command (command : String) return String;
    function  get_root (id : builders) return String;
    function  environment_override (id : builders; enable_tty : Boolean := False) return String;
-   function  dynamically_linked (base, filename : String; unstripped : out Boolean) return Boolean;
    function  passed_runpath_check (id : builders) return Boolean;
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
    function  get_port_prefix (id : builders) return String;
+
    function  generic_execute
      (id         : builders;
       command    : String;
       dogbite    : out Boolean;
       time_limit : execution_limit) return Boolean;
+
    function  exec_phase_depends
      (specification : PSP.Portspecs;
       phase_name    : String;
       id            : builders) return Boolean;
+
+   function  dynamically_linked
+     (base        : String;
+      filename    : String;
+      strip_check : Boolean;
+      unstripped  : out Boolean) return Boolean;
 
 end PortScan.Buildcycle;
