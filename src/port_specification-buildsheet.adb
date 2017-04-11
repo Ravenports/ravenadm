@@ -662,6 +662,7 @@ package body Port_Specification.Buildsheet is
       send ("SUB_FILES",            specs.sub_files, 1);
       send ("SUB_LIST",             specs.sub_list, 1);
       blank_line;
+      send ("SET_DEBUGGING_ON",     specs.debugging_on, True);
       send ("CFLAGS",               specs.cflags, 1);
       send ("CXXFLAGS",             specs.cxxflags, 1);
       send ("CPPFLAGS",             specs.cppflags, 1);
@@ -674,8 +675,6 @@ package body Port_Specification.Buildsheet is
       --  TODO
       --  MANPREFIX[x] (needs imp, doc)
       --  RC_SUBR (array spkg), (needs imp, doc)
-      --  WITH_DEBUG (?)
-      --  DEBUG_FLAGS (?)
 
       send_options;
       send_targets;

@@ -65,6 +65,7 @@ package body Port_Specification is
       specs.destdir_env   := False;
       specs.single_job    := False;
       specs.shift_install := False;
+      specs.debugging_on  := False;
       specs.fatal_rpath   := True;
       specs.build_wrksrc  := HT.blank;
       specs.makefile      := HT.blank;
@@ -1137,6 +1138,8 @@ package body Port_Specification is
             specs.skip_ccache := value;
          when sp_rpath_warning =>
             specs.fatal_rpath := False;
+         when sp_debugging =>
+            specs.debugging_on := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3179,6 +3182,7 @@ package body Port_Specification is
             when sp_inst_tchain    => TIO.Put_Line (specs.shift_install'Img);
             when sp_skip_ccache    => TIO.Put_Line (specs.skip_ccache'Img);
             when sp_rpath_warning  => TIO.Put_Line (specs.fatal_rpath'Img);
+            when sp_debugging      => TIO.Put_Line (specs.debugging_on'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -3258,6 +3262,7 @@ package body Port_Specification is
       print_boolean     ("SKIP_CCACHE", sp_skip_ccache);
       print_boolean     ("INSTALL_REQ_TOOLCHAIN", sp_inst_tchain);
       print_boolean     ("SINGLE_JOB", sp_single_job);
+      print_boolean     ("SET_DEBUGGING_ON", sp_debugging);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
       print_single      ("MAKEFILE", sp_makefile);

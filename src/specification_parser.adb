@@ -405,6 +405,7 @@ package body Specification_Parser is
                      when config_outsource => set_boolean (spec, PSP.sp_cfg_outsrc, line);
                      when shift_install    => set_boolean (spec, PSP.sp_inst_tchain, line);
                      when invalid_rpath    => set_boolean (spec, PSP.sp_rpath_warning, line);
+                     when debugging        => set_boolean (spec, PSP.sp_debugging, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -967,7 +968,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 96;
+      total_singlets : constant Positive := 98;
 
       type singlet_pair is
          record
@@ -1007,6 +1008,7 @@ package body Specification_Parser is
          ("CPE_VERSION           ", 11, catchall),
          ("CPPFLAGS              ",  8, cppflags),
          ("CXXFLAGS              ",  8, cxxflags),
+         ("DEBUG_FLAGS           ", 11, catchall),
          ("DEPRECATED            ", 10, deprecated),
          ("DESTDIRNAME           ", 11, destdirname),
          ("DESTDIR_VIA_ENV       ", 15, destdir_env),
@@ -1060,6 +1062,7 @@ package body Specification_Parser is
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),
+         ("SET_DEBUGGING_ON      ", 16, debugging),
          ("SHEBANG_FILES         ", 13, catchall),
          ("SHEBANG_GLOB          ", 12, catchall),
          ("SHEBANG_LANG          ", 12, catchall),

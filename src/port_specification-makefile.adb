@@ -707,6 +707,7 @@ package body Port_Specification.Makefile is
       send ("MAKE_ENV",         specs.make_env, 1);
       send ("MAKE_ARGS",        specs.make_args, 1);
       send ("OPTIMIZER_LEVEL",  specs.optimizer_lvl, 2);
+      send ("WITH_DEBUG",       specs.debugging_on, True);
       send ("CFLAGS",           specs.cflags, 1);
       send ("CXXFLAGS",         specs.cxxflags, 1);
       send ("CPPFLAGS",         specs.cppflags, 1);
