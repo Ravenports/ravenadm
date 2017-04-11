@@ -432,7 +432,6 @@ package body Specification_Parser is
                      when ldflags          => build_list (spec, PSP.sp_ldflags, line);
                      when patchfiles       => build_list (spec, PSP.sp_patchfiles, line);
                      when uses             => build_list (spec, PSP.sp_uses, line);
-                     when sub_files        => build_list (spec, PSP.sp_sub_files, line);
                      when sub_list         => build_list (spec, PSP.sp_sub_list, line);
                      when config_args      => build_list (spec, PSP.sp_config_args, line);
                      when config_env       => build_list (spec, PSP.sp_config_env, line);
@@ -457,7 +456,16 @@ package body Specification_Parser is
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
-                        verify_extra_patch_exists (dossier, line, False);
+                        verify_extra_file_exists (specfile  => dossier,
+                                                  line      => line,
+                                                  is_option => False,
+                                                  sub_file  => False);
+                     when sub_files        =>
+                        build_list (spec, PSP.sp_sub_files, line);
+                        verify_extra_file_exists (specfile  => dossier,
+                                                  line      => line,
+                                                  is_option => False,
+                                                  sub_file  => True);
                      when diode            => null;
                      when not_singlet      => null;
                   end case;
@@ -516,7 +524,16 @@ package body Specification_Parser is
                      build_list (specification, line_option, option_name, line);
                      last_optindex := HT.SUS (option_name);
                      if line_option = PSP.extra_patches_on then
-                        verify_extra_patch_exists (dossier, line, True);
+                        verify_extra_file_exists (specfile  => dossier,
+                                                  line      => line,
+                                                  is_option => True,
+                                                  sub_file  => False);
+                     end if;
+                     if line_option = PSP.sub_files_on then
+                        verify_extra_file_exists (specfile  => dossier,
+                                                  line      => line,
+                                                  is_option => True,
+                                                  sub_file  => True);
                      end if;
                   end;
                   last_option := line_option;
@@ -2070,29 +2087,83 @@ package body Specification_Parser is
 
 
    --------------------------------------------------------------------------------------------
-   --  verify_extra_patch_exists
+   --  verify_extra_file_exists
    --------------------------------------------------------------------------------------------
-   procedure verify_extra_patch_exists (specfile : String; line : String; is_option : Boolean)
+   procedure verify_extra_file_exists
+     (specfile  : String;
+      line      : String;
+      is_option : Boolean;
+      sub_file  : Boolean)
    is
-      function get_patchfile return String;
+      function get_payload return String;
+      function get_full_filename (basename : String) return String;
+      procedure perform_check (filename : String);
 
-      filesdir  : String := DIR.Containing_Directory (specfile) & "/files";
+      arrow      : Natural;
+      word_start : Natural;
+      filesdir   : String := DIR.Containing_Directory (specfile) & "/files";
 
-      function get_patchfile return String is
+      function get_payload return String is
       begin
          if is_option then
             return retrieve_single_option_value (line);
          else
             return retrieve_single_value (line);
          end if;
-      end get_patchfile;
+      end get_payload;
 
-      patchfile : String := get_patchfile;
+      function get_full_filename (basename : String) return String is
+      begin
+         if sub_file then
+            return basename & ".in";
+         else
+            return basename;
+         end if;
+      end get_full_filename;
+
+      procedure perform_check (filename : String)
+      is
+         adjusted_filename : String := get_full_filename (filename);
+      begin
+         if not DIR.Exists (filesdir & "/" & adjusted_filename) then
+            raise missing_file with "'" & adjusted_filename & "' is missing from files directory";
+         end if;
+      end perform_check;
+
+      strvalue : String := get_payload;
    begin
-      if not DIR.Exists (filesdir & "/" & patchfile) then
-         raise missing_file with "Extra patch '" & patchfile & "' is missing";
+
+      --  Handle single item case
+      if not HT.contains (S => strvalue, fragment => " ") then
+         perform_check (strvalue);
+         return;
       end if;
-   end verify_extra_patch_exists;
+
+      declare
+         mask : constant String := UTL.mask_quoted_string (strvalue);
+      begin
+         if HT.contains (S => mask, fragment => "  ") or else
+           mask (mask'First) = LAT.Space
+         then
+            raise extra_spaces;
+         end if;
+
+         --  Now we have multiple list items separated by single spaces
+         --  We know the original line has no trailing spaces too, btw.
+         word_start := strvalue'First;
+         arrow := word_start;
+         loop
+            exit when arrow > strvalue'Last;
+            if mask (arrow) = LAT.Space then
+               perform_check (strvalue (word_start .. arrow - 1));
+               word_start := arrow + 1;
+            end if;
+            arrow := arrow + 1;
+         end loop;
+      end;
+      perform_check (strvalue (word_start .. strvalue'Last));
+
+   end verify_extra_file_exists;
 
 
 end Specification_Parser;

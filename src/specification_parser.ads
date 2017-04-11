@@ -193,7 +193,11 @@ private
    --  loads raven.information.mk and returns result of "make -V <varname>"
    function extract_information (varname : String) return HT.Text;
 
-   --  Throws missing_file exception if the indicated patch file does not exist
-   procedure verify_extra_patch_exists (specfile : String; line : String; is_option : Boolean);
+   --  Throws missing_file exception if the indicated patch file or sub file does not exist
+   procedure verify_extra_file_exists
+     (specfile  : String;
+      line      : String;
+      is_option : Boolean;
+      sub_file  : Boolean);
 
 end Specification_Parser;
