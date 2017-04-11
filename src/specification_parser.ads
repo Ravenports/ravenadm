@@ -69,6 +69,7 @@ private
    extra_spaces       : exception;
    duplicate_key      : exception;
    generic_format     : exception;
+   missing_file       : exception;
 
    --  This looks for the pattern ${something}.  If not found, the original value is returned.
    --  Otherwise it looks up "something".  If that's not a definition, the missing_definition
@@ -191,5 +192,8 @@ private
 
    --  loads raven.information.mk and returns result of "make -V <varname>"
    function extract_information (varname : String) return HT.Text;
+
+   --  Throws missing_file exception if the indicated patch file does not exist
+   procedure verify_extra_patch_exists (specfile : String; line : String; is_option : Boolean);
 
 end Specification_Parser;

@@ -6,6 +6,7 @@ with Utilities;
 with Parameters;
 with File_Operations;
 with Package_Manifests;
+with Ada.Directories;
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Exceptions;
@@ -16,6 +17,7 @@ package body Specification_Parser is
    package FOP renames File_Operations;
    package MAN renames Package_Manifests;
    package LAT renames Ada.Characters.Latin_1;
+   package DIR renames Ada.Directories;
    package AS  renames Ada.Strings;
    package EX  renames Ada.Exceptions;
 
@@ -444,7 +446,6 @@ package body Specification_Parser is
                      when test_target      => build_list (spec, PSP.sp_test_tgt, line);
                      when apply_10_fix     => build_list (spec, PSP.sp_apply_f10_fix, line);
                      when patch_strip      => build_list (spec, PSP.sp_patch_strip, line);
-                     when extra_patches    => build_list (spec, PSP.sp_extra_patches, line);
                      when patchfiles_strip => build_list (spec, PSP.sp_pfiles_strip, line);
                      when plist_sub        => build_list (spec, PSP.sp_plist_sub, line);
                      when licenses         => build_list (spec, PSP.sp_licenses, line);
@@ -454,6 +455,9 @@ package body Specification_Parser is
                      when lic_name         => build_list (spec, PSP.sp_lic_name, line);
                      when mandirs          => build_list (spec, PSP.sp_mandirs, line);
                      when catchall         => build_nvpair (spec, line);
+                     when extra_patches    =>
+                        build_list (spec, PSP.sp_extra_patches, line);
+                        verify_extra_patch_exists (dossier, line, False);
                      when diode            => null;
                      when not_singlet      => null;
                   end case;
@@ -511,6 +515,9 @@ package body Specification_Parser is
                      end if;
                      build_list (specification, line_option, option_name, line);
                      last_optindex := HT.SUS (option_name);
+                     if line_option = PSP.extra_patches_on then
+                        verify_extra_patch_exists (dossier, line, True);
+                     end if;
                   end;
                   last_option := line_option;
                   last_seen   := cat_option;
@@ -619,6 +626,9 @@ package body Specification_Parser is
                when FE : mistabbed_40 =>
                   last_parse_error :=
                     HT.SUS (LN & "option value not aligned to column-40 (tab issue)");
+                  exit;
+               when FF : missing_file =>
+                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FF));
                   exit;
             end;
             <<line_done>>
@@ -1733,8 +1743,8 @@ package body Specification_Parser is
       procedure insert_item (data : String) is
       begin
          spec.build_option_helper (field  => field,
-                                            option => option,
-                                            value  => data);
+                                   option => option,
+                                   value  => data);
       end insert_item;
 
       use type PSP.spec_option;
@@ -2057,6 +2067,32 @@ package body Specification_Parser is
    begin
       return HT.SUS (HT.first_line (HT.USS (result)));
    end extract_information;
+
+
+   --------------------------------------------------------------------------------------------
+   --  verify_extra_patch_exists
+   --------------------------------------------------------------------------------------------
+   procedure verify_extra_patch_exists (specfile : String; line : String; is_option : Boolean)
+   is
+      function get_patchfile return String;
+
+      filesdir  : String := DIR.Containing_Directory (specfile) & "/files";
+
+      function get_patchfile return String is
+      begin
+         if is_option then
+            return retrieve_single_option_value (line);
+         else
+            return retrieve_single_value (line);
+         end if;
+      end get_patchfile;
+
+      patchfile : String := get_patchfile;
+   begin
+      if not DIR.Exists (filesdir & "/" & patchfile) then
+         raise missing_file with "Extra patch '" & patchfile & "' is missing";
+      end if;
+   end verify_extra_patch_exists;
 
 
 end Specification_Parser;
