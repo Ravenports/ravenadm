@@ -84,15 +84,12 @@ package body PortScan.Buildcycle is
                   mark_file_system (id, "prestage");
                end if;
                R := exec_phase_generic (id, phase);
-               if not testing or else not run_selftest then
-                  REP.unhook_toolchain (id);
-               end if;
 
             when test =>
                if testing and run_selftest then
                   R := exec_phase_generic (id, phase);
-                  REP.unhook_toolchain (id);
                end if;
+               REP.unhook_toolchain (id);
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
@@ -214,7 +211,9 @@ package body PortScan.Buildcycle is
       elsif afterphase = "build" then
          return build;
       elsif afterphase = "stage" then
-         return check_plist;
+         return stage;
+      elsif afterphase = "package" then
+         return pkg_package;
       elsif afterphase = "install" then
          return install;
       elsif afterphase = "deinstall" then
