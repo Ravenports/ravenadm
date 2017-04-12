@@ -499,7 +499,7 @@ package body Specification_Parser is
                         specification.append_array
                           (field        => PSP.sp_makefile_targets,
                            key          => HT.USS (last_index),
-                           value        => transform_target_line (line, stop_at_files),
+                           value        => transform_target_line (line, not converting),
                            allow_spaces => True);
                      when bad_target   => null;
                      when not_target   => null;
@@ -2001,7 +2001,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  transform_target_line
    --------------------------------------------------------------------------------------------
-   function transform_target_line (line : String; skipping_extraction : Boolean) return String
+   function transform_target_line (line : String; skip_transform : Boolean) return String
    is
       arrow1      : Natural := 0;
       arrow2      : Natural := 0;
@@ -2009,7 +2009,7 @@ package body Specification_Parser is
       canvas      : HT.Text := HT.blank;
 
    begin
-      if not skipping_extraction or else
+      if skip_transform or else
         spec_definitions.Is_Empty or else
         line = ""
       then
@@ -2040,8 +2040,9 @@ package body Specification_Parser is
          if arrow2 - 1 > arrow1 + 2 then
             begin
                declare
-                  newval : String := expand_value (line (arrow1 .. arrow2));
+                  newval : HT.Text := HT.SUS (expand_value (line (arrow1 .. arrow2)));
                begin
+                  UTL.apply_cbc_string (newval);
                   HT.SU.Append (canvas, newval);
                end;
             exception
