@@ -974,8 +974,8 @@ package body Pilot is
       is
          pkgname   : constant String := default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
                      variant_standard & LAT.Hyphen & compiler_version & arc_ext;
-         src_path  : constant String := HT.USS (PM.configuration.dir_sysroot) &
-                     "/usr/share/compiler-packages/" & pkgname;
+         src_path  : constant String := HT.USS (PM.configuration.dir_toolchain) &
+                     "/share/" & pkgname;
          dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
          dest_path : constant String := dest_dir & LAT.Solidus & pkgname;
       begin
