@@ -981,19 +981,20 @@ package body Pilot is
       begin
          if not DIR.Exists (dest_path) then
             if DIR.Exists (src_path) then
-               if DIR.Exists (dest_dir) then
-                  DIR.Copy_File (Source_Name => src_path, Target_Name => dest_path);
-               else
-                  TIO.Put_Line ("Package directory " & dest_path & " does not exist");
-                  return False;
+               if not DIR.Exists (dest_dir) then
+                  DIR.Create_Directory (dest_dir);
                end if;
+               DIR.Copy_File (Source_Name => src_path, Target_Name => dest_path);
             else
                TIO.Put_Line ("Compiler package " & src_path & " does not exist");
                return False;
             end if;
          end if;
          return True;
-      exception
+   exception
+         when DIR.Use_Error =>
+            TIO.Put_Line ("Failed to create " & dest_dir & " (repository directory)");
+            return False;
          when others =>
             TIO.Put_Line ("Failed to copy " & src_path & " to " & dest_path);
             return False;
