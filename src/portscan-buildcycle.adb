@@ -848,7 +848,6 @@ package body PortScan.Buildcycle is
          library   : String := HT.part_2 (line, " ");
          lib_text  : HT.Text := HT.SUS (library);
          numfields : Natural := HT.count_char (paths, LAT.Colon) + 1;
-         tempstor  : string_crate.Vector;
          errmsg    : String := errmsg_prefix & library &
                      " is not in located in /usr/lib or within the RPATH/RUNPATH";
          systemlib : String := "/usr/lib/" & library;
@@ -858,8 +857,6 @@ package body PortScan.Buildcycle is
          if not trackers (id).checkpaths.Contains (HT.SUS (systemlib)) then
             if DIR.Exists (root & systemlib) then
                return;
-            else
-               tempstor.Append (HT.SUS ("/usr/lib"));
             end if;
             trackers (id).checkpaths.Append (HT.SUS (systemlib));
             attempted := True;
@@ -875,15 +872,10 @@ package body PortScan.Buildcycle is
             declare
                testpath      : String := HT.specific_field (paths, n, ":");
                test_library  : String := testpath & "/" & library;
-               testpath_text : HT.Text := HT.SUS (testpath);
             begin
                if not trackers (id).checkpaths.Contains (HT.SUS (test_library)) then
-                  if not tempstor.Contains (testpath_text) then
-                     if DIR.Exists (root & test_library) then
-                        return;
-                     else
-                        tempstor.Append (testpath_text);
-                     end if;
+                  if DIR.Exists (root & test_library) then
+                     return;
                   end if;
                   trackers (id).checkpaths.Append (HT.SUS (test_library));
                   attempted := True;
