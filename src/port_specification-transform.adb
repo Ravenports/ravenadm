@@ -995,8 +995,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_perl_module (specs : in out Portspecs)
    is
+      function retrieve_dependency return String;
+
       module        : String := "perl";
-      dependency    : String := "perl-5.24:primary:standard";
       pmodbuild     : String := "p5-Module-Build:primary:standard";
       pmodbuildtiny : String := "p5-Module-Build-Tiny:primary:standard";
       hit_run       : Boolean;
@@ -1005,6 +1006,22 @@ package body Port_Specification.Transform is
       hit_bmod      : Boolean;
       hit_bmodtiny  : Boolean;
       hit_config    : Boolean;
+
+      function retrieve_dependency return String
+      is
+         rport_default : String := "perl-5.24";
+         suffix        : String := ":primary:standard";
+         def_setting   : String := HT.USS (Parameters.configuration.def_perl);
+         override_dep  : String := "perl-" & def_setting;
+      begin
+         if def_setting = ports_default then
+            return rport_default & suffix;
+         else
+            return override_dep & suffix;
+         end if;
+      end retrieve_dependency;
+
+      dependency    : String := retrieve_dependency;
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;

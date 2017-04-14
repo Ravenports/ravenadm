@@ -35,7 +35,7 @@ package body Configure is
          extra_profiles := PM.alternative_profiles_exist;
          clear_screen;
          print_header;
-         print_menu (pristine, extra_profiles);
+         print_menu (pristine, extra_profiles, pristine_def);
 
          loop
             TIO.Get_Immediate (answer);
@@ -124,13 +124,20 @@ package body Configure is
    --------------------------------------------------------------------------------------------
    --  print_menu
    --------------------------------------------------------------------------------------------
-   procedure print_menu (pristine : in out Boolean; extra_profiles : Boolean) is
+   procedure print_menu
+     (pristine       : in out Boolean;
+      extra_profiles : Boolean;
+      pristine_def   : Boolean) is
    begin
       for line in option'Range loop
          print_opt (line, pristine);
       end loop;
       TIO.Put_Line ("");
-      TIO.Put_Line (indent & optX5A);
+      if pristine_def then
+         TIO.Put_Line (indent & optX5A);
+      else
+         TIO.Put_Line (indent & optX5A & "*");
+      end if;
       if pristine then
          TIO.Put_Line (indent & optX1B);
          if extra_profiles then

@@ -1131,11 +1131,20 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure create_make_conf (path_to_etc : String)
    is
+      procedure override_defaults (label : String; value : HT.Text);
+
       makeconf  : TIO.File_Type;
       profilemc : constant String := PM.raven_confdir & "/" &
                   HT.USS (PM.configuration.profile) & "-make.conf";
       profile   : constant String := HT.USS (PM.configuration.profile);
       mjnum     : constant Integer := Integer (PM.configuration.jobs_limit);
+
+      procedure override_defaults (label : String; value : HT.Text) is
+      begin
+         if not (HT.equivalent (value, ports_default)) then
+            TIO.Put_Line (makeconf, "DEFAULT_VERSIONS+=" & label & "=" & HT.USS (value));
+         end if;
+      end override_defaults;
    begin
 
       TIO.Create (File => makeconf,
@@ -1158,6 +1167,16 @@ package body Replicant is
          TIO.Put_Line (makeconf, "BUILD_WITH_CCACHE=yes");
          TIO.Put_Line (makeconf, "CCACHE_DIR=/ccache");
       end if;
+      override_defaults ("FIREBIRD", PM.configuration.def_firebird);
+      override_defaults ("LUA",      PM.configuration.def_lua);
+      override_defaults ("MYSQL",    PM.configuration.def_mysql_group);
+      override_defaults ("PERL5",    PM.configuration.def_perl);
+      override_defaults ("PHP",      PM.configuration.def_php);
+      override_defaults ("PGSQL",    PM.configuration.def_postgresql);
+      override_defaults ("PYTHON3",  PM.configuration.def_python3);
+      override_defaults ("RUBY",     PM.configuration.def_ruby);
+      override_defaults ("SSL",      PM.configuration.def_ssl);
+      override_defaults ("TCLTK",    PM.configuration.def_tcl_tk);
       concatenate_makeconf (makeconf, profilemc);
       TIO.Close (makeconf);
 

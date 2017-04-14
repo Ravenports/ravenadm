@@ -84,7 +84,6 @@ private
 
    procedure clear_screen;
    procedure print_header;
-   procedure print_menu (pristine : in out Boolean; extra_profiles : Boolean);
    procedure print_opt (opt : option; pristine : in out Boolean);
    procedure change_directory_option (opt : option; pristine : in out Boolean);
    procedure change_boolean_option   (opt : option; pristine : in out Boolean);
@@ -97,5 +96,9 @@ private
      (def     : default;
       choices : String;
       label   : String);
+   procedure print_menu
+     (pristine       : in out Boolean;
+      extra_profiles : Boolean;
+      pristine_def   : Boolean);
 
 end Configure;
