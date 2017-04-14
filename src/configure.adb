@@ -543,8 +543,8 @@ package body Configure is
    --------------------------------------------------------------------------------------------
    procedure move_to_defaults_menu (pristine : in out Boolean)
    is
-      answer         : Character;
-      ascii          : Natural;
+      answer   : Character;
+      ascii    : Natural;
    begin
       loop
          clear_screen;
@@ -579,6 +579,8 @@ package body Configure is
                   update_version (9, version_I, pristine, "SSL library");
                when 'J' | 'j' =>
                   update_version (10, version_J, pristine, "TCL/TK");
+               when LAT.LF =>
+                  return;
                when others =>
                   null;
             end case;
