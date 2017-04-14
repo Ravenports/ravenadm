@@ -579,7 +579,11 @@ package body Configure is
                   update_version (9, version_I, pristine, "SSL library");
                when 'J' | 'j' =>
                   update_version (10, version_J, pristine, "TCL/TK");
-               when LAT.LF =>
+               when others =>
+                  null;
+            end case;
+            case answer is
+               when 'A' .. 'J' | 'a' .. 'j' | LAT.LF =>
                   exit;
                when others =>
                   null;
@@ -615,7 +619,18 @@ package body Configure is
       end loop;
 
       TIO.Put (LAT.LF & "Current setting:");
-      print_default (def, pristine);
+      case def is
+         when  1 => TIO.Put_Line (HT.USS (PM.configuration.def_firebird));
+         when  2 => TIO.Put_Line (HT.USS (PM.configuration.def_lua));
+         when  3 => TIO.Put_Line (HT.USS (PM.configuration.def_mysql_group));
+         when  4 => TIO.Put_Line (HT.USS (PM.configuration.def_perl));
+         when  5 => TIO.Put_Line (HT.USS (PM.configuration.def_php));
+         when  6 => TIO.Put_Line (HT.USS (PM.configuration.def_postgresql));
+         when  7 => TIO.Put_Line (HT.USS (PM.configuration.def_python3));
+         when  8 => TIO.Put_Line (HT.USS (PM.configuration.def_ruby));
+         when  9 => TIO.Put_Line (HT.USS (PM.configuration.def_ssl));
+         when 10 => TIO.Put_Line (HT.USS (PM.configuration.def_tcl_tk));
+      end case;
       TIO.Put (" Change setting: ");
       loop
          TIO.Get_Immediate (letter);
