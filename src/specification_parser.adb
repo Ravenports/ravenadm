@@ -1002,7 +1002,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 98;
+      total_singlets : constant Positive := 102;
 
       type singlet_pair is
          record
@@ -1049,6 +1049,10 @@ package body Specification_Parser is
          ("DF_INDEX              ",  8, df_index),
          ("DISTNAME              ",  8, distname),
          ("DIST_SUBDIR           ", 11, dist_subdir),
+         ("DOS2UNIX_FILES        ", 14, catchall),
+         ("DOS2UNIX_GLOB         ", 13, catchall),
+         ("DOS2UNIX_REGEX        ", 14, catchall),
+         ("DOS2UNIX_WRKSRC       ", 15, catchall),
          ("DOWNLOAD_GROUPS       ", 15, dl_groups),
          ("EPOCH                 ",  5, epoch),
          ("EXPIRATION_DATE       ", 15, expiration),

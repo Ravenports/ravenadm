@@ -2367,7 +2367,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 22;
+      total_modules : constant Positive := 23;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2382,6 +2382,7 @@ package body Port_Specification is
          "charsetfix     ",
          "compiler       ",
          "cpe            ",
+         "dos2unix       ",
          "fortran        ",
          "gettext-runtime",
          "gettext-tools  ",
