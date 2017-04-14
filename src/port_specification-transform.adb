@@ -221,6 +221,7 @@ package body Port_Specification.Transform is
       apply_libiconv_module (specs);
       apply_libtool_module (specs);
       apply_pkgconfig_module (specs);
+      apply_gprbuild_module (specs);
       apply_ncurses_module (specs);
       apply_info_presence (specs);
       apply_gettext_runtime_module (specs);
@@ -808,6 +809,32 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_pkgconfig_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gprbuild_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gprbuild_module (specs : in out Portspecs)
+   is
+      module     : String := "gprbuild";
+      dependency : String := "gprbuild:primary:standard";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+
+      if no_arguments_present (specs, module) or else
+        argument_present (specs, module, BUILD)
+      then
+         add_build_depends (specs, dependency);
+      else
+         if argument_present (specs, module, BUILDRUN) then
+            add_buildrun_depends (specs, dependency);
+         elsif argument_present (specs, module, RUN) then
+            add_run_depends (specs, dependency);
+         end if;
+      end if;
+   end apply_gprbuild_module;
 
 
    --------------------------------------------------------------------------------------------

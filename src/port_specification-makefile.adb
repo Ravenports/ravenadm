@@ -206,6 +206,7 @@ package body Port_Specification.Makefile is
          if module = "cpe" or else
            module = "makeinfo" or else
            module = "pkgconfig" or else
+           module = "gprbuild" or else
            module = "gettext-runtime" or else
            module = "gettext-tools" or else
            module = "bison" or else
