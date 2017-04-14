@@ -91,12 +91,11 @@ private
    procedure change_positive_option  (opt : option; pristine : in out Boolean);
    procedure delete_profile;
    procedure switch_profile;
-   procedure move_to_defaults_menu (pristine : in out Boolean);
-   procedure print_default (def : default; pristine : in out Boolean);
+   procedure move_to_defaults_menu (pristine_def : in out Boolean);
+   procedure print_default (def : default; pristine_def : in out Boolean);
    procedure update_version
-     (def      : default;
-      choices  : String;
-      pristine : in out Boolean;
-      label    : String);
+     (def     : default;
+      choices : String;
+      label   : String);
 
 end Configure;

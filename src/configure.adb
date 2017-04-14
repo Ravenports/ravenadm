@@ -22,14 +22,16 @@ package body Configure is
    procedure launch_configure_menu
    is
       pristine       : Boolean;
+      pristine_def   : Boolean;
       extra_profiles : Boolean;
       answer         : Character;
       ascii          : Natural;
       continue       : Boolean := True;
    begin
       dupe := PM.configuration;
+      pristine_def := True;
       loop
-         pristine := True;
+         pristine := pristine_def;
          extra_profiles := PM.alternative_profiles_exist;
          clear_screen;
          print_header;
@@ -58,7 +60,7 @@ package body Configure is
                   change_boolean_option (option (ascii - 96), pristine);
                   exit;
                when 'v' | 'V' =>
-                  move_to_defaults_menu (pristine);
+                  move_to_defaults_menu (pristine_def);
                   exit;
                when '>' =>
                   switch_profile;
@@ -507,7 +509,7 @@ package body Configure is
    --------------------------------------------------------------------------------------------
    --  print_default
    --------------------------------------------------------------------------------------------
-   procedure print_default (def : default; pristine : in out Boolean)
+   procedure print_default (def : default; pristine_def : in out Boolean)
    is
       origt : HT.Text;
       nextt : HT.Text;
@@ -533,7 +535,7 @@ package body Configure is
          TIO.Put_Line (" " & HT.USS (show));
       else
          TIO.Put_Line ("*" & HT.USS (show));
-         pristine := False;
+         pristine_def := False;
       end if;
    end print_default;
 
@@ -541,16 +543,17 @@ package body Configure is
    --------------------------------------------------------------------------------------------
    --  move_to_defaults_menu
    --------------------------------------------------------------------------------------------
-   procedure move_to_defaults_menu (pristine : in out Boolean)
+   procedure move_to_defaults_menu (pristine_def : in out Boolean)
    is
       answer   : Character;
       ascii    : Natural;
    begin
       loop
+         pristine_def := True;
          clear_screen;
          print_header;
          for line in default'Range loop
-            print_default (line, pristine);
+            print_default (line, pristine_def);
          end loop;
          TIO.Put_Line ("");
          TIO.Put_Line (indent & "[RET] Return to main configuration menu");
@@ -560,25 +563,25 @@ package body Configure is
             ascii := Character'Pos (answer);
             case answer is
                when 'A' | 'a' =>
-                  update_version (1, version_A, pristine, "Firebird SQL");
+                  update_version (1, version_A, "Firebird SQL");
                when 'B' | 'b' =>
-                  update_version (2, version_B, pristine, "Lua");
+                  update_version (2, version_B, "Lua");
                when 'C' | 'c' =>
-                  update_version (3, version_C, pristine, "MySQL group");
+                  update_version (3, version_C, "MySQL group");
                when 'D' | 'd' =>
-                  update_version (4, version_D, pristine, "Perl");
+                  update_version (4, version_D, "Perl");
                when 'E' | 'e' =>
-                  update_version (5, version_E, pristine, "PHP");
+                  update_version (5, version_E, "PHP");
                when 'F' | 'f' =>
-                  update_version (6, version_F, pristine, "PostgreSQL");
+                  update_version (6, version_F, "PostgreSQL");
                when 'G' | 'g' =>
-                  update_version (7, version_G, pristine, "Python 3");
+                  update_version (7, version_G, "Python 3");
                when 'H' | 'h' =>
-                  update_version (8, version_H, pristine, "Ruby");
+                  update_version (8, version_H, "Ruby");
                when 'I' | 'i' =>
-                  update_version (9, version_I, pristine, "SSL library");
+                  update_version (9, version_I, "SSL library");
                when 'J' | 'j' =>
-                  update_version (10, version_J, pristine, "TCL/TK");
+                  update_version (10, version_J, "TCL/TK");
                when LAT.LF =>
                   return;
                when others =>
@@ -599,10 +602,9 @@ package body Configure is
    --  update_version
    --------------------------------------------------------------------------------------------
    procedure update_version
-     (def      : default;
-      choices  : String;
-      pristine : in out Boolean;
-      label    : String)
+     (def     : default;
+      choices : String;
+      label   : String)
    is
       new_value   : HT.Text;
       num_choices : Natural := HT.count_char (choices, LAT.Colon) + 1;
