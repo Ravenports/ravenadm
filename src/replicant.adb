@@ -1167,16 +1167,16 @@ package body Replicant is
          TIO.Put_Line (makeconf, "BUILD_WITH_CCACHE=yes");
          TIO.Put_Line (makeconf, "CCACHE_DIR=/ccache");
       end if;
-      override_defaults ("FIREBIRD", PM.configuration.def_firebird);
-      override_defaults ("LUA",      PM.configuration.def_lua);
-      override_defaults ("MYSQL",    PM.configuration.def_mysql_group);
-      override_defaults ("PERL5",    PM.configuration.def_perl);
-      override_defaults ("PHP",      PM.configuration.def_php);
-      override_defaults ("PGSQL",    PM.configuration.def_postgresql);
-      override_defaults ("PYTHON3",  PM.configuration.def_python3);
-      override_defaults ("RUBY",     PM.configuration.def_ruby);
-      override_defaults ("SSL",      PM.configuration.def_ssl);
-      override_defaults ("TCLTK",    PM.configuration.def_tcl_tk);
+      override_defaults ("firebird", PM.configuration.def_firebird);
+      override_defaults ("lua",      PM.configuration.def_lua);
+      override_defaults ("mysql",    PM.configuration.def_mysql_group);
+      override_defaults ("perl5",    PM.configuration.def_perl);
+      override_defaults ("php",      PM.configuration.def_php);
+      override_defaults ("pgsql",    PM.configuration.def_postgresql);
+      override_defaults ("python3",  PM.configuration.def_python3);
+      override_defaults ("ruby",     PM.configuration.def_ruby);
+      override_defaults ("ssl",      PM.configuration.def_ssl);
+      override_defaults ("tcltk",    PM.configuration.def_tcl_tk);
       concatenate_makeconf (makeconf, profilemc);
       TIO.Close (makeconf);
 
