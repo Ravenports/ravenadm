@@ -611,7 +611,7 @@ package body Configure is
       print_header;
       TIO.Put_Line ("Options for default version of " & label & LAT.Colon);
       TIO.Put_Line (LAT.LF & indent &
-                      "[A] floating (ravenports choses default, may change over time)");
+                      "[A] floating (Ravenports choses default, may change over time)");
       for item in 1 .. num_choices loop
          letter := Character'Val (Character'Pos ('A') + item);
          TIO.Put_Line (indent & LAT.Left_Square_Bracket & letter & LAT.Right_Square_Bracket &
@@ -650,6 +650,8 @@ package body Configure is
                   new_value := HT.SUS (HT.specific_field (choices, field_index, ":"));
                   exit;
                end if;
+            when LAT.LF =>
+               return;
             when others => null;
          end case;
       end loop;
