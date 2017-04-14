@@ -35,7 +35,6 @@ package body Configure is
          print_header;
          print_menu (pristine, extra_profiles);
 
-          TIO.Put ("Press key of selection: ");
          loop
             TIO.Get_Immediate (answer);
             ascii := Character'Pos (answer);
@@ -57,6 +56,9 @@ package body Configure is
                   exit;
                when 'm' .. 'p' =>
                   change_boolean_option (option (ascii - 96), pristine);
+                  exit;
+               when 'v' | 'V' =>
+                  move_to_defaults_menu (pristine);
                   exit;
                when '>' =>
                   switch_profile;
@@ -126,6 +128,7 @@ package body Configure is
          print_opt (line, pristine);
       end loop;
       TIO.Put_Line ("");
+      TIO.Put_Line (indent & optX5A);
       if pristine then
          TIO.Put_Line (indent & optX1B);
          if extra_profiles then
@@ -137,7 +140,6 @@ package body Configure is
          TIO.Put_Line (indent & optX2A);
          TIO.Put_Line (indent & optX3A);
       end if;
-      TIO.Put_Line ("");
    end print_menu;
 
 
@@ -500,5 +502,154 @@ package body Configure is
          exit when continue;
       end loop;
    end switch_profile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  print_default
+   --------------------------------------------------------------------------------------------
+   procedure print_default (def : default; pristine : in out Boolean)
+   is
+      origt : HT.Text;
+      nextt : HT.Text;
+      show  : HT.Text;
+      equivalent : Boolean;
+   begin
+      TIO.Put (indent & version_desc (def));
+      case def is
+         when  1 => nextt := dupe.def_firebird;    origt := PM.configuration.def_firebird;
+         when  2 => nextt := dupe.def_lua;         origt := PM.configuration.def_lua;
+         when  3 => nextt := dupe.def_mysql_group; origt := PM.configuration.def_mysql_group;
+         when  4 => nextt := dupe.def_perl;        origt := PM.configuration.def_perl;
+         when  5 => nextt := dupe.def_php;         origt := PM.configuration.def_php;
+         when  6 => nextt := dupe.def_postgresql;  origt := PM.configuration.def_postgresql;
+         when  7 => nextt := dupe.def_python3;     origt := PM.configuration.def_python3;
+         when  8 => nextt := dupe.def_ruby;        origt := PM.configuration.def_ruby;
+         when  9 => nextt := dupe.def_ssl;         origt := PM.configuration.def_ssl;
+         when 10 => nextt := dupe.def_tcl_tk;      origt := PM.configuration.def_tcl_tk;
+      end case;
+      equivalent := HT.equivalent (origt, nextt);
+      show := nextt;
+      if equivalent then
+         TIO.Put_Line (" " & HT.USS (show));
+      else
+         TIO.Put_Line ("*" & HT.USS (show));
+         pristine := False;
+      end if;
+   end print_default;
+
+
+   --------------------------------------------------------------------------------------------
+   --  move_to_defaults_menu
+   --------------------------------------------------------------------------------------------
+   procedure move_to_defaults_menu (pristine : in out Boolean)
+   is
+      answer         : Character;
+      ascii          : Natural;
+   begin
+      loop
+         clear_screen;
+         print_header;
+         for line in default'Range loop
+            print_default (line, pristine);
+         end loop;
+         TIO.Put_Line ("");
+         TIO.Put_Line (indent & "[RET] Return to main configuration menu");
+
+         loop
+            TIO.Get_Immediate (answer);
+            ascii := Character'Pos (answer);
+            case answer is
+               when 'A' | 'a' =>
+                  update_version (1, version_A, pristine, "Firebird SQL");
+               when 'B' | 'b' =>
+                  update_version (2, version_B, pristine, "Lua");
+               when 'C' | 'c' =>
+                  update_version (3, version_C, pristine, "MySQL group");
+               when 'D' | 'd' =>
+                  update_version (4, version_D, pristine, "Perl");
+               when 'E' | 'e' =>
+                  update_version (5, version_E, pristine, "PHP");
+               when 'F' | 'f' =>
+                  update_version (6, version_F, pristine, "PostgreSQL");
+               when 'G' | 'g' =>
+                  update_version (7, version_G, pristine, "Python 3");
+               when 'H' | 'h' =>
+                  update_version (8, version_H, pristine, "Ruby");
+               when 'I' | 'i' =>
+                  update_version (9, version_I, pristine, "SSL library");
+               when 'J' | 'j' =>
+                  update_version (10, version_J, pristine, "TCL/TK");
+               when LAT.LF =>
+                  exit;
+               when others =>
+                  null;
+            end case;
+         end loop;
+      end loop;
+   end move_to_defaults_menu;
+
+
+   --------------------------------------------------------------------------------------------
+   --  update_version
+   --------------------------------------------------------------------------------------------
+   procedure update_version
+     (def      : default;
+      choices  : String;
+      pristine : in out Boolean;
+      label    : String)
+   is
+      new_value   : HT.Text;
+      num_choices : Natural := HT.count_char (choices, LAT.Colon) + 1;
+      letter      : Character;
+      field_index : Natural;
+   begin
+      clear_screen;
+      print_header;
+      TIO.Put_Line ("Options for default version of " & label & LAT.Colon);
+      TIO.Put_Line (LAT.LF & indent &
+                      "[A] floating (ravenports choses default, may change over time)");
+      for item in 1 .. num_choices loop
+         letter := Character'Val (Character'Pos ('A') + item);
+         TIO.Put_Line (indent & LAT.Left_Square_Bracket & letter & LAT.Right_Square_Bracket &
+                         LAT.Space & HT.specific_field (choices, item, ":"));
+      end loop;
+
+      TIO.Put (LAT.LF & "Current setting:");
+      print_default (def, pristine);
+      TIO.Put (" Change setting: ");
+      loop
+         TIO.Get_Immediate (letter);
+         case letter is
+            when 'A' | 'a' =>
+               new_value := HT.SUS (ports_default);
+               exit;
+            when 'B' .. 'Z' =>
+               field_index := Character'Pos (letter) - Character'Pos ('A');
+               if field_index <= num_choices then
+                  new_value := HT.SUS (HT.specific_field (choices, field_index, ":"));
+                  exit;
+               end if;
+            when 'b' .. 'z' =>
+               field_index := Character'Pos (letter) - Character'Pos ('a');
+               if field_index <= num_choices then
+                  new_value := HT.SUS (HT.specific_field (choices, field_index, ":"));
+                  exit;
+               end if;
+            when others => null;
+         end case;
+      end loop;
+      case def is
+         when  1 => dupe.def_firebird    := new_value;
+         when  2 => dupe.def_lua         := new_value;
+         when  3 => dupe.def_mysql_group := new_value;
+         when  4 => dupe.def_perl        := new_value;
+         when  5 => dupe.def_php         := new_value;
+         when  6 => dupe.def_postgresql  := new_value;
+         when  7 => dupe.def_python3     := new_value;
+         when  8 => dupe.def_ruby        := new_value;
+         when  9 => dupe.def_ssl         := new_value;
+         when 10 => dupe.def_tcl_tk      := new_value;
+      end case;
+   end update_version;
 
 end Configure;

@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "0";
-   raven_version_minor : constant String := "00";
+   raven_version_minor : constant String := "20";
    copyright_years     : constant String := "2015-2017";
 
    raven_tool        : constant String := "ravenadm";
@@ -23,6 +23,7 @@ package Definitions is
    spkg_complete     : constant String := "complete";
    spkg_docs         : constant String := "docs";
    spkg_examples     : constant String := "examples";
+   ports_default     : constant String := "floating";
    default_compiler  : constant String := "gcc6";
    compiler_version  : constant String := "6.20170202";
    arc_ext           : constant String := ".txz";
