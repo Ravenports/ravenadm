@@ -618,18 +618,18 @@ package body Configure is
                          LAT.Space & HT.specific_field (choices, item, ":"));
       end loop;
 
-      TIO.Put (LAT.LF & "Current setting:");
+      TIO.Put (LAT.LF & "Current setting: ");
       case def is
-         when  1 => TIO.Put_Line (HT.USS (PM.configuration.def_firebird));
-         when  2 => TIO.Put_Line (HT.USS (PM.configuration.def_lua));
-         when  3 => TIO.Put_Line (HT.USS (PM.configuration.def_mysql_group));
-         when  4 => TIO.Put_Line (HT.USS (PM.configuration.def_perl));
-         when  5 => TIO.Put_Line (HT.USS (PM.configuration.def_php));
-         when  6 => TIO.Put_Line (HT.USS (PM.configuration.def_postgresql));
-         when  7 => TIO.Put_Line (HT.USS (PM.configuration.def_python3));
-         when  8 => TIO.Put_Line (HT.USS (PM.configuration.def_ruby));
-         when  9 => TIO.Put_Line (HT.USS (PM.configuration.def_ssl));
-         when 10 => TIO.Put_Line (HT.USS (PM.configuration.def_tcl_tk));
+         when  1 => TIO.Put_Line (HT.USS (dupe.def_firebird));
+         when  2 => TIO.Put_Line (HT.USS (dupe.def_lua));
+         when  3 => TIO.Put_Line (HT.USS (dupe.def_mysql_group));
+         when  4 => TIO.Put_Line (HT.USS (dupe.def_perl));
+         when  5 => TIO.Put_Line (HT.USS (dupe.def_php));
+         when  6 => TIO.Put_Line (HT.USS (dupe.def_postgresql));
+         when  7 => TIO.Put_Line (HT.USS (dupe.def_python3));
+         when  8 => TIO.Put_Line (HT.USS (dupe.def_ruby));
+         when  9 => TIO.Put_Line (HT.USS (dupe.def_ssl));
+         when 10 => TIO.Put_Line (HT.USS (dupe.def_tcl_tk));
       end case;
       TIO.Put (" Change setting: ");
       loop
