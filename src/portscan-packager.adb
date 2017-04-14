@@ -290,6 +290,7 @@ package body PortScan.Packager is
    is
       procedure single_if_defined (name, value, not_value : String);
       procedure array_if_defined (name, value : String);
+      function short_desc return String;
 
       file_handle : TIO.File_Type;
       variant     : String := HT.USS (all_ports (seq_id).port_variant);
@@ -311,6 +312,15 @@ package body PortScan.Packager is
          end if;
       end array_if_defined;
 
+      function short_desc return String is
+      begin
+         if spec.get_subpackage_length (variant) = 1 then
+            return spec.get_tagline (variant);
+         else
+            return spec.get_tagline (variant) & " (" & subpackage & ")";
+         end if;
+      end short_desc;
+
       name    : String := quote (spec.get_namebase & "-" & subpackage & "-" & variant);
       origin  : String := quote (spec.get_namebase & ":" & variant);
 
@@ -325,7 +335,7 @@ package body PortScan.Packager is
            "version: " & quote (pkgversion) & LAT.LF &
            "origin: " & origin & LAT.LF &
            "comment: <<EOD" & LAT.LF &
-           spec.get_tagline (variant) & " (" & subpackage & ")" & LAT.LF &
+           short_desc & LAT.LF &
            "EOD" & LAT.LF &
            "maintainer: " & quote (spec.get_field_value (PSP.sp_contacts)) & LAT.LF &
            "prefix: " & quote (port_prefix) & LAT.LF &
