@@ -740,6 +740,7 @@ package body PortScan.Buildcycle is
          trackers (id).dynlink.Clear;
          trackers (id).runpaths.Clear;
          trackers (id).checkpaths.Clear;
+         trackers (id).goodpaths.Clear;
          HT.initialize_markers (comres, markers);
          loop
             exit when not HT.next_line_present (comres, markers);
@@ -851,14 +852,19 @@ package body PortScan.Buildcycle is
          errmsg    : String := errmsg_prefix & library &
                      " is not in located in /usr/lib or within the RPATH/RUNPATH";
          systemlib : String := "/usr/lib/" & library;
+         syslibtxt : HT.Text := HT.SUS (systemlib);
          attempted : Boolean := False;
       begin
          --  Check /usr/lib first
-         if not trackers (id).checkpaths.Contains (HT.SUS (systemlib)) then
+         if trackers (id).goodpaths.Contains (syslibtxt) then
+            return;
+         end if;
+         if not trackers (id).checkpaths.Contains (syslibtxt) then
             if DIR.Exists (root & systemlib) then
+               trackers (id).goodpaths.Append (syslibtxt);
                return;
             end if;
-            trackers (id).checkpaths.Append (HT.SUS (systemlib));
+            trackers (id).checkpaths.Append (syslibtxt);
             attempted := True;
          end if;
 
@@ -870,14 +876,19 @@ package body PortScan.Buildcycle is
 
          for n in 1 .. numfields loop
             declare
-               testpath      : String := HT.specific_field (paths, n, ":");
-               test_library  : String := testpath & "/" & library;
+               testpath     : String := HT.specific_field (paths, n, ":");
+               test_library : String := testpath & "/" & library;
+               test_lib_txt : HT.Text := HT.SUS (test_library);
             begin
-               if not trackers (id).checkpaths.Contains (HT.SUS (test_library)) then
+               if trackers (id).goodpaths.Contains (test_lib_txt) then
+                  return;
+               end if;
+               if not trackers (id).checkpaths.Contains (test_lib_txt) then
                   if DIR.Exists (root & test_library) then
+                     trackers (id).goodpaths.Append (test_lib_txt);
                      return;
                   end if;
-                  trackers (id).checkpaths.Append (HT.SUS (test_library));
+                  trackers (id).checkpaths.Append (test_lib_txt);
                   attempted := True;
                end if;
             end;
@@ -885,8 +896,8 @@ package body PortScan.Buildcycle is
 
          if attempted then
             TIO.Put_Line (trackers (id).log_handle, errmsg);
+            result := fail_result;
          end if;
-         result := fail_result;
       end scan;
    begin
       trackers (id).runpaths.Iterate (scan'Access);

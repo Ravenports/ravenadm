@@ -62,6 +62,7 @@ private
          dynlink     : string_crate.Vector;
          runpaths    : string_crate.Vector;
          checkpaths  : string_crate.Vector;
+         goodpaths   : string_crate.Vector;
          rpath_fatal : Boolean;
          check_strip : Boolean;
          loglines    : Natural := 0;
