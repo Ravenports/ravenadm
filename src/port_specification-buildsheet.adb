@@ -630,7 +630,7 @@ package body Port_Specification.Buildsheet is
       send ("PATCHFILES",           specs.patchfiles, 2);
       send ("EXTRA_PATCHES",        specs.extra_patches, 1);
       send ("PATCH_STRIP",          specs.patch_strip, 2);
-      send ("PATCHFILES_STRIP",     specs.patchfiles, 2);
+      send ("PATCHFILES_STRIP",     specs.pfiles_strip, 2);
       blank_line;
       send ("INVALID_RPATH",        specs.fatal_rpath, False);
       send ("MUST_CONFIGURE",       specs.config_must);
