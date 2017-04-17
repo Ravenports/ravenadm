@@ -324,11 +324,6 @@ package body Port_Specification is
             then
                raise misordered with field'Img;
             end if;
-            if specs.variants.Is_Empty and then
-              value /= variant_standard
-            then
-               raise wrong_value with "First variant must be '" & variant_standard & "'";
-            end if;
             if value'Length > 15 then
                raise wrong_value with "'" & value & "' value is too long (15-char limit)";
             end if;
