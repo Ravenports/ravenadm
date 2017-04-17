@@ -596,6 +596,7 @@ package body Port_Specification.Buildsheet is
       send ("OPT_ON",               specs.options_on);
       blank_line;
       send ("BROKEN",               specs.broken);
+      send ("BROKEN_SSL",           specs.broken_ssl, 2);
       send ("NOT_FOR_OPSYS",        specs.exc_opsys, 2);
       send ("ONLY_FOR_OPSYS",       specs.inc_opsys, 2);
       send ("NOT_FOR_ARCH",         specs.exc_arch, 2);

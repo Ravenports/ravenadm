@@ -116,6 +116,7 @@ package body Port_Specification is
       specs.extra_rundeps.Clear;
       specs.mandirs.Clear;
       specs.mk_verbatim.Clear;
+      specs.broken_ssl.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -748,6 +749,20 @@ package body Port_Specification is
                end if;
             end;
             specs.lic_files.Append (text_value);
+         when sp_broken_ssl =>
+            verify_entry_is_post_options;
+            if specs.broken_ssl.Contains (text_value) then
+               raise dupe_list_value with "Duplicate item '" & value & "'";
+            end if;
+            if value = "openssl" or else
+              value = "openssl-devel" or else
+              value = "libressl" or else
+              value = "libressl-devel"
+            then
+               specs.broken_ssl.Append (text_value);
+            else
+               raise wrong_value with "invalid broken_ssl setting '" & value & "'";
+            end if;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3108,6 +3123,7 @@ package body Port_Specification is
             when sp_groups        => specs.groups.Iterate (Process => print_item'Access);
             when sp_test_tgt      => specs.test_tgt.Iterate (print_item'Access);
             when sp_mandirs       => specs.mandirs.Iterate (print_item'Access);
+            when sp_broken_ssl    => specs.broken_ssl.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -3224,6 +3240,7 @@ package body Port_Specification is
       print_group_list  ("VOPTS", sp_vopts);
       print_group_list  ("OPT_ON", sp_options_on);
       print_group_list  ("BROKEN", sp_broken);
+      print_vector_list ("BROKEN_SSL", sp_broken_ssl);
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);

@@ -97,7 +97,6 @@ package body Port_Specification.Transform is
                      when build_depends_off    => specs.build_deps.Append (item);
                      when buildrun_depends_off => specs.buildrun_deps.Append (item);
                      when run_depends_off      => specs.run_deps.Append (item);
-                     when uses_off             => specs.uses.Append (item);
                      when cmake_args_off       => specs.cmake_args.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
                      when qmake_off            => specs.qmake_args.Append (item);
@@ -114,6 +113,16 @@ package body Port_Specification.Transform is
                      when configure_with_both =>
                         special := HT.SUS ("--without-" & itemstr);
                         specs.config_args.Append (special);
+                     when uses_off            =>
+                        declare
+                           stripped      : String  := HT.part_1 (itemstr, ":");
+                           text_stripped : HT.Text := HT.SUS (stripped);
+                        begin
+                           specs.uses.Append (item);
+                           if not specs.uses_base.Contains (text_stripped) then
+                              specs.uses_base.Append (text_stripped);
+                           end if;
+                        end;
                      when others =>
                         null;
                   end case;
@@ -229,6 +238,7 @@ package body Port_Specification.Transform is
       apply_gettext_tools_module (specs);
       apply_perl_module (specs);
       apply_bdb_module (specs);
+      apply_ssl_module (specs);
       apply_bison_module (specs);
       apply_ccache (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
@@ -463,7 +473,7 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  GTE
+   --  set_outstanding_ignore
    --------------------------------------------------------------------------------------------
    procedure set_outstanding_ignore
      (specs         : in out Portspecs;
@@ -564,6 +574,13 @@ package body Port_Specification.Transform is
                                 " architecture");
          end if;
          if not HT.IsBlank (reason) then
+            specs.broken.Update_Element (Position => specs.broken.Find (index),
+                                         Process  => grow'Access);
+         end if;
+         --  Handle BROKEN_SSL directive
+         if specs.broken_ssl.Contains (Parameters.configuration.def_ssl) then
+            reason := HT.SUS ("Does not build with SSL default '" &
+                                HT.USS (Parameters.configuration.def_ssl) & "'");
             specs.broken.Update_Element (Position => specs.broken.Find (index),
                                          Process  => grow'Access);
          end if;
@@ -875,6 +892,10 @@ package body Port_Specification.Transform is
          hit_build := argument_present (specs, module, BUILD);
          hit_both  := argument_present (specs, module, BUILDRUN);
          hit_run   := argument_present (specs, module, RUN);
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_build := True;
+         end if;
       end if;
 
       if hit_both or else (hit_build and hit_run) then
@@ -913,6 +934,10 @@ package body Port_Specification.Transform is
          hit_both  := argument_present (specs, module, BUILDRUN);
          hit_run   := argument_present (specs, module, RUN);
          hit_aspr  := argument_present (specs, module, "asprintf");
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_both := True;
+         end if;
       end if;
 
       if hit_both or else (hit_build and hit_run) then
@@ -956,6 +981,10 @@ package body Port_Specification.Transform is
          hit_build := argument_present (specs, module, BUILD);
          hit_both  := argument_present (specs, module, BUILDRUN);
          hit_run   := argument_present (specs, module, RUN);
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_build := True;
+         end if;
       end if;
 
       if hit_both or else (hit_build and hit_run) then
@@ -966,6 +995,60 @@ package body Port_Specification.Transform is
          add_run_depends (specs, dependency);
       end if;
    end apply_bison_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_ssl_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_ssl_module (specs : in out Portspecs)
+   is
+      function ssl_dependency return String;
+
+      hit_run    : Boolean;
+      hit_build  : Boolean;
+      hit_both   : Boolean;
+      module     : String := "ssl";
+
+      function ssl_dependency return String
+      is
+         nbase   : String := HT.USS (Parameters.configuration.def_ssl);
+         suffix  : String := ":single:standard";
+      begin
+         if nbase = ports_default then
+            return "libressl" & suffix;
+         else
+            return nbase & suffix;
+         end if;
+      end ssl_dependency;
+
+      dependency : String := ssl_dependency;
+
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build := False;
+         hit_both  := True;
+         hit_run   := False;
+      else
+         hit_build := argument_present (specs, module, BUILD);
+         hit_both  := argument_present (specs, module, BUILDRUN);
+         hit_run   := argument_present (specs, module, RUN);
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_both := True;
+         end if;
+      end if;
+
+      if hit_both or else (hit_build and hit_run) then
+         add_buildrun_depends (specs, dependency);
+      elsif hit_build then
+         add_build_depends (specs, dependency);
+      else
+         add_run_depends (specs, dependency);
+      end if;
+   end apply_ssl_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -1061,6 +1144,10 @@ package body Port_Specification.Transform is
 
          if hit_bmod or else hit_bmodtiny then
             hit_build := True;
+         end if;
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_both := True;
          end if;
       end if;
       if hit_both or else (hit_build and hit_run) then
