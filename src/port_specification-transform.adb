@@ -218,6 +218,7 @@ package body Port_Specification.Transform is
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
       apply_makeinfo_module (specs);
+      apply_readline_module (specs);
       apply_libiconv_module (specs);
       apply_libtool_module (specs);
       apply_pkgconfig_module (specs);
@@ -670,6 +671,21 @@ package body Port_Specification.Transform is
          add_build_depends (specs, dependency);
       end if;
    end apply_makeinfo_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_readline_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_readline_module  (specs : in out Portspecs)
+   is
+      module     : String := "readline";
+      dependency : String := "readline:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_readline_module;
+
 
 
    --------------------------------------------------------------------------------------------

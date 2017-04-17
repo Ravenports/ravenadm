@@ -76,6 +76,7 @@ private
    procedure apply_perl_module      (specs : in out Portspecs);
    procedure apply_bison_module     (specs : in out Portspecs);
    procedure apply_makeinfo_module  (specs : in out Portspecs);
+   procedure apply_readline_module  (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
                                      variant : String;
                                      module  : String;
