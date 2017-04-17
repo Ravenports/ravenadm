@@ -627,7 +627,7 @@ package body Port_Specification.Buildsheet is
       send ("SKIP_CCACHE",          specs.skip_ccache, True);
       blank_line;
       send ("PATCH_WRKSRC",         specs.patch_wrksrc);
-      send ("PATCHFILES",           specs.patchfiles, 1);
+      send ("PATCHFILES",           specs.patchfiles, 2);
       send ("EXTRA_PATCHES",        specs.extra_patches, 1);
       send ("PATCH_STRIP",          specs.patch_strip, 2);
       send ("PATCHFILES_STRIP",     specs.patchfiles, 2);
