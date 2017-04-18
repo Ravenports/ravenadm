@@ -476,7 +476,8 @@ package body PortScan.Tests is
       if HT.leads (original, "@info ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 6, 0));
       elsif HT.leads (original, "@sample ") then
-         return convert_to_absolute_path (port_prefix, HT.substring (original, 8, 0));
+         return convert_to_absolute_path
+           (port_prefix, HT.part_1 (HT.substring (original, 8, 0), " "));
       else
          return convert_to_absolute_path (port_prefix, original);
       end if;
