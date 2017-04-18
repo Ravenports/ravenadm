@@ -1192,6 +1192,7 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.ldflags);
       apply_cbc_string_crate (specs.cmake_args);
       apply_cbc_string_crate (specs.qmake_args);
+      apply_cbc_string_crate (specs.test_args);
       apply_cbc_string_crate (specs.lic_files);
       apply_cbc_string_crate (specs.plist_sub);
       apply_cbc_string_crate (specs.mk_verbatim);

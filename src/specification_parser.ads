@@ -52,7 +52,8 @@ private
                          configure_target, config_outsource, apply_10_fix, deprecated,
                          expiration, install_wrksrc, plist_sub, prefix, licenses, users, groups,
                          catchall, shift_install, diode, lic_scheme, lic_file, lic_name,
-                         skip_ccache, test_target, mandirs, invalid_rpath, debugging, broken_ssl);
+                         skip_ccache, test_target, mandirs, invalid_rpath, debugging, broken_ssl,
+                         test_args);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
