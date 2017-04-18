@@ -454,6 +454,7 @@ package body Specification_Parser is
                      when lic_file         => build_list (spec, PSP.sp_lic_file, line);
                      when lic_name         => build_list (spec, PSP.sp_lic_name, line);
                      when mandirs          => build_list (spec, PSP.sp_mandirs, line);
+                     when broken_ssl       => build_list (spec, PSP.sp_broken_ssl, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -1002,7 +1003,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 102;
+      total_singlets : constant Positive := 103;
 
       type singlet_pair is
          record
@@ -1015,6 +1016,7 @@ package body Specification_Parser is
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
          ("APPLY_F10_FIX         ", 13, apply_10_fix),
+         ("BROKEN_SSL            ", 10, broken_ssl),
          ("BUILDRUN_DEPENDS      ", 16, buildrun_deps),
          ("BUILD_DEPENDS         ", 13, build_deps),
          ("BUILD_TARGET          ", 12, build_target),
