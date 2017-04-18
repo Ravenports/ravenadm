@@ -1004,7 +1004,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 104;
+      total_singlets : constant Positive := 122;
 
       type singlet_pair is
          record
@@ -1107,6 +1107,24 @@ package body Specification_Parser is
          ("SHEBANG_FILES         ", 13, catchall),
          ("SHEBANG_GLOB          ", 12, catchall),
          ("SHEBANG_LANG          ", 12, catchall),
+         ("SHEBANG_NEW_BASH      ", 16, catchall),
+         ("SHEBANG_NEW_JAVA      ", 16, catchall),
+         ("SHEBANG_NEW_KSH       ", 15, catchall),
+         ("SHEBANG_NEW_PERL      ", 16, catchall),
+         ("SHEBANG_NEW_PHP       ", 15, catchall),
+         ("SHEBANG_NEW_PYTHON    ", 18, catchall),
+         ("SHEBANG_NEW_RUBY      ", 16, catchall),
+         ("SHEBANG_NEW_TCL       ", 15, catchall),
+         ("SHEBANG_NEW_TK        ", 14, catchall),
+         ("SHEBANG_OLD_BASH      ", 16, catchall),
+         ("SHEBANG_OLD_JAVA      ", 16, catchall),
+         ("SHEBANG_OLD_KSH       ", 15, catchall),
+         ("SHEBANG_OLD_PERL      ", 16, catchall),
+         ("SHEBANG_OLD_PHP       ", 15, catchall),
+         ("SHEBANG_OLD_PYTHON    ", 18, catchall),
+         ("SHEBANG_OLD_RUBY      ", 16, catchall),
+         ("SHEBANG_OLD_TCL       ", 15, catchall),
+         ("SHEBANG_OLD_TK        ", 14, catchall),
          ("SHEBANG_REGEX         ", 13, catchall),
          ("SINGLE_JOB            ", 10, single_job),
          ("SKIP_BUILD            ", 10, skip_build),
