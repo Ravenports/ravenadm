@@ -1170,7 +1170,22 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  apply_curly_bracket_conversions
    --------------------------------------------------------------------------------------------
-   procedure apply_curly_bracket_conversions (specs : in out Portspecs) is
+   procedure apply_curly_bracket_conversions (specs : in out Portspecs)
+   is
+      procedure apply_to_list (position : list_crate.Cursor);
+      procedure alter (Key : HT.Text; Element : in out group_list);
+
+      procedure alter (Key : HT.Text; Element : in out group_list) is
+      begin
+         apply_cbc_string_crate (Element.list);
+      end alter;
+
+      procedure apply_to_list (position : list_crate.Cursor) is
+      begin
+         specs.catch_all.Update_Element (Position => position,
+                                         Process  => alter'Access);
+      end apply_to_list;
+
    begin
       UTL.apply_cbc_string (specs.install_wrksrc);
       UTL.apply_cbc_string (specs.build_wrksrc);
@@ -1196,6 +1211,8 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.lic_files);
       apply_cbc_string_crate (specs.plist_sub);
       apply_cbc_string_crate (specs.mk_verbatim);
+
+      specs.catch_all.Iterate (apply_to_list'Access);
 
    end apply_curly_bracket_conversions;
 
