@@ -223,6 +223,9 @@ package Port_Specification is
    --  Return True if debugging is set on.
    function debugging_is_on (specs : Portspecs) return Boolean;
 
+   --  Returns the key of the last catchall insertion
+   function last_catchall_key (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;
@@ -425,11 +428,12 @@ private
          mandirs       : string_crate.Vector;
          mk_verbatim   : string_crate.Vector;
          broken_ssl    : string_crate.Vector;
-         catch_all     : def_crate.Map;
+         catch_all     : list_crate.Map;
          pkg_notes     : def_crate.Map;
          var_opsys     : list_crate.Map;
          var_arch      : list_crate.Map;
          extra_rundeps : list_crate.Map;
+         last_catchkey : HT.Text;
       end record;
 
    --  Compares given keyword against known values

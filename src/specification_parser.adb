@@ -1408,8 +1408,21 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure build_nvpair (spec : in out PSP.Portspecs; line : String)
    is
-      strkey   : constant String := HT.part_1 (line, LAT.Equals_Sign & LAT.HT);
+      function getkey return String;
+
       strvalue : constant String := retrieve_single_value (line);
+
+      function getkey return String is
+      begin
+         if HT.leads (line, LAT.HT & LAT.HT & LAT.HT) then
+            return spec.last_catchall_key;
+         else
+            return HT.part_1 (line, LAT.Equals_Sign & LAT.HT);
+         end if;
+      end getkey;
+
+      strkey   : constant String := getkey;
+
    begin
       if HT.contains (S => strvalue, fragment => " ") then
          declare

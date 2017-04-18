@@ -492,16 +492,27 @@ package body Port_Specification.Makefile is
 
       procedure dump_catchall
       is
-         procedure dump_nv (position : def_crate.Cursor);
-         procedure dump_nv (position : def_crate.Cursor)
+         procedure dump_group (position : list_crate.Cursor);
+         procedure dump_nv    (position : string_crate.Cursor);
+
+         key_text : HT.Text;
+
+         procedure dump_group (position : list_crate.Cursor)
          is
-            keystr : String := HT.USS (def_crate.Key (position));
-            valstr : String := HT.USS (def_crate.Element (position));
+            rec : group_list renames list_crate.Element (position);
          begin
-            send (keystr, valstr);
+            key_text := rec.group;
+            rec.list.Iterate (dump_nv'Access);
+         end dump_group;
+
+         procedure dump_nv (position : string_crate.Cursor)
+         is
+            text_value : HT.Text renames string_crate.Element (position);
+         begin
+            send (HT.USS (key_text) & "+=" & HT.USS (text_value));
          end dump_nv;
       begin
-         specs.catch_all.Iterate (dump_nv'Access);
+         specs.catch_all.Iterate (dump_group'Access);
       end dump_catchall;
 
       procedure dump_info

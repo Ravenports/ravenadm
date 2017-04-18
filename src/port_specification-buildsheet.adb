@@ -537,29 +537,29 @@ package body Port_Specification.Buildsheet is
 
       procedure send_catchall
       is
-         procedure scan    (position : def_crate.Cursor);
-         procedure dump_nv (position : string_crate.Cursor);
+         procedure scan (position : list_crate.Cursor);
+         procedure putout (position : string_crate.Cursor);
 
          temp_storage : string_crate.Vector;
 
-         procedure scan (position : def_crate.Cursor) is
+         procedure scan (position : list_crate.Cursor)
+         is
+            rec : group_list renames list_crate.Element (position);
          begin
-            temp_storage.Append (def_crate.Key (position));
+            temp_storage.Append (rec.group);
          end scan;
 
-         procedure dump_nv (position : string_crate.Cursor)
+         procedure putout (position : string_crate.Cursor)
          is
-            text_key : HT.Text renames string_crate.Element (position);
-
-            keystr : String := HT.USS (text_key) & LAT.Equals_Sign;
-            valstr : String := HT.USS (specs.catch_all.Element (text_key));
+            text_value : HT.Text renames string_crate.Element (position);
          begin
-            send (align24 (keystr) & valstr);
-         end dump_nv;
+            send (align24 (HT.USS (text_value) & "="), True);
+            specs.catch_all.Element (text_value).list.Iterate (print_item'Access);
+         end putout;
       begin
          specs.catch_all.Iterate (scan'Access);
          sorter.Sort (temp_storage);
-         temp_storage.Iterate (dump_nv'Access);
+         temp_storage.Iterate (putout'Access);
       end send_catchall;
 
    begin

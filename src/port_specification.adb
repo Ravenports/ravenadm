@@ -104,6 +104,7 @@ package body Port_Specification is
       specs.expire_date    := HT.blank;
       specs.deprecated     := HT.blank;
       specs.prefix         := HT.blank;
+      specs.last_catchkey  := HT.blank;
 
       specs.licenses.Clear;
       specs.users.Clear;
@@ -845,6 +846,8 @@ package body Port_Specification is
             specs.var_arch.Insert (text_group, initial_rec);
          when sp_exrun =>
             specs.extra_rundeps.Insert (text_group, initial_rec);
+         when sp_catchall =>
+            specs.catch_all.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1031,10 +1034,12 @@ package body Port_Specification is
                                          Process  => grow'Access);
          when sp_catchall =>
             verify_entry_is_post_options;
-            if specs.catch_all.Contains (text_key) then
-               raise wrong_value with "duplicate definition: " & key & "=" & value;
+            if not specs.catch_all.Contains (text_key) then
+               specs.establish_group (sp_catchall, key);
             end if;
-            specs.catch_all.Insert (text_key, text_value);
+            specs.catch_all.Update_Element (Position => specs.catch_all.Find (text_key),
+                                            Process  => grow'Access);
+            specs.last_catchkey := text_key;
          when sp_var_opsys =>
             verify_entry_is_post_options;
             if specs.var_opsys.Contains (text_key) and then
@@ -2442,24 +2447,33 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_info_page (specs : in out Portspecs; value : String) return Boolean
    is
+      procedure grow (Key : HT.Text; Element : in out group_list);
       --  duplicity has already been checked when we get to this routine
       --  INFO_SUBDIR is defined in catchall as a result.
 
       num_sep     : Natural := HT.count_char (value, LAT.Solidus);
       first_one   : Boolean := specs.info.Is_Empty;
-      INFO_SUBDIR : HT.Text := HT.SUS ("INFO_SUBDIR");
+      INFO_SUBDIR : constant String := "INFO_SUBDIR";
       NO_SUBDIR   : constant String := ".";
       saved_value : HT.Text;
+
+      procedure grow (Key : HT.Text; Element : in out group_list) is
+      begin
+         Element.list.Append (saved_value);
+      end grow;
    begin
       if first_one then
+         specs.establish_group (sp_catchall, INFO_SUBDIR);
          if num_sep = 0 then
-            specs.catch_all.Insert (INFO_SUBDIR, HT.SUS (NO_SUBDIR));
+            saved_value := HT.SUS (NO_SUBDIR);
          else
-            specs.catch_all.Insert (INFO_SUBDIR, HT.SUS (HT.head (value, "/")));
+            saved_value := HT.SUS (HT.head (value, "/"));
          end if;
+         specs.catch_all.Update_Element (Position => specs.catch_all.Find (HT.SUS (INFO_SUBDIR)),
+                                         Process  => grow'Access);
          return True;
       else
-         saved_value := specs.catch_all.Element (INFO_SUBDIR);
+         saved_value := specs.catch_all.Element (HT.SUS (INFO_SUBDIR)).list.First_Element;
          if num_sep = 0 then
             return HT.equivalent (saved_value, NO_SUBDIR);
          else
@@ -2928,6 +2942,15 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  last_catchall_key
+   --------------------------------------------------------------------------------------------
+   function last_catchall_key (specs : Portspecs) return String is
+   begin
+      return HT.USS (specs.last_catchkey);
+   end last_catchall_key;
+
+
+   --------------------------------------------------------------------------------------------
    --  dump_specification
    --------------------------------------------------------------------------------------------
    procedure dump_specification (specs : Portspecs)
@@ -3151,6 +3174,7 @@ package body Port_Specification is
             when sp_var_opsys        => specs.var_opsys.Iterate (dump'Access);
             when sp_var_arch         => specs.var_arch.Iterate (dump'Access);
             when sp_exrun            => specs.extra_rundeps.Iterate (dump'Access);
+            when sp_catchall         => specs.catch_all.Iterate (dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -3220,7 +3244,6 @@ package body Port_Specification is
       begin
          case flavor is
             when 1 => specs.taglines.Iterate (Process => print_tagline'Access);
-            when 2 => specs.catch_all.Iterate (Process => print_catchall'Access);
             when others => null;
          end case;
       end print_define;
@@ -3315,7 +3338,7 @@ package body Port_Specification is
       print_vector_list ("USERS", sp_users);
       print_vector_list ("GROUPS", sp_groups);
       print_vector_list ("MANDIRS", sp_mandirs);
-      print_define      (2);  -- catchall
+      print_group_list  ("CATCHALL", sp_catchall);
       print_group_list  ("VAR_OPSYS", sp_var_opsys);
       print_group_list  ("VAR_ARCH", sp_var_arch);
       print_vector_list ("TEST_TARGET", sp_test_tgt);

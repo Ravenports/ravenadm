@@ -611,7 +611,7 @@ package body Port_Specification.Transform is
          key_text : HT.Text := HT.SUS (key);
       begin
          if specs.catch_all.Contains (key_text) then
-            return HT.USS (specs.catch_all.Element (key_text));
+            return HT.USS (specs.catch_all.Element (key_text).list.First_Element);
          else
             return default_value;
          end if;
