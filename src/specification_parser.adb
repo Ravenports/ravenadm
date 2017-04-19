@@ -581,8 +581,6 @@ package body Specification_Parser is
                            if newname = "" then
                               FOP.dump_contents_to_file (fileguts,
                                                          extraction_dir & "/" & filename);
-                           elsif newname = "skip" then
-                              null;
                            else
                               FOP.dump_contents_to_file (fileguts, extraction_dir & "/" & newname);
                            end if;
@@ -1968,7 +1966,6 @@ package body Specification_Parser is
       match_arch  : String) return String
    is
       pm       : constant String := "pkg-message-";
-      sub      : constant String := ".in";
       sys      : constant String := "opsys";
       arc      : constant String := "arch";
       files    : constant String := "files/";
@@ -1981,21 +1978,10 @@ package body Specification_Parser is
          return "";
       end if;
 
-      if justfile = pm & match_opsys then
-         return files & pm & sys;
-      elsif justfile = pm & match_opsys & sub then
-         return files & pm & sys & sub;
-      elsif justfile = pm & match_opsys & LAT.Hyphen & match_arch then
-         return files & pm & sys & LAT.Hyphen & arc;
-      elsif justfile = pm & match_opsys & LAT.Hyphen & match_arch & sub then
-         return files & pm & sys & LAT.Hyphen & arc & sub;
-      elsif justfile = pm & match_arch then
-         return files & pm & arc;
-      elsif justfile = pm & match_arch & sub then
-         return files & pm & arc & sub;
-      else
-         return "skip";
-      end if;
+      return HT.USS (HT.replace_substring
+                     (US         => HT.replace_substring (HT.SUS (filename), match_opsys, sys),
+                      old_string => match_arch,
+                      new_string => arc));
 
    end tranform_filename;
 
