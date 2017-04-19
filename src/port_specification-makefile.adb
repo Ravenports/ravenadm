@@ -888,6 +888,7 @@ package body Port_Specification.Makefile is
          when MIT        => return "MIT license / X11 license";
          when PUBDOM     => return "Public Domain";
          when OPENSSL    => return "OpenSSL License";
+         when PSFL       => return "Python Software Foundation License";
       end case;
    end standard_license_names;
 

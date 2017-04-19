@@ -2662,6 +2662,7 @@ package body Port_Specification is
          ("LGPL3+    ", LGPL3x),
          ("MIT       ", MIT),
          ("OpenSSL   ", OPENSSL),
+         ("PSFL      ", PSFL),
          ("PUBDOM    ", PUBDOM)
         );
 
