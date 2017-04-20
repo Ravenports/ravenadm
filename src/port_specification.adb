@@ -2640,6 +2640,7 @@ package body Port_Specification is
          ("BSD2CLAUSE", BSD2CLAUSE),
          ("BSD3CLAUSE", BSD3CLAUSE),
          ("BSD4CLAUSE", BSD4CLAUSE),
+         ("BSDGROUP  ", BSDGROUP),
          ("CUSTOM1   ", CUSTOM1),
          ("CUSTOM2   ", CUSTOM2),
          ("CUSTOM3   ", CUSTOM3),
