@@ -2386,7 +2386,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 25;
+      total_modules : constant Positive := 26;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2414,6 +2414,7 @@ package body Port_Specification is
          "perl           ",
          "perl-interp    ",
          "pkgconfig      ",
+         "python         ",
          "readline       ",
          "shebangfix     ",
          "ssl            ",
