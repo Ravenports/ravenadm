@@ -747,6 +747,7 @@ package body Port_Specification.Makefile is
                when 4 => return "configure";
                when 5 => return "build";
                when 6 => return "install";
+               when 7 => return "test";
                when others => return "";
             end case;
          end get_phasestr;
@@ -760,7 +761,7 @@ package body Port_Specification.Makefile is
             end case;
          end get_prefix;
       begin
-         for phase in Positive range 1 .. 6 loop
+         for phase in Positive range 1 .. 7 loop
             for prefix in Positive range 1 .. 3 loop
                declare
                   target : String := get_prefix (prefix) & get_phasestr (phase);
