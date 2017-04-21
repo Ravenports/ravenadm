@@ -201,7 +201,8 @@ package body Port_Specification.Makefile is
       is
          --  Some modules are implemented entirely in ravenadm, so don't output them
          --  to the makefile which add unnecessary includes commands.
-         module : String := HT.part_1 (HT.USS (string_crate.Element (position)), ":");
+         module_w_args : String := HT.USS (string_crate.Element (position));
+         module        : String := HT.part_1 (module_w_args);
       begin
          if module = "cpe" or else
            module = "makeinfo" or else
@@ -219,7 +220,7 @@ package body Port_Specification.Makefile is
          then
             null;
          else
-            send (module & " ", True);
+            send (module_w_args & " ", True);
          end if;
       end print_module;
 
