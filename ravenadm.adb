@@ -13,7 +13,7 @@ procedure Ravenadm is
    package TIO renames Ada.Text_IO;
 
    type mandate_type is (unset, help, dev, build, force, test, status, configure, locate);
-   type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template);
+   type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -60,6 +60,8 @@ procedure Ravenadm is
          return buildsheet;
       elsif second = "template" then
          return template;
+      elsif second = "generate-index" then
+         return genindex;
       else
          return unset;
       end if;
@@ -249,6 +251,8 @@ begin
                      Pilot.generate_makefile (get_arg (3), get_arg (4));
                   when template =>
                      Pilot.print_spec_template (get_arg (3));
+                  when genindex =>
+                     Pilot.generate_ports_index;
                end case;
             end;
          else

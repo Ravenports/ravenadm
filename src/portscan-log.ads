@@ -89,6 +89,9 @@ package PortScan.Log is
    --  Show duration between overall start and stop times.
    function bulk_run_duration return String;
 
+   --  Return formatted duration of scan
+   function scan_duration return String;
+
 private
 
    type impulse_rec is

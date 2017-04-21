@@ -114,6 +114,8 @@ private
       Index_Type   => port_index,
       "="          => HT.SU."=");
 
+   package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
+
    package ranking_crate is new CON.Ordered_Sets
      (Element_Type => queue_record);
 

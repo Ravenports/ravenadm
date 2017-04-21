@@ -35,6 +35,9 @@ package PortScan.Scan is
      (always_build : Boolean;
       sysrootver   : sysroot_characteristics) return Boolean;
 
+   --  Linearly scan through entire conspiracy directory and generate a new index
+   procedure generate_conspiracy_index (sysrootver : sysroot_characteristics);
+
 private
 
    type dependency_type is (build, buildrun, runtime, extra_runtime);

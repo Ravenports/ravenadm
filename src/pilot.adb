@@ -1009,4 +1009,13 @@ package body Pilot is
         package_copy ("libs");
    end install_compiler_packages;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_ports_index
+   --------------------------------------------------------------------------------------------
+   procedure generate_ports_index is
+   begin
+      PortScan.Scan.generate_conspiracy_index (sysrootver);
+   end generate_ports_index;
+
 end Pilot;

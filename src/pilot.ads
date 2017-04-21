@@ -107,6 +107,9 @@ package Pilot is
    --  the missing ones from the system root.  Returns True on success.
    function install_compiler_packages return Boolean;
 
+   --  Generates the conspiracy_variants file at Mk/Misc of the conspiracy directory
+   procedure generate_ports_index;
+
 private
 
    package HT renames HelperText;

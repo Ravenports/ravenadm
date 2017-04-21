@@ -1151,7 +1151,7 @@ package body PortScan.Buildcycle is
       package crate is new CON.Vectors (Index_Type   => Positive,
                                        Element_Type => HT.Text,
                                        "="          => HT.SU."=");
-      package sorter is new crate.Generic_Sorting ("<" => HT.SU."<");
+      package local_sorter is new crate.Generic_Sorting ("<" => HT.SU."<");
       function  ignore_modifications return Boolean;
       procedure print (cursor : crate.Cursor);
       procedure close_active_modifications;
@@ -1339,9 +1339,9 @@ package body PortScan.Buildcycle is
          end;
       end loop;
       close_active_modifications;
-      sorter.Sort (Container => changed);
-      sorter.Sort (Container => missing);
-      sorter.Sort (Container => leftover);
+      local_sorter.Sort (Container => changed);
+      local_sorter.Sort (Container => missing);
+      local_sorter.Sort (Container => leftover);
 
       TIO.Put_Line (trackers (id).log_handle,
                     LAT.LF & "=> Checking for system changes " & description);

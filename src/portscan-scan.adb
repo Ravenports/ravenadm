@@ -983,4 +983,113 @@ package body PortScan.Scan is
       return successful;
    end scan_provided_list_of_ports;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_conspiracy_index
+   --------------------------------------------------------------------------------------------
+   procedure generate_conspiracy_index (sysrootver : sysroot_characteristics)
+   is
+      subtype AF is Integer range 0 .. 15;
+      function tohex (value : AF) return Character;
+      procedure scan_port (position : string_crate.Cursor);
+
+      conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      conname    : constant String := "conspiracy_variants";
+      finalcvar  : constant String := conspiracy & "/Mk/Misc/" & conname;
+      indexfile  : TIO.File_Type;
+      bucket     : bucket_code;
+      bucket_dir : HT.Text;
+      total_ports    : Natural := 0;
+      total_variants : Natural := 0;
+
+      function tohex (value : AF) return Character is
+      begin
+         case value is
+            when 0 .. 9 => return Character'Val (Character'Pos ('0') + value);
+            when others => return Character'Val (Character'Pos ('A') + value - 10);
+         end case;
+      end tohex;
+
+      procedure scan_port (position : string_crate.Cursor)
+      is
+         namebase   : String := HT.USS (string_crate.Element (position));
+         successful : Boolean;
+         customspec : PSP.Portspecs;
+         arch_focus : supported_arch := x86_64;  -- unused, pick one
+         dossier    : constant String := conspiracy & "/bucket_" & bucket & "/" & namebase;
+      begin
+         PAR.parse_specification_file (dossier         => dossier,
+                                       specification   => customspec,
+                                       opsys_focus     => platform_type,
+                                       arch_focus      => arch_focus,
+                                       success         => successful,
+                                       stop_at_targets => True);
+         if not successful then
+            raise bsheet_parsing with dossier & "-> " & PAR.get_parse_error;
+         end if;
+
+         declare
+            varcnt  : Natural := customspec.get_number_of_variants;
+            varlist : String  := customspec.get_field_value (PSP.sp_variants);
+         begin
+            total_ports := total_ports + 1;
+            total_variants := total_variants + varcnt;
+            TIO.Put (indexfile, bucket & " " & namebase & " " & HT.int2str (varcnt));
+            for varx in Integer range 1 .. varcnt loop
+               TIO.Put (indexfile, " " & HT.specific_field (varlist, varx, ", "));
+            end loop;
+            TIO.Put_Line (indexfile, "");
+         end;
+      end scan_port;
+   begin
+      LOG.set_scan_start_time (CAL.Clock);
+
+      TIO.Create (File => indexfile,
+                  Mode => TIO.Out_File,
+                  Name => finalcvar);
+
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            bucket := tohex (highdigit) & tohex (lowdigit);
+            declare
+               bucket_dir   : constant String := conspiracy & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               tempstore    : string_crate.Vector;
+            begin
+               if DIR.Exists (bucket_dir) then
+
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Pattern   => "*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Search => Inner_Search, Directory_Entry => Inner_Dirent);
+                     tempstore.Append (HT.SUS (DIR.Simple_Name (Inner_Dirent)));
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+                  sorter.Sort (tempstore);
+                  tempstore.Iterate (scan_port'Access);
+               end if;
+            end;
+         end loop;
+      end loop;
+
+      TIO.Close (indexfile);
+      LOG.set_scan_complete (CAL.Clock);
+
+      TIO.Put_Line ("Index successfully generated.");
+      TIO.Put_Line ("     Total ports : " & HT.int2str (total_ports));
+      TIO.Put_Line ("  Total packages : " & HT.int2str (total_variants));
+      TIO.Put_Line ("       Scan time : " & LOG.scan_duration);
+
+   exception
+      when issue : others =>
+         if TIO.Is_Open (indexfile) then
+            TIO.Close (indexfile);
+         end if;
+         TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
+   end generate_conspiracy_index;
+
 end PortScan.Scan;
