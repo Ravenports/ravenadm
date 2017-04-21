@@ -248,6 +248,7 @@ package body Port_Specification.Transform is
       apply_gcc_run_module (specs, variant, "cclibs", "libs");
       apply_gcc_run_module (specs, variant, "compiler", "complete");
       apply_curly_bracket_conversions (specs);
+      apply_default_version_transformations (specs);
    end apply_directives;
 
 
@@ -974,13 +975,13 @@ package body Port_Specification.Transform is
 
       if argument_present (specs, module, "py27") then
          add_buildrun_depends (specs, "python27:single:standard");
-         add_build_depends    (specs, SETUPTOOLS & "py27");
+         add_buildrun_depends    (specs, SETUPTOOLS & "py27");
       elsif argument_present (specs, module, "py34") then
          add_buildrun_depends (specs, "python34:single:standard");
-         add_build_depends    (specs, SETUPTOOLS & "py34");
+         add_buildrun_depends    (specs, SETUPTOOLS & "py34");
       else -- default to py35
          add_buildrun_depends (specs, "python35:single:standard");
-         add_build_depends    (specs, SETUPTOOLS & "py35");
+         add_buildrun_depends    (specs, SETUPTOOLS & "py35");
       end if;
    end apply_python_module;
 
@@ -1404,6 +1405,7 @@ package body Port_Specification.Transform is
       end if;
    end add_run_depends;
 
+
    --------------------------------------------------------------------------------------------
    --  add_exrun_depends
    --------------------------------------------------------------------------------------------
@@ -1440,5 +1442,86 @@ package body Port_Specification.Transform is
       end if;
       --  TODO: placeholder for LHA
    end apply_extraction_deps;
+
+
+   --------------------------------------------------------------------------------------------
+   --  transform_defaults
+   --------------------------------------------------------------------------------------------
+   function transform_defaults (dep : String) return String
+   is
+      function name_subpackage return String;
+      function name_subpackage return String is
+      begin
+         return HT.specific_field (dep, 1, ":") & ":" & HT.specific_field (dep, 2, ":") & ":";
+      end name_subpackage;
+   begin
+      if HT.trails (dep, ":python_default") then
+         declare
+            setting : String := HT.USS (Parameters.configuration.def_python3);
+         begin
+            if setting = ports_default or else setting = "3.5" then
+               return name_subpackage & "py35";
+            else
+               return name_subpackage & "py34";
+            end if;
+         end;
+      else
+         return dep;
+      end if;
+   end transform_defaults;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_default_version_transformations
+   --------------------------------------------------------------------------------------------
+   procedure apply_default_version_transformations (specs : in out Portspecs)
+   is
+      procedure check_build    (position : string_crate.Cursor);
+      procedure check_buildrun (position : string_crate.Cursor);
+      procedure check_run      (position : string_crate.Cursor);
+      procedure alter (Element : in out HT.Text);
+
+      transformed_dep : HT.Text;
+
+      procedure alter (Element : in out HT.Text) is
+      begin
+         Element := transformed_dep;
+      end alter;
+
+      procedure check_build (position : string_crate.Cursor)
+      is
+         dep  : String := HT.USS (string_crate.Element (position));
+         xdep : String := transform_defaults (dep);
+      begin
+         if xdep /= dep then
+            transformed_dep := HT.SUS (xdep);
+            specs.build_deps.Update_Element (position, alter'Access);
+         end if;
+      end check_build;
+
+      procedure check_buildrun (position : string_crate.Cursor)
+      is
+         dep  : String := HT.USS (string_crate.Element (position));
+         xdep : String := transform_defaults (dep);
+      begin
+         if xdep /= dep then
+            transformed_dep := HT.SUS (xdep);
+            specs.buildrun_deps.Update_Element (position, alter'Access);
+         end if;
+      end check_buildrun;
+
+      procedure check_run (position : string_crate.Cursor)
+      is
+         dep  : String := HT.USS (string_crate.Element (position));
+         xdep : String := transform_defaults (dep);
+      begin
+         if xdep /= dep then
+            transformed_dep := HT.SUS (xdep);
+            specs.run_deps.Update_Element (position, alter'Access);
+         end if;
+      end check_run;
+   begin
+      specs.build_deps.Iterate (check_build'Access);
+   end apply_default_version_transformations;
 
 end Port_Specification.Transform;

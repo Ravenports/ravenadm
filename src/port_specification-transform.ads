@@ -88,6 +88,7 @@ private
    procedure apply_gettext_tools_module   (specs : in out Portspecs);
    procedure apply_extraction_deps        (specs : in out Portspecs);
 
+   procedure apply_default_version_transformations (specs : in out Portspecs);
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);
 
@@ -98,5 +99,9 @@ private
    procedure add_buildrun_depends (specs : in out Portspecs; dependency : String);
    procedure add_run_depends      (specs : in out Portspecs; dependency : String);
    procedure add_exrun_depends    (specs : in out Portspecs; dependency, subpackage : String);
+
+   --  Convert e.g. python_default to py34/py35 depending on current defaults.
+   --  True for all defaults as they get formed
+   function transform_defaults (dep : String) return String;
 
 end Port_Specification.Transform;
