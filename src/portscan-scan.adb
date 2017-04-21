@@ -996,6 +996,7 @@ package body PortScan.Scan is
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       conname    : constant String := "conspiracy_variants";
       finalcvar  : constant String := conspiracy & "/Mk/Misc/" & conname;
+      summary    : constant String := conspiracy & "/Mk/Misc/summary.txt";
       indexfile  : TIO.File_Type;
       bucket     : bucket_code;
       bucket_dir : HT.Text;
@@ -1080,9 +1081,21 @@ package body PortScan.Scan is
       LOG.set_scan_complete (CAL.Clock);
 
       TIO.Put_Line ("Index successfully generated.");
-      TIO.Put_Line ("     Total ports : " & HT.int2str (total_ports));
-      TIO.Put_Line ("  Total packages : " & HT.int2str (total_variants));
-      TIO.Put_Line ("       Scan time : " & LOG.scan_duration);
+      TIO.Put_Line ("       Total ports : " & HT.int2str (total_ports));
+      TIO.Put_Line ("    Total packages : " & HT.int2str (total_variants));
+      TIO.Put_Line ("  Linear scan time : " & LOG.scan_duration);
+
+      TIO.Create (File => indexfile,
+                  Mode => TIO.Out_File,
+                  Name => summary);
+
+      TIO.Put_Line (indexfile, "  Statistics derived from generation of conspiracy index");
+      TIO.Put_Line (indexfile, "==========================================================");
+      TIO.Put_Line (indexfile, "      Total ports  : " & HT.int2str (total_ports));
+      TIO.Put_Line (indexfile, "   Total packages  : " & HT.int2str (total_variants));
+      TIO.Put_Line (indexfile, "  Linear scan time : " & LOG.scan_duration);
+
+      TIO.Close (indexfile);
 
    exception
       when issue : others =>
