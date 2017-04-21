@@ -77,7 +77,7 @@ private
    version_D : constant String := "5.22:5.24";  --  Perl
    version_E : constant String := "5.6:7.0:7.1";  --  php
    version_F : constant String := "9.2:9.3:9.4:9.5:9.6";  --  postgresql
-   version_G : constant String := "3.5:3.6";  --  python3
+   version_G : constant String := "3.4:3.5";  --  python3
    version_H : constant String := "2.3:2.4";  --  ruby
    version_I : constant String := "openssl:openssl-devel:libressl:libressl-devel";
    version_J : constant String := "8.5:8.6";  -- TCL/TK
