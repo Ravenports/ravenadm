@@ -240,6 +240,7 @@ package body Port_Specification.Transform is
       apply_bdb_module (specs);
       apply_ssl_module (specs);
       apply_bison_module (specs);
+      apply_python_module (specs);
       apply_ccache (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
       apply_gcc_run_module (specs, variant, "c++", "cxx_run");
@@ -957,6 +958,31 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_gettext_runtime_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_python_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_python_module (specs : in out Portspecs)
+   is
+      module     : String := "python";
+      SETUPTOOLS : String := "python-setuptools:single:";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+
+      if argument_present (specs, module, "py27") then
+         add_buildrun_depends (specs, "python27:single:standard");
+         add_build_depends    (specs, SETUPTOOLS & "py27");
+      elsif argument_present (specs, module, "py34") then
+         add_buildrun_depends (specs, "python34:single:standard");
+         add_build_depends    (specs, SETUPTOOLS & "py34");
+      else -- default to py35
+         add_buildrun_depends (specs, "python35:single:standard");
+         add_build_depends    (specs, SETUPTOOLS & "py35");
+      end if;
+   end apply_python_module;
 
 
    --------------------------------------------------------------------------------------------
