@@ -2646,6 +2646,7 @@ package body Port_Specification is
          ("CUSTOM2   ", CUSTOM2),
          ("CUSTOM3   ", CUSTOM3),
          ("CUSTOM4   ", CUSTOM4),
+         ("GMGPL     ", GMGPL),
          ("GPLv1     ", GPLv1),
          ("GPLv1+    ", GPLv1x),
          ("GPLv2     ", GPLv2),

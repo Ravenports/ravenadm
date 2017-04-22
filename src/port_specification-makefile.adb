@@ -873,6 +873,7 @@ package body Port_Specification.Makefile is
          when BSD3CLAUSE => return "BSD 3-clause 'New' or 'Revised' License";
          when BSD4CLAUSE => return "BSD 4-clause 'Original' or 'Old' License";
          when BSDGROUP   => return "BSD, check license for number of clauses";
+         when GMGPL      => return "GNAT Modified General Public License";
          when GPLv1      => return GPL & "1";
          when GPLv1x     => return GPL & "1" & later;
          when GPLv2      => return GPL & "2";
