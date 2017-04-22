@@ -602,7 +602,7 @@ package body Port_Specification.Makefile is
             lic   : String := HT.part_1 (value, ":");
             path  : String := HT.part_2 (value, ":");
          begin
-            send ("LICENSE_FILE_" & lic & LAT.Equals_Sign & path);
+            send ("LICENSE_FILE_" & lic & " = " & path);
          end dump_lic_file;
 
          procedure dump_spkg_licenses (position : string_crate.Cursor)
@@ -612,7 +612,7 @@ package body Port_Specification.Makefile is
             value : String  := HT.USS (string_crate.Element (position));
             lic   : String  := HT.part_1 (value, ":");
             spkg  : String  := HT.part_2 (value, ":");
-            LNAME : String  := "LICENSE_NAME_" & lic & LAT.Equals_Sign;
+            LNAME : String  := "LICENSE_NAME_" & lic & " = ";
             ltype : license_type := determine_license (lic);
             cname : HT.Text;
 
@@ -627,13 +627,13 @@ package body Port_Specification.Makefile is
                end if;
             end search;
          begin
-            send ("LICENSE_" & spkg & LAT.Plus_Sign & LAT.Equals_Sign & lic);
+            send ("LICENSE_" & spkg & " += " & lic);
             case ltype is
                when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
                   specs.lic_names.Iterate (search'Access);
                   send (LNAME & HT.USS (cname));
                when others =>
-                  send (LNAME & LAT.Quotation & standard_license_names (ltype) & LAT.Quotation);
+                  send (LNAME & standard_license_names (ltype));
             end case;
          end dump_spkg_licenses;
       begin
@@ -855,7 +855,7 @@ package body Port_Specification.Makefile is
       RLE3  : constant String := "GNU GPL version 3 Runtime Library Exception";
       AL    : constant String := "Apache License ";
       ART   : constant String := "Artistic License version ";
-      later : constant String := " (or later)";
+      later : constant String := " or later";
    begin
       case license is
          when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 => return "Don't use for custom licenses";

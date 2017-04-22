@@ -465,7 +465,8 @@ package body Port_Specification.Buildsheet is
          item : HT.Text renames string_crate.Element (position);
          subpkg : String := HT.USS (item);
          fullkey   : HT.Text;
-         fullplist : String := plist_prefix & subpkg & "." & HT.USS (save_variant);
+         shortlist : String := plist_prefix & subpkg;
+         fullplist : String := shortlist & "." & HT.USS (save_variant);
       begin
          if DIR.Exists (ravensrcdir & "/" & fullplist) then
             fullkey := HT.SUS (subpkg & "." & HT.USS (save_variant));
@@ -474,11 +475,11 @@ package body Port_Specification.Buildsheet is
                send_plist (fullplist);
             end if;
          else
-            if DIR.Exists (ravensrcdir & "/" & plist_prefix & subpkg) and then
+            if DIR.Exists (ravensrcdir & "/" & shortlist) and then
               not temp_storage.Contains (item)
             then
                temp_storage.Append (item);
-               send_plist (plist_prefix & subpkg);
+               send_plist (shortlist);
             end if;
          end if;
       end dump_manifest2;
