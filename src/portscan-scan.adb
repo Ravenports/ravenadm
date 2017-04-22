@@ -1002,6 +1002,7 @@ package body PortScan.Scan is
       bucket_dir : HT.Text;
       total_ports    : Natural := 0;
       total_variants : Natural := 0;
+      total_subpkgs  : Natural := 0;
 
       function tohex (value : AF) return Character is
       begin
@@ -1037,7 +1038,13 @@ package body PortScan.Scan is
             total_variants := total_variants + varcnt;
             TIO.Put (indexfile, bucket & " " & namebase & " " & HT.int2str (varcnt));
             for varx in Integer range 1 .. varcnt loop
-               TIO.Put (indexfile, " " & HT.specific_field (varlist, varx, ", "));
+               declare
+                  variant : String  := HT.specific_field (varlist, varx, ", ");
+                  spkgcnt : Natural := customspec.get_subpackage_length (variant);
+               begin
+                  total_subpkgs := total_subpkgs  + spkgcnt;
+                  TIO.Put (indexfile, " " & variant);
+               end;
             end loop;
             TIO.Put_Line (indexfile, "");
          end;
@@ -1082,7 +1089,8 @@ package body PortScan.Scan is
 
       TIO.Put_Line ("Index successfully generated.");
       TIO.Put_Line ("       Total ports : " & HT.int2str (total_ports));
-      TIO.Put_Line ("    Total packages : " & HT.int2str (total_variants));
+      TIO.Put_Line ("    Total variants : " & HT.int2str (total_variants));
+      TIO.Put_Line ("    Total packages : " & HT.int2str (total_subpkgs));
       TIO.Put_Line ("  Linear scan time : " & LOG.scan_duration);
 
       TIO.Create (File => indexfile,
@@ -1091,8 +1099,9 @@ package body PortScan.Scan is
 
       TIO.Put_Line (indexfile, "  Statistics derived from generation of conspiracy index");
       TIO.Put_Line (indexfile, "==========================================================");
-      TIO.Put_Line (indexfile, "      Total ports  : " & HT.int2str (total_ports));
-      TIO.Put_Line (indexfile, "   Total packages  : " & HT.int2str (total_variants));
+      TIO.Put_Line (indexfile, "       Total ports : " & HT.int2str (total_ports));
+      TIO.Put_Line (indexfile, "    Total variants : " & HT.int2str (total_variants));
+      TIO.Put_Line (indexfile, "    Total packages : " & HT.int2str (total_subpkgs));
       TIO.Put_Line (indexfile, "  Linear scan time : " & LOG.scan_duration);
 
       TIO.Close (indexfile);
