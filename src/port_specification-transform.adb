@@ -1238,6 +1238,7 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.lic_files);
       apply_cbc_string_crate (specs.plist_sub);
       apply_cbc_string_crate (specs.mk_verbatim);
+      apply_cbc_string_crate (specs.sub_list);
 
       specs.catch_all.Iterate (apply_to_list'Access);
 
