@@ -678,6 +678,7 @@ package body Port_Specification.Makefile is
       send ("DIST_SUBDIR",      specs.dist_subdir);
       dump_distname;
       send ("MAKESUM_INDEX",    specs.distfiles, 9);
+      send ("PF_INDEX",         specs.patchfiles, 1);
       send ("DF_INDEX",         specs.df_index, 1);
       send ("SUBPACKAGES",      specs.subpackages, 8);
       send ("EXTRACT_ONLY",     specs.extract_only, 1);
