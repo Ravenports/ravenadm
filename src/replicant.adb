@@ -1162,6 +1162,7 @@ package body Replicant is
 
       if developer_mode then
          TIO.Put_Line (makeconf, "DEVELOPER=1");
+         TIO.Put_Line (makeconf, "PATCH_DEBUG=yes");
       end if;
       if DIR.Exists (HT.USS (PM.configuration.dir_ccache)) then
          TIO.Put_Line (makeconf, "BUILD_WITH_CCACHE=yes");
