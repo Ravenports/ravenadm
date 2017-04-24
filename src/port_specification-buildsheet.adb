@@ -767,7 +767,7 @@ package body Port_Specification.Buildsheet is
         "CONTACT=" & tab & tab & "Jay_Leno[jay@aarp.org]" & CR & CR &
         "DOWNLOAD_GROUPS=" & tab & "main" & CR &
         "SITES[main]=" & tab & tab & "http://www.example.com/" & CR &
-        "DISTFILE[1]=" & tab & tab & "something.tar.gz:main" & CR & CR &
+        "DISTFILE[1]=" & tab & tab & "x-${PORTVERSION}.tar.gz:main" & CR & CR &
         "SPKGS[standard]=" & tab & "single" & CR & CR &
         "OPTIONS_AVAILABLE=" & tab & "none" & CR &
         "OPTIONS_STANDARD=" & tab & "none";
