@@ -957,10 +957,11 @@ package body PortScan.Scan is
          then
             if just_stop_now then
                --  backtrace outputs, no need for more information.
-               successful := False;
+               null;
             else
-               TIO.Put_Line ("Scan of " & origin & " failed, it will not be considered.");
+               TIO.Put_Line ("Scan of " & origin & " failed, bulk run cancelled");
             end if;
+            successful := False;
          end if;
       end scan;
    begin
