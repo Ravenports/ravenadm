@@ -480,6 +480,8 @@ package body PortScan.Tests is
            (port_prefix, HT.part_1 (HT.substring (original, 8, 0), " "));
       elsif HT.leads (original, "@shell ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 7, 0));
+      elsif HT.leads (original, "@xmlcatmgr ") then
+         return convert_to_absolute_path (port_prefix, HT.substring (original, 11, 0));
       else
          return convert_to_absolute_path (port_prefix, original);
       end if;
