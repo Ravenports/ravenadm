@@ -37,7 +37,8 @@ package Port_Specification is
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun,
-                       sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args);
+                       sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
+                       sp_gnome);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -245,6 +246,9 @@ private
       LGPL20, LGPL20x, LGPL21, LGPL21x, LGPL3, LGPL3x,
       MIT, PSFL, PUBDOM, OPENSSL);
 
+   type gnome_type is
+     (libxml2, libxslt, invalid_component);
+
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
       Index_Type   => Positive,
@@ -411,6 +415,7 @@ private
          optimizer_lvl : Natural;
          cmake_args    : string_crate.Vector;
          qmake_args    : string_crate.Vector;
+         gnome_comps   : string_crate.Vector;
          info          : string_crate.Vector;
          install_tgt   : string_crate.Vector;
          test_tgt      : string_crate.Vector;
@@ -489,5 +494,8 @@ private
 
    --  Returns True if terminfo module exists and it doesn't have a subpackage argument
    function terminfo_failed (specs : Portspecs; module : String) return Boolean;
+
+   --  Checks against known list of gnome components and identifies it
+   function determine_gnome_component (component : String) return gnome_type;
 
 end Port_Specification;

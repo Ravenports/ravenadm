@@ -456,6 +456,7 @@ package body Specification_Parser is
                      when lic_name         => build_list (spec, PSP.sp_lic_name, line);
                      when mandirs          => build_list (spec, PSP.sp_mandirs, line);
                      when broken_ssl       => build_list (spec, PSP.sp_broken_ssl, line);
+                     when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -1002,7 +1003,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 122;
+      total_singlets : constant Positive := 123;
 
       type singlet_pair is
          record
@@ -1063,6 +1064,7 @@ package body Specification_Parser is
          ("EXTRACT_WITH_LHA      ", 16, ext_lha),
          ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
          ("EXTRA_PATCHES         ", 13, extra_patches),
+         ("GNOME_COMPONENTS      ", 16, gnome_comp),
          ("GNU_CONFIGURE_PREFIX  ", 20, gnu_cfg_prefix),
          ("GROUPS                ",  6, groups),
          ("HOMEPAGE              ",  8, homepage),

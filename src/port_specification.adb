@@ -119,6 +119,7 @@ package body Port_Specification is
       specs.mandirs.Clear;
       specs.mk_verbatim.Clear;
       specs.broken_ssl.Clear;
+      specs.gnome_comps.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -654,6 +655,16 @@ package body Port_Specification is
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
             specs.info.Append (text_value);
+         when sp_gnome =>
+            verify_entry_is_post_options;
+            declare
+               comp : gnome_type := determine_gnome_component (value);
+            begin
+               if comp = invalid_component then
+                  raise wrong_value with "GNOME_COMPONENTS component not recognized: " & value;
+               end if;
+            end;
+            specs.gnome_comps.Append (text_value);
          when sp_licenses =>
             verify_entry_is_post_options;
             if not HT.contains (value, ":") then
@@ -2503,6 +2514,131 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  determine_gnome_component
+   --------------------------------------------------------------------------------------------
+   function determine_gnome_component (component : String) return gnome_type
+   is
+      total_keywords : constant Positive := gnome_type'Pos (gnome_type'Last) + 1;
+
+      subtype keyword_string is String (1 .. 18);
+
+      type keyword_pair is
+         record
+            keyword : keyword_string;
+            keytype : gnome_type;
+         end record;
+
+      --  It is critical that this list be alphabetized correctly.
+
+      all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
+        (
+         ("INVALID           ", invalid_component),
+         ("libxml2           ", libxml2),
+         ("libxslt           ", libxslt)
+        );
+
+--  atk
+--  atkmm
+--  atspi
+--  cairo
+--  cairomm
+--  dconf
+--  esound
+--  evolutionserver
+--  gconf2
+--  gconfmm26
+--  gdkpixbuf2
+--  glib20
+--  glibmm
+--  gnomecontrolcenter
+--  gnomedesktop
+--  gnomedocutils
+--  gnomemenus
+--  gnomemimedata
+--  gnomeprefix
+--  gnomesharp20
+--  gnomespeech
+--  gnomevfs2
+--  gsound
+--  gtkiconcache
+--  gtk20
+--  gtk30
+--  gtkhtml3
+--  gtkhtml4
+--  gtkmm20
+--  gtkmm24
+--  gtkmm30
+--  gtksharp20
+--  gtksourceview
+--  gtksourceviewmm
+--  gvfs
+--  intlhack
+--  intltool
+--  introspection
+--  libartlgpl2
+--  libbonobo
+--  libbonoboui
+--  libgda-ui
+--  libgdamm
+--  libglade2
+--  libgnome
+--  libgnomecanvas
+--  libgnomekbd
+--  libgnomeprint
+--  libgnomeprintui
+--  libgnomeui
+--  libgsf
+--  libgtkhtml
+--  libgtksourceviewmm
+--  libidl
+--  librsvg2
+--  libsigc++12
+--  libsigc++20
+--  libwnck
+--  libxml++26
+--  metacity
+--  nautilus3
+--  orbit2
+--  pango
+--  pangomm
+--  pangox-compat
+--  pygnome2
+--  pygobject
+--  pygtk2
+--  pygtksourceview
+--  referencehack
+--  vte
+
+      bandolier    : keyword_string := (others => LAT.Space);
+      Low          : Natural := all_keywords'First;
+      High         : Natural := all_keywords'Last;
+      Mid          : Natural;
+   begin
+      if component'Length > keyword_string'Length or else
+        component'Length < 3
+      then
+         return invalid_component;
+      end if;
+
+      bandolier (1 .. component'Length) := component;
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_keywords (Mid).keyword  then
+            return all_keywords (Mid).keytype;
+         elsif bandolier < all_keywords (Mid).keyword then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return invalid_component;
+   end determine_gnome_component;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
@@ -3157,6 +3293,7 @@ package body Port_Specification is
             when sp_test_args     => specs.test_args.Iterate (print_item'Access);
             when sp_mandirs       => specs.mandirs.Iterate (print_item'Access);
             when sp_broken_ssl    => specs.broken_ssl.Iterate (print_item'Access);
+            when sp_gnome         => specs.gnome_comps.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -3284,6 +3421,7 @@ package body Port_Specification is
       print_vector_list ("RUN_DEPENDS", sp_run_deps);
       print_group_list  ("EXRUN", sp_exrun);
       print_vector_list ("USES", sp_uses);
+      print_vector_list ("GNOME_COMPONENTS", sp_gnome);
       print_vector_list ("SUB_LIST", sp_sub_list);
       print_vector_list ("SUB_FILES", sp_sub_files);
       print_group_list  ("OPTION HELPERS", sp_opt_helper);

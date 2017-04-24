@@ -609,6 +609,7 @@ package body Port_Specification.Buildsheet is
       send ("RUN_DEPENDS",          specs.run_deps, 1);
       send ("EXRUN",                specs.extra_rundeps);
       send ("USES",                 specs.uses, 2);
+      send ("GNOME_COMPONENTS",     specs.gnome_comps, 2);
       blank_line;
       send ("DISTNAME",             specs.distname);
       send ("EXTRACT_DIRTY",        specs.extract_dirty, 2);
