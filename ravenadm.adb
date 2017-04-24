@@ -197,10 +197,11 @@ begin
          --  status command
          --------------------------------
          if CLI.Argument_Count > 1 then
-            if Pilot.scan_stack_of_single_ports (always_build => False) and then
+            if Pilot.install_compiler_packages and then
+              Pilot.scan_stack_of_single_ports (always_build => False) and then
               Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
             then
-               Pilot.perform_bulk_run (testmode => False);
+               Pilot.display_results_of_dry_run;
             end if;
          else
             null;  -- reserved for upgrade_system_everything maybe

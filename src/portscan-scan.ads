@@ -38,10 +38,14 @@ package PortScan.Scan is
    --  Linearly scan through entire conspiracy directory and generate a new index
    procedure generate_conspiracy_index (sysrootver : sysroot_characteristics);
 
+   --  List every port to be built and the final tally.
+   procedure display_results_of_dry_run;
+
 private
 
    type dependency_type is (build, buildrun, runtime, extra_runtime);
    subtype LR_set is dependency_type range buildrun .. extra_runtime;
+   type verdiff is (newbuild, rebuild, change);
 
    --  subroutines for populate_port_data
    procedure prescan_ports_tree
@@ -96,5 +100,11 @@ private
    function get_max_lots return scanners;
    function convert_tuple_to_portkey (tuple : String) return String;
    function extract_subpackage (tuple : String) return String;
+
+   --  Given a port ID, search for existing package in the packages directory
+   --  If the exact package exists, return " (rebuild <version>)"
+   --  If no package exists, return " (new)"
+   --  If previous package exists, return " (<oldversion> => <version>)"
+   function version_difference (id : port_id; kind : out verdiff) return String;
 
 end PortScan.Scan;

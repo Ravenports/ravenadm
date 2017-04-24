@@ -1115,4 +1115,136 @@ package body PortScan.Scan is
          TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
    end generate_conspiracy_index;
 
+
+   --------------------------------------------------------------------------------------------
+   --  version_difference
+   --------------------------------------------------------------------------------------------
+   function version_difference (id : port_id; kind : out verdiff) return String
+   is
+      procedure each_subpackage (position : subpackage_crate.Cursor);
+
+      pkg8    : constant String := HT.USS (PM.configuration.sysroot_pkg8);
+      dir_pkg : constant String := HT.USS (PM.configuration.dir_repository);
+      version : constant String := HT.USS (all_ports (id).pkgversion);
+      origin  : constant String := get_port_variant (id);
+      upgrade : HT.Text;
+      all_present : Boolean := True;
+
+      procedure each_subpackage (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+         subpackage   : String := HT.USS (rec.subpackage);
+         current      : String := calculate_package_name (id, subpackage);
+         base_pattern : String := HT.USS (all_ports (id).port_namebase) & "-" &
+                                  HT.USS (all_ports (id).port_variant) & "-";
+         pattern      : String := base_pattern & "*" & arc_ext;
+         pkg_search   : DIR.Search_Type;
+         dirent       : DIR.Directory_Entry_Type;
+      begin
+
+         if rec.pkg_present then
+            return;
+         else
+            all_present := False;
+         end if;
+         if not HT.IsBlank (upgrade) then
+            return;
+         end if;
+
+         DIR.Start_Search (Search    => pkg_search,
+                           Directory => dir_pkg,
+                           Filter    => (DIR.Ordinary_File => True, others => False),
+                           Pattern   => pattern);
+         while DIR.More_Entries (Search => pkg_search) loop
+            DIR.Get_Next_Entry (Search => pkg_search, Directory_Entry => dirent);
+            declare
+               sname      : String := DIR.Simple_Name (dirent);
+               verend     : Natural := sname'Length - arc_ext'Length;
+               command    : String := pkg8 & " query -F "  & dir_pkg & "/" & sname & " %o";
+               status     : Integer;
+               testorigin : HT.Text := Unix.piped_command (command, status);
+            begin
+               if status = 0 and then HT.equivalent (testorigin, origin) then
+                  upgrade := HT.SUS (" (" & sname (base_pattern'Length + 1 .. verend) &
+                                       " => " & version & ")");
+               end if;
+            end;
+         end loop;
+         DIR.End_Search (pkg_search);
+      end each_subpackage;
+
+
+   begin
+      all_ports (id).subpackages.Iterate (each_subpackage'Access);
+      if all_present then
+         kind := rebuild;
+         return " (rebuild " & version & ")";
+      end if;
+      if not HT.IsBlank (upgrade) then
+         kind := change;
+         return HT.USS (upgrade);
+      end if;
+      kind := newbuild;
+      return " (new " & version & ")";
+   end version_difference;
+
+
+   --------------------------------------------------------------------------------------------
+   --  display_results_of_dry_run
+   --------------------------------------------------------------------------------------------
+   procedure display_results_of_dry_run
+   is
+      procedure print (cursor : ranking_crate.Cursor);
+      listlog  : TIO.File_Type;
+      filename : constant String   := "/tmp/ravenadm_status_results.txt";
+      max_lots : constant scanners := get_max_lots;
+      elap_raw : constant String   := LOG.scan_duration;
+      elapsed  : constant String   := elap_raw (elap_raw'First + 10 .. elap_raw'Last);
+      goodlog  : Boolean;
+
+      procedure print (cursor : ranking_crate.Cursor)
+      is
+         id     : port_id := ranking_crate.Element (cursor).ap_index;
+         kind   : verdiff;
+         diff   : constant String := version_difference (id, kind);
+         origin : constant String := get_port_variant (id);
+      begin
+         case kind is
+            when newbuild => TIO.Put_Line ("  N => " & origin);
+            when rebuild  => TIO.Put_Line ("  R => " & origin);
+            when change   => TIO.Put_Line ("  U => " & origin & diff);
+         end case;
+         if goodlog then
+            TIO.Put_Line (listlog, origin & diff);
+         end if;
+      end print;
+   begin
+      begin
+         TIO.Create (File => listlog, Mode => TIO.Out_File, Name => filename);
+         goodlog := True;
+      exception
+         when others => goodlog := False;
+      end;
+      TIO.Put_Line ("These are the ports that would be built ([N]ew, " &
+                   "[R]ebuild, [U]pgrade):");
+      rank_queue.Iterate (print'Access);
+      TIO.Put_Line ("Total packages that would be built:" &
+                      rank_queue.Length'Img);
+      if goodlog then
+         TIO.Put_Line
+           (listlog,
+            LAT.LF &
+              LAT.LF & "------------------------------" &
+              LAT.LF & "--  Statistics" &
+              LAT.LF & "------------------------------" &
+              LAT.LF & " Ports scanned :" & last_port'Img &
+              LAT.LF & "  Elapsed time : " & elapsed &
+              LAT.LF & "   Parallelism :" & max_lots'Img & " scanners" &
+              "          ncpu :" & Parameters.configuration.number_cores'Img);
+         TIO.Close (listlog);
+         TIO.Put_Line ("The complete build list can also be found at:"
+                       & LAT.LF & filename);
+      end if;
+   end display_results_of_dry_run;
+
 end PortScan.Scan;

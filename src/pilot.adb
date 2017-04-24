@@ -1018,4 +1018,13 @@ package body Pilot is
       PortScan.Scan.generate_conspiracy_index (sysrootver);
    end generate_ports_index;
 
+
+   --------------------------------------------------------------------------------------------
+   --  display_results_of_dry_run
+   --------------------------------------------------------------------------------------------
+   procedure display_results_of_dry_run is
+   begin
+      PortScan.Scan.display_results_of_dry_run;
+   end display_results_of_dry_run;
+
 end Pilot;
