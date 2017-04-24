@@ -618,12 +618,12 @@ package body Port_Specification.Makefile is
 
             procedure search (name_pos : string_crate.Cursor)
             is
-               inner_value : String  := HT.USS (string_crate.Element (position));
+               inner_value : String  := HT.USS (string_crate.Element (name_pos));
                inner_lic   : String  := HT.part_1 (inner_value, ":");
                inner_desc  : String  := HT.part_2 (inner_value, ":");
             begin
                if inner_lic = lic  then
-                  cname := HT.SUS (inner_desc);
+                  cname := HT.SUS (HT.specific_field (inner_desc, 2, "" & LAT.Quotation));
                end if;
             end search;
          begin
