@@ -285,9 +285,13 @@ package body PortScan.Tests is
    function file_excluded (port_prefix, candidate : String) return Boolean is
    begin
       if HT.trails (candidate, "info/dir") then
+         --  removal of info files leaves entry uneasy to cleanup in info/dir
          return True;
       end if;
-
+      if candidate = "share/xml/catalog.ports" then
+         --  xmlcatmgr is constantly updating catalog.ports; ignore modification to that file
+         return True;
+      end if;
       return False;
    end file_excluded;
 
