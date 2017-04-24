@@ -67,7 +67,7 @@ package body PortScan.Buildcycle is
                REP.hook_toolchain (id);
                R := exec_phase_generic (id, phase);
 
-            when  checksum | extract | patch =>
+            when  extract | patch =>
                R := exec_phase_generic (id, phase);
 
             when configure =>
@@ -151,7 +151,7 @@ package body PortScan.Buildcycle is
    begin
       case phase is
          when blr_depends      => base := 15;  --  octave forge extraction is driver
-         when fetch | checksum => return 480;  --  8 hours
+         when fetch            => return 480;  --  8 hours
          when extract          => base := 20;
          when patch            => base := 3;
          when configure        => base := 15;
@@ -182,7 +182,6 @@ package body PortScan.Buildcycle is
       case phase is
          when blr_depends     => return "dependencies";
          when fetch           => return "fetch";
-         when checksum        => return "checksum";
          when extract         => return "extract";
          when patch           => return "patch";
          when configure       => return "configure";

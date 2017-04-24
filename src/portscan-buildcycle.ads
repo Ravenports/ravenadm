@@ -50,7 +50,7 @@ private
 
    package CAL renames Ada.Calendar;
 
-   type phases is (blr_depends, fetch, checksum, extract, patch, configure, build, stage,
+   type phases is (blr_depends, fetch, extract, patch, configure, build, stage,
                    test, check_plist, pkg_package, install, deinstall);
 
    type trackrec is
