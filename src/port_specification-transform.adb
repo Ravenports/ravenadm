@@ -242,6 +242,7 @@ package body Port_Specification.Transform is
       apply_bison_module (specs);
       apply_python_module (specs);
       apply_ccache (specs);
+      apply_gnome_components_dependencies (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
       apply_gcc_run_module (specs, variant, "c++", "cxx_run");
       apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
@@ -1524,5 +1525,32 @@ package body Port_Specification.Transform is
    begin
       specs.build_deps.Iterate (check_build'Access);
    end apply_default_version_transformations;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gnome_components_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure apply_gnome_components_dependencies (specs : in out Portspecs)
+   is
+      procedure import (position : string_crate.Cursor);
+
+      port_libxml2 : constant String := "libxml2:single:standard";
+      port_libxslt : constant String := "libxslt:single:standard";
+
+      procedure import (position : string_crate.Cursor)
+      is
+         component_text : HT.Text renames string_crate.Element (position);
+         comp : gnome_type := determine_gnome_component (HT.USS (component_text));
+      begin
+         case comp is
+            when invalid_component => null;  --  should be impossible
+            when libxml2 => add_buildrun_depends (specs, port_libxml2);
+            when libxslt => add_buildrun_depends (specs, port_libxslt);
+                            add_buildrun_depends (specs, port_libxml2);
+         end case;
+      end import;
+   begin
+      specs.gnome_comps.Iterate (import'Access);
+   end apply_gnome_components_dependencies;
 
 end Port_Specification.Transform;
