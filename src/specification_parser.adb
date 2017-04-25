@@ -457,6 +457,7 @@ package body Specification_Parser is
                      when mandirs          => build_list (spec, PSP.sp_mandirs, line);
                      when broken_ssl       => build_list (spec, PSP.sp_broken_ssl, line);
                      when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
+                     when rc_scripts       => build_list (spec, PSP.sp_rcscript, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -1003,7 +1004,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 123;
+      total_singlets : constant Positive := 124;
 
       type singlet_pair is
          record
@@ -1101,6 +1102,7 @@ package body Specification_Parser is
          ("PLIST_SUB             ",  9, plist_sub),
          ("PREFIX                ",  6, prefix),
          ("QMAKE_ARGS            ", 10, qmake_args),
+         ("RC_SUBR               ",  7, rc_scripts),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),
          ("SET_DEBUGGING_ON      ", 16, debugging),

@@ -120,6 +120,7 @@ package body Port_Specification is
       specs.mk_verbatim.Clear;
       specs.broken_ssl.Clear;
       specs.gnome_comps.Clear;
+      specs.subr_scripts.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -665,10 +666,24 @@ package body Port_Specification is
                end if;
             end;
             specs.gnome_comps.Append (text_value);
+         when sp_rcscript =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid RC_SUBR format, must be filename:subpackage";
+            end if;
+            declare
+               filename : String := HT.part_1 (value, ":");
+               testpkg : String := HT.part_2 (value, ":");
+            begin
+               if not specs.subpackage_exists (testpkg) then
+                  raise wrong_type with "RC_SUBR subpackage unrecognized: " & testpkg;
+               end if;
+            end;
+            specs.subr_scripts.Append (text_value);
          when sp_licenses =>
             verify_entry_is_post_options;
             if not HT.contains (value, ":") then
-               raise wrong_value with "Invalid LICENSE format, must be subpackage:name";
+               raise wrong_value with "Invalid LICENSE format, must be name:subpackage";
             end if;
             declare
                testlic : String := HT.part_1 (value, ":");
@@ -3295,6 +3310,7 @@ package body Port_Specification is
             when sp_mandirs       => specs.mandirs.Iterate (print_item'Access);
             when sp_broken_ssl    => specs.broken_ssl.Iterate (print_item'Access);
             when sp_gnome         => specs.gnome_comps.Iterate (print_item'Access);
+            when sp_rcscript      => specs.subr_scripts.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -3486,6 +3502,7 @@ package body Port_Specification is
       print_group_list  ("VAR_ARCH", sp_var_arch);
       print_vector_list ("TEST_TARGET", sp_test_tgt);
       print_vector_list ("TEST_ARGS", sp_test_args);
+      print_vector_list ("RC_SUBR", sp_rcscript);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

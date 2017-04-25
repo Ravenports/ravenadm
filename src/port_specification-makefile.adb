@@ -51,6 +51,7 @@ package body Port_Specification.Makefile is
       procedure dump_has_configure   (value  : HT.Text);
       procedure dump_distname;
       procedure dump_license;
+      procedure dump_subr;
       procedure dump_info;
       procedure dump_conditional_vars;
 
@@ -647,6 +648,21 @@ package body Port_Specification.Makefile is
          specs.licenses.Iterate (dump_spkg_licenses'Access);
       end dump_license;
 
+      procedure dump_subr
+      is
+         procedure dump_script (position : string_crate.Cursor);
+         procedure dump_script (position : string_crate.Cursor)
+         is
+            value    : String := HT.USS (string_crate.Element (position));
+            filename : String := HT.part_1 (value, ":");
+            subpkg   : String := HT.part_2 (value, ":");
+         begin
+            send ("RC_SUBR_" & subpkg & " = " & filename);
+         end dump_script;
+      begin
+         specs.subr_scripts.Iterate (dump_script'Access);
+      end dump_subr;
+
       procedure print_verbation (position : string_crate.Cursor) is
       begin
          send (HT.USS (string_crate.Element (position)), False);
@@ -733,6 +749,7 @@ package body Port_Specification.Makefile is
       send ("DESTDIRNAME",      specs.destdirname);
       send ("TEST_TARGET",      specs.test_tgt, 1);
       send ("TEST_ARGS",        specs.test_args, 1);
+      dump_subr;
 
       specs.mk_verbatim.Iterate (print_verbation'Access);
 

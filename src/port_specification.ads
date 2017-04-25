@@ -38,7 +38,7 @@ package Port_Specification is
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun,
                        sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
-                       sp_gnome);
+                       sp_gnome, sp_rcscript);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -433,6 +433,7 @@ private
          mandirs       : string_crate.Vector;
          mk_verbatim   : string_crate.Vector;
          broken_ssl    : string_crate.Vector;
+         subr_scripts  : string_crate.Vector;
          catch_all     : list_crate.Map;
          pkg_notes     : def_crate.Map;
          var_opsys     : list_crate.Map;

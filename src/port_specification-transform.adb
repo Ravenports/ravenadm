@@ -1500,6 +1500,16 @@ package body Port_Specification.Transform is
                return name_subpackage & "py34";
             end if;
          end;
+      elsif HT.trails (dep, ":perl_default") then
+         declare
+            setting : String := HT.USS (Parameters.configuration.def_perl);
+         begin
+            if setting = ports_default or else setting = "5.24" then
+               return name_subpackage & "perl524";
+            else
+               return name_subpackage & "perl522";
+            end if;
+         end;
       else
          return dep;
       end if;
