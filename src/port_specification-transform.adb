@@ -967,22 +967,41 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_python_module (specs : in out Portspecs)
    is
-      module     : String := "python";
-      SETUPTOOLS : String := "python-setuptools:single:";
+      module     : constant String := "python";
+      SETUPTOOLS : constant String := "python-setuptools:single:";
+      PYTHON27   : constant String := "python27:single:standard";
+      PYTHON34   : constant String := "python34:single:standard";
+      PYTHON35   : constant String := "python35:single:standard";
+      PY27       : constant String := "py27";
+      PY34       : constant String := "py34";
+      PY35       : constant String := "py35";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
 
-      if argument_present (specs, module, "py27") then
-         add_buildrun_depends (specs, "python27:single:standard");
-         add_buildrun_depends    (specs, SETUPTOOLS & "py27");
-      elsif argument_present (specs, module, "py34") then
-         add_buildrun_depends (specs, "python34:single:standard");
-         add_buildrun_depends    (specs, SETUPTOOLS & "py34");
-      else -- default to py35
-         add_buildrun_depends (specs, "python35:single:standard");
-         add_buildrun_depends    (specs, SETUPTOOLS & "py35");
+      if argument_present (specs, module, "build") then
+         if argument_present (specs, module, PY27) then
+            add_build_depends (specs, PYTHON27);
+            add_build_depends    (specs, SETUPTOOLS & PY27);
+         elsif argument_present (specs, module, PY34) then
+            add_build_depends (specs, PYTHON34);
+            add_build_depends    (specs, SETUPTOOLS & PY34);
+         else -- default to py35
+            add_build_depends (specs, PYTHON35);
+            add_build_depends    (specs, SETUPTOOLS & PY35);
+         end if;
+      else
+         if argument_present (specs, module, PY27) then
+            add_buildrun_depends (specs, PYTHON27);
+            add_buildrun_depends    (specs, SETUPTOOLS & PY27);
+         elsif argument_present (specs, module, PY34) then
+            add_buildrun_depends (specs, PYTHON34);
+            add_buildrun_depends    (specs, SETUPTOOLS & PY34);
+         else -- default to py35
+            add_buildrun_depends (specs, PYTHON35);
+            add_buildrun_depends    (specs, SETUPTOOLS & PY35);
+         end if;
       end if;
    end apply_python_module;
 
@@ -1200,7 +1219,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_curly_bracket_conversions (specs : in out Portspecs)
    is
-      procedure apply_to_list (position : list_crate.Cursor);
+      procedure apply_to_list1 (position : list_crate.Cursor);
+      procedure apply_to_list2 (position : list_crate.Cursor);
+      procedure apply_to_list3 (position : list_crate.Cursor);
       procedure alter (Key : HT.Text; Element : in out group_list);
 
       procedure alter (Key : HT.Text; Element : in out group_list) is
@@ -1208,11 +1229,21 @@ package body Port_Specification.Transform is
          apply_cbc_string_crate (Element.list);
       end alter;
 
-      procedure apply_to_list (position : list_crate.Cursor) is
+      procedure apply_to_list1 (position : list_crate.Cursor) is
       begin
          specs.catch_all.Update_Element (Position => position,
                                          Process  => alter'Access);
-      end apply_to_list;
+      end apply_to_list1;
+      procedure apply_to_list2 (position : list_crate.Cursor) is
+      begin
+         specs.extract_head.Update_Element (Position => position,
+                                            Process  => alter'Access);
+      end apply_to_list2;
+      procedure apply_to_list3 (position : list_crate.Cursor) is
+      begin
+         specs.extract_tail.Update_Element (Position => position,
+                                            Process  => alter'Access);
+      end apply_to_list3;
 
    begin
       UTL.apply_cbc_string (specs.install_wrksrc);
@@ -1241,7 +1272,9 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.mk_verbatim);
       apply_cbc_string_crate (specs.sub_list);
 
-      specs.catch_all.Iterate (apply_to_list'Access);
+      specs.catch_all.Iterate (apply_to_list1'Access);
+      specs.extract_head.Iterate (apply_to_list2'Access);
+      specs.extract_tail.Iterate (apply_to_list3'Access);
 
    end apply_curly_bracket_conversions;
 
@@ -1294,7 +1327,7 @@ package body Port_Specification.Transform is
                         found := (argument = argumentstr);
                      else
                         for x in 1 .. num_commas + 1 loop
-                           if argument = HT.specific_field (argumentstr, x, ":") then
+                           if argument = HT.specific_field (argumentstr, x, ",") then
                               found := True;
                               exit;
                            end if;
@@ -1524,6 +1557,8 @@ package body Port_Specification.Transform is
       end check_run;
    begin
       specs.build_deps.Iterate (check_build'Access);
+      specs.buildrun_deps.Iterate (check_buildrun'Access);
+      specs.run_deps.Iterate (check_run'Access);
    end apply_default_version_transformations;
 
 

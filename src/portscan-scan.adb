@@ -1198,8 +1198,7 @@ package body PortScan.Scan is
       listlog  : TIO.File_Type;
       filename : constant String   := "/tmp/ravenadm_status_results.txt";
       max_lots : constant scanners := get_max_lots;
-      elap_raw : constant String   := LOG.scan_duration;
-      elapsed  : constant String   := elap_raw (elap_raw'First + 10 .. elap_raw'Last);
+      elapsed  : constant String   := LOG.scan_duration;
       goodlog  : Boolean;
 
       procedure print (cursor : ranking_crate.Cursor)
