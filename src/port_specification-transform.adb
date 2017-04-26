@@ -1058,11 +1058,17 @@ package body Port_Specification.Transform is
       is
          LUA52 : String := "lua52:single:standard";
          LUA53 : String := "lua53:single:standard";
+         def_setting : String := HT.USS (Parameters.configuration.def_lua);
       begin
          if argument_present (specs, module, "5.2") then
             return LUA52;
-         else
+         elsif argument_present (specs, module, "5.3") or else
+           def_setting = ports_default or else
+           def_setting = "5.3"
+         then
             return LUA53;
+         else
+            return LUA52;
          end if;
       end pick_lua;
 
