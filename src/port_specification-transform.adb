@@ -241,6 +241,7 @@ package body Port_Specification.Transform is
       apply_ssl_module (specs);
       apply_bison_module (specs);
       apply_python_module (specs);
+      apply_lua_module (specs);
       apply_ccache (specs);
       apply_gnome_components_dependencies (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
@@ -1042,6 +1043,56 @@ package body Port_Specification.Transform is
          add_run_depends (specs, dependency);
       end if;
    end apply_bison_module;
+
+
+   procedure apply_lua_module (specs : in out Portspecs)
+   is
+      function pick_lua return String;
+
+      module     : String := "lua";
+      hit_run    : Boolean;
+      hit_build  : Boolean;
+      hit_both   : Boolean;
+
+      function pick_lua return String
+      is
+         LUA52 : String := "lua52:single:standard";
+         LUA53 : String := "lua53:single:standard";
+      begin
+         if argument_present (specs, module, "5.2") then
+            return LUA52;
+         else
+            return LUA53;
+         end if;
+      end pick_lua;
+
+      dependency : String := pick_lua;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build := True;
+         hit_both  := False;
+         hit_run   := False;
+      else
+         hit_build := argument_present (specs, module, BUILD);
+         hit_both  := argument_present (specs, module, BUILDRUN);
+         hit_run   := argument_present (specs, module, RUN);
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_build := True;
+         end if;
+      end if;
+
+      if hit_both or else (hit_build and hit_run) then
+         add_buildrun_depends (specs, dependency);
+      elsif hit_build then
+         add_build_depends (specs, dependency);
+      else
+         add_run_depends (specs, dependency);
+      end if;
+   end apply_lua_module;
 
 
    --------------------------------------------------------------------------------------------
