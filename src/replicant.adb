@@ -31,6 +31,7 @@ package body Replicant is
       hints  : constant String := "/ld-elf.so.hints";
       nhints : constant String := "/ld.so.hints";
       trmcap : constant String := "/termcap";
+      group  : constant String := "/group";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
@@ -46,6 +47,7 @@ package body Replicant is
               openbsd   =>
             DIR.Copy_File (sretc & passwd, mm & passwd);
             DIR.Copy_File (sretc & maspas, mm & maspas);
+            DIR.Copy_File (sretc & group,  mm & group);
          when linux     |
               sunos     => null;  -- passwd not used
       end case;
