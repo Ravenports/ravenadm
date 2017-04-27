@@ -32,6 +32,10 @@ package File_Operations is
    --  May throw exeption
    procedure mkdirp_from_filename (filename : String);
 
+   --  Adds the contents of "another_file" to the existing contents of basefile.
+   --  If "basefile" does not exist, just copy it (directory must already exist in that case)
+   procedure concatenate_file (basefile : String; another_file : String);
+
 private
 
    --  helper for create_pidfile

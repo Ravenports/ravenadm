@@ -152,4 +152,36 @@ package body File_Operations is
    end mkdirp_from_filename;
 
 
+   --------------------------------------------------------------------------------------------
+   --  concatenate_file
+   --------------------------------------------------------------------------------------------
+   procedure concatenate_file (basefile : String; another_file : String)
+   is
+      handle : TIO.File_Type;
+   begin
+      if not DIR.Exists (another_file) then
+         raise file_handling with "concatenate_file: new_file does not exist => " & another_file;
+      end if;
+      if DIR.Exists (basefile) then
+         TIO.Open (File => handle,
+                   Mode => TIO.Append_File,
+                   Name => basefile);
+         declare
+            contents : constant String := get_file_contents (another_file);
+         begin
+            TIO.Put (handle, contents);
+         end;
+         TIO.Close (handle);
+      else
+         DIR.Copy_File (Source_Name => another_file,
+                        Target_Name => basefile);
+      end if;
+   exception
+      when others =>
+         if TIO.Is_Open (handle) then
+            TIO.Close (handle);
+         end if;
+         raise file_handling;
+   end concatenate_file;
+
 end File_Operations;

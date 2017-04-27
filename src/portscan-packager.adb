@@ -33,15 +33,18 @@ package body PortScan.Packager is
       procedure metadata   (position : subpackage_crate.Cursor);
       procedure package_it (position : subpackage_crate.Cursor);
 
-      namebase   : String  := HT.USS (all_ports (seq_id).port_namebase);
-      conbase    : String  := "/construction/" & namebase;
-      spkgdir    : String  := rootdir & "/construction/metadata/";
-      wrkdir     : String  := rootdir & conbase;
-      chspkgdir  : String  := "/construction/metadata/";
-      newpkgdir  : String  := "/construction/new_packages";
-      stagedir   : String  := conbase & "/stage";
-      display    : String  := "/+DISPLAY";
-      pkgvers    : String  := HT.USS (all_ports (seq_id).pkgversion);
+      namebase   : constant String := HT.USS (all_ports (seq_id).port_namebase);
+      conbase    : constant String := "/construction/" & namebase;
+      spkgdir    : constant String := rootdir & "/construction/metadata/";
+      wrkdir     : constant String := rootdir & conbase;
+      chspkgdir  : constant String := "/construction/metadata/";
+      newpkgdir  : constant String := "/construction/new_packages";
+      stagedir   : constant String := conbase & "/stage";
+      display    : constant String := "/+DISPLAY";
+      pkgvers    : constant String := HT.USS (all_ports (seq_id).pkgversion);
+      usrgrp_pkg : constant String := specification.get_field_value (PSP.sp_ug_pkg);
+      ug_install : constant String := wrkdir & "/users-groups-install.sh";
+      ug_desinst : constant String := wrkdir & "/users-groups-deinstall.sh";
       still_good : Boolean := True;
 
       procedure metadata (position : subpackage_crate.Cursor)
@@ -53,6 +56,9 @@ package body PortScan.Packager is
                          HT.USS (subpackage_crate.Element (position).subpackage);
          message_file  : constant String := wrkdir & "/.PKG_DISPLAY." & subpackage;
          descript_file : constant String := wrkdir & "/.PKG_DESC." & subpackage;
+         scr_preinst   : constant String := spkgdir & subpackage & "/pkg-pre-install";
+         scr_pstdeinst : constant String := spkgdir & subpackage & "/pkg-post-deinstall";
+
          descript : String := "/+DESC";
          manifest : String := "/+MANIFEST";
 
@@ -99,6 +105,15 @@ package body PortScan.Packager is
                end;
             end loop;
          end loop;
+
+         if subpackage = usrgrp_pkg then
+            if DIR.Exists (ug_install) then
+               FOP.concatenate_file (basefile => scr_preinst, another_file => ug_install);
+            end if;
+            if DIR.Exists (ug_desinst) then
+               FOP.concatenate_file (basefile => scr_pstdeinst, another_file => ug_desinst);
+            end if;
+         end if;
 
          write_package_manifest (spec        => specification,
                                  port_prefix => port_prefix,

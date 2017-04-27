@@ -1949,6 +1949,7 @@ package body Port_Specification is
          when sp_prefix     => return HT.USS (specs.prefix);
          when sp_deprecated => return HT.USS (specs.deprecated);
          when sp_expiration => return HT.USS (specs.expire_date);
+         when sp_ug_pkg     => return HT.USS (specs.usergroup_pkg);
          when sp_contacts   =>
             specs.contacts.Iterate (scan_contact'Access);
             return HT.USS (joined);
