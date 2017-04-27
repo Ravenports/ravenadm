@@ -80,6 +80,7 @@ private
    procedure apply_ssl_module       (specs : in out Portspecs);
    procedure apply_python_module    (specs : in out Portspecs);
    procedure apply_lua_module       (specs : in out Portspecs);
+   procedure apply_tcl_module       (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
                                      variant : String;
                                      module  : String;

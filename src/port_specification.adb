@@ -2412,7 +2412,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 28;
+      total_modules : constant Positive := 29;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2446,6 +2446,7 @@ package body Port_Specification is
          "readline       ",
          "shebangfix     ",
          "ssl            ",
+         "tcl            ",
          "terminfo       "
         );
       bandolier : uses_string := (others => ' ');
