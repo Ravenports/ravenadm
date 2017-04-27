@@ -611,6 +611,8 @@ package body Port_Specification.Buildsheet is
       blank_line;
       send ("USERS",                specs.users, 2);
       send ("GROUPS",               specs.groups, 2);
+      send ("USERGROUP_SPKG",       specs.usergroup_pkg);
+      blank_line;
       send ("USES",                 specs.uses, 2);
       send ("GNOME_COMPONENTS",     specs.gnome_comps, 2);
       blank_line;

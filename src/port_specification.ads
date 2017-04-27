@@ -38,7 +38,7 @@ package Port_Specification is
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun,
                        sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
-                       sp_gnome, sp_rcscript);
+                       sp_gnome, sp_rcscript, sp_ug_pkg);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -214,6 +214,9 @@ package Port_Specification is
 
    --  Runs through specs to ensure all license framework information is present.
    function post_parse_license_check_passes (specs : Portspecs) return Boolean;
+
+   --  Ensures USERGROUP_SPKG is set if USERS or GROUP is set.
+   function post_parse_usergroup_check_passes (specs : Portspecs) return Boolean;
 
    --  Return "single", "dual" or "multi";
    function get_license_scheme (specs : Portspecs) return String;
@@ -428,6 +431,7 @@ private
          lic_names     : string_crate.Vector;
          lic_files     : string_crate.Vector;
          lic_scheme    : HT.Text;
+         usergroup_pkg : HT.Text;
          users         : string_crate.Vector;
          groups        : string_crate.Vector;
          mandirs       : string_crate.Vector;

@@ -397,6 +397,7 @@ package body Specification_Parser is
                      when prefix           => build_string (spec, PSP.sp_prefix, line);
                      when lic_scheme       => build_string (spec, PSP.sp_lic_scheme, line);
                      when configure_target => build_string (spec, PSP.sp_config_target, line);
+                     when ug_subpackage    => build_string (spec, PSP.sp_ug_pkg, line);
                      when revision         => set_natural (spec, PSP.sp_revision, line);
                      when epoch            => set_natural (spec, PSP.sp_epoch, line);
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
@@ -1004,7 +1005,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 124;
+      total_singlets : constant Positive := 125;
 
       type singlet_pair is
          record
@@ -1136,6 +1137,7 @@ package body Specification_Parser is
          ("SUB_LIST              ",  8, sub_list),
          ("TEST_ARGS             ",  9, test_args),
          ("TEST_TARGET           ", 11, test_target),
+         ("USERGROUP_SPKG        ", 14, ug_subpackage),
          ("USERS                 ",  5, users),
          ("USES                  ",  4, uses),
          ("VARIANTS              ",  8, variants),
@@ -1597,6 +1599,9 @@ package body Specification_Parser is
       end if;
       if not spec.post_parse_license_check_passes then
          return HT.SUS ("The LICENSE settings are not valid.");
+      end if;
+      if not spec.post_parse_usergroup_check_passes then
+         return HT.SUS ("The USERGROUP_SPKG definition is required when USERS or GROUPS is set");
       end if;
       return HT.blank;
    end late_validity_check_error;

@@ -105,6 +105,7 @@ package body Port_Specification is
       specs.deprecated     := HT.blank;
       specs.prefix         := HT.blank;
       specs.last_catchkey  := HT.blank;
+      specs.usergroup_pkg  := HT.blank;
 
       specs.licenses.Clear;
       specs.users.Clear;
@@ -252,6 +253,15 @@ package body Port_Specification is
             else
                raise wrong_value with "Not valid license scheme: " & value;
             end if;
+         when sp_ug_pkg =>
+            verify_entry_is_post_options;
+            if not specs.subpackage_exists (value) then
+               raise wrong_value with "USERGROUP_SPKG must match a valid subpackage";
+            end if;
+            if value = spkg_complete then
+               raise wrong_value with "USERGROUP_SPKG must not be set to meta-package";
+            end if;
+            specs.usergroup_pkg := text_value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2856,7 +2866,28 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  dump_specification
+   --  post_parse_usergroup_check_passes
+   --------------------------------------------------------------------------------------------
+   function post_parse_usergroup_check_passes (specs : Portspecs) return Boolean
+   is
+      ugspkg_defined : constant Boolean := not HT.IsBlank (specs.usergroup_pkg);
+   begin
+      if specs.users.Is_Empty and then specs.groups.Is_Empty then
+         if ugspkg_defined then
+            TIO.Put_Line ("Warning: USERGROUP_SPKG is set, but GROUPS and USERS are not");
+         end if;
+         return True;
+      end if;
+      if not ugspkg_defined then
+         --  Fatal error provided by specification_parser
+         return False;
+      end if;
+      return True;
+   end post_parse_usergroup_check_passes;
+
+
+   --------------------------------------------------------------------------------------------
+   --  post_parse_license_check_passes
    --------------------------------------------------------------------------------------------
    function post_parse_license_check_passes (specs : Portspecs) return Boolean
    is
@@ -3374,6 +3405,7 @@ package body Port_Specification is
             when sp_deprecated     => TIO.Put_Line (HT.USS (specs.deprecated));
             when sp_install_wrksrc => TIO.Put_Line (HT.USS (specs.install_wrksrc));
             when sp_prefix         => TIO.Put_Line (HT.USS (specs.prefix));
+            when sp_ug_pkg         => TIO.Put_Line (HT.USS (specs.usergroup_pkg));
             when others => null;
          end case;
       end print_single;
@@ -3501,6 +3533,7 @@ package body Port_Specification is
       print_vector_list ("LICENSES", sp_licenses);
       print_vector_list ("USERS", sp_users);
       print_vector_list ("GROUPS", sp_groups);
+      print_single      ("USERGROUP_SPKG", sp_ug_pkg);
       print_vector_list ("MANDIRS", sp_mandirs);
       print_group_list  ("CATCHALL", sp_catchall);
       print_group_list  ("VAR_OPSYS", sp_var_opsys);
