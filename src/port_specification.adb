@@ -1096,7 +1096,9 @@ package body Port_Specification is
                raise wrong_type with "subpackage key '" & key & "' has not been defined.";
             end if;
             if not valid_dependency_format (value) then
-               raise wrong_value with "invalid dependency format '" & value & "'";
+               if value /= "ssl" then
+                  raise wrong_value with "invalid dependency format '" & value & "'";
+               end if;
             end if;
             if specs.extra_rundeps.Contains (text_key) and then
               specs.extra_rundeps.Element (text_key).list.Contains (text_value)

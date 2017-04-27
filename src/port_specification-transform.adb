@@ -252,6 +252,7 @@ package body Port_Specification.Transform is
       apply_gcc_run_module (specs, variant, "compiler", "complete");
       apply_curly_bracket_conversions (specs);
       apply_default_version_transformations (specs);
+      convert_exrun_versions (specs);
    end apply_directives;
 
 
@@ -1584,6 +1585,65 @@ package body Port_Specification.Transform is
                                              Process  => grow'Access);
       end if;
    end add_exrun_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  convert_exrun_versions
+   --------------------------------------------------------------------------------------------
+   procedure convert_exrun_versions (specs : in out Portspecs)
+   is
+      procedure convert1 (position1 : list_crate.Cursor);
+      procedure convert2 (Key : HT.Text; Element : in out group_list);
+      procedure check    (position3 : string_crate.Cursor);
+      procedure convert3 (Element : in out HT.Text);
+
+      found : Boolean;
+
+      procedure convert3 (Element : in out HT.Text)
+      is
+         exrundep : String := HT.USS (Element);
+      begin
+         if exrundep = "ssl" then
+            declare
+               setting : String := HT.USS (Parameters.configuration.def_ssl);
+            begin
+               if setting = ports_default then
+                  Element := HT.SUS ("libressl:single:standard");
+               else
+                  Element := HT.SUS (setting & ":single:standard");
+               end if;
+            end;
+         end if;
+      end convert3;
+
+      procedure convert2 (Key : HT.Text; Element : in out group_list) is
+      begin
+         Element.list.Update_Element (Position => Element.list.Find (HT.SUS ("ssl")),
+                                      Process  => convert3'Access);
+      end convert2;
+
+      procedure check (position3 : string_crate.Cursor)
+      is
+         value : String := HT.USS (string_crate.Element (position3));
+      begin
+         if value = "ssl" then
+            found := True;
+         end if;
+      end check;
+
+      procedure convert1 (position1 : list_crate.Cursor) is
+      begin
+         found := False;
+         list_crate.Element (position1).list.Iterate (check'Access);
+         if not found then
+            return;
+         end if;
+         specs.extra_rundeps.Update_Element (Position => position1,
+                                             Process  => convert2'Access);
+      end convert1;
+   begin
+      specs.extra_rundeps.Iterate (convert1'Access);
+   end convert_exrun_versions;
 
 
    --------------------------------------------------------------------------------------------
