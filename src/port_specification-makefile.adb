@@ -705,6 +705,8 @@ package body Port_Specification.Makefile is
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
+      send ("USERS",            specs.users, 1);
+      send ("GROUPS",           specs.groups, 1);
       send ("USES",             specs.uses, 10);
       dump_license;
       print_if_defined ("PREFIX", HT.USS (specs.prefix));
