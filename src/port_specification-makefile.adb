@@ -712,6 +712,8 @@ package body Port_Specification.Makefile is
       dump_catchall;
       send ("NO_CCACHE",        specs.skip_ccache, True);
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
+      send ("PATCH_STRIP",      specs.patch_strip, 1);
+      send ("PATCH_DIST_STRIP", specs.pfiles_strip, 1);
 
       dump_has_configure (specs.config_must);
       send ("GNU_CONFIGURE_PREFIX", specs.config_prefix);

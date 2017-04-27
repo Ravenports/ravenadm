@@ -560,7 +560,7 @@ package body Port_Specification is
             specs.patchfiles.Append (text_value);
          when sp_pfiles_strip =>
             verify_entry_is_post_options;
-            specs.patch_strip.Append (text_value);
+            specs.pfiles_strip.Append (text_value);
          when sp_patch_strip =>
             verify_entry_is_post_options;
             specs.patch_strip.Append (text_value);
