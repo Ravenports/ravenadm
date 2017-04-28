@@ -237,6 +237,7 @@ package body Port_Specification.Transform is
       apply_info_presence (specs);
       apply_gettext_runtime_module (specs);
       apply_gettext_tools_module (specs);
+      apply_autoconf_module (specs);
       apply_perl_module (specs);
       apply_bdb_module (specs);
       apply_ssl_module (specs);
@@ -863,6 +864,27 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_pkgconfig_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_autoconf_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_autoconf_module  (specs : in out Portspecs)
+   is
+      module   : String := "autoreconf";
+      AUTOCONF : String := "autoconf:single:standard";
+      AUTOMAKE : String := "automake:single:standard";
+      LIBTOOL  : String := "libtool:single:standard";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      add_build_depends (specs, AUTOCONF);
+      add_build_depends (specs, AUTOMAKE);
+      if not argument_present (specs, module, BUILD) then
+         add_build_depends (specs, LIBTOOL);
+      end if;
+   end apply_autoconf_module;
 
 
    --------------------------------------------------------------------------------------------

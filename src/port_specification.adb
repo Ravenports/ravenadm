@@ -2425,7 +2425,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 31;
+      total_modules : constant Positive := 32;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2433,6 +2433,7 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
          "ada            ",
+         "autoreconf     ",
          "bdb            ",
          "bison          ",
          "c++            ",
