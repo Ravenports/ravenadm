@@ -64,6 +64,7 @@ private
       arch_standard : supported_arch;
       osmajor       : String);
 
+   procedure apply_scons_module     (specs : in out Portspecs);
    procedure apply_gmake_module     (specs : in out Portspecs);
    procedure apply_libtool_module   (specs : in out Portspecs);
    procedure apply_libiconv_module  (specs : in out Portspecs);

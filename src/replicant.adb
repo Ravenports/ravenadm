@@ -1180,7 +1180,7 @@ package body Replicant is
       override_defaults ("python3",  PM.configuration.def_python3);
       override_defaults ("ruby",     PM.configuration.def_ruby);
       override_defaults ("ssl",      PM.configuration.def_ssl);
-      override_defaults ("tcltk",    PM.configuration.def_tcl_tk);
+      override_defaults ("tcl",      PM.configuration.def_tcl_tk);
       concatenate_makeconf (makeconf, profilemc);
       TIO.Close (makeconf);
 

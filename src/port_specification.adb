@@ -2425,7 +2425,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 29;
+      total_modules : constant Positive := 31;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2452,12 +2452,14 @@ package body Port_Specification is
          "lua            ",
          "makeinfo       ",
          "ncurses        ",
+         "pgsql          ",
          "perl           ",
          "perl-interp    ",
          "pkgconfig      ",
          "python         ",
          "readline       ",
          "shebangfix     ",
+         "scons          ",
          "ssl            ",
          "tcl            ",
          "terminfo       "

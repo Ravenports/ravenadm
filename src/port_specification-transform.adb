@@ -226,6 +226,7 @@ package body Port_Specification.Transform is
       apply_extraction_deps (specs);
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
+      apply_scons_module (specs);
       apply_makeinfo_module (specs);
       apply_readline_module (specs);
       apply_libiconv_module (specs);
@@ -666,6 +667,20 @@ package body Port_Specification.Transform is
          specs.pkg_notes.Insert (text_cpe, HT.SUS (retrieve ("CPE_STR", default_note)));
       end;
    end apply_cpe_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_scons_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_scons_module (specs : in out Portspecs)
+   is
+      module     : String := "scons";
+      dependency : String := "scons:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dependency);
+      end if;
+   end apply_scons_module;
 
 
    --------------------------------------------------------------------------------------------
