@@ -1123,7 +1123,8 @@ package body Replicant is
       TIO.Create (File => shells,
                   Mode => TIO.Out_File,
                   Name => path_to_etc & "/shells");
-            TIO.Put_Line (shells, "/bin/sh" & LAT.LF);
+      TIO.Put_Line (shells, "/bin/sh" & LAT.LF);
+      TIO.Put_Line (shells, "/bin/csh" & LAT.LF);
       TIO.Close (shells);
    end create_etc_shells;
 
