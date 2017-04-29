@@ -1662,7 +1662,7 @@ package body PortScan.Operations is
                   rec : subpackage_record renames subpackage_crate.Element (position);
                begin
                   if not pkgfound and then
-                    HT.USS (rec.subpackage) = subpackage
+                    HT.equivalent (rec.subpackage, subpackage)
                   then
                      available := (rec.remote_pkg or else rec.pkg_present) and then
                        not rec.deletion_due;

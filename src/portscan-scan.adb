@@ -441,6 +441,18 @@ package body PortScan.Scan is
       rec.ignored       := not HT.IsBlank (rec.ignore_reason);
       rec.scanned       := False;
 
+      for item in Positive range 1 .. thespec.get_subpackage_length (variant) loop
+         declare
+            newrec     : subpackage_record;
+            subpackage : String := thespec.get_subpackage_item (variant, item);
+         begin
+            newrec.subpackage   := HT.SUS (subpackage);
+            newrec.never_remote := True;
+            newrec.pkg_present  := True;
+            rec.subpackages.Append (newrec);
+         end;
+      end loop;
+
    end skeleton_compiler_data;
 
 
