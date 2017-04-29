@@ -748,6 +748,7 @@ package body Port_Specification.Makefile is
       send ("CXXFLAGS",         specs.cxxflags, 1);
       send ("CPPFLAGS",         specs.cppflags, 1);
       send ("LDFLAGS",          specs.ldflags, 1);
+      send ("CMAKE_ARGS",       specs.cmake_args, 1);
       dump_conditional_vars;
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);

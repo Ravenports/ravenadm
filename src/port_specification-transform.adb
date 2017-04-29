@@ -98,6 +98,7 @@ package body Port_Specification.Transform is
                      when buildrun_depends_off => specs.buildrun_deps.Append (item);
                      when run_depends_off      => specs.run_deps.Append (item);
                      when cmake_args_off       => specs.cmake_args.Append (item);
+                     when cflags_off           => specs.cflags.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
                      when qmake_off            => specs.qmake_args.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
@@ -207,6 +208,7 @@ package body Port_Specification.Transform is
          else
             augment (buildrun_depends_off, rec.BUILDRUN_DEPENDS_OFF);
             augment (build_depends_off,    rec.BUILD_DEPENDS_OFF);
+            augment (cflags_off,           rec.CFLAGS_OFF);
             augment (cmake_args_off,       rec.CMAKE_ARGS_OFF);
             augment (configure_args_off,   rec.CONFIGURE_ARGS_OFF);
             augment (makefile_off,         rec.MAKEFILE_OFF);
