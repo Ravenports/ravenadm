@@ -318,6 +318,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.RUN_DEPENDS_OFF, "RUN_DEPENDS_OFF");
          dump_helper (name, rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
          dump_helper (name, rec.SUB_FILES_ON, "SUB_FILES_ON");
+         dump_helper (name, rec.SUB_LIST_OFF, "SUB_LIST_OFF");
          dump_helper (name, rec.SUB_LIST_ON, "SUB_LIST_ON");
          dump_helper (name, rec.TEST_TARGET_ON, "TEST_TARGET_ON");
          dump_helper (name, rec.USES_OFF, "USES_OFF");
@@ -677,6 +678,7 @@ package body Port_Specification.Buildsheet is
       send ("CPPFLAGS",             specs.cppflags, 1);
       send ("LDFLAGS",              specs.ldflags, 1);
       send ("OPTIMIZER_LEVEL",      specs.optimizer_lvl, 2);
+      send ("CMAKE_ARGS",           specs.cmake_args, 1);
       send ("TEST_TARGET",          specs.test_tgt, 2);
       send ("TEST_ARGS",            specs.test_args, 1);
       send ("VAR_OPSYS",            specs.var_opsys);

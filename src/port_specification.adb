@@ -598,6 +598,9 @@ package body Port_Specification is
          when sp_test_args =>
             verify_entry_is_post_options;
             specs.test_args.Append (text_value);
+         when sp_cmake_args =>
+            verify_entry_is_post_options;
+            specs.cmake_args.Append (text_value);
          when sp_build_deps | sp_buildrun_deps | sp_run_deps =>
             verify_entry_is_post_options;
             if not valid_dependency_format (value) then
@@ -1300,6 +1303,8 @@ package body Port_Specification is
                Element.RUN_DEPENDS_OFF.Append (value_text);
             when run_depends_on =>
                Element.RUN_DEPENDS_ON.Append (value_text);
+            when sub_list_off =>
+               Element.SUB_LIST_OFF.Append (value_text);
             when sub_files_on =>
                Element.SUB_FILES_ON.Append (value_text);
             when sub_list_on =>
@@ -1345,8 +1350,8 @@ package body Port_Specification is
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
-              qmake_on | qmake_off | sub_files_on | sub_list_on | test_target_on | description |
-              makefile_on | makefile_off =>
+              qmake_on | qmake_off | sub_files_on | sub_list_off | sub_list_on |
+              test_target_on | description | makefile_on | makefile_off =>
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on |
@@ -1465,6 +1470,7 @@ package body Port_Specification is
             when run_depends_off       => return rec.RUN_DEPENDS_OFF.Is_Empty;
             when run_depends_on        => return rec.RUN_DEPENDS_ON.Is_Empty;
             when sub_files_on          => return rec.SUB_FILES_ON.Is_Empty;
+            when sub_list_off          => return rec.SUB_LIST_OFF.Is_Empty;
             when sub_list_on           => return rec.SUB_LIST_ON.Is_Empty;
             when test_target_on        => return rec.TEST_TARGET_ON.Is_Empty;
             when uses_off              => return rec.USES_OFF.Is_Empty;

@@ -49,9 +49,9 @@ package Port_Specification is
                          extra_patches_on, extract_only_on, implies_on, info_on,
                          install_target_on, keywords_on, ldflags_on, make_args_on, make_env_on,
                          patchfiles_on, plist_sub_on, prevents_on, qmake_off, qmake_on,
-                         run_depends_off, run_depends_on, sub_files_on, sub_list_on,
-                         test_target_on, uses_off, uses_on, makefile_on, makefile_off,
-                         description);
+                         run_depends_off, run_depends_on, sub_files_on, sub_list_off,
+                         sub_list_on, test_target_on, uses_off, uses_on, makefile_off,
+                         makefile_on, description);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -324,6 +324,7 @@ private
          RUN_DEPENDS_OFF       : string_crate.Vector;
          RUN_DEPENDS_ON        : string_crate.Vector;
          SUB_FILES_ON          : string_crate.Vector;
+         SUB_LIST_OFF          : string_crate.Vector;
          SUB_LIST_ON           : string_crate.Vector;
          TEST_TARGET_ON        : string_crate.Vector;
          USES_OFF              : string_crate.Vector;

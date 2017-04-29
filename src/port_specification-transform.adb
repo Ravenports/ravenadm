@@ -101,6 +101,7 @@ package body Port_Specification.Transform is
                      when configure_args_off   => specs.config_args.Append (item);
                      when qmake_off            => specs.qmake_args.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
+                     when sub_list_off         => specs.sub_list.Append (item);
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL-true");
                         specs.cmake_args.Append (special);
@@ -211,6 +212,7 @@ package body Port_Specification.Transform is
             augment (makefile_off,         rec.MAKEFILE_OFF);
             augment (qmake_off,            rec.QMAKE_OFF);
             augment (run_depends_off,      rec.RUN_DEPENDS_OFF);
+            augment (sub_list_off,         rec.SUB_LIST_OFF);
             augment (uses_off,             rec.USES_OFF);
          end if;
          augment (cmake_bool_f_both,      rec.CMAKE_BOOL_F_BOTH);
