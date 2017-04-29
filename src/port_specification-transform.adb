@@ -239,6 +239,7 @@ package body Port_Specification.Transform is
       apply_gettext_tools_module (specs);
       apply_autoconf_module (specs);
       apply_execinfo_module (specs);
+      apply_cmake_module (specs);
       apply_perl_module (specs);
       apply_bdb_module (specs);
       apply_ssl_module (specs);
@@ -743,6 +744,24 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_execinfo_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_cmake_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_cmake_module (specs : in out Portspecs)
+   is
+      module     : String := "cmake";
+      dependency : String := "cmake:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         if argument_present (specs, module, RUN) then
+            add_buildrun_depends (specs, dependency);
+         else
+            add_build_depends (specs, dependency);
+         end if;
+      end if;
+   end apply_cmake_module;
 
 
    --------------------------------------------------------------------------------------------

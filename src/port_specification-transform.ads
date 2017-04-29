@@ -82,6 +82,7 @@ private
    procedure apply_python_module    (specs : in out Portspecs);
    procedure apply_lua_module       (specs : in out Portspecs);
    procedure apply_tcl_module       (specs : in out Portspecs);
+   procedure apply_cmake_module     (specs : in out Portspecs);
    procedure apply_autoconf_module  (specs : in out Portspecs);
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
