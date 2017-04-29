@@ -247,7 +247,7 @@ private
       GPLv1, GPLv1x, GPLv2, GPLv2x, GPLv3, GPLv3x,
       GPLv3RLE, GPLv3RLEx, GMGPL, INVALID, ISCL,
       LGPL20, LGPL20x, LGPL21, LGPL21x, LGPL3, LGPL3x,
-      MIT, POSTGRESQL, PSFL, PUBDOM, OPENSSL);
+      MIT, MPL, POSTGRESQL, PSFL, PUBDOM, OPENSSL);
 
    type gnome_type is
      (libxml2, libxslt, invalid_component);

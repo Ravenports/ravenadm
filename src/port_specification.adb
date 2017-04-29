@@ -2425,7 +2425,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 32;
+      total_modules : constant Positive := 33;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2443,6 +2443,7 @@ package body Port_Specification is
          "cpe            ",
          "destdirfix     ",
          "dos2unix       ",
+         "execinfo       ",
          "fortran        ",
          "gettext-runtime",
          "gettext-tools  ",
@@ -2834,6 +2835,7 @@ package body Port_Specification is
          ("LGPL3     ", LGPL3),
          ("LGPL3+    ", LGPL3x),
          ("MIT       ", MIT),
+         ("MPL       ", MPL),
          ("OpenSSL   ", OPENSSL),
          ("PSFL      ", PSFL),
          ("PUBDOM    ", PUBDOM),
