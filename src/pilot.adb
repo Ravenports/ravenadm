@@ -644,7 +644,7 @@ package body Pilot is
          LOG.scribe (PortScan.total, LOG.elapsed_now & " " & PortScan.get_port_variant (ptid) &
                      " has been ignored: " & PortScan.ignore_reason (ptid), False);
          LOG.scribe (PortScan.ignored, LOG.elapsed_now & " " & PortScan.get_port_variant (ptid) &
-                         PortScan.ignore_reason (ptid), False);
+                         "   ## reason: " & PortScan.ignore_reason (ptid), False);
          OPS.cascade_failed_build (id         => ptid,
                                    numskipped => num_skipped);
          OPS.record_history_ignored (elapsed   => LOG.elapsed_now,

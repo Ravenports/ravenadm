@@ -83,6 +83,9 @@ private
    procedure apply_lua_module       (specs : in out Portspecs);
    procedure apply_tcl_module       (specs : in out Portspecs);
    procedure apply_cmake_module     (specs : in out Portspecs);
+   procedure apply_mysql_module     (specs : in out Portspecs);
+   procedure apply_pgsql_module     (specs : in out Portspecs);
+   procedure apply_sqlite_module    (specs : in out Portspecs);
    procedure apply_autoconf_module  (specs : in out Portspecs);
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;

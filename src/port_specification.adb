@@ -122,6 +122,8 @@ package body Port_Specification is
       specs.broken_ssl.Clear;
       specs.gnome_comps.Clear;
       specs.subr_scripts.Clear;
+      specs.broken_mysql.Clear;
+      specs.broken_pgsql.Clear;
 
       specs.last_set := so_initialized;
    end initialize;
@@ -805,7 +807,27 @@ package body Port_Specification is
             then
                specs.broken_ssl.Append (text_value);
             else
-               raise wrong_value with "invalid broken_ssl setting '" & value & "'";
+               raise wrong_value with "invalid BROKEN_SSL setting '" & value & "'";
+            end if;
+         when sp_broken_mysql =>
+            verify_entry_is_post_options;
+            if specs.broken_mysql.Contains (text_value) then
+               raise dupe_list_value with "Duplicate item '" & value & "'";
+            end if;
+            if valid_broken_mysql_value (value) then
+               specs.broken_mysql.Append (text_value);
+            else
+               raise wrong_value with "invalid BROKEN_MYSQL setting '" & value & "'";
+            end if;
+         when sp_broken_pgsql =>
+            verify_entry_is_post_options;
+            if specs.broken_pgsql.Contains (text_value) then
+               raise dupe_list_value with "Duplicate item '" & value & "'";
+            end if;
+            if valid_broken_pgsql_value (value) then
+               specs.broken_pgsql.Append (text_value);
+            else
+               raise wrong_value with "invalid BROKEN_PGSQL setting '" & value & "'";
             end if;
          when others =>
             raise wrong_type with field'Img;
@@ -2431,7 +2453,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 34;
+      total_modules : constant Positive := 36;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2460,6 +2482,7 @@ package body Port_Specification is
          "libtool        ",
          "lua            ",
          "makeinfo       ",
+         "mysql          ",
          "ncurses        ",
          "pgsql          ",
          "perl           ",
@@ -2469,6 +2492,7 @@ package body Port_Specification is
          "readline       ",
          "shebangfix     ",
          "scons          ",
+         "sqlite         ",
          "ssl            ",
          "tcl            ",
          "terminfo       "
@@ -2535,6 +2559,53 @@ package body Port_Specification is
          end if;
       end if;
    end valid_info_page;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_broken_mysql_value
+   --------------------------------------------------------------------------------------------
+   function valid_broken_mysql_value (value : String) return Boolean is
+   begin
+      return
+        (
+         HT.leads (value, "oracle-") and then
+             (value = "oracle-5.5" or else
+              value = "oracle-5.6" or else
+              value = "oracle-5.7")
+        )
+        or else
+          (
+           HT.leads (value, "percona-") and then
+             (value = "percona-5.5" or else
+              value = "percona-5.6" or else
+              value = "percona-5.7")
+          )
+          or else
+            (
+             HT.leads (value, "galera-") and then
+               (value = "galera-5.5" or else
+                value = "galera-5.6" or else
+                value = "galera-5.7")
+            )
+            or else
+              (HT.leads (value, "mariadb-") and then
+                 (value = "mariadb-10.1" or else
+                  value = "mariadb-10.2")
+              );
+   end valid_broken_mysql_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_broken_pgsql_value
+   --------------------------------------------------------------------------------------------
+   function valid_broken_pgsql_value (value : String) return Boolean is
+   begin
+      return value = "9.6" or else
+        value = "9.5" or else
+        value = "9.4" or else
+        value = "9.3" or else
+        value = "9.2";
+   end valid_broken_pgsql_value;
 
 
    --------------------------------------------------------------------------------------------
@@ -3358,6 +3429,8 @@ package body Port_Specification is
             when sp_test_args     => specs.test_args.Iterate (print_item'Access);
             when sp_mandirs       => specs.mandirs.Iterate (print_item'Access);
             when sp_broken_ssl    => specs.broken_ssl.Iterate (print_item'Access);
+            when sp_broken_mysql  => specs.broken_mysql.Iterate (print_item'Access);
+            when sp_broken_pgsql  => specs.broken_pgsql.Iterate (print_item'Access);
             when sp_gnome         => specs.gnome_comps.Iterate (print_item'Access);
             when sp_rcscript      => specs.subr_scripts.Iterate (print_item'Access);
             when others => null;
@@ -3478,6 +3551,8 @@ package body Port_Specification is
       print_group_list  ("OPT_ON", sp_options_on);
       print_group_list  ("BROKEN", sp_broken);
       print_vector_list ("BROKEN_SSL", sp_broken_ssl);
+      print_vector_list ("BROKEN_MYSQL", sp_broken_mysql);
+      print_vector_list ("BROKEN_PGSQL", sp_broken_pgsql);
       print_vector_list ("ONLY_FOR_OPSYS", sp_inc_opsys);
       print_vector_list ("NOT_FOR_OPSYS", sp_exc_opsys);
       print_vector_list ("NOT_FOR_ARCH", sp_exc_arch);

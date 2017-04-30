@@ -214,6 +214,7 @@ package body Port_Specification.Makefile is
            module = "bison" or else
            module = "readline" or else
            module = "execinfo" or else
+           module = "sqlite" or else
            module = "ada" or else
            module = "c++" or else
            module = "cclibs" or else

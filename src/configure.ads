@@ -1,6 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Definitions; use Definitions;
 private with Ada.Characters.Latin_1;
 private with Parameters;
 
@@ -69,18 +70,18 @@ private
    dupe   : PM.configuration_record;
 
    version_A : constant String := "2.5:3.0";  --  Firebird SQL
-   version_B : constant String := "5.2:5.3";  --  Lua
-   version_C : constant String := "oracle-5.5:oracle-5.6:oracle-5.7:" &
+   version_B : constant String := "5.2:" & default_lua;
+   version_C : constant String := "oracle-5.5:oracle-5.6:" & default_mysql & ":" &
                                   "mariadb-10.1:mariadb-10.2:" &
                                   "percona-5.5:percona-5.6:percona-5.7:" &
                                   "galera-5.5:galera-5.6:galera-5.7";
-   version_D : constant String := "5.22:5.24";  --  Perl
+   version_D : constant String := "5.22:" & default_perl;
    version_E : constant String := "5.6:7.0:7.1";  --  php
-   version_F : constant String := "9.2:9.3:9.4:9.5:9.6";  --  postgresql
-   version_G : constant String := "3.4:3.5";  --  python3
-   version_H : constant String := "2.3:2.4";  --  ruby
-   version_I : constant String := "openssl:openssl-devel:libressl:libressl-devel";
-   version_J : constant String := "8.5:8.6";  -- TCL/TK
+   version_F : constant String := "9.2:9.3:9.4:9.5:" & default_pgsql;
+   version_G : constant String := "3.4:" & default_python3;
+   version_H : constant String := "2.3:" & default_ruby;
+   version_I : constant String := "openssl:openssl-devel:" & default_ssl & ":libressl-devel";
+   version_J : constant String := "8.5:" & default_tcltk;
 
    procedure clear_screen;
    procedure print_header;

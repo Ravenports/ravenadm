@@ -24,6 +24,14 @@ package Definitions is
    spkg_docs         : constant String := "docs";
    spkg_examples     : constant String := "examples";
    ports_default     : constant String := "floating";
+   default_ssl       : constant String := "libressl";
+   default_mysql     : constant String := "oracle-5.7";
+   default_lua       : constant String := "5.3";
+   default_perl      : constant String := "5.24";
+   default_pgsql     : constant String := "9.6";
+   default_python3   : constant String := "3.5";
+   default_ruby      : constant String := "2.4";
+   default_tcltk     : constant String := "8.6";
    default_compiler  : constant String := "gcc6";
    compiler_version  : constant String := "6.20170202";
    arc_ext           : constant String := ".txz";

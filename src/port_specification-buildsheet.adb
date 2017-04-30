@@ -599,6 +599,8 @@ package body Port_Specification.Buildsheet is
       blank_line;
       send ("BROKEN",               specs.broken);
       send ("BROKEN_SSL",           specs.broken_ssl, 2);
+      send ("BROKEN_MYSQL",         specs.broken_mysql, 2);
+      send ("BROKEN_PGSQL",         specs.broken_pgsql, 2);
       send ("NOT_FOR_OPSYS",        specs.exc_opsys, 2);
       send ("ONLY_FOR_OPSYS",       specs.inc_opsys, 2);
       send ("NOT_FOR_ARCH",         specs.exc_arch, 2);

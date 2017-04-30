@@ -457,6 +457,8 @@ package body Specification_Parser is
                      when lic_name         => build_list (spec, PSP.sp_lic_name, line);
                      when mandirs          => build_list (spec, PSP.sp_mandirs, line);
                      when broken_ssl       => build_list (spec, PSP.sp_broken_ssl, line);
+                     when broken_mysql     => build_list (spec, PSP.sp_broken_mysql, line);
+                     when broken_pgsql     => build_list (spec, PSP.sp_broken_pgsql, line);
                      when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
                      when rc_scripts       => build_list (spec, PSP.sp_rcscript, line);
                      when catchall         => build_nvpair (spec, line);
@@ -1005,7 +1007,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 127;
+      total_singlets : constant Positive := 129;
 
       type singlet_pair is
          record
@@ -1018,6 +1020,8 @@ package body Specification_Parser is
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
          ("APPLY_F10_FIX         ", 13, apply_10_fix),
+         ("BROKEN_MYSQL          ", 12, broken_mysql),
+         ("BROKEN_PGSQL          ", 12, broken_pgsql),
          ("BROKEN_SSL            ", 10, broken_ssl),
          ("BUILDRUN_DEPENDS      ", 16, buildrun_deps),
          ("BUILD_DEPENDS         ", 13, build_deps),

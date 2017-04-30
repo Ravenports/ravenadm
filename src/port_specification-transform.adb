@@ -243,11 +243,14 @@ package body Port_Specification.Transform is
       apply_gettext_tools_module (specs);
       apply_autoconf_module (specs);
       apply_execinfo_module (specs);
+      apply_sqlite_module (specs);
       apply_cmake_module (specs);
       apply_perl_module (specs);
       apply_bdb_module (specs);
       apply_ssl_module (specs);
       apply_bison_module (specs);
+      apply_mysql_module (specs);
+      apply_pgsql_module (specs);
       apply_python_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
@@ -557,6 +560,9 @@ package body Port_Specification.Transform is
             end if;
 
             if used then
+               if not specs.broken.Contains (index) then
+                  specs.establish_group (sp_broken, broken_all);
+               end if;
                specs.broken.Update_Element (Position => specs.broken.Find (index),
                                             Process  => grow'Access);
             end if;
@@ -569,6 +575,7 @@ package body Port_Specification.Transform is
       procedure check_ignore
       is
          procedure grow (Key : HT.Text; Element : in out group_list);
+         procedure append_ignore;
 
          reason : HT.Text;
 
@@ -576,28 +583,76 @@ package body Port_Specification.Transform is
          begin
                Element.list.Append (reason);
          end grow;
+
+         procedure append_ignore is
+         begin
+            --  Call after "reason" is set
+            if not specs.broken.Contains (index) then
+               specs.establish_group (sp_broken, broken_all);
+            end if;
+            specs.broken.Update_Element (Position => specs.broken.Find (index),
+                                         Process  => grow'Access);
+         end append_ignore;
+
+         LIST_SSL_FAILURE   : constant String := "Does not build with SSL default '";
+         LIST_MYSQL_FAILURE : constant String := "Does not build with MySQL default '";
+         LIST_PGSQL_FAILURE : constant String := "Does not build with PGSQL default '";
       begin
          if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
            (not specs.inc_opsys.Is_Empty and then
               not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
          then
             reason := HT.SUS ("Specification excludes " & UTL.mixed_opsys (opsys) & " OS");
+            append_ignore;
          end if;
          if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
             reason := HT.SUS ("Specification excludes " & UTL.cpu_arch (arch_standard) &
                                 " architecture");
+            append_ignore;
          end if;
-         if not HT.IsBlank (reason) then
-            specs.broken.Update_Element (Position => specs.broken.Find (index),
-                                         Process  => grow'Access);
-         end if;
+
          --  Handle BROKEN_SSL directive
-         if specs.broken_ssl.Contains (Parameters.configuration.def_ssl) then
-            reason := HT.SUS ("Does not build with SSL default '" &
-                                HT.USS (Parameters.configuration.def_ssl) & "'");
-            specs.broken.Update_Element (Position => specs.broken.Find (index),
-                                         Process  => grow'Access);
+         if HT.equivalent (Parameters.configuration.def_ssl, ports_default) then
+            if specs.broken_ssl.Contains (HT.SUS (default_ssl)) then
+               reason := HT.SUS (LIST_SSL_FAILURE & default_ssl & "'");
+               append_ignore;
+            end if;
+         else
+            if specs.broken_ssl.Contains (Parameters.configuration.def_ssl) then
+               reason := HT.SUS (LIST_SSL_FAILURE &
+                                   HT.USS (Parameters.configuration.def_ssl) & "'");
+               append_ignore;
+            end if;
          end if;
+
+         --  Handle BROKEN_MYSQL directive
+         if HT.equivalent (Parameters.configuration.def_mysql_group, ports_default) then
+            if specs.broken_mysql.Contains (HT.SUS (default_mysql)) then
+               reason := HT.SUS (LIST_MYSQL_FAILURE & default_mysql & "'");
+               append_ignore;
+            end if;
+         else
+            if specs.broken_mysql.Contains (Parameters.configuration.def_mysql_group) then
+               reason := HT.SUS (LIST_MYSQL_FAILURE &
+                                   HT.USS (Parameters.configuration.def_mysql_group) & "'");
+               append_ignore;
+            end if;
+         end if;
+
+         --  Handle BROKEN_PGSQL directive
+         if HT.equivalent (Parameters.configuration.def_postgresql, ports_default) then
+            if specs.broken_pgsql.Contains (HT.SUS (default_pgsql)) then
+               reason := HT.SUS (LIST_PGSQL_FAILURE & default_pgsql & "'");
+               append_ignore;
+            end if;
+         else
+            if specs.broken_pgsql.Contains (Parameters.configuration.def_postgresql) then
+               reason := HT.SUS (LIST_PGSQL_FAILURE &
+                                   HT.USS (Parameters.configuration.def_postgresql) & "'");
+               append_ignore;
+            end if;
+         end if;
+
       end check_ignore;
 
    begin
@@ -733,6 +788,20 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_sqlite_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_sqlite_module  (specs : in out Portspecs)
+   is
+      module     : String := "sqlite";
+      dependency : String := "sqlite:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_sqlite_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_execinfo_module
    --------------------------------------------------------------------------------------------
    procedure apply_execinfo_module  (specs : in out Portspecs)
@@ -796,6 +865,131 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_mysql_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_mysql_module (specs : in out Portspecs)
+   is
+      function determine_dependency return String;
+
+      module : String := "mysql";
+
+      function determine_dependency return String
+      is
+         suffix  : String := ":client:standard";
+         setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
+      begin
+         if argument_present (specs, module, "server") then
+            suffix := ":server:standard";
+         end if;
+         if setting = "oracle-5.5" then
+            return "mysql55" & suffix;
+         elsif setting = "oracle-5.6" then
+            return "mysql56" & suffix;
+         elsif setting = "mariadb-10.1" then
+            return "mariadb101" & suffix;
+         elsif setting = "mariadb-10.2" then
+            return "mariadb102" & suffix;
+         elsif setting = "percona-5.5" then
+            return "percona55" & suffix;
+         elsif setting = "percona-5.6" then
+            return "percona56" & suffix;
+         elsif setting = "percona-5.7" then
+            return "percona57" & suffix;
+         elsif setting = "galera-5.5" then
+            return "percona55" & suffix;
+         elsif setting = "galera-5.6" then
+            return "percona56" & suffix;
+         elsif setting = "galera-5.7" then
+            return "percona57" & suffix;
+         else
+            --  case: setting = ports_default
+            --  case: setting = default_mysql
+            --  case: setting = invalid value
+            return "mysql57" & suffix;
+         end if;
+      end determine_dependency;
+
+      dependency : String := determine_dependency;
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_mysql_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_pgsql_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_pgsql_module (specs : in out Portspecs)
+   is
+      function determine_namebase return String;
+      procedure set_dependency (subpackage : String);
+      procedure set_dependency_on_subpackage (subpackage : String);
+
+      module : String := "pgsql";
+
+      function determine_namebase return String
+      is
+         setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
+      begin
+         if setting = "9.2" then
+            return "postgresql92";
+         elsif setting = "9.3" then
+            return "postgresql93";
+         elsif setting = "9.4" then
+            return "postgresql94";
+         elsif setting = "9.5" then
+            return "postgresql95";
+         else
+            --  case: setting = ports_default
+            --  case: setting = default_pgsql
+            --  case: setting = invalid value
+            return "postgresql96";
+         end if;
+      end determine_namebase;
+
+      namebase : String := determine_namebase;
+      build_only : Boolean := argument_present (specs, module, BUILD);
+
+      procedure set_dependency (subpackage : String)
+      is
+         dependency : String := namebase & ":" & subpackage & ":standard";
+      begin
+         if build_only then
+            add_build_depends (specs, dependency);
+         else
+            add_buildrun_depends (specs, dependency);
+         end if;
+      end set_dependency;
+
+      procedure set_dependency_on_subpackage (subpackage : String) is
+      begin
+         if argument_present (specs, module, subpackage) then
+            set_dependency (subpackage);
+         end if;
+      end set_dependency_on_subpackage;
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         if no_arguments_present (specs, module) then
+            set_dependency ("client");
+         elsif argument_present (specs, module, "all") then
+            --  ignore everything else
+            set_dependency (spkg_complete);
+         else
+            set_dependency_on_subpackage ("server");
+            set_dependency_on_subpackage ("plperl");
+            set_dependency_on_subpackage ("plpython");
+            set_dependency_on_subpackage ("pltcl");
+            set_dependency_on_subpackage ("contrib");
+            if not argument_present (specs, module, "server") then
+               set_dependency_on_subpackage ("client");
+            end if;
+         end if;
+      end if;
+   end apply_pgsql_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_ncurses_module
    --------------------------------------------------------------------------------------------
    procedure apply_ncurses_module (specs : in out Portspecs)
@@ -812,7 +1006,6 @@ package body Port_Specification.Transform is
       elsif argument_present (specs, module, "static") then
          add_build_depends (specs, static_dependency);
       end if;
-
    end apply_ncurses_module;
 
 
@@ -1261,7 +1454,7 @@ package body Port_Specification.Transform is
          suffix  : String := ":single:standard";
       begin
          if nbase = ports_default then
-            return "libressl" & suffix;
+            return default_ssl & suffix;
          else
             return nbase & suffix;
          end if;
@@ -1752,7 +1945,7 @@ package body Port_Specification.Transform is
          declare
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
-            if setting = ports_default or else setting = "3.5" then
+            if setting = ports_default or else setting = default_python3 then
                return name_subpackage & "py35";
             else
                return name_subpackage & "py34";
@@ -1762,7 +1955,7 @@ package body Port_Specification.Transform is
          declare
             setting : String := HT.USS (Parameters.configuration.def_perl);
          begin
-            if setting = ports_default or else setting = "5.24" then
+            if setting = ports_default or else setting = default_perl then
                return name_subpackage & "perl524";
             else
                return name_subpackage & "perl522";
