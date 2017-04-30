@@ -145,10 +145,11 @@ package body PortScan.Tests is
                  HT.leads (line, "@postexec ")
                then
                   null;
-               elsif HT.leads (line, "@dir ") then
+               elsif HT.leads (line, "@dir") then
+                  --  handle @dir and @dir(x,y,z)
                   declare
-                     dir : String :=
-                           convert_to_absolute_path (port_prefix, HT.substring (line, 5, 0));
+                     nokey     : constant String := HT.part_2 (line, " ");
+                     dir       : constant String := convert_to_absolute_path (port_prefix, nokey);
                      dir_text  : HT.Text := HT.SUS (dir);
                      excludeit : Boolean;
                   begin
@@ -479,9 +480,13 @@ package body PortScan.Tests is
    begin
       if HT.leads (original, "@info ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 6, 0));
-      elsif HT.leads (original, "@sample ") then
-         return convert_to_absolute_path
-           (port_prefix, HT.part_1 (HT.substring (original, 8, 0), " "));
+      elsif HT.leads (original, "@sample") then
+         --  Handle both @sample and @sample(x,y,z)
+         declare
+            no_sample : constant String := HT.part_2 (original, " ");
+         begin
+            return convert_to_absolute_path (port_prefix, HT.part_1 (no_sample, " "));
+         end;
       elsif HT.leads (original, "@shell ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 7, 0));
       elsif HT.leads (original, "@xmlcatmgr ") then
