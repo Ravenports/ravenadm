@@ -133,6 +133,10 @@ private
       phase_name    : String;
       id            : builders) return Boolean;
 
+   function  remove_build_depends
+     (specification : PSP.Portspecs;
+      id            : builders) return Boolean;
+
    function  dynamically_linked
      (base        : String;
       filename    : String;
