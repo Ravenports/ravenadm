@@ -255,7 +255,9 @@ private
       MIT, MPL, POSTGRESQL, PSFL, PUBDOM, OPENSSL);
 
    type described_option_set is
-     (ASM, DEBUG, ICONV, LDAP, LDAPS, MYSQL, NLS, PGSQL, SQLITE, STATIC, THREADS, ZLIB,
+     (ASM, DEBUG, ICONV,
+      LANG_CN, LANG_KO, LANG_RU,
+      LDAP, LDAPS, MYSQL, NLS, PGSQL, SQLITE, STATIC, THREADS, ZLIB,
       OPT_NOT_DEFINED);
 
    type gnome_type is

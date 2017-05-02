@@ -34,9 +34,9 @@ package body PortScan.Buildcycle is
       R : Boolean;
       break_phase  : constant phases := valid_test_phase (interphase);
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
-      pkgversion   : constant String := HT.USS (all_ports (trackers (id).seq_id).pkgversion);
+      pkgversion   : constant String := HT.USS (all_ports (sequence_id).pkgversion);
       port_prefix  : constant String := get_port_prefix (id);
-      variant      : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
+      variant      : constant String := HT.USS (all_ports (sequence_id).port_variant);
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;

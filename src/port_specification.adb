@@ -3090,6 +3090,9 @@ package body Port_Specification is
          ("ASM           ", ASM),
          ("DEBUG         ", DEBUG),
          ("ICONV         ", ICONV),
+         ("LANG_CN       ", LANG_CN),
+         ("LANG_KO       ", LANG_KO),
+         ("LANG_RU       ", LANG_RU),
          ("LDAP          ", LDAP),
          ("LDAPS         ", LDAPS),
          ("MYSQL         ", MYSQL),
@@ -3140,6 +3143,9 @@ package body Port_Specification is
          when ASM     => return "Use optimized assembly code";
          when DEBUG   => return "Build with debugging support";
          when ICONV   => return "Encoding conversion support via iconv";
+         when LANG_CN => return "Chinese language support";
+         when LANG_KO => return "Korean language support";
+         when LANG_RU => return "Russian language support";
          when LDAP    => return "LDAP protocol support";
          when LDAPS   => return "LDAP protocol over SSL support";
          when MYSQL   => return "MySQL database support";
@@ -3463,29 +3469,32 @@ package body Port_Specification is
 
       procedure scan (position : string_crate.Cursor) is
       begin
-         if not all_good then
-            return;
-         end if;
          declare
             --  we only care if *any* description is defined, so check defaults first
             option   : HT.Text renames string_crate.Element (position);
             opt_name : String := HT.USS (option);
             desc_opt : described_option_set := described_option (opt_name);
+            errormsg : constant String := "Option '" & opt_name & "' has no description.";
          begin
+            if opt_name = options_none then
+               return;
+            end if;
             if desc_opt = OPT_NOT_DEFINED then
                --  No default description, so check for defined version
                if specs.ops_helpers.Contains (option) then
                   if HT.IsBlank (specs.ops_helpers.Element (option).option_description) then
                      all_good := False;
+                     TIO.Put_Line (errormsg);
                   end if;
                else
                   all_good := False;
+                  TIO.Put_Line (errormsg);
                end if;
             end if;
          end;
       end scan;
    begin
-      specs.ops_standard.Iterate (scan'Access);
+      specs.ops_avail.Iterate (scan'Access);
       return all_good;
    end post_parse_opt_desc_check_passes;
 
