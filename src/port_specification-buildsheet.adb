@@ -594,6 +594,11 @@ package body Port_Specification.Buildsheet is
       blank_line;
       send ("OPTIONS_AVAILABLE",    specs.ops_avail, 2);
       send ("OPTIONS_STANDARD",     specs.ops_standard, 2);
+      send ("OPTGROUP_RADIO",       specs.opt_radio, 2);
+      send ("OPTGROUP_RESTRICTED",  specs.opt_restrict, 2);
+      send ("OPTGROUP_UNLIMITED",   specs.opt_unlimited, 2);
+      send ("OPTDESCR",             specs.optgroup_desc);
+      send ("OPTGROUP",             specs.optgroups);
       send ("VOPTS",                specs.variantopts);
       send ("OPT_ON",               specs.options_on);
       blank_line;

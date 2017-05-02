@@ -38,7 +38,8 @@ private
          "="             => HT.SU."=");
 
    type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts, ext_head,
-                         ext_tail, option_on, broken, var_opsys, var_arch, extra_rundep);
+                         ext_tail, option_on, broken, var_opsys, var_arch, extra_rundep,
+                         opt_descr, opt_group);
    type spec_singlet is (not_singlet, namebase, version, revision, epoch, keywords, variants,
                          contacts, dl_groups, dist_subdir, df_index, opt_avail, opt_standard,
                          exc_opsys, inc_opsys, exc_arch, ext_only, ext_zip, ext_7z, ext_lha,
@@ -54,7 +55,7 @@ private
                          catchall, shift_install, diode, lic_scheme, lic_file, lic_name,
                          skip_ccache, test_target, mandirs, invalid_rpath, debugging, broken_ssl,
                          test_args, gnome_comp, rc_scripts, ug_subpackage, broken_mysql,
-                         broken_pgsql);
+                         broken_pgsql, og_radio, og_restrict, og_unlimited);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);

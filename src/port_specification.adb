@@ -37,6 +37,11 @@ package body Port_Specification is
       specs.ops_avail.Clear;
       specs.ops_standard.Clear;
       specs.ops_helpers.Clear;
+      specs.optgroups.Clear;
+      specs.optgroup_desc.Clear;
+      specs.opt_radio.Clear;
+      specs.opt_restrict.Clear;
+      specs.opt_unlimited.Clear;
       specs.variantopts.Clear;
       specs.options_on.Clear;
       specs.broken.Clear;
@@ -472,6 +477,26 @@ package body Port_Specification is
             end if;
             specs.ops_standard.Append (text_value);
             specs.last_set := so_opts_std;
+         when sp_og_radio | sp_og_restrict | sp_og_unlimited =>
+            verify_entry_is_post_options;
+            if value'Length > 12 then
+               raise wrong_value with "'" & value & "' name is too long (12-char limit)";
+            end if;
+            if HT.uppercase (value) /= value then
+               raise wrong_value with "group name '" & value & "' is not capitalized";
+            end if;
+            if specs.opt_radio.Contains (text_value) or else
+              specs.opt_restrict.Contains (text_value) or else
+              specs.opt_unlimited.Contains (text_value)
+            then
+               raise dupe_list_value with "'" & value & "' has already been used in a group name";
+            end if;
+            case field is
+               when sp_og_radio     => specs.opt_radio.Append (text_value);
+               when sp_og_restrict  => specs.opt_restrict.Append (text_value);
+               when sp_og_unlimited => specs.opt_unlimited.Append (text_value);
+               when others => null;
+            end case;
          when sp_exc_opsys =>
             verify_entry_is_post_options;
             if not specs.inc_opsys.Is_Empty then
@@ -885,11 +910,11 @@ package body Port_Specification is
             specs.last_set := so_dl_groups;
          when sp_subpackages =>
             --  variant, order, length and uniqueness already checked
-            --  don't updatee last_set either
+            --  don't update last_set either
             specs.subpackages.Insert (text_group, initial_rec);
          when sp_vopts =>
             --  variant, order, length and uniqueness already checked
-            --  don't updatee last_set either
+            --  don't update last_set either
             specs.variantopts.Insert (text_group, initial_rec);
          when sp_ext_head =>
             specs.extract_head.Insert (text_group, initial_rec);
@@ -909,6 +934,10 @@ package body Port_Specification is
             specs.extra_rundeps.Insert (text_group, initial_rec);
          when sp_catchall =>
             specs.catch_all.Insert (text_group, initial_rec);
+         when sp_opt_descr =>
+            specs.optgroup_desc.Insert (text_group, initial_rec);
+         when sp_opt_group =>
+            specs.optgroups.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1145,6 +1174,38 @@ package body Port_Specification is
             end if;
             specs.extra_rundeps.Update_Element (Position => specs.extra_rundeps.Find (text_key),
                                                 Process  => grow'Access);
+         when sp_opt_descr =>
+            verify_entry_is_post_options;
+            if not specs.opt_radio.Contains (text_key) and then
+              not specs.opt_restrict.Contains (text_key) and then
+              not specs.opt_unlimited.Contains (text_key)
+            then
+               raise missing_group with key;
+            end if;
+            if not specs.optgroup_desc.Contains (text_key) then
+               specs.establish_group (sp_opt_descr, key);
+            end if;
+            if not specs.optgroup_desc.Element (text_key).list.Is_Empty then
+               raise wrong_value with "Group " & key & " description already defined";
+            end if;
+            specs.optgroup_desc.Update_Element (Position => specs.optgroup_desc.Find (text_key),
+                                                Process  => grow'Access);
+         when sp_opt_group =>
+            verify_entry_is_post_options;
+            if not specs.opt_radio.Contains (text_key) and then
+              not specs.opt_restrict.Contains (text_key) and then
+              not specs.opt_unlimited.Contains (text_key)
+            then
+               raise missing_group with key;
+            end if;
+            if not specs.optgroups.Contains (text_key) then
+               specs.establish_group (sp_opt_group, key);
+            end if;
+            if specs.option_already_in_group (value) then
+               raise wrong_value with "Option '" & value & "' already belongs to another group";
+            end if;
+            specs.optgroups.Update_Element (Position => specs.optgroups.Find (text_key),
+                                            Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3285,6 +3346,33 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  last_catchall_key
    --------------------------------------------------------------------------------------------
+   function option_already_in_group (specs : Portspecs; option_name : String) return Boolean
+   is
+      procedure scan1 (position1 : list_crate.Cursor);
+      procedure scan2 (position2 : string_crate.Cursor);
+
+      found : Boolean := False;
+
+      procedure scan2 (position2 : string_crate.Cursor) is
+      begin
+         if not found then
+            found := HT.equivalent (string_crate.Element (position2), option_name);
+         end if;
+      end scan2;
+
+      procedure scan1 (position1 : list_crate.Cursor) is
+      begin
+         list_crate.Element (position1).list.Iterate (scan2'Access);
+      end scan1;
+   begin
+      specs.optgroups.Iterate (scan1'Access);
+      return found;
+   end option_already_in_group;
+
+
+   --------------------------------------------------------------------------------------------
+   --  last_catchall_key
+   --------------------------------------------------------------------------------------------
    function last_catchall_key (specs : Portspecs) return String is
    begin
       return HT.USS (specs.last_catchkey);
@@ -3498,6 +3586,9 @@ package body Port_Specification is
             when sp_broken_pgsql  => specs.broken_pgsql.Iterate (print_item'Access);
             when sp_gnome         => specs.gnome_comps.Iterate (print_item'Access);
             when sp_rcscript      => specs.subr_scripts.Iterate (print_item'Access);
+            when sp_og_radio      => specs.opt_radio.Iterate (print_item'Access);
+            when sp_og_restrict   => specs.opt_restrict.Iterate (print_item'Access);
+            when sp_og_unlimited  => specs.opt_unlimited.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -3520,6 +3611,8 @@ package body Port_Specification is
             when sp_var_arch         => specs.var_arch.Iterate (dump'Access);
             when sp_exrun            => specs.extra_rundeps.Iterate (dump'Access);
             when sp_catchall         => specs.catch_all.Iterate (dump'Access);
+            when sp_opt_descr        => specs.optgroup_desc.Iterate (dump'Access);
+            when sp_opt_group        => specs.optgroups.Iterate (dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -3612,6 +3705,11 @@ package body Port_Specification is
       print_group_list  ("SPKGS", sp_subpackages);
       print_vector_list ("OPTIONS_AVAILABLE", sp_opts_avail);
       print_vector_list ("OPTIONS_STANDARD", sp_opts_standard);
+      print_vector_list ("OPTGROUP_RADIO", sp_og_radio);
+      print_vector_list ("OPTGROUP_RESTRICTED", sp_og_restrict);
+      print_vector_list ("OPTGROUP_UNLIMITED", sp_og_unlimited);
+      print_group_list  ("OPTDESCR", sp_opt_descr);
+      print_group_list  ("OPTGROUP", sp_opt_group);
       print_group_list  ("VOPTS", sp_vopts);
       print_group_list  ("OPT_ON", sp_options_on);
       print_group_list  ("BROKEN", sp_broken);

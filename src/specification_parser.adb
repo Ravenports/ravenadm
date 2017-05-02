@@ -367,6 +367,16 @@ package body Specification_Parser is
                                 HT.SUS (LN & "group '" & tkey & "' is not a valid arch value");
                               exit;
                            end if;
+                        when opt_descr =>
+                           specification.append_array (field        => PSP.sp_opt_descr,
+                                                       key          => tkey,
+                                                       value        => tvalue,
+                                                       allow_spaces => True);
+                        when opt_group =>
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_opt_group,
+                                             key   => tkey,
+                                             value => tvalue);
                         when not_array => null;
                      end case;
                   end;
@@ -461,6 +471,9 @@ package body Specification_Parser is
                      when broken_pgsql     => build_list (spec, PSP.sp_broken_pgsql, line);
                      when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
                      when rc_scripts       => build_list (spec, PSP.sp_rcscript, line);
+                     when og_radio         => build_list (spec, PSP.sp_og_radio, line);
+                     when og_restrict      => build_list (spec, PSP.sp_og_restrict, line);
+                     when og_unlimited     => build_list (spec, PSP.sp_og_unlimited, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -932,7 +945,7 @@ package body Specification_Parser is
    is
       subtype array_string is String (1 .. 12);
 
-      total_arrays : constant Positive := 13;
+      total_arrays : constant Positive := 15;
 
       type array_pair is
          record
@@ -949,6 +962,8 @@ package body Specification_Parser is
          ("EXRUN       ", extra_rundep),
          ("EXTRACT_HEAD", ext_head),
          ("EXTRACT_TAIL", ext_tail),
+         ("OPTDESCR    ", opt_descr),
+         ("OPTGROUP    ", opt_group),
          ("OPT_ON      ", option_on),
          ("SDESC       ", sdesc),
          ("SITES       ", sites),
@@ -1007,7 +1022,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 129;
+      total_singlets : constant Positive := 132;
 
       type singlet_pair is
          record
@@ -1099,6 +1114,9 @@ package body Specification_Parser is
          ("NOT_FOR_ARCH          ", 12, exc_arch),
          ("NOT_FOR_OPSYS         ", 13, exc_opsys),
          ("ONLY_FOR_OPSYS        ", 14, inc_opsys),
+         ("OPTGROUP_RADIO        ", 14, og_radio),
+         ("OPTGROUP_RESTRICTED   ", 19, og_restrict),
+         ("OPTGROUP_UNLIMITED    ", 18, og_unlimited),
          ("OPTIMIZER_LEVEL       ", 15, opt_level),
          ("OPTIONS_AVAILABLE     ", 17, opt_avail),
          ("OPTIONS_STANDARD      ", 16, opt_standard),

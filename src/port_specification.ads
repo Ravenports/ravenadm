@@ -38,7 +38,8 @@ package Port_Specification is
                        sp_notes, sp_inst_tchain, sp_var_opsys, sp_var_arch, sp_lic_name,
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun,
                        sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
-                       sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql);
+                       sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
+                       sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -447,6 +448,12 @@ private
          var_arch      : list_crate.Map;
          extra_rundeps : list_crate.Map;
          last_catchkey : HT.Text;
+
+         opt_radio     : string_crate.Vector;
+         opt_restrict  : string_crate.Vector;
+         opt_unlimited : string_crate.Vector;
+         optgroup_desc : list_crate.Map;
+         optgroups     : list_crate.Map;
       end record;
 
    --  Compares given keyword against known values
@@ -515,5 +522,8 @@ private
    --  Given a string GITHUB/account:project:tag(:directory) return a standard
    --  distribution file name.  Also works for GH/ prefix.
    function generate_github_distfile (download_site : String) return String;
+
+   --  Returns True if a given option already present in radio, restricted or unlimited group
+   function option_already_in_group (specs : Portspecs; option_name : String) return Boolean;
 
 end Port_Specification;
