@@ -2433,6 +2433,7 @@ package body Port_Specification is
    is
       procedure scan (position : option_crate.Cursor);
       procedure format (position : string_crate.Cursor);
+      function obtain_description (optname : String; optname_text : HT.Text) return String;
 
       tempstore : string_crate.Vector;
       block : HT.Text;
@@ -2444,12 +2445,28 @@ package body Port_Specification is
          tempstore.Append (rec.option_name);
       end scan;
 
+      function obtain_description (optname : String; optname_text : HT.Text) return String
+      is
+         given_desc : constant String :=
+           HT.USS (specs.ops_helpers.Element (optname_text).option_description);
+         desc_opt   : described_option_set;
+      begin
+         if HT.IsBlank (given_desc) then
+            --  It should never happen that desc_opt = OPT_NOT_DEFINED
+            desc_opt := described_option (optname);
+            if desc_opt /= OPT_NOT_DEFINED then
+               return default_description (desc_opt);
+            end if;
+         end if;
+         return given_desc;
+      end obtain_description;
+
       procedure format (position : string_crate.Cursor)
       is
          optname_text : HT.Text renames string_crate.Element (position);
          optname : String := HT.USS (optname_text);
          curval  : Boolean := specs.ops_helpers.Element (optname_text).currently_set_ON;
-         desc    : String  := HT.USS (specs.ops_helpers.Element (optname_text).option_description);
+         desc    : String  := obtain_description (optname, optname_text);
          --  The option name is limited to 14 characters.  Format:
          --  123456789-12345678-1234
          --  OPTION_NAMEXXX  OFF  Description ...
@@ -3106,6 +3123,29 @@ package body Port_Specification is
       end loop;
       return OPT_NOT_DEFINED;
    end described_option;
+
+
+   --------------------------------------------------------------------------------------------
+   --  default_description
+   --------------------------------------------------------------------------------------------
+   function default_description (option : described_option_set) return String is
+   begin
+      case option is
+         when ASM     => return "Use optimized assembly code";
+         when DEBUG   => return "Build with debugging support";
+         when ICONV   => return "Encoding conversion support via iconv";
+         when LDAP    => return "LDAP protocol support";
+         when LDAPS   => return "LDAP protocol over SSL support";
+         when MYSQL   => return "MySQL database support";
+         when NLS     => return "Native Language Support";
+         when PGSQL   => return "PostgreSQL database support";
+         when SQLITE  => return "SQLite database support";
+         when STATIC  => return "Build static executables and/or libraries";
+         when THREADS => return "Threading support";
+         when ZLIB    => return "zlib compression support";
+         when OPT_NOT_DEFINED => return "dev error, OPT_NOT_DEFINED";
+      end case;
+   end default_description;
 
 
    --------------------------------------------------------------------------------------------

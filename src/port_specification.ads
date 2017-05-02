@@ -537,4 +537,7 @@ private
    --  Returns True if a given option already present in radio, restricted or unlimited group
    function option_already_in_group (specs : Portspecs; option_name : String) return Boolean;
 
+   --  Given an option enumeration, return the default option description
+   function default_description (option : described_option_set) return String;
+
 end Port_Specification;
