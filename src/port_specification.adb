@@ -3046,6 +3046,69 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  described_option
+   --------------------------------------------------------------------------------------------
+   function described_option (value : String) return described_option_set
+   is
+      total_keywords : constant Positive :=
+        described_option_set'Pos (described_option_set'Last);
+
+      subtype keyword_string is String (1 .. 14);
+
+      type keyword_pair is
+         record
+            keyword : keyword_string;
+            keytype : described_option_set;
+         end record;
+
+      --  It is critical that this list be alphabetized correctly.
+      all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
+        (
+         ("ASM           ", ASM),
+         ("DEBUG         ", DEBUG),
+         ("ICONV         ", ICONV),
+         ("LDAP          ", LDAP),
+         ("LDAPS         ", LDAPS),
+         ("MYSQL         ", MYSQL),
+         ("NLS           ", NLS),
+         ("PGSQL         ", PGSQL),
+         ("SQLITE        ", SQLITE),
+         ("STATIC        ", STATIC),
+         ("THREADS       ", THREADS),
+         ("ZLIB          ", ZLIB)
+        );
+
+      bandolier    : keyword_string := (others => LAT.Space);
+      Low          : Natural := all_keywords'First;
+      High         : Natural := all_keywords'Last;
+      Mid          : Natural;
+   begin
+
+      if value'Length > keyword_string'Length or else
+        value'Length < 3
+      then
+         return OPT_NOT_DEFINED;
+      end if;
+
+      bandolier (1 .. value'Length) := value;
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_keywords (Mid).keyword  then
+            return all_keywords (Mid).keytype;
+         elsif bandolier < all_keywords (Mid).keyword then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return OPT_NOT_DEFINED;
+   end described_option;
+
+
+   --------------------------------------------------------------------------------------------
    --  post_parse_usergroup_check_passes
    --------------------------------------------------------------------------------------------
    function post_parse_usergroup_check_passes (specs : Portspecs) return Boolean
@@ -3341,6 +3404,44 @@ package body Port_Specification is
          end if;
       end;
    end generate_github_distfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  post_parse_opt_desc_check_passes
+   --------------------------------------------------------------------------------------------
+   function post_parse_opt_desc_check_passes (specs : Portspecs) return Boolean
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      all_good : Boolean := True;
+
+      procedure scan (position : string_crate.Cursor) is
+      begin
+         if not all_good then
+            return;
+         end if;
+         declare
+            --  we only care if *any* description is defined, so check defaults first
+            option   : HT.Text renames string_crate.Element (position);
+            opt_name : String := HT.USS (option);
+            desc_opt : described_option_set := described_option (opt_name);
+         begin
+            if desc_opt = OPT_NOT_DEFINED then
+               --  No default description, so check for defined version
+               if specs.ops_helpers.Contains (option) then
+                  if HT.IsBlank (specs.ops_helpers.Element (option).option_description) then
+                     all_good := False;
+                  end if;
+               else
+                  all_good := False;
+               end if;
+            end if;
+         end;
+      end scan;
+   begin
+      specs.ops_standard.Iterate (scan'Access);
+      return all_good;
+   end post_parse_opt_desc_check_passes;
 
 
    --------------------------------------------------------------------------------------------

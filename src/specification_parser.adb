@@ -1628,6 +1628,9 @@ package body Specification_Parser is
       if not spec.post_parse_usergroup_check_passes then
          return HT.SUS ("The USERGROUP_SPKG definition is required when USERS or GROUPS is set");
       end if;
+      if not spec.post_parse_usergroup_check_passes then
+         return HT.SUS ("Check above errors to determine which options have no descriptions");
+      end if;
       return HT.blank;
    end late_validity_check_error;
 

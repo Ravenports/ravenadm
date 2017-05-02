@@ -231,6 +231,10 @@ package Port_Specification is
    --  Returns the key of the last catchall insertion
    function last_catchall_key (specs : Portspecs) return String;
 
+   --  Returns true if all the options have a description
+   --  It also outputs to standard out which ones fail
+   function post_parse_opt_desc_check_passes (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -249,6 +253,10 @@ private
       GPLv3RLE, GPLv3RLEx, GMGPL, INVALID, ISCL,
       LGPL20, LGPL20x, LGPL21, LGPL21x, LGPL3, LGPL3x,
       MIT, MPL, POSTGRESQL, PSFL, PUBDOM, OPENSSL);
+
+   type described_option_set is
+     (ASM, DEBUG, ICONV, LDAP, LDAPS, MYSQL, NLS, PGSQL, SQLITE, STATIC, THREADS, ZLIB,
+      OPT_NOT_DEFINED);
 
    type gnome_type is
      (libxml2, libxslt, invalid_component);
@@ -509,6 +517,9 @@ private
 
    --  Checks against a list of known licenses or CUSTOM(1,2,3,4)
    function determine_license (value : String) return license_type;
+
+   --  Returns enumeration of described option or OPT_NOT_FOUND if the option isn't described
+   function described_option (value : String) return described_option_set;
 
    --  Returns true if subpackage exists in any variant.
    function subpackage_exists (specs : Portspecs; subpackage : String) return Boolean;
