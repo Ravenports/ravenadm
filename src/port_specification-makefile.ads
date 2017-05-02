@@ -3,6 +3,8 @@
 
 with Definitions; use Definitions;
 
+private with Ada.Text_IO;
+
 package Port_Specification.Makefile is
 
    --  This generates a makefile from the specification based on given parameters
@@ -19,6 +21,8 @@ package Port_Specification.Makefile is
 
 private
 
+   package TIO renames Ada.Text_IO;
+
    dev_error : exception;
 
    --  Given a string GITHUB/account:project:tag(:directory) return a standard
@@ -31,5 +35,7 @@ private
 
    --  Used for non-custom (and not invalid) licenses, returns the full license name
    function standard_license_names (license : license_type) return String;
+
+   procedure handle_github_relocations (specs : Portspecs; makefile : TIO.File_Type);
 
 end Port_Specification.Makefile;

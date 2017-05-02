@@ -2,13 +2,11 @@
 --  Reference: ../License.txt
 
 with Utilities;
-with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 
 package body Port_Specification.Makefile is
 
    package UTL renames Utilities;
-   package TIO renames Ada.Text_IO;
    package LAT renames Ada.Characters.Latin_1;
 
    --------------------------------------------------------------------------------------------
@@ -799,6 +797,8 @@ package body Port_Specification.Makefile is
          end loop;
       end;
 
+      handle_github_relocations (specs, makefile_handle);
+
       send (LAT.LF & ".include " & LAT.Quotation & "/xports/Mk/raven.mk" & LAT.Quotation);
 
       if write_to_file then
@@ -867,6 +867,70 @@ package body Port_Specification.Makefile is
          end if;
       end;
    end generate_github_distname;
+
+
+   --------------------------------------------------------------------------------------------
+   --  handle_github_relocations
+   --------------------------------------------------------------------------------------------
+   procedure handle_github_relocations (specs : Portspecs; makefile : TIO.File_Type)
+   is
+      procedure send (data : String);
+      procedure check_for_generated (position : string_crate.Cursor);
+
+      target_set    : Boolean := False;
+      write_to_file : Boolean := (TIO.Is_Open (makefile));
+
+      procedure send (data : String) is
+      begin
+         if write_to_file then
+            TIO.Put_Line (makefile, data);
+         else
+            TIO.Put_Line (data);
+         end if;
+      end send;
+
+      procedure check_for_generated (position : string_crate.Cursor)
+      is
+         pload : String := HT.USS (string_crate.Element (position));
+      begin
+         if not HT.leads (pload, "generated:") then
+            return;
+         end if;
+         declare
+            group   : HT.Text := HT.SUS (HT.part_2 (pload, ":"));
+            dlsite  : String  := HT.USS (specs.dl_sites.Element (group).list.First_Element);
+            gh_args : String  := HT.part_2 (dlsite, "/");
+            num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
+         begin
+            if not HT.leads (dlsite, "GITHUB/") and then not  HT.leads (dlsite, "GH/") then
+               return;
+            end if;
+            if num_colons /= 3 then
+               --  It's a github site, but there's no extraction wrksrc override
+               return;
+            end if;
+            if not target_set then
+               send (LAT.LF & "github-relocation:");
+               target_set := True;
+            end if;
+            send (LAT.HT & "# relocate " & HT.specific_field (gh_args, 1, ":") &
+                    "/" & HT.specific_field (dlsite, 2, ":") & " project");
+            declare
+               reldir     : constant String := HT.specific_field (dlsite, 4, ":");
+               extractdir : constant String :=
+                 HT.replace_all (S      => generate_github_distname (dlsite),
+                                 reject => LAT.Colon,
+                                 shiny  => LAT.Hyphen);
+            begin
+               send (LAT.HT & "@${RM} -r ${WRKSRC}/" & reldir & LAT.LF &
+                     LAT.HT & "@${MV} ${WRKDIR}/" & extractdir & " ${WRKSRC}/" & reldir & LAT.LF &
+                     LAT.HT & "@${LN} -s ${WRKSRC:T}/" & reldir & " ${WRKDIR}/" & extractdir);
+            end;
+         end;
+      end check_for_generated;
+   begin
+      specs.distfiles.Iterate (check_for_generated'Access);
+   end handle_github_relocations;
 
 
    --------------------------------------------------------------------------------------------
