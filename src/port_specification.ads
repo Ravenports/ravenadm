@@ -205,7 +205,7 @@ package Port_Specification is
    function aggregated_ignore_reason (specs : Portspecs) return String;
 
    --  Returns a formatted block of lines to represent the current option settings
-   function options_summary (specs : Portspecs) return String;
+   function options_summary (specs : Portspecs; variant : String) return String;
 
    --  Returns True if one or more variants have no defined subpackages.
    function missing_subpackage_definition (specs : Portspecs) return Boolean;

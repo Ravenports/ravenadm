@@ -2429,7 +2429,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  valid_uses_module
    --------------------------------------------------------------------------------------------
-   function options_summary (specs : Portspecs) return String
+   function options_summary (specs : Portspecs; variant : String) return String
    is
       procedure scan (position : option_crate.Cursor);
       procedure format (position : string_crate.Cursor);
@@ -2474,6 +2474,12 @@ package body Port_Specification is
          part1   : String (1 .. 16) := (others => ' ');
          part2   : String (1 .. 5);
       begin
+         if variant = variant_standard then
+            if not specs.ops_standard.Contains (optname_text) then
+               --  Don't display non-standard options for standard variant
+               return;
+            end if;
+         end if;
          part1 (1 .. optname'Length) := optname;
          if curval then
             part2 := "ON   ";

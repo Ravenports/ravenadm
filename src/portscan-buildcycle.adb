@@ -36,6 +36,7 @@ package body PortScan.Buildcycle is
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
       pkgversion   : constant String := HT.USS (all_ports (trackers (id).seq_id).pkgversion);
       port_prefix  : constant String := get_port_prefix (id);
+      variant      : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
@@ -47,7 +48,7 @@ package body PortScan.Buildcycle is
                                  slave_root => get_root (id),
                                  UNAME      => HT.USS (uname_mrv),
                                  BENV       => get_environment (id),
-                                 COPTS      => specification.options_summary,
+                                 COPTS      => specification.options_summary (variant),
                                  PTVAR      => get_port_variables (id))
       then
          LOG.finalize_log (trackers (id).log_handle,
