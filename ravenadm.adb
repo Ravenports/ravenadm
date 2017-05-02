@@ -12,7 +12,7 @@ procedure Ravenadm is
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
 
-   type mandate_type is (unset, help, dev, build, force, test, status, configure, locate);
+   type mandate_type is (unset, help, dev, build, force, test, status, configure, locate, purge);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
@@ -42,6 +42,8 @@ procedure Ravenadm is
          mandate := configure;
       elsif first = "locate" then
          mandate := locate;
+      elsif first = "purge-distfiles" then
+         mandate := purge;
       end if;
    end scan_first_command_word;
 
@@ -292,6 +294,12 @@ begin
          --  locate
          --------------------------------
          Pilot.locate (get_arg (2));
+
+      when purge =>
+         --------------------------------
+         --  purge-distfiles
+         --------------------------------
+         Pilot.purge_distfiles;
 
       when unset => null;
 

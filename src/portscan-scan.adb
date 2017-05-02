@@ -61,7 +61,6 @@ package body PortScan.Scan is
       unkindness : String;
       sysrootver : sysroot_characteristics)
    is
-      conspindex      : constant String := "/Mk/Misc/" & "conspiracy_variants";
       conspindex_path : constant String := conspiracy & conspindex;
       max_lots        : constant scanners := get_max_lots;
       custom_avail    : constant Boolean := unkindness /= PM.no_unkindness;
@@ -214,9 +213,8 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure prescan_unkindness (unkindness : String)
    is
-      Search   : DIR.Search_Type;
-      Dir_Ent  : DIR.Directory_Entry_Type;
       max_lots : constant scanners := get_max_lots;
+      bucket   : bucket_code;
    begin
       if unkindness = PM.no_unkindness or else
         not DIR.Exists (unkindness)
@@ -224,37 +222,40 @@ package body PortScan.Scan is
          return;
       end if;
 
-      DIR.Start_Search (Search    => Search,
-                        Directory => unkindness,
-                        Filter    => (DIR.Directory => True, others => False),
-                        Pattern   => "bucket_[0-9A-F][0-9A-F]");
-      while DIR.More_Entries (Search) loop
-         DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
-         declare
-            bucketdir    : constant String := DIR.Simple_Name (Dir_Ent);
-            bucket       : bucket_code := bucketdir (bucketdir'Last - 1 .. bucketdir'Last);
-            Inner_Search : DIR.Search_Type;
-            Inner_Dirent : DIR.Directory_Entry_Type;
-         begin
-            DIR.Start_Search (Search    => Search,
-                              Directory => unkindness & "/" & bucketdir,
-                              Filter    => (DIR.Ordinary_File => True, others => False),
-                              Pattern   => "*");
-            while DIR.More_Entries (Inner_Search) loop
-               DIR.Get_Next_Entry (Search => Inner_Search, Directory_Entry => Inner_Dirent);
-               declare
-                  namebase : String := DIR.Simple_Name (Inner_Dirent);
-               begin
-                  prescan_custom (unkindness => unkindness,
-                                  bucket     => bucket,
-                                  namebase   => namebase,
-                                  max_lots   => max_lots);
-               end;
-            end loop;
-            DIR.End_Search (Inner_Search);
-         end;
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            bucket := tohex (highdigit) & tohex (lowdigit);
+            declare
+               bucket_dir   : constant String := unkindness & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               use type DIR.File_Kind;
+            begin
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
+
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Pattern   => "*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Inner_Search, Inner_Dirent);
+                     declare
+                        namebase : String := DIR.Simple_Name (Inner_Dirent);
+                     begin
+                        prescan_custom (unkindness => unkindness,
+                                        bucket     => bucket,
+                                        namebase   => namebase,
+                                        max_lots   => max_lots);
+                     end;
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+               end if;
+            end;
+         end loop;
       end loop;
-      DIR.End_Search (Search);
    end prescan_unkindness;
 
 
@@ -1000,10 +1001,20 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  generate_conspiracy_index
    --------------------------------------------------------------------------------------------
+   function tohex (value : AF) return Character is
+   begin
+      case value is
+         when 0 .. 9 => return Character'Val (Character'Pos ('0') + value);
+         when others => return Character'Val (Character'Pos ('A') + value - 10);
+      end case;
+   end tohex;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_conspiracy_index
+   --------------------------------------------------------------------------------------------
    procedure generate_conspiracy_index (sysrootver : sysroot_characteristics)
    is
-      subtype AF is Integer range 0 .. 15;
-      function tohex (value : AF) return Character;
       procedure scan_port (position : string_crate.Cursor);
 
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
@@ -1012,18 +1023,9 @@ package body PortScan.Scan is
       summary    : constant String := conspiracy & "/Mk/Misc/summary.txt";
       indexfile  : TIO.File_Type;
       bucket     : bucket_code;
-      bucket_dir : HT.Text;
       total_ports    : Natural := 0;
       total_variants : Natural := 0;
       total_subpkgs  : Natural := 0;
-
-      function tohex (value : AF) return Character is
-      begin
-         case value is
-            when 0 .. 9 => return Character'Val (Character'Pos ('0') + value);
-            when others => return Character'Val (Character'Pos ('A') + value - 10);
-         end case;
-      end tohex;
 
       procedure scan_port (position : string_crate.Cursor)
       is
@@ -1077,8 +1079,11 @@ package body PortScan.Scan is
                Inner_Search : DIR.Search_Type;
                Inner_Dirent : DIR.Directory_Entry_Type;
                tempstore    : string_crate.Vector;
+               use type DIR.File_Kind;
             begin
-               if DIR.Exists (bucket_dir) then
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
 
                   DIR.Start_Search (Search    => Inner_Search,
                                     Directory => bucket_dir,
@@ -1257,5 +1262,458 @@ package body PortScan.Scan is
                        & LAT.LF & filename);
       end if;
    end display_results_of_dry_run;
+
+
+   --------------------------------------------------------------------------------------------
+   --  gather_distfile_set
+   --------------------------------------------------------------------------------------------
+   function gather_distfile_set (sysrootver : sysroot_characteristics) return Boolean
+   is
+      good_scan    : Boolean;
+      using_screen : constant Boolean := Unix.screen_attached;
+      conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
+   begin
+      prescan_conspiracy_index_for_distfiles (conspiracy, unkindness, sysrootver);
+      LOG.set_scan_start_time (CAL.Clock);
+      parallel_distfile_scan (conspiracy    => conspiracy,
+                              sysrootver    => sysrootver,
+                              success       => good_scan,
+                              show_progress => using_screen);
+      LOG.set_scan_complete (CAL.Clock);
+      return good_scan;
+   end gather_distfile_set;
+
+
+   --------------------------------------------------------------------------------------------
+   --  prescan_conspiracy_index_for_distfiles
+   --------------------------------------------------------------------------------------------
+   procedure prescan_conspiracy_index_for_distfiles
+     (conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics)
+   is
+      conspindex_path : constant String := conspiracy & conspindex;
+      max_lots        : constant scanners := get_max_lots;
+      custom_avail    : constant Boolean := unkindness /= PM.no_unkindness;
+   begin
+      if not DIR.Exists (conspindex_path) then
+         raise missing_index with conspindex;
+      end if;
+
+      declare
+         fulldata  : String := FOP.get_file_contents (conspindex_path);
+         markers   : HT.Line_Markers;
+         linenum   : Natural := 0;
+      begin
+         HT.initialize_markers (fulldata, markers);
+         loop
+            exit when not HT.next_line_present (fulldata, markers);
+            linenum := linenum + 1;
+            declare
+               line     : constant String := HT.extract_line (fulldata, markers);
+               bucket   : constant String := HT.specific_field (line, 1);
+               namebase : constant String := HT.specific_field (line, 2);
+               bsheet   : constant String := "/bucket_" & bucket & "/" & namebase;
+               linestr  : constant String := ", line " & HT.int2str (linenum);
+            begin
+               if bucket'Length /= 2 or else namebase'Length = 0 then
+                  raise bad_index_data with conspindex & linestr;
+               end if;
+               if not DIR.Exists (conspiracy & bsheet) then
+                  raise bad_index_data
+                    with conspindex & bsheet & " buildsheet does not exist" & linestr;
+               end if;
+               if custom_avail and then DIR.Exists (unkindness & bsheet) then
+                  --  postpone custom port scan (done prescan_unkindness)
+                  null;
+               else
+                  declare
+                     portkey  : HT.Text := HT.SUS (namebase);
+                     kc       : portkey_crate.Cursor;
+                     success  : Boolean;
+                  begin
+                     ports_keys.Insert (Key      => portkey,
+                                        New_Item => lot_counter,
+                                        Position => kc,
+                                        Inserted => success);
+                     last_port := lot_counter;
+                     all_ports (lot_counter).sequence_id   := lot_counter;
+                     all_ports (lot_counter).key_cursor    := kc;
+                     all_ports (lot_counter).port_namebase := HT.SUS (namebase);
+                     all_ports (lot_counter).bucket        := bucket_code (bucket);
+                     all_ports (lot_counter).unkind_custom := False;
+                     make_queue (lot_number).Append (lot_counter);
+                     lot_counter := lot_counter + 1;
+                     if lot_number = max_lots then
+                        lot_number := 1;
+                     else
+                        lot_number := lot_number + 1;
+                     end if;
+                  end;
+               end if;
+            end;
+         end loop;
+      end;
+   end prescan_conspiracy_index_for_distfiles;
+
+
+   --------------------------------------------------------------------------------------------
+   --  linear_scan_unkindness_for_distfiles
+   --------------------------------------------------------------------------------------------
+   procedure linear_scan_unkindness_for_distfiles (unkindness : String)
+   is
+      procedure insert_distfile (dist_subdir : String; distfile_group : String);
+
+      dindex : port_index := 0;
+
+      procedure insert_distfile (dist_subdir : String; distfile_group : String)
+      is
+         function determine_distname return String;
+         use_subdir : Boolean := (dist_subdir /= "");
+
+         function determine_distname return String
+         is
+            distfile : String := HT.part_1 (distfile_group, ":");
+         begin
+            if use_subdir then
+               return dist_subdir & "/" & distfile;
+            else
+               return distfile;
+            end if;
+         end determine_distname;
+
+         distfile_path : HT.Text := HT.SUS (determine_distname);
+      begin
+         if not distfile_set.Contains (distfile_path) then
+            dindex := dindex + 1;
+            distfile_set.Insert (distfile_path, dindex);
+         end if;
+      end insert_distfile;
+   begin
+      if unkindness = PM.no_unkindness or else
+        not DIR.Exists (unkindness)
+      then
+         return;
+      end if;
+
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            declare
+               bucket       : bucket_code := tohex (highdigit) & tohex (lowdigit);
+               bucket_dir   : constant String := unkindness & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               use type DIR.File_Kind;
+            begin
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
+
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Pattern   => "*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Inner_Search, Inner_Dirent);
+                     declare
+                        namebase : String := DIR.Simple_Name (Inner_Dirent);
+                        successful : Boolean;
+                        customspec : PSP.Portspecs;
+                        arch_focus : supported_arch := x86_64;  -- unused, pick one
+                        buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
+                     begin
+                        PAR.parse_specification_file (dossier         => unkindness & buildsheet,
+                                                      specification   => customspec,
+                                                      opsys_focus     => platform_type,
+                                                      arch_focus      => arch_focus,
+                                                      success         => successful,
+                                                      stop_at_targets => True);
+                        if not successful then
+                           raise bsheet_parsing
+                             with unkindness & buildsheet & "-> " & PAR.get_parse_error;
+                        end if;
+                        declare
+                           dist_subdir : String := customspec.get_field_value (PSP.sp_distsubdir);
+                           num_dfiles  : Natural := customspec.get_list_length (PSP.sp_distfiles);
+                        begin
+                           for df in 1 .. num_dfiles loop
+                              insert_distfile (dist_subdir,
+                                               customspec.get_list_item (PSP.sp_distfiles, df));
+                           end loop;
+                        end;
+                     end;
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+               end if;
+            end;
+         end loop;
+      end loop;
+   end linear_scan_unkindness_for_distfiles;
+
+
+   --------------------------------------------------------------------------------------------
+   --  parallel_distfile_scan
+   --------------------------------------------------------------------------------------------
+   procedure parallel_distfile_scan
+     (conspiracy    : String;
+      sysrootver    : sysroot_characteristics;
+      success       : out Boolean;
+      show_progress : Boolean)
+   is
+      procedure combine (position : portkey_crate.Cursor);
+
+      finished      : array (scanners) of Boolean := (others => False);
+      task_storage  : array (scanners) of portkey_crate.Map;
+      combined_wait : Boolean := True;
+      aborted       : Boolean := False;
+      dindex        : port_index := port_index (distfile_set.Length);
+
+      procedure combine (position : portkey_crate.Cursor)
+      is
+         distfile : HT.Text := portkey_crate.Key (position);
+      begin
+         if not distfile_set.Contains (distfile) then
+            dindex := dindex + 1;
+            distfile_set.Insert (distfile, dindex);
+         end if;
+      end combine;
+
+      task type scan (lot : scanners);
+      task body scan
+      is
+         procedure populate (cursor : subqueue.Cursor);
+         procedure populate (cursor : subqueue.Cursor)
+         is
+            procedure insert_distfile (dist_subdir : String; distfile : String);
+
+            target_port : port_index := subqueue.Element (cursor);
+            namebase    : String := HT.USS (all_ports (target_port).port_namebase);
+            bucket      : bucket_code := all_ports (target_port).bucket;
+            customspec  : PSP.Portspecs;
+            successful  : Boolean;
+            arch_focus  : supported_arch := x86_64;  -- unused, pick one
+            buildsheet  : constant String := "/bucket_" & bucket & "/" & namebase;
+
+            procedure insert_distfile (dist_subdir : String; distfile : String)
+            is
+               function determine_distname return String;
+               use_subdir : Boolean := (dist_subdir /= "");
+
+               function determine_distname return String is
+               begin
+                  if use_subdir then
+                     return dist_subdir & "/" & distfile;
+                  else
+                     return distfile;
+                  end if;
+               end determine_distname;
+
+               distfile_path : HT.Text := HT.SUS (determine_distname);
+            begin
+               if not task_storage (lot).Contains (distfile_path) then
+                  task_storage (lot).Insert (distfile_path, 1);
+               end if;
+            end insert_distfile;
+         begin
+            if not aborted then
+               PAR.parse_specification_file (dossier         => conspiracy & buildsheet,
+                                             specification   => customspec,
+                                             opsys_focus     => platform_type,
+                                             arch_focus      => arch_focus,
+                                             success         => successful,
+                                             stop_at_targets => True);
+               if not successful then
+                  TIO.Put_Line (LAT.LF & "culprit: " & buildsheet & "-> " & PAR.get_parse_error);
+                  aborted := True;
+               end if;
+               declare
+                  dist_subdir : String := customspec.get_field_value (PSP.sp_distsubdir);
+                  num_dfiles  : Natural := customspec.get_list_length (PSP.sp_distfiles);
+               begin
+                  for df in 1 .. num_dfiles loop
+                     insert_distfile (dist_subdir,
+                                      customspec.get_list_item (PSP.sp_distfiles, df));
+                  end loop;
+               end;
+               mq_progress (lot) := mq_progress (lot) + 1;
+            end if;
+         end populate;
+      begin
+         make_queue (lot).Iterate (populate'Access);
+         finished (lot) := True;
+      end scan;
+
+      scan_01 : scan (lot => 1);
+      scan_02 : scan (lot => 2);
+      scan_03 : scan (lot => 3);
+      scan_04 : scan (lot => 4);
+      scan_05 : scan (lot => 5);
+      scan_06 : scan (lot => 6);
+      scan_07 : scan (lot => 7);
+      scan_08 : scan (lot => 8);
+      scan_09 : scan (lot => 9);
+      scan_10 : scan (lot => 10);
+      scan_11 : scan (lot => 11);
+      scan_12 : scan (lot => 12);
+      scan_13 : scan (lot => 13);
+      scan_14 : scan (lot => 14);
+      scan_15 : scan (lot => 15);
+      scan_16 : scan (lot => 16);
+      scan_17 : scan (lot => 17);
+      scan_18 : scan (lot => 18);
+      scan_19 : scan (lot => 19);
+      scan_20 : scan (lot => 20);
+      scan_21 : scan (lot => 21);
+      scan_22 : scan (lot => 22);
+      scan_23 : scan (lot => 23);
+      scan_24 : scan (lot => 24);
+      scan_25 : scan (lot => 25);
+      scan_26 : scan (lot => 26);
+      scan_27 : scan (lot => 27);
+      scan_28 : scan (lot => 28);
+      scan_29 : scan (lot => 29);
+      scan_30 : scan (lot => 30);
+      scan_31 : scan (lot => 31);
+      scan_32 : scan (lot => 32);
+
+   begin
+      TIO.Put_Line ("Scanning entire ports tree for distfiles.");
+      while combined_wait loop
+         delay 1.0;
+         if show_progress then
+            TIO.Put (scan_progress);
+         end if;
+         combined_wait := False;
+         for j in scanners'Range loop
+            if not finished (j) then
+               combined_wait := True;
+               exit;
+            end if;
+         end loop;
+         if Signals.graceful_shutdown_requested then
+            aborted := True;
+         end if;
+      end loop;
+
+      success := not aborted;
+
+      if success then
+         --  Now that the scanners are complete, we can combine the results
+         for j in scanners'Range loop
+            task_storage (j).Iterate (combine'Access);
+         end loop;
+      end if;
+
+   end parallel_distfile_scan;
+
+
+   --------------------------------------------------------------------------------------------
+   --  display_kmg
+   --------------------------------------------------------------------------------------------
+   function display_kmg (number : disktype) return String
+   is
+      type kmgtype is delta 0.01 digits 6;
+      kilo : constant disktype := 1024;
+      mega : constant disktype := kilo * kilo;
+      giga : constant disktype := kilo * mega;
+      XXX  : kmgtype;
+   begin
+      if number > giga then
+         XXX := kmgtype (number / giga);
+         return XXX'Img & " gigabytes";
+      elsif number > mega then
+         XXX := kmgtype (number / mega);
+         return XXX'Img & " megabytes";
+      else
+         XXX := kmgtype (number / kilo);
+         return XXX'Img & " kilobytes";
+      end if;
+   end display_kmg;
+
+
+   --------------------------------------------------------------------------------------------
+   --  purge_obsolete_distfiles
+   --------------------------------------------------------------------------------------------
+   procedure purge_obsolete_distfiles
+   is
+      procedure kill (position : portkey_crate.Cursor);
+      procedure find_actual_tarballs (folder : String);
+
+      distfiles_directory : String := Unix.true_path (HT.USS (PM.configuration.dir_distfiles));
+      abort_purge  : Boolean := False;
+      bytes_purged : disktype := 0;
+      rmfiles      : portkey_crate.Map;
+
+      procedure kill (position : portkey_crate.Cursor)
+      is
+         tarball : String := HT.USS (portkey_crate.Key (position));
+         path    : String := distfiles_directory & "/" & tarball;
+      begin
+         TIO.Put_Line ("Deleting " & tarball);
+         DIR.Delete_File (path);
+      end kill;
+
+      procedure find_actual_tarballs (folder : String)
+      is
+         procedure walkdir (item : DIR.Directory_Entry_Type);
+         procedure print (item : DIR.Directory_Entry_Type);
+
+         uniqid     : port_id := 0;
+         leftindent : Natural := distfiles_directory'Length + 2;
+
+         procedure print (item : DIR.Directory_Entry_Type)
+         is
+            FN    : constant String := DIR.Full_Name (item);
+            tball : HT.Text := HT.SUS (FN (leftindent .. FN'Last));
+         begin
+            if not distfile_set.Contains (tball) then
+               if not rmfiles.Contains (tball) then
+                  uniqid := uniqid + 1;
+                  rmfiles.Insert (Key => tball, New_Item => uniqid);
+                  bytes_purged := bytes_purged + disktype (DIR.Size (FN));
+               end if;
+            end if;
+         end print;
+
+         procedure walkdir (item : DIR.Directory_Entry_Type) is
+         begin
+            if DIR.Simple_Name (item) /= "." and then
+              DIR.Simple_Name (item) /= ".."
+            then
+               find_actual_tarballs (DIR.Full_Name (item));
+            end if;
+         exception
+            when DIR.Name_Error =>
+               abort_purge := True;
+               TIO.Put_Line ("walkdir: " & folder & " directory does not exist");
+         end walkdir;
+
+      begin
+         DIR.Search (folder, "*", (DIR.Ordinary_File => True, others => False), print'Access);
+         DIR.Search (folder, "",  (DIR.Directory => True, others => False), walkdir'Access);
+      exception
+         when DIR.Name_Error =>
+            abort_purge := True;
+            TIO.Put_Line ("The " & folder & " directory does not exist");
+         when DIR.Use_Error =>
+            abort_purge := True;
+            TIO.Put_Line ("Searching " & folder & " directory is not supported");
+         when failed : others =>
+            abort_purge := True;
+            TIO.Put_Line ("purge_obsolete_distfiles: Unknown error - directory search");
+            TIO.Put_Line (EX.Exception_Information (failed));
+      end find_actual_tarballs;
+   begin
+      find_actual_tarballs (distfiles_directory);
+      if abort_purge then
+         TIO.Put_Line ("Distfile purge operation aborted.");
+      else
+         rmfiles.Iterate (kill'Access);
+         TIO.Put_Line ("Recovered" & display_kmg (bytes_purged));
+      end if;
+   end purge_obsolete_distfiles;
+
 
 end PortScan.Scan;

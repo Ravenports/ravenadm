@@ -113,6 +113,10 @@ package Pilot is
    --  Call portscan procedure of the same name
    procedure display_results_of_dry_run;
 
+   --  Determines all possible unique distfiles, then scans the distfiles directory for
+   --  actual downloads and removes any distfiles that don't belong.
+   procedure purge_distfiles;
+
 private
 
    package HT renames HelperText;

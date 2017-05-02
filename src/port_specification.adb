@@ -2103,6 +2103,7 @@ package body Port_Specification is
          when sp_opts_avail    => return Natural (specs.ops_avail.Length);
          when sp_notes         => return Natural (specs.pkg_notes.Length);
          when sp_extra_patches => return Natural (specs.extra_patches.Length);
+         when sp_distfiles     => return Natural (specs.distfiles.Length);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -2116,6 +2117,7 @@ package body Port_Specification is
    is
       procedure scan (position : string_crate.Cursor);
       procedure scan_note (position : def_crate.Cursor);
+      procedure scan_distfile (position : string_crate.Cursor);
 
       counter : Natural := 0;
       result  : HT.Text;
@@ -2140,6 +2142,38 @@ package body Port_Specification is
             end if;
          end if;
       end scan_note;
+
+      procedure scan_distfile (position : string_crate.Cursor) is
+      begin
+         if HT.IsBlank (result) then
+            counter := counter + 1;
+            if counter = item then
+               declare
+                  fullval : String := HT.USS (string_crate.Element (position));
+                  tarball : String := HT.part_1 (fullval, ":");
+               begin
+                  if tarball = "generated" then
+                     declare
+                        group  : String := HT.part_2 (fullval, ":");
+                        dlsite : String :=
+                          HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
+                     begin
+                        if HT.leads (dlsite, "GITHUB/") or else
+                          HT.leads (dlsite, "GH/")
+                        then
+                           result := HT.SUS (generate_github_distfile (dlsite));
+                        else
+                           --  future generations
+                           result := HT.SUS ("implement me: " & fullval);
+                        end if;
+                     end;
+                  else
+                     result := HT.SUS (tarball);
+                  end if;
+               end;
+            end if;
+         end if;
+      end scan_distfile;
    begin
       case field is
          when sp_build_deps    => specs.build_deps.Iterate (scan'Access);
@@ -2150,6 +2184,7 @@ package body Port_Specification is
          when sp_variants      => specs.variants.Iterate (scan'Access);
          when sp_notes         => specs.pkg_notes.Iterate (scan_note'Access);
          when sp_extra_patches => specs.extra_patches.Iterate (scan'Access);
+         when sp_distfiles     => specs.distfiles.Iterate (scan_distfile'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3215,6 +3250,36 @@ package body Port_Specification is
 
       return not matched;
    end terminfo_failed;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_github_distfile
+   --------------------------------------------------------------------------------------------
+   function generate_github_distfile (download_site : String) return String
+   is
+      gh_args    : constant String  := HT.part_2 (download_site, "/");
+      num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
+      gh_ext     : constant String  := ".tar.gz";
+   begin
+      if num_colons < 2 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return gh_args & gh_ext;
+      end if;
+      declare
+         acct : constant String := HT.specific_field (gh_args, 1, ":");
+         proj : constant String := HT.specific_field (gh_args, 2, ":");
+         vers : constant String := HT.replace_all (S      => HT.specific_field (gh_args, 3, ":"),
+                                                   reject => LAT.Plus_Sign,
+                                                   shiny  => LAT.Hyphen);
+      begin
+         if vers (vers'First) = 'v' then
+            return acct & LAT.Hyphen & proj & LAT.Hyphen &
+              vers (vers'First + 1 .. vers'Last) & gh_ext;
+         else
+            return acct & LAT.Hyphen & proj & LAT.Hyphen & vers & gh_ext;
+         end if;
+      end;
+   end generate_github_distfile;
 
 
    --------------------------------------------------------------------------------------------

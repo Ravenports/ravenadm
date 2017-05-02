@@ -204,6 +204,7 @@ private
    prescanned   : Boolean    := False;
    portlist     : string_crate.Vector;
    dupelist     : string_crate.Vector;
+   distfile_set : portkey_crate.Map;
 
    original_queue_len : CON.Count_Type;
 

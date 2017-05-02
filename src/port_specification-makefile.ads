@@ -26,10 +26,6 @@ private
    dev_error : exception;
 
    --  Given a string GITHUB/account:project:tag(:directory) return a standard
-   --  distribution file name.  Also works for GH/ prefix.
-   function generate_github_distfile (download_site : String) return String;
-
-   --  Given a string GITHUB/account:project:tag(:directory) return a standard
    --  distname per github rules.  Also works for GH/ prefix.
    function generate_github_distname (download_site : String) return String;
 

@@ -240,11 +240,12 @@ package body PortScan is
       type percent is delta 0.01 digits 5;
       complete : port_index := 0;
       pc : percent;
+      maximum : Float := Float (last_port + 1);
    begin
       for k in scanners'Range loop
          complete := complete + mq_progress (k);
       end loop;
-      pc := percent (100.0 * Float (complete) / Float (last_port));
+      pc := percent (100.0 * Float (complete) / maximum);
       return " progress:" & pc'Img & "%              " & LAT.CR;
    end scan_progress;
 

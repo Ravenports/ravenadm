@@ -1027,4 +1027,16 @@ package body Pilot is
       PortScan.Scan.display_results_of_dry_run;
    end display_results_of_dry_run;
 
+
+   --------------------------------------------------------------------------------------------
+   --  purge_distfiles
+   --------------------------------------------------------------------------------------------
+   procedure purge_distfiles is
+   begin
+      if PortScan.Scan.gather_distfile_set (sysrootver)
+      then
+         PortScan.Scan.purge_obsolete_distfiles;
+      end if;
+   end purge_distfiles;
+
 end Pilot;

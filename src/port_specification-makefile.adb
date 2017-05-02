@@ -815,36 +815,6 @@ package body Port_Specification.Makefile is
    --------------------------------------------------------------------------------------------
    --  generate_github_distfile
    --------------------------------------------------------------------------------------------
-   function generate_github_distfile (download_site : String) return String
-   is
-      gh_args    : constant String  := HT.part_2 (download_site, "/");
-      num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
-      gh_ext     : constant String  := ".tar.gz";
-   begin
-      if num_colons < 2 then
-         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
-         return gh_args & gh_ext;
-      end if;
-      declare
-         acct : constant String := HT.specific_field (gh_args, 1, ":");
-         proj : constant String := HT.specific_field (gh_args, 2, ":");
-         vers : constant String := HT.replace_all (S      => HT.specific_field (gh_args, 3, ":"),
-                                                   reject => LAT.Plus_Sign,
-                                                   shiny  => LAT.Hyphen);
-      begin
-         if vers (vers'First) = 'v' then
-            return acct & LAT.Hyphen & proj & LAT.Hyphen &
-              vers (vers'First + 1 .. vers'Last) & gh_ext;
-         else
-            return acct & LAT.Hyphen & proj & LAT.Hyphen & vers & gh_ext;
-         end if;
-      end;
-   end generate_github_distfile;
-
-
-   --------------------------------------------------------------------------------------------
-   --  generate_github_distfile
-   --------------------------------------------------------------------------------------------
    function generate_github_distname (download_site : String) return String
    is
       gh_args    : constant String  := HT.part_2 (download_site, "/");

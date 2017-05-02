@@ -512,4 +512,8 @@ private
    --  Checks against known list of gnome components and identifies it
    function determine_gnome_component (component : String) return gnome_type;
 
+   --  Given a string GITHUB/account:project:tag(:directory) return a standard
+   --  distribution file name.  Also works for GH/ prefix.
+   function generate_github_distfile (download_site : String) return String;
+
 end Port_Specification;
