@@ -3098,6 +3098,9 @@ package body Port_Specification is
          ("MYSQL         ", MYSQL),
          ("NLS           ", NLS),
          ("PGSQL         ", PGSQL),
+         ("PY27          ", PY27),
+         ("PY34          ", PY34),
+         ("PY35          ", PY35),
          ("SQLITE        ", SQLITE),
          ("STATIC        ", STATIC),
          ("THREADS       ", THREADS),
@@ -3151,6 +3154,9 @@ package body Port_Specification is
          when MYSQL   => return "MySQL database support";
          when NLS     => return "Native Language Support";
          when PGSQL   => return "PostgreSQL database support";
+         when PY27    => return "Build using Python 2.7";
+         when PY34    => return "Build using Python 3.4";
+         when PY35    => return "Build using Python 3.5";
          when SQLITE  => return "SQLite database support";
          when STATIC  => return "Build static executables and/or libraries";
          when THREADS => return "Threading support";

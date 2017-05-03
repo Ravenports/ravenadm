@@ -257,7 +257,8 @@ private
    type described_option_set is
      (ASM, DEBUG, ICONV,
       LANG_CN, LANG_KO, LANG_RU,
-      LDAP, LDAPS, MYSQL, NLS, PGSQL, SQLITE, STATIC, THREADS, ZLIB,
+      LDAP, LDAPS, MYSQL, NLS, PGSQL, PY27, PY34, PY35,
+      SQLITE, STATIC, THREADS, ZLIB,
       OPT_NOT_DEFINED);
 
    type gnome_type is
