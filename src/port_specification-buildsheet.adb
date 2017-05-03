@@ -33,7 +33,7 @@ package body Port_Specification.Buildsheet is
       procedure send (varname : String; value : HT.Text);
       procedure send (varname : String; crate : string_crate.Vector; flavor : Positive);
       procedure send (varname : String; crate : def_crate.Map);
-      procedure send (varname : String; crate : list_crate.Map);
+      procedure send (varname : String; crate : list_crate.Map; flavor : Positive);
       procedure send (varname : String; value : Boolean; show_when : Boolean);
       procedure send_options;
       procedure send_targets;
@@ -51,6 +51,7 @@ package body Port_Specification.Buildsheet is
       procedure dump_manifest2 (position : string_crate.Cursor);
       procedure dump_sdesc     (position : def_crate.Cursor);
       procedure dump_sites     (position : list_crate.Cursor);
+      procedure dump_optgroup  (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
       procedure dump_targets   (position : list_crate.Cursor);
       procedure dump_helper (option_name : String; crate : string_crate.Vector; helper : String);
@@ -141,10 +142,17 @@ package body Port_Specification.Buildsheet is
          crate.Iterate (Process => dump_sdesc'Access);
       end send;
 
-      procedure send (varname : String; crate : list_crate.Map) is
+      procedure send (varname : String; crate : list_crate.Map; flavor : Positive) is
       begin
          varname_prefix := HT.SUS (varname);
-         crate.Iterate (Process => dump_sites'Access);
+         case flavor is
+            when 4 =>
+               crate.Iterate (Process => dump_sites'Access);
+            when 5 =>
+               crate.Iterate (Process => dump_optgroup'Access);
+            when others =>
+               null;
+         end case;
       end send;
 
       procedure send (varname : String; value : Boolean; show_when : Boolean) is
@@ -223,6 +231,20 @@ package body Port_Specification.Buildsheet is
             rec.list.Iterate (Process => print_item'Access);
          end if;
       end dump_sites;
+
+      procedure dump_optgroup (position : list_crate.Cursor)
+      is
+         rec     : group_list renames list_crate.Element (position);
+         varname : String := HT.USS (varname_prefix)  & LAT.Left_Square_Bracket &
+                   HT.USS (rec.group) & LAT.Right_Square_Bracket & LAT.Equals_Sign;
+      begin
+         if not rec.list.Is_Empty then
+            current_len := 0;
+            send (align24 (varname), True);
+            rec.list.Iterate (Process => print_adjacent'Access);
+            send ("");
+         end if;
+      end dump_optgroup;
 
       procedure dump_distfiles (position : string_crate.Cursor)
       is
@@ -585,11 +607,11 @@ package body Port_Specification.Buildsheet is
       blank_line;
 
       send_download_groups;
-      send ("SITES",                specs.dl_sites);
+      send ("SITES",                specs.dl_sites, 4);
       send ("DISTFILE",             specs.distfiles, 3);
       send ("DIST_SUBDIR",          specs.dist_subdir);
       send ("DF_INDEX",             specs.df_index, 2);
-      send ("SPKGS",                specs.subpackages);
+      send ("SPKGS",                specs.subpackages, 4);
 
       blank_line;
       send ("OPTIONS_AVAILABLE",    specs.ops_avail, 2);
@@ -597,12 +619,12 @@ package body Port_Specification.Buildsheet is
       send ("OPTGROUP_RADIO",       specs.opt_radio, 2);
       send ("OPTGROUP_RESTRICTED",  specs.opt_restrict, 2);
       send ("OPTGROUP_UNLIMITED",   specs.opt_unlimited, 2);
-      send ("OPTDESCR",             specs.optgroup_desc);
-      send ("OPTGROUP",             specs.optgroups);
-      send ("VOPTS",                specs.variantopts);
-      send ("OPT_ON",               specs.options_on);
+      send ("OPTDESCR",             specs.optgroup_desc, 4);
+      send ("OPTGROUP",             specs.optgroups, 5);
+      send ("VOPTS",                specs.variantopts, 5);
+      send ("OPT_ON",               specs.options_on, 5);
       blank_line;
-      send ("BROKEN",               specs.broken);
+      send ("BROKEN",               specs.broken, 4);
       send ("BROKEN_SSL",           specs.broken_ssl, 2);
       send ("BROKEN_MYSQL",         specs.broken_mysql, 2);
       send ("BROKEN_PGSQL",         specs.broken_pgsql, 2);
@@ -615,7 +637,7 @@ package body Port_Specification.Buildsheet is
       send ("BUILD_DEPENDS",        specs.build_deps, 1);
       send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, 1);
       send ("RUN_DEPENDS",          specs.run_deps, 1);
-      send ("EXRUN",                specs.extra_rundeps);
+      send ("EXRUN",                specs.extra_rundeps, 4);
       blank_line;
       send ("USERS",                specs.users, 2);
       send ("GROUPS",               specs.groups, 2);
@@ -630,8 +652,8 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_WITH_UNZIP",   specs.extract_zip, 2);
       send ("EXTRACT_WITH_7Z",      specs.extract_7z, 2);
       send ("EXTRACT_WITH_LHA",     specs.extract_lha, 2);
-      send ("EXTRACT_HEAD",         specs.extract_head);
-      send ("EXTRACT_TAIL",         specs.extract_tail);
+      send ("EXTRACT_HEAD",         specs.extract_head, 5);
+      send ("EXTRACT_TAIL",         specs.extract_tail, 5);
       blank_line;
       send ("LICENSE",              specs.licenses, 2);
       send ("LICENSE_NAME",         specs.lic_names, 1);
@@ -688,8 +710,8 @@ package body Port_Specification.Buildsheet is
       send ("CMAKE_ARGS",           specs.cmake_args, 1);
       send ("TEST_TARGET",          specs.test_tgt, 2);
       send ("TEST_ARGS",            specs.test_args, 1);
-      send ("VAR_OPSYS",            specs.var_opsys);
-      send ("VAR_ARCH",             specs.var_arch);
+      send ("VAR_OPSYS",            specs.var_opsys, 4);
+      send ("VAR_ARCH",             specs.var_arch, 4);
 
       --  TODO
       --  MANPREFIX[x] (needs imp, doc)

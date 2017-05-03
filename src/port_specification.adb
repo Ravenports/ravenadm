@@ -1198,11 +1198,14 @@ package body Port_Specification is
             then
                raise missing_group with key;
             end if;
+            if not specs.ops_standard.Contains (text_value) then
+               raise wrong_value with "Option '" & value & "' is not a member of OPTIONS_STANDARD";
+            end if;
             if not specs.optgroups.Contains (text_key) then
                specs.establish_group (sp_opt_group, key);
             end if;
             if specs.option_already_in_group (value) then
-               raise wrong_value with "Option '" & value & "' already belongs to another group";
+               raise wrong_value with "Option '" & value & "' already belongs to an option group";
             end if;
             specs.optgroups.Update_Element (Position => specs.optgroups.Find (text_key),
                                             Process  => grow'Access);
