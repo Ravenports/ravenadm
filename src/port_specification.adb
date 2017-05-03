@@ -3090,6 +3090,10 @@ package body Port_Specification is
          ("ASM           ", ASM),
          ("DEBUG         ", DEBUG),
          ("ICONV         ", ICONV),
+         ("IDN           ", IDN),
+         ("IPV4          ", IPV4),
+         ("IPV6          ", IPV6),
+         ("JAVA          ", JAVA),
          ("LANG_CN       ", LANG_CN),
          ("LANG_KO       ", LANG_KO),
          ("LANG_RU       ", LANG_RU),
@@ -3103,6 +3107,8 @@ package body Port_Specification is
          ("PY35          ", PY35),
          ("SQLITE        ", SQLITE),
          ("STATIC        ", STATIC),
+         ("TCL           ", TCL),
+         ("TCLTK         ", TCLTK),
          ("THREADS       ", THREADS),
          ("ZLIB          ", ZLIB)
         );
@@ -3146,6 +3152,10 @@ package body Port_Specification is
          when ASM     => return "Use optimized assembly code";
          when DEBUG   => return "Build with debugging support";
          when ICONV   => return "Encoding conversion support via iconv";
+         when IDN     => return "International Domain Names support";
+         when IPV4    => return "IPv4 protocol support";
+         when IPV6    => return "IPv6 protocol support";
+         when JAVA    => return "Java platform support";
          when LANG_CN => return "Chinese language support";
          when LANG_KO => return "Korean language support";
          when LANG_RU => return "Russian language support";
@@ -3159,6 +3169,8 @@ package body Port_Specification is
          when PY35    => return "Build using Python 3.5";
          when SQLITE  => return "SQLite database support";
          when STATIC  => return "Build static executables and/or libraries";
+         when TCL     => return "Tcl scripting language support";
+         when TCLTK   => return "Tcl/Tk GUI toolkit support";
          when THREADS => return "Threading support";
          when ZLIB    => return "zlib compression support";
          when OPT_NOT_DEFINED => return "dev error, OPT_NOT_DEFINED";
