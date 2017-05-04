@@ -23,6 +23,8 @@ private
 
    type zones is (keymenu, dialog);
    subtype appline is TIC.Attributed_String (1 .. appline_max);
+   subtype optentry is String (1 .. 71);
+   type optstorage is array (1 .. 52) of optentry;
 
    type palette_rec is
       record
@@ -52,7 +54,7 @@ private
    num_std_options : Natural;
    port_namebase   : HT.Text;
    port_sdesc      : HT.Text;
-
+   formatted_opts  : optstorage;
 
    function establish_colors return Boolean;
    function Start_Curses_Mode return Boolean;

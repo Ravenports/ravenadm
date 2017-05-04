@@ -235,6 +235,9 @@ package Port_Specification is
    --  It also outputs to standard out which ones fail
    function post_parse_opt_desc_check_passes (specs : Portspecs) return Boolean;
 
+   --  Return "joined" table of group + options
+   function option_block_for_dialog (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;

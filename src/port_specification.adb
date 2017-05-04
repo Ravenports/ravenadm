@@ -1188,6 +1188,9 @@ package body Port_Specification is
             if not specs.optgroup_desc.Element (text_key).list.Is_Empty then
                raise wrong_value with "Group " & key & " description already defined";
             end if;
+            if HT.contains (value, ":") then
+               raise wrong_value with "Group description cannot contain colon characters";
+            end if;
             specs.optgroup_desc.Update_Element (Position => specs.optgroup_desc.Find (text_key),
                                                 Process  => grow'Access);
          when sp_opt_group =>
@@ -1437,7 +1440,7 @@ package body Port_Specification is
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
               qmake_on | qmake_off | sub_files_on | sub_list_off | sub_list_on |
-              test_target_on | description | makefile_on | makefile_off =>
+              test_target_on | makefile_on | makefile_off =>
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on |
@@ -1490,6 +1493,10 @@ package body Port_Specification is
             end if;
             if not specs.valid_info_page (value) then
                raise wrong_value with "INFO subdirectories must match on every entry";
+            end if;
+         when description =>
+            if HT.contains (value, ":") then
+               raise wrong_value with "option descriptions cannot contain colon characters";
             end if;
          when not_supported_helper | not_helper_format =>
             null;
@@ -1961,6 +1968,133 @@ package body Port_Specification is
       specs.ops_helpers.Iterate (dump_option'Access);
       return HT.USS (joined);
    end get_options_list;
+
+
+   --------------------------------------------------------------------------------------------
+   --  option_block_for_dialog
+   --------------------------------------------------------------------------------------------
+   function option_block_for_dialog (specs : Portspecs) return String
+   is
+      --  block format is
+      --  GROUP:GROUP-TYPE:GROUP-DESC:OPT-NAME:DEFAULT-VAL:CURRENT-VAL:OPT-DESC
+
+      type group_type is (radio, restrict, sinlimit);
+      procedure scan1 (position : string_crate.Cursor);
+      procedure group_scan (position : string_crate.Cursor);
+      procedure group_option_scan (position : string_crate.Cursor);
+      procedure nogroup (position : string_crate.Cursor);
+      function bool2str (b : Boolean) return String;
+      function description (option_name, opt_description : HT.Text) return String;
+
+      tmpstore    : string_crate.Vector;
+      group       : group_type;
+      answer      : HT.Text;
+      group_index : HT.Text;
+
+      function bool2str (b : Boolean) return String is
+      begin
+         if b then
+            return "1";
+         else
+            return "0";
+         end if;
+      end bool2str;
+
+      procedure scan1 (position : string_crate.Cursor) is
+      begin
+         tmpstore.Append (string_crate.Element (position));
+      end scan1;
+
+      procedure group_scan (position : string_crate.Cursor)
+      is
+      begin
+         group_index := string_crate.Element (position);
+         specs.optgroups.Element (group_index).list.Iterate (group_option_scan'Access);
+      end group_scan;
+
+      procedure group_option_scan (position : string_crate.Cursor)
+      is
+         function group_type return String;
+
+         option_name : HT.Text renames string_crate.Element (position);
+         helper : Option_Helper renames specs.ops_helpers.Element (option_name);
+         gdesc : HT.Text renames specs.optgroup_desc.Element (group_index).list.First_Element;
+
+         function group_type return String is
+         begin
+            case group is
+               when radio    => return "RADIO";
+               when restrict => return "RESTR";
+               when sinlimit => return "UNLIM";
+            end case;
+         end group_type;
+
+      begin
+         if specs.ops_helpers.Contains (option_name) then
+            if tmpstore.Contains (option_name) then
+               tmpstore.Delete (tmpstore.Find_Index (option_name));
+            end if;
+            HT.SU.Append (answer,
+                          HT.USS (group_index) &
+                            LAT.Colon & group_type &
+                            LAT.Colon & HT.USS (gdesc) &
+                            LAT.Colon & HT.USS (option_name) &
+                            LAT.Colon & bool2str (helper.set_ON_by_default) &
+                            LAT.Colon & bool2str (helper.currently_set_ON) &
+                            LAT.Colon & description (option_name, helper.option_description) &
+                            LAT.LF);
+         end if;
+      end group_option_scan;
+
+      procedure nogroup (position : string_crate.Cursor)
+      is
+         option_name : HT.Text renames string_crate.Element (position);
+         helper : Option_Helper renames specs.ops_helpers.Element (option_name);
+      begin
+         if specs.ops_helpers.Contains (option_name) then
+            HT.SU.Append (answer,
+                            LAT.Colon & LAT.Colon &
+                            LAT.Colon & HT.USS (option_name) &
+                            LAT.Colon & bool2str (helper.set_ON_by_default) &
+                            LAT.Colon & bool2str (helper.currently_set_ON) &
+                            LAT.Colon & description (option_name, helper.option_description) &
+                            LAT.LF);
+         end if;
+      end nogroup;
+
+      function description (option_name, opt_description : HT.Text) return String is
+      begin
+         if HT.IsBlank (opt_description) then
+            declare
+               dos : described_option_set := described_option (HT.USS (option_name));
+            begin
+               if dos = OPT_NOT_DEFINED then
+                  return "error-missing option description";
+               else
+                  return default_description (dos);
+               end if;
+            end;
+         else
+            return HT.USS (opt_description);
+         end if;
+      end description;
+
+   begin
+      specs.ops_standard.Iterate (scan1'Access);
+
+      group := radio;
+      specs.opt_radio.Iterate (group_scan'Access);
+
+      group := restrict;
+      specs.opt_restrict.Iterate (group_scan'Access);
+
+      group := sinlimit;
+      specs.opt_unlimited.Iterate (group_scan'Access);
+
+      tmpstore.Iterate (nogroup'Access);
+      return HT.USS (answer);
+   end option_block_for_dialog;
+
 
    --------------------------------------------------------------------------------------------
    --  get_field_value

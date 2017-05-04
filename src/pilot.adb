@@ -1034,6 +1034,7 @@ package body Pilot is
          TIO.Put_Line ("User error: Only standard variants of ports have configurable options");
          return;
       end if;
+
       for x in 1 .. number_ports loop
          declare
             specification : Port_Specification.Portspecs;

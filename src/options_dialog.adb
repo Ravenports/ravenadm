@@ -365,11 +365,12 @@ package body Options_Dialog is
       --  We want at least "- " to start and " -" to end, so the max length is
       --  appwidth minus 4.  We just truncate anything over that.
       max : Natural := Natural (app_width) - 4;
-      raw : String := " " & HT.USS (port_namebase) & " : " & HT.USS (port_sdesc) & " ";
+      raw : String := " " & HT.USS (port_sdesc) & " ";
    begin
       if raw'Length < max then
          return raw;
       else
+         --  Since sdesc is limited to 50 chars, this should be impossible
          return raw (raw'First .. raw'First + max - 1);
       end if;
    end title_bar_contents;
