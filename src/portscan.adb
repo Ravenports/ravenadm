@@ -3,10 +3,15 @@
 
 with Ada.Strings.Hash;
 with Ada.Characters.Latin_1;
+with Ada.Directories;
+with Parameters;
+with Utilities;
 
 package body PortScan is
 
    package LAT renames Ada.Characters.Latin_1;
+   package DIR renames Ada.Directories;
+   package UTL renames Utilities;
 
    --------------------------------------------------------------------------------------------
    --  port_hash
@@ -280,5 +285,39 @@ package body PortScan is
    begin
       return Integer (dupelist.Length);
    end build_request_length;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_buildsheet_from_origin_list
+   --------------------------------------------------------------------------------------------
+   function get_buildsheet_from_origin_list (index : Positive) return String
+   is
+      procedure search (position : string_crate.Cursor);
+
+      conspiracy   : constant String := HT.USS (Parameters.configuration.dir_conspiracy);
+      unkindness   : constant String := HT.USS (Parameters.configuration.dir_unkindness);
+      counter : Natural := 0;
+      answer  : HT.Text;
+
+      procedure search (position : string_crate.Cursor) is
+      begin
+         counter := counter + 1;
+         if counter = index then
+            declare
+               namebase : String := HT.part_1 (HT.USS (string_crate.Element (position)), ":");
+               bsheetname : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
+            begin
+               if DIR.Exists (unkindness & bsheetname) then
+                  answer := HT.SUS (unkindness & bsheetname);
+               else
+                  answer := HT.SUS (conspiracy & bsheetname);
+               end if;
+            end;
+         end if;
+      end search;
+   begin
+      dupelist.Iterate (search'Access);
+      return HT.USS (answer);
+   end get_buildsheet_from_origin_list;
 
 end PortScan;

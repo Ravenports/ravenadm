@@ -713,10 +713,6 @@ package body Port_Specification.Buildsheet is
       send ("VAR_OPSYS",            specs.var_opsys, 4);
       send ("VAR_ARCH",             specs.var_arch, 4);
 
-      --  TODO
-      --  MANPREFIX[x] (needs imp, doc)
-      --  RC_SUBR (array spkg), (needs imp, doc)
-
       send_options;
       send_targets;
       send_descriptions;

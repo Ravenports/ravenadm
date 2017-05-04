@@ -2483,36 +2483,17 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  build_subpackages
+   --  parse_and_transform_buildsheet
    --------------------------------------------------------------------------------------------
-   function build_subpackages
-     (builder     : builders;
-      sequence_id : port_id;
-      sysrootver  : sysroot_characteristics;
-      interactive : Boolean := False;
-      enterafter  : String := "") return Boolean
+   procedure parse_and_transform_buildsheet
+     (specification : in out Port_Specification.Portspecs;
+      successful    : out Boolean;
+      buildsheet    : String;
+      variant       : String;
+      portloc       : String;
+      sysrootver    : sysroot_characteristics)
    is
-      function get_buildsheet return String;
-
-      namebase : String := HT.USS (all_ports (sequence_id).port_namebase);
-      variant  : String := HT.USS (all_ports (sequence_id).port_variant);
-      bucket   : String := all_ports (sequence_id).bucket;
-      portloc  : String := HT.USS (PM.configuration.dir_buildbase) &
-                           "/" & REP.slave_name (builder) & "/port";
-      makefile   : String := portloc & "/Makefile";
-
-      function get_buildsheet return String is
-      begin
-         if all_ports (sequence_id).unkind_custom then
-            return HT.USS (PM.configuration.dir_unkindness) & "/bucket_" & bucket & "/" & namebase;
-         else
-            return HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" & bucket & "/" & namebase;
-         end if;
-      end get_buildsheet;
-
-      buildsheet    : constant String := get_buildsheet;
-      specification : Port_Specification.Portspecs;
-      successful    : Boolean;
+      makefile : String := portloc & "/Makefile";
    begin
       PAR.parse_specification_file (dossier         => buildsheet,
                                     specification   => specification,
@@ -2522,7 +2503,7 @@ package body PortScan.Operations is
                                     stop_at_targets => False,
                                     extraction_dir  => portloc);
       if not successful then
-         return False;
+         return;
       end if;
 
       PST.set_option_defaults
@@ -2549,16 +2530,61 @@ package body PortScan.Operations is
          arch_standard => sysrootver.arch,
          osmajor       => HT.USS (sysrootver.major));
 
-      PST.shift_extra_patches
-        (specs         => specification,
-         extract_dir   => portloc);
+      if portloc /= "" then
+         PST.shift_extra_patches
+           (specs         => specification,
+            extract_dir   => portloc);
 
-      PSM.generator
-        (specs         => specification,
-         variant       => variant,
-         opsys         => platform_type,
-         arch          => sysrootver.arch,
-         output_file   => makefile);
+         PSM.generator
+           (specs         => specification,
+            variant       => variant,
+            opsys         => platform_type,
+            arch          => sysrootver.arch,
+            output_file   => makefile);
+      end if;
+   end parse_and_transform_buildsheet;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_subpackages
+   --------------------------------------------------------------------------------------------
+   function build_subpackages
+     (builder     : builders;
+      sequence_id : port_id;
+      sysrootver  : sysroot_characteristics;
+      interactive : Boolean := False;
+      enterafter  : String := "") return Boolean
+   is
+      function get_buildsheet return String;
+
+      namebase : String := HT.USS (all_ports (sequence_id).port_namebase);
+      variant  : String := HT.USS (all_ports (sequence_id).port_variant);
+      bucket   : String := all_ports (sequence_id).bucket;
+      portloc  : String := HT.USS (PM.configuration.dir_buildbase) &
+                           "/" & REP.slave_name (builder) & "/port";
+
+      function get_buildsheet return String is
+      begin
+         if all_ports (sequence_id).unkind_custom then
+            return HT.USS (PM.configuration.dir_unkindness) & "/bucket_" & bucket & "/" & namebase;
+         else
+            return HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" & bucket & "/" & namebase;
+         end if;
+      end get_buildsheet;
+
+      buildsheet    : constant String := get_buildsheet;
+      specification : Port_Specification.Portspecs;
+      successful    : Boolean;
+   begin
+      parse_and_transform_buildsheet (specification => specification,
+                                      successful    => successful,
+                                      buildsheet    => buildsheet,
+                                      variant       => variant,
+                                      portloc       => portloc,
+                                      sysrootver    => sysrootver);
+      if not successful then
+         return False;
+      end if;
 
       return CYC.build_package (id            => builder,
                                 specification => specification,

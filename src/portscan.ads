@@ -71,6 +71,9 @@ package PortScan is
    --  Checks all_ports (id) and returns value of use_procfs
    function requires_procfs (id : port_id) return Boolean;
 
+   --  Given an index, returns a buildsheet location wrt unkindness
+   function get_buildsheet_from_origin_list (index : Positive) return String;
+
 private
 
    package CON renames Ada.Containers;

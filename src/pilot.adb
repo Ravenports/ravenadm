@@ -23,6 +23,7 @@ with PortScan.Operations;
 with PortScan.Buildcycle;
 with PortScan.Scan;
 with PortScan.Log;
+with Options_Dialog;
 
 package body Pilot is
 
@@ -39,6 +40,7 @@ package body Pilot is
    package CYC renames PortScan.Buildcycle;
    package SCN renames PortScan.Scan;
    package LOG renames PortScan.Log;
+   package OPT renames Options_Dialog;
    package LAT renames Ada.Characters.Latin_1;
    package CLI renames Ada.Command_Line;
    package DIR renames Ada.Directories;
@@ -132,6 +134,7 @@ package body Pilot is
       successful : Boolean;
 
       specification : Port_Specification.Portspecs;
+      dossier_text  : HT.Text;
 
       function get_variant return String is
       begin
@@ -144,52 +147,23 @@ package body Pilot is
 
    begin
       if directory_specified then
-         declare
-            filename : String := optional_directory & "/" & specfile;
-         begin
-            if DIR.Exists (filename) then
-               PAR.parse_specification_file (dossier         => filename,
-                                             specification   => specification,
-                                             opsys_focus     => platform_type,
-                                             arch_focus      => sysrootver.arch,
-                                             success         => successful,
-                                             stop_at_targets => False);
-            else
-               DNE (filename);
-               return;
-            end if;
-         end;
+         dossier_text := HT.SUS (optional_directory & "/" & specfile);
       else
-         if DIR.Exists (specfile) then
-            PAR.parse_specification_file (dossier         => specfile,
-                                          specification   => specification,
-                                          opsys_focus     => platform_type,
-                                          arch_focus      => sysrootver.arch,
-                                          success         => successful,
-                                          stop_at_targets => False);
-         else
-            DNE (specfile);
-            return;
-         end if;
+         dossier_text := HT.SUS (specfile);
       end if;
+      if DIR.Exists (HT.USS (dossier_text)) then
+         OPS.parse_and_transform_buildsheet (specification => specification,
+                                             successful    => successful,
+                                             buildsheet    => HT.USS (dossier_text),
+                                             variant       => get_variant,
+                                             portloc       => "",
+                                             sysrootver    => sysrootver);
+      else
+         DNE (HT.USS (dossier_text));
+         return;
+      end if;
+
       if successful then
-         PST.set_option_defaults (specs         => specification,
-                                  variant       => get_variant,
-                                  opsys         => platform_type,
-                                  arch_standard => sysrootver.arch,
-                                  osrelease     => HT.USS (sysrootver.release));
-         --  TODO: apply options to settings
-         PST.set_option_to_default_values (specs => specification);
-         PST.set_outstanding_ignore (specs         => specification,
-                                     variant       => get_variant,
-                                     opsys         => platform_type,
-                                     arch_standard => sysrootver.arch,
-                                     osrelease     => HT.USS (sysrootver.release),
-                                     osmajor       => HT.USS (sysrootver.major));
-         PST.apply_directives (specs         => specification,
-                               variant       => get_variant,
-                               arch_standard => sysrootver.arch,
-                               osmajor       => HT.USS (sysrootver.major));
          PSM.generator (specs         => specification,
                         variant       => get_variant,
                         opsys         => platform_type,
@@ -726,18 +700,23 @@ package body Pilot is
       badname    : constant String := "Invalid port namebase: ";
       badvariant : constant String := "Invalid port variant: ";
    begin
+      all_stdvar := True;
       for k in start_from .. CLI.Argument_Count loop
          declare
             Argk : constant String := CLI.Argument (k);
             bad_namebase : Boolean;
             bad_format   : Boolean;
             add_standard : Boolean;
+            is_stdvar    : Boolean;
          begin
-            if valid_origin (Argk, bad_namebase, bad_format, add_standard) then
+            if valid_origin (Argk, bad_namebase, bad_format, add_standard, is_stdvar) then
                if add_standard then
                   PortScan.insert_into_portlist (Argk & LAT.Colon & variant_standard);
                else
                   PortScan.insert_into_portlist (Argk);
+               end if;
+               if not is_stdvar then
+                  all_stdvar := False;
                end if;
             else
                if bad_format then
@@ -762,7 +741,8 @@ package body Pilot is
      (port_variant : String;
       bad_namebase : out Boolean;
       bad_format   : out Boolean;
-      assume_std   : out Boolean) return Boolean
+      assume_std   : out Boolean;
+      known_std    : out Boolean) return Boolean
    is
       function variant_valid (fileloc : String; variant : String) return Boolean;
 
@@ -813,6 +793,7 @@ package body Pilot is
             bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
             bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
          begin
+            known_std := (variant = variant_standard);
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
                return variant_valid (bsheetu, variant);
@@ -830,6 +811,7 @@ package body Pilot is
             bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
          begin
             assume_std := True;
+            known_std  := True;
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
                return variant_valid (bsheetu, variant_standard);
@@ -1038,5 +1020,35 @@ package body Pilot is
          PortScan.Scan.purge_obsolete_distfiles;
       end if;
    end purge_distfiles;
+
+
+   --------------------------------------------------------------------------------------------
+   --  change_options
+   --------------------------------------------------------------------------------------------
+   procedure change_options
+   is
+      number_ports : constant Natural := PortScan.build_request_length;
+   begin
+      --  First confirm all given origins are the standard variants
+      if not all_stdvar then
+         TIO.Put_Line ("User error: Only standard variants of ports have configurable options");
+         return;
+      end if;
+      for x in 1 .. number_ports loop
+         declare
+            specification : Port_Specification.Portspecs;
+            successful    : Boolean;
+            buildsheet    : constant String := PortScan.get_buildsheet_from_origin_list (x);
+         begin
+            OPS.parse_and_transform_buildsheet (specification => specification,
+                                                successful    => successful,
+                                                buildsheet    => buildsheet,
+                                                variant       => variant_standard,
+                                                portloc       => "",
+                                                sysrootver    => sysrootver);
+            exit when not OPT.launch_dialog (specification);
+         end;
+      end loop;
+   end change_options;
 
 end Pilot;

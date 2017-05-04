@@ -117,6 +117,9 @@ package Pilot is
    --  actual downloads and removes any distfiles that don't belong.
    procedure purge_distfiles;
 
+   --  Launches options dialog to allow user to set them
+   procedure change_options;
+
 private
 
    package HT renames HelperText;
@@ -137,6 +140,7 @@ private
    ss_base    : constant String   := "/SL09";
 
    sysrootver : PortScan.sysroot_characteristics;
+   all_stdvar : Boolean := False;
 
    logname    : constant dim_logname := ("00_last_results.log",
                                          "01_success_list.log",
@@ -152,6 +156,7 @@ private
      (port_variant : String;
       bad_namebase : out Boolean;
       bad_format   : out Boolean;
-      assume_std   : out Boolean) return Boolean;
+      assume_std   : out Boolean;
+      known_std    : out Boolean) return Boolean;
 
 end Pilot;

@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with Display;
+with Port_Specification;
 
 private with Parameters;
 
@@ -100,6 +101,16 @@ package PortScan.Operations is
       enterafter  : String := "") return Boolean;
 
    function skip_verified (id : port_id) return Boolean;
+
+   --  Generic parse/transform routine for a given buildsheet or specification file
+   --  With a specification file.
+   procedure parse_and_transform_buildsheet
+     (specification : in out Port_Specification.Portspecs;
+      successful    : out Boolean;
+      buildsheet    : String;
+      variant       : String;
+      portloc       : String;
+      sysrootver    : sysroot_characteristics);
 
 private
 
