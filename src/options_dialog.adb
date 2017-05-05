@@ -94,7 +94,7 @@ package body Options_Dialog is
       c_trimmings    := TIC.Color_Pair (4);
       c_optbox_title := TIC.Color_Pair (5);
       c_group_text   := TIC.Color_Pair (11);
-      c_group_trim   := TIC.Color_Pair (11);
+      c_group_trim   := TIC.Color_Pair (8);
       c_letters      := TIC.Color_Pair (9);
       c_options      := TIC.Color_Pair (10);
       c_inv_gray     := TIC.Color_Pair (8);
@@ -266,20 +266,20 @@ package body Options_Dialog is
    is
       product : TIC.Attributed_String (1 .. textdata'Length);
       pindex  : Positive := 1;
-      endmarker : Positive := textdata'Last - 4;
+      endmarker : Positive := textdata'Last - 3;
    begin
       if textdata'Length < 8 then
          return product;  --  should never happen
       end if;
-      for index in textdata'First .. textdata'First + 3 loop
+      for index in textdata'First .. textdata'First + 2 loop
          product (pindex) := (normal, c_standard, textdata (index));
          pindex := pindex + 1;
       end loop;
-      for index in textdata'First + 4 .. endmarker loop
+      for index in textdata'First + 3 .. endmarker loop
          if textdata (index) = '-' then
             product (pindex) := (normal, c_group_trim, textdata (index));
          else
-            product (pindex) := (bright, c_group_text, textdata (index));
+            product (pindex) := (normal, c_group_text, textdata (index));
          end if;
          pindex := pindex + 1;
       end loop;
@@ -298,18 +298,20 @@ package body Options_Dialog is
    is
       product : TIC.Attributed_String (1 .. textdata'Length);
       pindex  : Positive := 1;
-      endmarker : Positive := textdata'Last - 4;
+      endmarker : Positive := textdata'Last - 3;
    begin
       if textdata'Length < 8 then
          return product;  --  should never happen
       end if;
-      for index in textdata'First .. textdata'First + 3 loop
+      for index in textdata'First .. textdata'First + 2 loop
          product (pindex) := (normal, c_standard, textdata (index));
          pindex := pindex + 1;
       end loop;
-      --  Menu letter, 1 character
-      product (pindex) := (normal, c_letters, textdata (textdata'First + 4));
-      pindex := pindex + 1;
+      --  Menu letter, 2 characters
+      for index in textdata'First + 3 .. textdata'First + 4 loop
+         product (pindex) := (normal, c_letters, textdata (index));
+         pindex := pindex + 1;
+      end loop;
       --  Tickbox (5 characters)
       for index in textdata'First + 5 .. textdata'First + 9 loop
          product (pindex) := (normal, c_inv_gray, textdata (index));
@@ -455,7 +457,7 @@ package body Options_Dialog is
                linenum := linenum + 1;
                formatted_grps (num_groups).relative_vert := linenum;
                formatted_grps (num_groups).template := (others => '-');
-               formatted_grps (num_groups).template (center .. cend) := "  " & group & "  ";
+               formatted_grps (num_groups).template (center .. cend) := "[ " & group & " ]";
                formatted_grps (num_groups).behavior := str2behavior (gtype);
                lastgrp := HT.SUS (group);
             end if;
@@ -584,16 +586,19 @@ package body Options_Dialog is
       tcenter     : Natural := Natural (index_to_center (title_text));
       ATS_BLANK   : appline := custom_message (blank_line, normal, c_standard);
       ATS_TITLE   : appline;
+      use_center  : constant Boolean := False;
 
    begin
       --  if the entire menu fits on the screen, we want to center it vertically.  We have to
       --  have at least one row between the title row and the separator bar.  That means the
       --  lowest allowed value for titlerow is 1 (the first row is zero).
-      if full_length > viewheight - 1 then
-         title_row := 1;
-      else
-         title_row := (viewheight - full_length) / 2;
+      title_row := 1;
+      if use_center then
+         if full_length <= viewheight - 1 then
+            title_row := (viewheight - full_length) / 2;
+         end if;
       end if;
+
       if title_text'Length > appline_max then
          title_line := title_text (title_text'First .. title_text'First - 1 + Integer (app_width));
       else
@@ -607,8 +612,8 @@ package body Options_Dialog is
       end loop;
 
       ATS_TITLE := custom_message (title_line, normal, c_optbox_title);
-      touch_up (ATS_TITLE, 1, 4, normal, c_standard);
-      touch_up (ATS_TITLE, 76, 4, normal, c_standard);
+      touch_up (ATS_TITLE, 1, 3, normal, c_standard);
+      touch_up (ATS_TITLE, 77, 3, normal, c_standard);
       Scrawl (dialog, ATS_TITLE, TIC.Line_Position (title_row));
 
       for x in 1 .. num_options loop
