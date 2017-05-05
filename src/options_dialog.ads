@@ -22,9 +22,23 @@ private
    appline_max : constant Positive := 79;
 
    type zones is (keymenu, dialog);
+   type group_type is (radio, restrict, unlimited);
    subtype appline is TIC.Attributed_String (1 .. appline_max);
    subtype optentry is String (1 .. 71);
-   type optstorage is array (1 .. 52) of optentry;
+   type optentry_rec is record
+      template      : optentry;
+      relative_vert : Positive;
+      default_value : Boolean;
+      current_value : Boolean;
+      ticked_value  : Boolean;
+   end record;
+   type grouping_rec is record
+      template      : optentry;
+      relative_vert : Positive;
+      behavior      : group_type;
+   end record;
+   type optstorage   is array (1 .. 52) of optentry_rec;
+   type group_titles is array (1 .. 26) of grouping_rec;
 
    type palette_rec is
       record
@@ -34,14 +48,13 @@ private
 
    cursor_vis    : TIC.Cursor_Visibility := TIC.Invisible;
 
-   normal        : constant TIC.Character_Attribute_Set :=
-                            (others => False);
-   bright        : constant TIC.Character_Attribute_Set :=
-                            (Bold_Character => True, others => False);
-   dimmed        : constant TIC.Character_Attribute_Set :=
-                            (Dim_Character => True, others => False);
    app_width     : constant TIC.Column_Count := 80;
-
+   dialog_height : constant TIC.Line_Count   := 81;
+   normal        : constant TIC.Character_Attribute_Set := (others => False);
+   bright        : constant TIC.Character_Attribute_Set := (Bold_Character => True,
+                                                            others => False);
+   dimmed        : constant TIC.Character_Attribute_Set := (Dim_Character => True,
+                                                            others => False);
    zone_keymenu  : TIC.Window;
    zone_dialog   : TIC.Window;
 
@@ -55,6 +68,10 @@ private
    port_namebase   : HT.Text;
    port_sdesc      : HT.Text;
    formatted_opts  : optstorage;
+   formatted_grps  : group_titles;
+   num_groups      : Natural := 0;
+   num_options     : Natural := 0;
+   title_row       : Natural;
 
    function establish_colors return Boolean;
    function Start_Curses_Mode return Boolean;
@@ -66,6 +83,7 @@ private
    procedure Refresh_Zone (zone : zones);
    procedure Return_To_Text_Mode;
    procedure draw_static_keymenu;
+   procedure draw_static_dialog;
    procedure terminate_dialog;
    procedure setup_parameters (specification : PSP.Portspecs);
    procedure handle_user_commands;

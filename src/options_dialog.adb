@@ -50,6 +50,7 @@ package body Options_Dialog is
       setup_parameters (specification);
 
       draw_static_keymenu;
+      draw_static_dialog;
 
       Refresh_Zone (keymenu);
       Refresh_Zone (dialog);
@@ -86,57 +87,6 @@ package body Options_Dialog is
       c_key_desc    := TIC.Color_Pair (2);
       c_title       := TIC.Color_Pair (3);
       c_trimmings   := TIC.Color_Pair (4);
-
-
---
---        c_slave  (1).palette   := TIC.Color_Pair (1);  --  white / Black
---        c_slave  (1).attribute := bright;
---
---        c_slave  (2).palette   := TIC.Color_Pair (2);  --  light green / Black
---        c_slave  (2).attribute := bright;
---
---        c_slave  (3).palette   := TIC.Color_Pair (4);  --  yellow / Black
---        c_slave  (3).attribute := bright;
---
---        c_slave  (4).palette   := TIC.Color_Pair (8);  --  light magenta / Black
---        c_slave  (4).attribute := bright;
---
---        c_slave  (5).palette   := TIC.Color_Pair (3);  --  light red / Black
---        c_slave  (5).attribute := bright;
---
---        c_slave  (6).palette   := TIC.Color_Pair (7);  --  light blue / Black
---        c_slave  (6).attribute := bright;
---
---        c_slave  (7).palette   := TIC.Color_Pair (6);  --  light cyan / Black
---        c_slave  (7).attribute := bright;
---
---        c_slave  (8).palette   := TIC.Color_Pair (5);  --  dark grey / Black
---        c_slave  (8).attribute := bright;
---
---        c_slave  (9).palette   := TIC.Color_Pair (1);  --  light grey / Black
---        c_slave  (9).attribute := normal;
---
---        c_slave (10).palette   := TIC.Color_Pair (2);  --  light green / Black
---        c_slave (10).attribute := normal;
---
---        c_slave (11).palette   := TIC.Color_Pair (4);  --  brown / Black
---        c_slave (11).attribute := normal;
---
---        c_slave (12).palette   := TIC.Color_Pair (8);  --  dark magenta / Black
---        c_slave (12).attribute := normal;
---
---        c_slave (13).palette   := TIC.Color_Pair (3);  --  dark red / Black
---        c_slave (13).attribute := normal;
---
---        c_slave (14).palette   := TIC.Color_Pair (7);  --  dark blue / Black
---        c_slave (14).attribute := normal;
---
---        c_slave (15).palette   := TIC.Color_Pair (6);  --  dark cyan / Black
---        c_slave (15).attribute := normal;
---
---        c_slave (16).palette   := TIC.Color_Pair (9);  --  white / dark blue
---        c_slave (16).attribute := normal;
-
       return True;
 
    end establish_colors;
@@ -226,9 +176,10 @@ package body Options_Dialog is
    --------------------------------------------------------------------------------------------
    function launch_dialog_zone return Boolean
    is
-      --  55 limit comes from 26x2 + 1 (header) + 1x2 (margin)
+      --  55 limit comes from 26x3 + 1 (header) + 1x2 (margin)
+      --  A .. Z + a .. Z + worst case of 26 2-member groups
    begin
-      zone_dialog := TIC.Create (Number_Of_Lines       => 55,
+      zone_dialog := TIC.Create (Number_Of_Lines       => dialog_height,
                                  Number_Of_Columns     => app_width,
                                  First_Line_Position   => 4,
                                  First_Column_Position => 0);
@@ -323,7 +274,58 @@ package body Options_Dialog is
    --------------------------------------------------------------------------------------------
    --  setup_parameters
    --------------------------------------------------------------------------------------------
-   procedure setup_parameters (specification : PSP.Portspecs) is
+   procedure setup_parameters (specification : PSP.Portspecs)
+   is
+      function str2bool (value : String) return Boolean;
+      function button   (linenum : Natural) return String;
+      function str2behavior (value : String) return group_type;
+      function format (value : String; size : Positive) return String;
+
+      block   : String := specification.option_block_for_dialog;
+      markers : HT.Line_Markers;
+      lastgrp : HT.Text;
+      linenum : Natural := 0;
+
+      function str2bool (value : String) return Boolean is
+      begin
+         return (value = "1");
+      end str2bool;
+
+      function str2behavior (value : String) return group_type is
+      begin
+         if value = "RESTR" then
+            return restrict;
+         elsif value = "RADIO" then
+            return radio;
+         else
+            return unlimited;
+         end if;
+      end str2behavior;
+
+      function button (linenum : Natural) return String
+      is
+         letter     : Character;
+      begin
+         if linenum > 26 then
+            letter := Character'Val (Character'Pos ('a') - 27 + linenum);
+         else
+            letter := Character'Val (Character'Pos ('A') - 1 + linenum);
+         end if;
+         return letter & " ";
+      end button;
+
+      function format (value : String; size : Positive) return String
+      is
+         slate : String (1 .. size) := (others => ' ');
+      begin
+         if value'Length > size then
+            slate := value (value'First .. value'First - 1 + size);
+         else
+            slate (1 .. value'Length) := value;
+         end if;
+         return slate;
+      end format;
+
    begin
       num_std_options := specification.get_list_length (PSP.sp_opts_standard);
       if num_std_options < 27 then
@@ -333,6 +335,42 @@ package body Options_Dialog is
       end if;
       port_namebase := HT.SUS (specification.get_field_value (PSP.sp_namebase));
       port_sdesc    := HT.SUS (specification.get_tagline (variant_standard));
+
+      HT.initialize_markers (block, markers);
+      loop
+         exit when not HT.next_line_present (block, markers);
+         declare
+            line   : constant String := HT.extract_line (block, markers);
+            group  : constant String := HT.specific_field (line, 3, ":");
+            gtype  : constant String := HT.specific_field (line, 2, ":");
+            center : constant Natural := ((optentry'Length - group'Length) / 2) - 1;
+            cend   : constant Natural := center + group'Length + 3;
+         begin
+            if not HT.equivalent (lastgrp, group) then
+               --  new group
+               num_groups := num_groups + 1;
+               linenum := linenum + 1;
+               formatted_grps (num_groups).relative_vert := linenum;
+               formatted_grps (num_groups).template := (others => '-');
+               formatted_grps (num_groups).template (center .. cend) := "  " & group & "  ";
+               formatted_grps (num_groups).behavior := str2behavior (gtype);
+               lastgrp := HT.SUS (group);
+            end if;
+            linenum := linenum + 1;
+            num_options := num_options + 1;
+            declare
+               fopt : optentry_rec renames formatted_opts (num_options);
+            begin
+               fopt.relative_vert := linenum;
+               fopt.default_value := str2bool (HT.specific_field (line, 5, ":"));
+               fopt.current_value := str2bool (HT.specific_field (line, 6, ":"));
+               fopt.ticked_value  := fopt.current_value;
+               fopt.template      := button (num_options) & "[ ] " &
+                 format (HT.specific_field (line, 4, ":"), 14) & " " &
+                 format (HT.specific_field (line, 7, ":"), 50);
+            end;
+         end;
+      end loop;
    end setup_parameters;
 
 
@@ -422,7 +460,75 @@ package body Options_Dialog is
                end if;
             when others => null;
          end case;
+         draw_static_dialog;
+         Refresh_Zone (keymenu);
+         Refresh_Zone (dialog);
       end loop;
    end handle_user_commands;
+
+
+   --------------------------------------------------------------------------------------------
+   --  draw_static_dialog
+   --------------------------------------------------------------------------------------------
+   procedure draw_static_dialog
+   is
+      viewheight  : Integer := Integer (TIC.Lines) - 4;
+      full_length : Natural := num_groups + num_options + 1;
+      blank_line  : String (1 .. appline_max) := (others => ' ');
+      ATS_BLANK   : appline :=
+        custom_message (message   => blank_line,
+                        attribute => normal,
+                        pen_color => c_standard);
+   begin
+      --  if the entire menu fits on the screen, we want to center it vertically.  We have to
+      --  have at least one row between the title row and the separator bar.  That means the
+      --  lowest allowed value for titlerow is 1 (the first row is zero).
+      if full_length > viewheight - 1 then
+         title_row := 1;
+      else
+         title_row := (viewheight - full_length) / 2;
+      end if;
+
+      for x in 0 .. title_row - 1 loop
+         Scrawl (zone        => dialog,
+                 information => ATS_BLANK,
+                 at_line     => TIC.Line_Position (x));
+      end loop;
+
+      for x in 1 .. num_options loop
+         declare
+            linepos : Natural := title_row + formatted_opts (x).relative_vert;
+            ATS : TIC.Attributed_String :=
+              custom_message (message   => formatted_opts (x).template,
+                              attribute => normal,
+                              pen_color => c_standard);
+         begin
+            Scrawl (zone        => dialog,
+                    information => ATS,
+                    at_line     => TIC.Line_Position (linepos),
+                    at_column   => 4);
+         end;
+      end loop;
+      for x in 1 .. num_groups loop
+         declare
+            linepos : Natural := title_row + formatted_grps (x).relative_vert;
+            ATS : TIC.Attributed_String :=
+              custom_message (message   => formatted_grps (x).template,
+                              attribute => normal,
+                              pen_color => c_standard);
+         begin
+            Scrawl (zone        => dialog,
+                    information => ATS,
+                    at_line     => TIC.Line_Position (linepos),
+                    at_column   => 4);
+         end;
+      end loop;
+
+      for x in title_row + full_length .. viewheight loop
+         Scrawl (zone        => dialog,
+                 information => ATS_BLANK,
+                 at_line     => TIC.Line_Position (x));
+      end loop;
+   end draw_static_dialog;
 
 end Options_Dialog;

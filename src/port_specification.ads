@@ -235,6 +235,10 @@ package Port_Specification is
    --  It also outputs to standard out which ones fail
    function post_parse_opt_desc_check_passes (specs : Portspecs) return Boolean;
 
+   --  Returns true if all the option groups have at least 2 members
+   --  It also outputs to standard out which groups have only one memeber
+   function post_parse_option_group_size_passes (specs : Portspecs) return Boolean;
+
    --  Return "joined" table of group + options
    function option_block_for_dialog (specs : Portspecs) return String;
 

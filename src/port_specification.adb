@@ -2052,13 +2052,13 @@ package body Port_Specification is
          helper : Option_Helper renames specs.ops_helpers.Element (option_name);
       begin
          if specs.ops_helpers.Contains (option_name) then
-            HT.SU.Append (answer,
+            answer := HT.SUS (
                             LAT.Colon & LAT.Colon &
                             LAT.Colon & HT.USS (option_name) &
                             LAT.Colon & bool2str (helper.set_ON_by_default) &
                             LAT.Colon & bool2str (helper.currently_set_ON) &
                             LAT.Colon & description (option_name, helper.option_description) &
-                            LAT.LF);
+                            LAT.LF & HT.USS (answer));
          end if;
       end nogroup;
 
@@ -3485,8 +3485,30 @@ package body Port_Specification is
       end if;
 
       return still_good;
-
    end post_parse_license_check_passes;
+
+
+   --------------------------------------------------------------------------------------------
+   --  post_parse_option_group_size_passes
+   --------------------------------------------------------------------------------------------
+   function post_parse_option_group_size_passes (specs : Portspecs) return Boolean
+   is
+      procedure group_scan (position : list_crate.Cursor);
+
+      all_good : Boolean := True;
+
+      procedure group_scan (position : list_crate.Cursor) is
+      begin
+         if Natural (list_crate.Element (position).list.Length) < 2 then
+            TIO.Put_Line ("The " & HT.USS (list_crate.Element (position).group) &
+                            " group has less than 2 members");
+            all_good := False;
+         end if;
+      end group_scan;
+   begin
+      specs.optgroups.Iterate (group_scan'Access);
+      return all_good;
+   end post_parse_option_group_size_passes;
 
 
    --------------------------------------------------------------------------------------------
