@@ -110,6 +110,7 @@ package PortScan.Operations is
       buildsheet    : String;
       variant       : String;
       portloc       : String;
+      excl_targets  : Boolean;
       sysrootver    : sysroot_characteristics);
 
 private

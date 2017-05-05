@@ -1495,6 +1495,9 @@ package body Port_Specification is
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
          when description =>
+            if value'Length > 50 then
+               raise wrong_value with "option descriptions are limited to 50 characters";
+            end if;
             if HT.contains (value, ":") then
                raise wrong_value with "option descriptions cannot contain colon characters";
             end if;

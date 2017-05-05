@@ -157,6 +157,7 @@ package body Pilot is
                                              buildsheet    => HT.USS (dossier_text),
                                              variant       => get_variant,
                                              portloc       => "",
+                                             excl_targets  => False,
                                              sysrootver    => sysrootver);
       else
          DNE (HT.USS (dossier_text));
@@ -1034,7 +1035,6 @@ package body Pilot is
          TIO.Put_Line ("User error: Only standard variants of ports have configurable options");
          return;
       end if;
-
       for x in 1 .. number_ports loop
          declare
             specification : Port_Specification.Portspecs;
@@ -1046,6 +1046,7 @@ package body Pilot is
                                                 buildsheet    => buildsheet,
                                                 variant       => variant_standard,
                                                 portloc       => "",
+                                                excl_targets  => True,
                                                 sysrootver    => sysrootver);
             exit when not OPT.launch_dialog (specification);
          end;

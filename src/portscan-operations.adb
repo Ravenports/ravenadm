@@ -2491,6 +2491,7 @@ package body PortScan.Operations is
       buildsheet    : String;
       variant       : String;
       portloc       : String;
+      excl_targets  : Boolean;
       sysrootver    : sysroot_characteristics)
    is
       makefile : String := portloc & "/Makefile";
@@ -2500,9 +2501,11 @@ package body PortScan.Operations is
                                     opsys_focus     => platform_type,
                                     arch_focus      => sysrootver.arch,
                                     success         => successful,
-                                    stop_at_targets => False,
+                                    stop_at_targets => excl_targets,
                                     extraction_dir  => portloc);
       if not successful then
+         TIO.Put_Line ("Failed to parse " & buildsheet);
+         TIO.Put_Line (PAR.get_parse_error);
          return;
       end if;
 
@@ -2581,6 +2584,7 @@ package body PortScan.Operations is
                                       buildsheet    => buildsheet,
                                       variant       => variant,
                                       portloc       => portloc,
+                                      excl_targets  => False,
                                       sysrootver    => sysrootver);
       if not successful then
          return False;
