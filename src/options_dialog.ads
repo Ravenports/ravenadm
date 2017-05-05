@@ -31,6 +31,7 @@ private
       default_value : Boolean;
       current_value : Boolean;
       ticked_value  : Boolean;
+      member_group  : Natural;
    end record;
    type grouping_rec is record
       template      : optentry;
@@ -116,5 +117,6 @@ private
 
    function colorize_groups (textdata : String) return TIC.Attributed_String;
    function colorize_option (textdata : String) return TIC.Attributed_String;
+   procedure toggle_option (option_index : Positive);
 
 end Options_Dialog;

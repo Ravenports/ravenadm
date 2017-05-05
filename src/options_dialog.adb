@@ -377,11 +377,13 @@ package body Options_Dialog is
       function button   (linenum : Natural) return String;
       function str2behavior (value : String) return group_type;
       function format (value : String; size : Positive) return String;
+      function group_title (value : String; gtype : group_type) return String;
 
       block   : String := specification.option_block_for_dialog;
       markers : HT.Line_Markers;
       lastgrp : HT.Text;
       linenum : Natural := 0;
+      gcount  : Natural := 0;
 
       function str2bool (value : String) return Boolean is
       begin
@@ -423,6 +425,15 @@ package body Options_Dialog is
          return slate;
       end format;
 
+      function group_title (value : String; gtype : group_type) return String is
+      begin
+         case gtype is
+            when radio     => return "[ " & value & " (exactly 1) ]";
+            when restrict  => return "[ " & value & " (minimum 1) ]";
+            when unlimited => return "[ " & value & " ]";
+         end case;
+      end group_title;
+
    begin
       num_std_options := specification.get_list_length (PSP.sp_opts_standard);
       if num_std_options < 27 then
@@ -439,20 +450,23 @@ package body Options_Dialog is
          exit when not HT.next_line_present (block, markers);
          declare
             line   : constant String := HT.extract_line (block, markers);
+            grid   : constant String := HT.specific_field (line, 1, ":");
             group  : constant String := HT.specific_field (line, 3, ":");
-            gtype  : constant String := HT.specific_field (line, 2, ":");
-            center : constant Natural := ((optentry'Length - group'Length) / 2) - 1;
-            cend   : constant Natural := center + group'Length + 3;
+            gtype  : constant group_type := str2behavior (HT.specific_field (line, 2, ":"));
+            title  : constant String := group_title (group, gtype);
+            center : constant Natural := ((optentry'Length - title'Length) / 2) + 1;
+            cend   : constant Natural := center + title'Length - 1;
          begin
-            if not HT.equivalent (lastgrp, group) then
+            if not HT.equivalent (lastgrp, grid) then
                --  new group
                num_groups := num_groups + 1;
                linenum := linenum + 1;
                formatted_grps (num_groups).relative_vert := linenum;
                formatted_grps (num_groups).template := (others => '-');
-               formatted_grps (num_groups).template (center .. cend) := "[ " & group & " ]";
-               formatted_grps (num_groups).behavior := str2behavior (gtype);
-               lastgrp := HT.SUS (group);
+               formatted_grps (num_groups).behavior := gtype;
+               formatted_grps (num_groups).template (center .. cend) := title;
+               lastgrp := HT.SUS (grid);
+               gcount  := gcount + 1;
             end if;
             linenum := linenum + 1;
             num_options := num_options + 1;
@@ -463,6 +477,7 @@ package body Options_Dialog is
                fopt.default_value := str2bool (HT.specific_field (line, 5, ":"));
                fopt.current_value := str2bool (HT.specific_field (line, 6, ":"));
                fopt.ticked_value  := fopt.current_value;
+               fopt.member_group  := gcount;
                fopt.template      := button (num_options) & "[ ] " &
                  format (HT.specific_field (line, 4, ":"), 14) & " " &
                  format (HT.specific_field (line, 7, ":"), 50);
@@ -546,13 +561,20 @@ package body Options_Dialog is
             when TIC.Key_F1 | Key_Num1 =>
                --  save options
                exit;
-            when TIC.Key_F2 | Key_Num2 => null;
-            when TIC.Key_F3 | Key_Num3 => null;
+            when TIC.Key_F2 | Key_Num2 =>
+               --  Reset to current
+               for x in 1 .. num_std_options loop
+                  formatted_opts (x).ticked_value := formatted_opts (x).current_value;
+               end loop;
+            when TIC.Key_F3 | Key_Num3 =>
+               --  Reset to default
+               for x in 1 .. num_std_options loop
+                  formatted_opts (x).ticked_value := formatted_opts (x).default_value;
+               end loop;
             when Key_Option_01 .. Key_Option_26 =>
                if KeyCode <= Key_Option_Last then
                   option_index := Positive (KeyCode - Key_Option_01 + 1);
-                  formatted_opts (option_index).ticked_value :=
-                    not formatted_opts (option_index).ticked_value;
+                  toggle_option (option_index);
                end if;
             when Key_Option_27 .. Key_Option_52 =>
                if num_std_options < 27 then
@@ -560,8 +582,7 @@ package body Options_Dialog is
                else
                   option_index := Positive (KeyCode - Key_Option_01 + 1);
                end if;
-               formatted_opts (option_index).ticked_value :=
-                 not formatted_opts (option_index).ticked_value;
+               toggle_option (option_index);
             when others => null;
          end case;
       end loop;
@@ -675,5 +696,60 @@ package body Options_Dialog is
          end if;
       end loop;
    end populate_dialog;
+
+
+   --------------------------------------------------------------------------------------------
+   --  toggle_option
+   --------------------------------------------------------------------------------------------
+   procedure toggle_option (option_index : Positive)
+   is
+      --  RADIO groups have to have at least one option selected.  Selecting an unset member
+      --  of a radio group causes the other members to unset (should be only 1).  Likewise
+      --  selected a set member normally has no effect.
+      --  For a restricted group, the last member cannot be unset.
+      gtype   : group_type;
+      allowed : Boolean;
+   begin
+      if formatted_opts (option_index).member_group = 0 then
+         --  Ungrouped option, no restrictions
+         formatted_opts (option_index).ticked_value :=
+           not formatted_opts (option_index).ticked_value;
+         return;
+      end if;
+      gtype := formatted_grps (formatted_opts (option_index).member_group).behavior;
+      case gtype is
+         when unlimited =>
+            formatted_opts (option_index).ticked_value :=
+              not formatted_opts (option_index).ticked_value;
+         when radio =>
+            for x in 1 .. num_std_options loop
+               if formatted_opts (x).member_group = formatted_opts (option_index).member_group then
+                  formatted_opts (x).ticked_value := (x = option_index);
+               end if;
+            end loop;
+         when restrict =>
+            if not formatted_opts (option_index).ticked_value then
+               --  It's being set on which is always permitted
+               formatted_opts (option_index).ticked_value := True;
+            else
+               --  It's being turned off, which is only allowed if there's another option
+               --  in the group set on.
+               allowed := False;
+               for x in 1 .. num_std_options loop
+                  if formatted_opts (x).member_group = formatted_opts (option_index).member_group
+                  then
+                     if x /= option_index then
+                        if formatted_opts (x).ticked_value then
+                           allowed := True;
+                        end if;
+                     end if;
+                  end if;
+               end loop;
+               if allowed then
+                  formatted_opts (option_index).ticked_value := False;
+               end if;
+            end if;
+      end case;
+   end toggle_option;
 
 end Options_Dialog;
