@@ -71,6 +71,7 @@ private
    c_inv_gray      : TIC.Color_Pair;
    c_tick_on       : TIC.Color_Pair;
    c_tick_delta    : TIC.Color_Pair;
+   c_arrow         : TIC.Color_Pair;
 
    last_alphakey   : Character := 'A';
    num_std_options : Natural;
@@ -82,6 +83,7 @@ private
    num_groups      : Natural := 0;
    num_options     : Natural := 0;
    title_row       : Natural;
+   arrow_points    : Positive := 1;
 
    function establish_colors return Boolean;
    function Start_Curses_Mode return Boolean;

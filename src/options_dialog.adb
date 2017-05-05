@@ -91,6 +91,7 @@ package body Options_Dialog is
       c_inv_gray     := TIC.Color_Pair (8);
       c_tick_on      := TIC.Color_Pair (8);
       c_tick_delta   := TIC.Color_Pair (11);
+      c_arrow        := TIC.Color_Pair (6);
       return True;
 
    end establish_colors;
@@ -297,7 +298,7 @@ package body Options_Dialog is
          return product;  --  should never happen
       end if;
       for index in textdata'First .. textdata'First + 2 loop
-         product (pindex) := (normal, c_standard, textdata (index));
+         product (pindex) := (bright, c_arrow, textdata (index));
          pindex := pindex + 1;
       end loop;
       --  Menu letter, 2 characters
@@ -337,7 +338,7 @@ package body Options_Dialog is
 
       subtype full_line is String (1 .. appline_max);
       msg1 : full_line := "       Save option settings        " &
-                          "         move highlight bar                 ";
+                          "         move highlight arrow               ";
       msg2 : full_line := "       Reset to current values     " &
                           "         Toggle highlighted option setting  ";
       msg3 : full_line := "       Reset to default values     " &
@@ -547,6 +548,7 @@ package body Options_Dialog is
 
       use type TIC.Real_Key_Code;
    begin
+      TIC.Set_KeyPad_Mode (Win => zone_keymenu, SwitchOn => True);
       loop
          draw_static_dialog;
          populate_dialog;
@@ -555,9 +557,13 @@ package body Options_Dialog is
          KeyCode := TIC.Get_Keystroke (zone_keymenu);
          case KeyCode is
             when TIC.Key_Cursor_Up | TIC.Key_Cursor_Left =>
-               null;
+               if arrow_points > 1 then
+                  arrow_points := arrow_points - 1;
+               end if;
             when TIC.Key_Cursor_Down | TIC.Key_Cursor_Right =>
-               null;
+               if arrow_points < num_std_options then
+                  arrow_points := arrow_points + 1;
+               end if;
             when TIC.Key_F1 | Key_Num1 =>
                --  save options
                exit;
@@ -583,6 +589,8 @@ package body Options_Dialog is
                   option_index := Positive (KeyCode - Key_Option_01 + 1);
                end if;
                toggle_option (option_index);
+            when Key_Space =>
+               toggle_option (arrow_points);
             when others => null;
          end case;
       end loop;
@@ -594,9 +602,12 @@ package body Options_Dialog is
    --------------------------------------------------------------------------------------------
    procedure draw_static_dialog
    is
+      function option_content (index : Positive) return String;
+
       viewheight  : Integer := Integer (TIC.Lines) - 4;
       full_length : Natural := num_groups + num_options + 1;
       S4          : constant String := "    ";
+      SARROW      : constant String := " >  ";
       blank_line  : String (1 .. appline_max) := (others => ' ');
       title_line  : String := blank_line;
       title_text  : String := HT.USS (port_namebase) & "-" & HT.USS (port_version);
@@ -604,6 +615,15 @@ package body Options_Dialog is
       ATS_BLANK   : appline := custom_message (blank_line, normal, c_standard);
       ATS_TITLE   : appline;
       use_center  : constant Boolean := False;
+
+      function option_content (index : Positive) return String is
+      begin
+         if index = arrow_points then
+            return SARROW & formatted_opts (index).template & S4;
+         else
+            return S4 & formatted_opts (index).template & S4;
+         end if;
+      end option_content;
 
    begin
       --  if the entire menu fits on the screen, we want to center it vertically.  We have to
@@ -636,7 +656,7 @@ package body Options_Dialog is
       for x in 1 .. num_options loop
          declare
             linepos : Natural := title_row + formatted_opts (x).relative_vert;
-            ATS : TIC.Attributed_String := colorize_option (S4 & formatted_opts (x).template & S4);
+            ATS : TIC.Attributed_String := colorize_option (option_content (x));
          begin
             Scrawl (dialog, ATS, TIC.Line_Position (linepos));
          end;
