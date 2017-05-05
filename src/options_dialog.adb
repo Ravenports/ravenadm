@@ -69,24 +69,35 @@ package body Options_Dialog is
    begin
       TIC.Start_Color;
       begin
-         TIC.Init_Pair (TIC.Color_Pair (1), TIC.White,   TIC.Black);
-         TIC.Init_Pair (TIC.Color_Pair (2), TIC.Cyan,    TIC.Black);
-         TIC.Init_Pair (TIC.Color_Pair (3), TIC.Green,   TIC.Black);
-         TIC.Init_Pair (TIC.Color_Pair (4), TIC.Black,   TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (1), TIC.White,   TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (2), TIC.Cyan,    TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (3), TIC.Green,   TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (4), TIC.Black,   TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (5), TIC.Blue,    TIC.Cyan);
+         TIC.Init_Pair (TIC.Color_Pair  (6), TIC.Yellow,  TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (7), TIC.Magenta, TIC.Black);
+         TIC.Init_Pair (TIC.Color_Pair  (8), TIC.Black,   TIC.White);
+         TIC.Init_Pair (TIC.Color_Pair  (9), TIC.Magenta, TIC.White);
+         TIC.Init_Pair (TIC.Color_Pair (10), TIC.Blue,    TIC.White);
+         TIC.Init_Pair (TIC.Color_Pair (11), TIC.Red,     TIC.White);
 
 --         TIC.Init_Pair (TIC.Color_Pair (3), TIC.Red,     TIC.Black);
---         TIC.Init_Pair (TIC.Color_Pair (4), TIC.Yellow,  TIC.Black);
 --         TIC.Init_Pair (TIC.Color_Pair (7), TIC.Blue,    TIC.Black);
---         TIC.Init_Pair (TIC.Color_Pair (8), TIC.Magenta, TIC.Black);
 --         TIC.Init_Pair (TIC.Color_Pair (9), TIC.Blue,    TIC.White);
       exception
          when TIC.Curses_Exception => return False;
       end;
 
-      c_standard    := TIC.Color_Pair (1);
-      c_key_desc    := TIC.Color_Pair (2);
-      c_title       := TIC.Color_Pair (3);
-      c_trimmings   := TIC.Color_Pair (4);
+      c_standard     := TIC.Color_Pair (1);
+      c_key_desc     := TIC.Color_Pair (2);
+      c_title        := TIC.Color_Pair (3);
+      c_trimmings    := TIC.Color_Pair (4);
+      c_optbox_title := TIC.Color_Pair (5);
+      c_group_text   := TIC.Color_Pair (11);
+      c_group_trim   := TIC.Color_Pair (11);
+      c_letters      := TIC.Color_Pair (9);
+      c_options      := TIC.Color_Pair (10);
+      c_inv_gray     := TIC.Color_Pair (8);
       return True;
 
    end establish_colors;
@@ -232,6 +243,97 @@ package body Options_Dialog is
 
 
    --------------------------------------------------------------------------------------------
+   --  touch_up
+   --------------------------------------------------------------------------------------------
+   procedure touch_up (ATS        : in out TIC.Attributed_String;
+                       From_index : Positive;
+                       length     : Positive;
+                       attribute  : TIC.Character_Attribute_Set;
+                       pen_color  : TIC.Color_Pair)
+   is
+   begin
+      for index in From_index .. From_index - 1 + length loop
+         ATS (index).Attr  := attribute;
+         ATS (index).Color := pen_color;
+      end loop;
+   end touch_up;
+
+
+   --------------------------------------------------------------------------------------------
+   --  colorize_groups
+   --------------------------------------------------------------------------------------------
+   function colorize_groups (textdata : String) return TIC.Attributed_String
+   is
+      product : TIC.Attributed_String (1 .. textdata'Length);
+      pindex  : Positive := 1;
+      endmarker : Positive := textdata'Last - 4;
+   begin
+      if textdata'Length < 8 then
+         return product;  --  should never happen
+      end if;
+      for index in textdata'First .. textdata'First + 3 loop
+         product (pindex) := (normal, c_standard, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      for index in textdata'First + 4 .. endmarker loop
+         if textdata (index) = '-' then
+            product (pindex) := (normal, c_group_trim, textdata (index));
+         else
+            product (pindex) := (bright, c_group_text, textdata (index));
+         end if;
+         pindex := pindex + 1;
+      end loop;
+      for index in endmarker + 1 .. textdata'Last loop
+         product (pindex) := (normal, c_standard, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      return product;
+   end colorize_groups;
+
+
+   --------------------------------------------------------------------------------------------
+   --  colorize_groups
+   --------------------------------------------------------------------------------------------
+   function colorize_option (textdata : String) return TIC.Attributed_String
+   is
+      product : TIC.Attributed_String (1 .. textdata'Length);
+      pindex  : Positive := 1;
+      endmarker : Positive := textdata'Last - 4;
+   begin
+      if textdata'Length < 8 then
+         return product;  --  should never happen
+      end if;
+      for index in textdata'First .. textdata'First + 3 loop
+         product (pindex) := (normal, c_standard, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      --  Menu letter, 1 character
+      product (pindex) := (normal, c_letters, textdata (textdata'First + 4));
+      pindex := pindex + 1;
+      --  Tickbox (5 characters)
+      for index in textdata'First + 5 .. textdata'First + 9 loop
+         product (pindex) := (normal, c_inv_gray, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      --  Option identifier (14 characters)
+      for index in textdata'First + 10 .. textdata'First + 24 loop
+         product (pindex) := (normal, c_options, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      --  Option description (everything else)
+      for index in textdata'First + 25 .. endmarker loop
+         product (pindex) := (normal, c_inv_gray, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      for index in endmarker + 1 .. textdata'Last loop
+         product (pindex) := (normal, c_standard, textdata (index));
+         pindex := pindex + 1;
+      end loop;
+      return product;
+   end colorize_option;
+
+
+   --------------------------------------------------------------------------------------------
    --  draw_static_keymenu
    --------------------------------------------------------------------------------------------
    procedure draw_static_keymenu
@@ -335,6 +437,7 @@ package body Options_Dialog is
       end if;
       port_namebase := HT.SUS (specification.get_field_value (PSP.sp_namebase));
       port_sdesc    := HT.SUS (specification.get_tagline (variant_standard));
+      port_version  := HT.SUS (specification.get_field_value (PSP.sp_version));
 
       HT.initialize_markers (block, markers);
       loop
@@ -474,11 +577,14 @@ package body Options_Dialog is
    is
       viewheight  : Integer := Integer (TIC.Lines) - 4;
       full_length : Natural := num_groups + num_options + 1;
+      S4          : constant String := "    ";
       blank_line  : String (1 .. appline_max) := (others => ' ');
-      ATS_BLANK   : appline :=
-        custom_message (message   => blank_line,
-                        attribute => normal,
-                        pen_color => c_standard);
+      title_line  : String := blank_line;
+      title_text  : String := HT.USS (port_namebase) & "-" & HT.USS (port_version);
+      tcenter     : Natural := Natural (index_to_center (title_text));
+      ATS_BLANK   : appline := custom_message (blank_line, normal, c_standard);
+      ATS_TITLE   : appline;
+
    begin
       --  if the entire menu fits on the screen, we want to center it vertically.  We have to
       --  have at least one row between the title row and the separator bar.  That means the
@@ -488,6 +594,11 @@ package body Options_Dialog is
       else
          title_row := (viewheight - full_length) / 2;
       end if;
+      if title_text'Length > appline_max then
+         title_line := title_text (title_text'First .. title_text'First - 1 + Integer (app_width));
+      else
+         title_line (tcenter  .. tcenter - 1 + title_text'Length) := title_text;
+      end if;
 
       for x in 0 .. title_row - 1 loop
          Scrawl (zone        => dialog,
@@ -495,32 +606,25 @@ package body Options_Dialog is
                  at_line     => TIC.Line_Position (x));
       end loop;
 
+      ATS_TITLE := custom_message (title_line, normal, c_optbox_title);
+      touch_up (ATS_TITLE, 1, 4, normal, c_standard);
+      touch_up (ATS_TITLE, 76, 4, normal, c_standard);
+      Scrawl (dialog, ATS_TITLE, TIC.Line_Position (title_row));
+
       for x in 1 .. num_options loop
          declare
             linepos : Natural := title_row + formatted_opts (x).relative_vert;
-            ATS : TIC.Attributed_String :=
-              custom_message (message   => formatted_opts (x).template,
-                              attribute => normal,
-                              pen_color => c_standard);
+            ATS : TIC.Attributed_String := colorize_option (S4 & formatted_opts (x).template & S4);
          begin
-            Scrawl (zone        => dialog,
-                    information => ATS,
-                    at_line     => TIC.Line_Position (linepos),
-                    at_column   => 4);
+            Scrawl (dialog, ATS, TIC.Line_Position (linepos));
          end;
       end loop;
       for x in 1 .. num_groups loop
          declare
             linepos : Natural := title_row + formatted_grps (x).relative_vert;
-            ATS : TIC.Attributed_String :=
-              custom_message (message   => formatted_grps (x).template,
-                              attribute => normal,
-                              pen_color => c_standard);
+            ATS : TIC.Attributed_String := colorize_groups (S4 & formatted_grps (x).template & S4);
          begin
-            Scrawl (zone        => dialog,
-                    information => ATS,
-                    at_line     => TIC.Line_Position (linepos),
-                    at_column   => 4);
+            Scrawl (dialog, ATS, TIC.Line_Position (linepos));
          end;
       end loop;
 

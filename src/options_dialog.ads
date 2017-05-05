@@ -58,14 +58,21 @@ private
    zone_keymenu  : TIC.Window;
    zone_dialog   : TIC.Window;
 
-   c_standard    : TIC.Color_Pair;
-   c_key_desc    : TIC.Color_Pair;
-   c_title       : TIC.Color_Pair;
-   c_trimmings   : TIC.Color_Pair;
+   c_standard      : TIC.Color_Pair;
+   c_key_desc      : TIC.Color_Pair;
+   c_title         : TIC.Color_Pair;
+   c_trimmings     : TIC.Color_Pair;
+   c_optbox_title  : TIC.Color_Pair;
+   c_group_text    : TIC.Color_Pair;
+   c_group_trim    : TIC.Color_Pair;
+   c_letters       : TIC.Color_Pair;
+   c_options       : TIC.Color_Pair;
+   c_inv_gray      : TIC.Color_Pair;
 
    last_alphakey   : Character := 'A';
    num_std_options : Natural;
    port_namebase   : HT.Text;
+   port_version    : HT.Text;
    port_sdesc      : HT.Text;
    formatted_opts  : optstorage;
    formatted_grps  : group_titles;
@@ -97,5 +104,14 @@ private
    function custom_message (message   : String;
                             attribute : TIC.Character_Attribute_Set;
                             pen_color : TIC.Color_Pair) return TIC.Attributed_String;
+
+   procedure touch_up (ATS        : in out TIC.Attributed_String;
+                       From_index : Positive;
+                       length     : Positive;
+                       attribute  : TIC.Character_Attribute_Set;
+                       pen_color  : TIC.Color_Pair);
+
+   function colorize_groups (textdata : String) return TIC.Attributed_String;
+   function colorize_option (textdata : String) return TIC.Attributed_String;
 
 end Options_Dialog;
