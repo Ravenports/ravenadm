@@ -68,6 +68,8 @@ private
    c_letters       : TIC.Color_Pair;
    c_options       : TIC.Color_Pair;
    c_inv_gray      : TIC.Color_Pair;
+   c_tick_on       : TIC.Color_Pair;
+   c_tick_delta    : TIC.Color_Pair;
 
    last_alphakey   : Character := 'A';
    num_std_options : Natural;
@@ -94,6 +96,7 @@ private
    procedure terminate_dialog;
    procedure setup_parameters (specification : PSP.Portspecs);
    procedure handle_user_commands;
+   procedure populate_dialog;
 
    procedure Scrawl
      (zone        : zones;

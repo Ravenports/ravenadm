@@ -50,11 +50,6 @@ package body Options_Dialog is
       setup_parameters (specification);
 
       draw_static_keymenu;
-      draw_static_dialog;
-
-      Refresh_Zone (keymenu);
-      Refresh_Zone (dialog);
-
       handle_user_commands;
       terminate_dialog;
 
@@ -80,10 +75,6 @@ package body Options_Dialog is
          TIC.Init_Pair (TIC.Color_Pair  (9), TIC.Magenta, TIC.White);
          TIC.Init_Pair (TIC.Color_Pair (10), TIC.Blue,    TIC.White);
          TIC.Init_Pair (TIC.Color_Pair (11), TIC.Red,     TIC.White);
-
---         TIC.Init_Pair (TIC.Color_Pair (3), TIC.Red,     TIC.Black);
---         TIC.Init_Pair (TIC.Color_Pair (7), TIC.Blue,    TIC.Black);
---         TIC.Init_Pair (TIC.Color_Pair (9), TIC.Blue,    TIC.White);
       exception
          when TIC.Curses_Exception => return False;
       end;
@@ -98,6 +89,8 @@ package body Options_Dialog is
       c_letters      := TIC.Color_Pair (9);
       c_options      := TIC.Color_Pair (10);
       c_inv_gray     := TIC.Color_Pair (8);
+      c_tick_on      := TIC.Color_Pair (8);
+      c_tick_delta   := TIC.Color_Pair (11);
       return True;
 
    end establish_colors;
@@ -524,21 +517,26 @@ package body Options_Dialog is
    --------------------------------------------------------------------------------------------
    procedure handle_user_commands
    is
-      KeyCode       : TIC.Real_Key_Code;
-      Key_Num1      : constant TIC.Key_Code := Character'Pos ('1');
-      Key_Num2      : constant TIC.Key_Code := Character'Pos ('2');
-      Key_Num3      : constant TIC.Key_Code := Character'Pos ('3');
-      Key_Num4      : constant TIC.Key_Code := Character'Pos ('4');
-      Key_Space     : constant TIC.Key_Code := Character'Pos (' ');
-      Key_Option_01 : constant TIC.Key_Code := Character'Pos ('A');
-      Key_Option_26 : constant TIC.Key_Code := Character'Pos ('Z');
-      Key_Option_27 : constant TIC.Key_Code := Character'Pos ('a');
-      Key_Option_52 : constant TIC.Key_Code := Character'Pos ('z');
+      KeyCode         : TIC.Real_Key_Code;
+      Key_Num1        : constant TIC.Key_Code := Character'Pos ('1');
+      Key_Num2        : constant TIC.Key_Code := Character'Pos ('2');
+      Key_Num3        : constant TIC.Key_Code := Character'Pos ('3');
+      Key_Num4        : constant TIC.Key_Code := Character'Pos ('4');
+      Key_Space       : constant TIC.Key_Code := Character'Pos (' ');
+      Key_Option_01   : constant TIC.Key_Code := Character'Pos ('A');
+      Key_Option_26   : constant TIC.Key_Code := Character'Pos ('Z');
+      Key_Option_27   : constant TIC.Key_Code := Character'Pos ('a');
+      Key_Option_52   : constant TIC.Key_Code := Character'Pos ('z');
       Key_Option_Last : constant TIC.Key_Code := Character'Pos (last_alphakey);
+      option_index    : Positive;
 
       use type TIC.Real_Key_Code;
    begin
       loop
+         draw_static_dialog;
+         populate_dialog;
+         Refresh_Zone (keymenu);
+         Refresh_Zone (dialog);
          KeyCode := TIC.Get_Keystroke (zone_keymenu);
          case KeyCode is
             when TIC.Key_Cursor_Up | TIC.Key_Cursor_Left =>
@@ -552,22 +550,20 @@ package body Options_Dialog is
             when TIC.Key_F3 | Key_Num3 => null;
             when Key_Option_01 .. Key_Option_26 =>
                if KeyCode <= Key_Option_Last then
-                  --  do something
-                  null;
+                  option_index := Positive (KeyCode - Key_Option_01 + 1);
+                  formatted_opts (option_index).ticked_value :=
+                    not formatted_opts (option_index).ticked_value;
                end if;
             when Key_Option_27 .. Key_Option_52 =>
                if num_std_options < 27 then
-                  --  Treat lower case as equivalent to upper case
-                  null;
+                  option_index := Positive (KeyCode - Key_Option_27 + 1);
                else
-                  --  Upper and lower case are distinct
-                  null;
+                  option_index := Positive (KeyCode - Key_Option_01 + 1);
                end if;
+               formatted_opts (option_index).ticked_value :=
+                 not formatted_opts (option_index).ticked_value;
             when others => null;
          end case;
-         draw_static_dialog;
-         Refresh_Zone (keymenu);
-         Refresh_Zone (dialog);
       end loop;
    end handle_user_commands;
 
@@ -639,5 +635,45 @@ package body Options_Dialog is
                  at_line     => TIC.Line_Position (x));
       end loop;
    end draw_static_dialog;
+
+
+   --------------------------------------------------------------------------------------------
+   --  populate_dialog
+   --------------------------------------------------------------------------------------------
+   procedure populate_dialog
+   is
+      mark_x_on    : TIC.Attributed_String (1 .. 3) := (1 => (normal, c_inv_gray, '['),
+                                                        2 => (normal, c_tick_on, 'x'),
+                                                        3 => (normal, c_inv_gray, ']'));
+      mark_x_delta : TIC.Attributed_String (1 .. 3) := (1 => (bright, c_tick_delta, '['),
+                                                        2 => (normal, c_tick_delta, 'x'),
+                                                        3 => (bright, c_tick_delta, ']'));
+      mark_blank   : TIC.Attributed_String (1 .. 3) := (1 => (normal, c_inv_gray, '['),
+                                                        2 => (normal, c_inv_gray, ' '),
+                                                        3 => (normal, c_inv_gray, ']'));
+      mark_blank_delta : TIC.Attributed_String (1 .. 3) := (1 => (bright, c_tick_delta, '['),
+                                                            2 => (normal, c_inv_gray, ' '),
+                                                            3 => (bright, c_tick_delta, ']'));
+      fline        : TIC.Line_Position;
+      changed      : Boolean;
+   begin
+      for x in 1 .. num_std_options loop
+         fline := TIC.Line_Position (formatted_opts (x).relative_vert + title_row);
+         changed := (formatted_opts (x).ticked_value /= formatted_opts (x).current_value);
+         if formatted_opts (x).ticked_value then
+            if changed then
+               Scrawl (dialog, mark_x_delta, fline, 6);
+            else
+               Scrawl (dialog, mark_x_on, fline, 6);
+            end if;
+         else
+            if changed then
+               Scrawl (dialog, mark_blank_delta, fline, 6);
+            else
+               Scrawl (dialog, mark_blank, fline, 6);
+            end if;
+         end if;
+      end loop;
+   end populate_dialog;
 
 end Options_Dialog;
