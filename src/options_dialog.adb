@@ -28,6 +28,13 @@ package body Options_Dialog is
          return False;
       end if;
 
+      if Natural (TIC.Lines) < 10 then
+         Return_To_Text_Mode;
+         TIO.Put_Line ("At " & HT.int2str (Natural (TIC.Lines)) &
+                         " lines tall, the curses window is too short to function correctly.");
+         return False;
+      end if;
+
       begin
          TIC.Set_Echo_Mode (False);
          TIC.Set_Raw_Mode (True);
@@ -181,7 +188,7 @@ package body Options_Dialog is
    --------------------------------------------------------------------------------------------
    function launch_dialog_zone return Boolean
    is
-      --  55 limit comes from 26x3 + 1 (header) + 1x2 (margin)
+      --  56 limit comes from 26x3 + 1 (header) + 1x2 (margin) + 1 footer
       --  A .. Z + a .. Z + worst case of 26 2-member groups
    begin
       zone_dialog := TIC.Create (Number_Of_Lines       => dialog_height,
@@ -613,8 +620,10 @@ package body Options_Dialog is
       title_text  : String := HT.USS (port_namebase) & "-" & HT.USS (port_version);
       tcenter     : Natural := Natural (index_to_center (title_text));
       ATS_BLANK   : appline := custom_message (blank_line, normal, c_standard);
+      ATS_FOOTER  : appline := custom_message (blank_line, normal, c_optbox_title);
       ATS_TITLE   : appline;
-      use_center  : constant Boolean := False;
+      scrollable  : Boolean;
+      titlerow    : constant Positive := 1;
 
       function option_content (index : Positive) return String is
       begin
@@ -626,54 +635,63 @@ package body Options_Dialog is
       end option_content;
 
    begin
-      --  if the entire menu fits on the screen, we want to center it vertically.  We have to
-      --  have at least one row between the title row and the separator bar.  That means the
-      --  lowest allowed value for titlerow is 1 (the first row is zero).
-      title_row := 1;
-      if use_center then
-         if full_length <= viewheight - 1 then
-            title_row := (viewheight - full_length) / 2;
+      offset := 0;
+      --  The zero row is alway left blank
+      scrollable := (full_length + titlerow > viewheight);
+      if scrollable then
+         declare
+            arrow_line : Positive := formatted_opts (arrow_points).relative_vert;
+            magic_line : Integer  := viewheight - 4;
+         begin
+            --  Arrow can't go below 3 from the bottom
+            if arrow_line > magic_line then
+               offset := arrow_line - magic_line;
+            end if;
+         end;
+      end if;
+
+      Scrawl (dialog, ATS_BLANK, TIC.Line_Position (0));
+
+      if offset = 0 then
+         if title_text'Length > appline_max then
+            title_line :=
+              title_text (title_text'First .. title_text'First - 1 + Integer (app_width));
+         else
+            title_line (tcenter  .. tcenter - 1 + title_text'Length) := title_text;
          end if;
+         ATS_TITLE := custom_message (title_line, normal, c_optbox_title);
+         touch_up (ATS_TITLE, 1, 3, normal, c_standard);
+         touch_up (ATS_TITLE, 77, 3, normal, c_standard);
+         Scrawl (dialog, ATS_TITLE, TIC.Line_Position (titlerow));
       end if;
-
-      if title_text'Length > appline_max then
-         title_line := title_text (title_text'First .. title_text'First - 1 + Integer (app_width));
-      else
-         title_line (tcenter  .. tcenter - 1 + title_text'Length) := title_text;
-      end if;
-
-      for x in 0 .. title_row - 1 loop
-         Scrawl (zone        => dialog,
-                 information => ATS_BLANK,
-                 at_line     => TIC.Line_Position (x));
-      end loop;
-
-      ATS_TITLE := custom_message (title_line, normal, c_optbox_title);
-      touch_up (ATS_TITLE, 1, 3, normal, c_standard);
-      touch_up (ATS_TITLE, 77, 3, normal, c_standard);
-      Scrawl (dialog, ATS_TITLE, TIC.Line_Position (title_row));
 
       for x in 1 .. num_options loop
          declare
-            linepos : Natural := title_row + formatted_opts (x).relative_vert;
+            linepos : Integer := 1 + formatted_opts (x).relative_vert - offset;
             ATS : TIC.Attributed_String := colorize_option (option_content (x));
          begin
-            Scrawl (dialog, ATS, TIC.Line_Position (linepos));
+            if linepos > titlerow then
+               Scrawl (dialog, ATS, TIC.Line_Position (linepos));
+            end if;
          end;
       end loop;
       for x in 1 .. num_groups loop
          declare
-            linepos : Natural := title_row + formatted_grps (x).relative_vert;
+            linepos : Integer := 1 + formatted_grps (x).relative_vert - offset;
             ATS : TIC.Attributed_String := colorize_groups (S4 & formatted_grps (x).template & S4);
          begin
-            Scrawl (dialog, ATS, TIC.Line_Position (linepos));
+            if linepos > titlerow then
+               Scrawl (dialog, ATS, TIC.Line_Position (linepos));
+            end if;
          end;
       end loop;
 
-      for x in title_row + full_length .. viewheight loop
-         Scrawl (zone        => dialog,
-                 information => ATS_BLANK,
-                 at_line     => TIC.Line_Position (x));
+      touch_up (ATS_FOOTER, 1, 3, normal, c_standard);
+      touch_up (ATS_FOOTER, 77, 3, normal, c_standard);
+      Scrawl (dialog, ATS_FOOTER, TIC.Line_Position (titlerow + full_length - offset));
+
+      for x in titlerow + full_length - offset + 1 .. viewheight loop
+         Scrawl (dialog, ATS_BLANK, TIC.Line_Position (x));
       end loop;
    end draw_static_dialog;
 
@@ -696,22 +714,26 @@ package body Options_Dialog is
                                                             2 => (normal, c_inv_gray, ' '),
                                                             3 => (bright, c_tick_delta, ']'));
       fline        : TIC.Line_Position;
+      vertical     : Integer;
       changed      : Boolean;
    begin
       for x in 1 .. num_std_options loop
-         fline := TIC.Line_Position (formatted_opts (x).relative_vert + title_row);
-         changed := (formatted_opts (x).ticked_value /= formatted_opts (x).current_value);
-         if formatted_opts (x).ticked_value then
-            if changed then
-               Scrawl (dialog, mark_x_delta, fline, 6);
+         vertical := formatted_opts (x).relative_vert + 1 - offset;
+         if vertical > 1 then
+            fline := TIC.Line_Position (vertical);
+            changed := (formatted_opts (x).ticked_value /= formatted_opts (x).current_value);
+            if formatted_opts (x).ticked_value then
+               if changed then
+                  Scrawl (dialog, mark_x_delta, fline, 6);
+               else
+                  Scrawl (dialog, mark_x_on, fline, 6);
+               end if;
             else
-               Scrawl (dialog, mark_x_on, fline, 6);
-            end if;
-         else
-            if changed then
-               Scrawl (dialog, mark_blank_delta, fline, 6);
-            else
-               Scrawl (dialog, mark_blank, fline, 6);
+               if changed then
+                  Scrawl (dialog, mark_blank_delta, fline, 6);
+               else
+                  Scrawl (dialog, mark_blank, fline, 6);
+               end if;
             end if;
          end if;
       end loop;

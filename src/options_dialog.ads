@@ -50,7 +50,7 @@ private
    cursor_vis    : TIC.Cursor_Visibility := TIC.Invisible;
 
    app_width     : constant TIC.Column_Count := 80;
-   dialog_height : constant TIC.Line_Count   := 81;
+   dialog_height : constant TIC.Line_Count   := 82;
    normal        : constant TIC.Character_Attribute_Set := (others => False);
    bright        : constant TIC.Character_Attribute_Set := (Bold_Character => True,
                                                             others => False);
@@ -82,8 +82,8 @@ private
    formatted_grps  : group_titles;
    num_groups      : Natural := 0;
    num_options     : Natural := 0;
-   title_row       : Natural;
    arrow_points    : Positive := 1;
+   offset          : Natural;
 
    function establish_colors return Boolean;
    function Start_Curses_Mode return Boolean;
