@@ -181,9 +181,9 @@ package body Configure is
          when 11 => nextn := dupe.num_builders;    orign := PM.configuration.num_builders;
          when 12 => nextn := dupe.jobs_limit;      orign := PM.configuration.jobs_limit;
          when 13 => nextb := dupe.avoid_tmpfs;     origb := PM.configuration.avoid_tmpfs;
-         when 14 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
+         when 14 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
          when 15 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
-         when 16 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
+         when 16 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
       end case;
       case opt is
          when  1 .. 10 =>
@@ -300,9 +300,9 @@ package body Configure is
       end loop;
       case opt is
          when 13 => dupe.avoid_tmpfs    := new_value;
-         when 14 => dupe.record_options := new_value;
+         when 14 => dupe.defer_prebuilt := new_value;
          when 15 => dupe.avec_ncurses   := new_value;
-         when 16 => dupe.defer_prebuilt := new_value;
+         when 16 => dupe.record_options := new_value;
          when others =>
             raise menu_error with "Illegal value : " & opt'Img;
       end case;

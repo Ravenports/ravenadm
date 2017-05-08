@@ -124,9 +124,9 @@ private
    Field_10 : constant String := "number_of_builders";
    Field_11 : constant String := "max_jobs_per_builder";
    Field_12 : constant String := "avoid_tmpfs";
-   Field_13 : constant String := "record_default_options";
+   Field_13 : constant String := "leverage_prebuilt";
    Field_14 : constant String := "display_with_ncurses";
-   Field_15 : constant String := "leverage_prebuilt";
+   Field_15 : constant String := "record_default_options";
 
    Field_17 : constant String := "default_firebird";
    Field_18 : constant String := "default_lua";

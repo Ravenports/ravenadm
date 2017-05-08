@@ -40,9 +40,10 @@ private
       "[K] Num. concurrent builders  ",
       "[L] Max. jobs per builder     ",
       "[M] Avoid use of tmpfs        ",
-      "[N] Always record options     ",
+      "[N] Fetch prebuilt packages   ",
       "[O] Display using ncurses     ",
-      "[P] Fetch prebuilt packages   "
+      "[P] Always record options     "
+--      "[Q] Assume default options    "
      );
 
    version_desc : constant default_type :=

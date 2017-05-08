@@ -487,9 +487,9 @@ package body Parameters is
       IFM.insert_or_update (profile_name, Field_10, set_builder (confrec.num_builders));
       IFM.insert_or_update (profile_name, Field_11, set_builder (confrec.jobs_limit));
       IFM.insert_or_update (profile_name, Field_12, set_boolean (confrec.avoid_tmpfs));
-      IFM.insert_or_update (profile_name, Field_13, set_boolean (confrec.record_options));
+      IFM.insert_or_update (profile_name, Field_13, set_boolean (confrec.defer_prebuilt));
       IFM.insert_or_update (profile_name, Field_14, set_boolean (confrec.avec_ncurses));
-      IFM.insert_or_update (profile_name, Field_15, set_boolean (confrec.defer_prebuilt));
+      IFM.insert_or_update (profile_name, Field_15, set_boolean (confrec.record_options));
 
       IFM.insert_or_update (profile_name, Field_17, HT.USS (confrec.def_firebird));
       IFM.insert_or_update (profile_name, Field_18, HT.USS (confrec.def_lua));
@@ -630,9 +630,9 @@ package body Parameters is
       configuration.num_builders   := default_builder (Field_10, def_builders);
       configuration.jobs_limit     := default_builder (Field_11, def_jlimit);
       configuration.avoid_tmpfs    := tmpfs_transfer;
-      configuration.record_options := default_boolean (Field_13, False);
+      configuration.defer_prebuilt := default_boolean (Field_13, False);
       configuration.avec_ncurses   := default_boolean (Field_14, True);
-      configuration.defer_prebuilt := default_boolean (Field_15, False);
+      configuration.record_options := default_boolean (Field_15, False);
 
       configuration.def_firebird    := default_string (Field_17, ports_default);
       configuration.def_lua         := default_string (Field_18, ports_default);
