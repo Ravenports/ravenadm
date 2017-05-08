@@ -422,6 +422,7 @@ package body Parameters is
       result.avec_ncurses   := True;
       result.defer_prebuilt := False;
       result.record_options := False;
+      result.batch_mode     := True;
 
       result.def_firebird    := floating;
       result.def_lua         := floating;
@@ -490,6 +491,7 @@ package body Parameters is
       IFM.insert_or_update (profile_name, Field_13, set_boolean (confrec.defer_prebuilt));
       IFM.insert_or_update (profile_name, Field_14, set_boolean (confrec.avec_ncurses));
       IFM.insert_or_update (profile_name, Field_15, set_boolean (confrec.record_options));
+      IFM.insert_or_update (profile_name, Field_27, set_boolean (confrec.batch_mode));
 
       IFM.insert_or_update (profile_name, Field_17, HT.USS (confrec.def_firebird));
       IFM.insert_or_update (profile_name, Field_18, HT.USS (confrec.def_lua));
@@ -633,6 +635,7 @@ package body Parameters is
       configuration.defer_prebuilt := default_boolean (Field_13, False);
       configuration.avec_ncurses   := default_boolean (Field_14, True);
       configuration.record_options := default_boolean (Field_15, False);
+      configuration.batch_mode     := default_boolean (Field_27, True);
 
       configuration.def_firebird    := default_string (Field_17, ports_default);
       configuration.def_lua         := default_string (Field_18, ports_default);

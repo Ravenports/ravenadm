@@ -53,10 +53,10 @@ package body Configure is
                when 'k' .. 'l' =>
                   change_positive_option (option (ascii - 96), pristine);
                   exit;
-               when 'M' .. 'P' =>
+               when 'M' .. 'Q' =>
                   change_boolean_option (option (ascii - 64), pristine);
                   exit;
-               when 'm' .. 'p' =>
+               when 'm' .. 'q' =>
                   change_boolean_option (option (ascii - 96), pristine);
                   exit;
                when 'v' | 'V' =>
@@ -143,11 +143,11 @@ package body Configure is
          if extra_profiles then
             TIO.Put_Line (indent & optX4B);
          end if;
-         TIO.Put_Line (indent & optX3B);
+         TIO.Put (indent & optX3B);
       else
          TIO.Put_Line (indent & optX1A);
          TIO.Put_Line (indent & optX2A);
-         TIO.Put_Line (indent & optX3A);
+         TIO.Put      (indent & optX3A);
       end if;
    end print_menu;
 
@@ -184,6 +184,7 @@ package body Configure is
          when 14 => nextb := dupe.defer_prebuilt;  origb := PM.configuration.defer_prebuilt;
          when 15 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
          when 16 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
+         when 17 => nextb := dupe.batch_mode;      origb := PM.configuration.batch_mode;
       end case;
       case opt is
          when  1 .. 10 =>
@@ -192,7 +193,7 @@ package body Configure is
          when 11 .. 12 =>
             equivalent := (orign = nextn);
             show := HT.int2text (Integer (nextn));
-         when 13 .. 16 =>
+         when 13 .. 17 =>
             equivalent := (origb = nextb);
             show := HT.bool2text (nextb);
       end case;
@@ -303,6 +304,7 @@ package body Configure is
          when 14 => dupe.defer_prebuilt := new_value;
          when 15 => dupe.avec_ncurses   := new_value;
          when 16 => dupe.record_options := new_value;
+         when 17 => dupe.batch_mode     := new_value;
          when others =>
             raise menu_error with "Illegal value : " & opt'Img;
       end case;

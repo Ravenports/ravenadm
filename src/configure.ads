@@ -19,7 +19,7 @@ private
 
    indent : constant String (1 ..  3) := (others => LAT.Space);
 
-   type option is range 1 .. 16;
+   type option is range 1 .. 17;
    type default is range 1 .. 10;
    subtype ofield is String (1 .. 30);
    type desc_type is array (option) of ofield;
@@ -42,8 +42,8 @@ private
       "[M] Avoid use of tmpfs        ",
       "[N] Fetch prebuilt packages   ",
       "[O] Display using ncurses     ",
-      "[P] Always record options     "
---      "[Q] Assume default options    "
+      "[P] Always record options     ",
+      "[Q] Assume default options    "
      );
 
    version_desc : constant default_type :=
@@ -65,8 +65,8 @@ private
    optX1B : constant String := "[>]   Switch/create profiles";
    optX4B : constant String := "[<]   Delete alternative profile";
    optX2A : constant String := "[ESC] Exit without saving changes";
-   optX3A : constant String := "[RET] Save changes (starred)";
-   optX3B : constant String := "[RET] Exit";
+   optX3A : constant String := "[RET] Save changes (starred)  ";
+   optX3B : constant String := "[RET] Exit  ";
 
    dupe   : PM.configuration_record;
 

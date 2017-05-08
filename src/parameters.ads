@@ -32,9 +32,10 @@ package Parameters is
          num_builders    : builders;
          jobs_limit      : builders;
          avoid_tmpfs     : Boolean;
-         record_options  : Boolean;
-         avec_ncurses    : Boolean;
          defer_prebuilt  : Boolean;
+         avec_ncurses    : Boolean;
+         record_options  : Boolean;
+         batch_mode      : Boolean;
 
          --  defaults
          def_firebird    : HT.Text;
@@ -127,6 +128,7 @@ private
    Field_13 : constant String := "leverage_prebuilt";
    Field_14 : constant String := "display_with_ncurses";
    Field_15 : constant String := "record_default_options";
+   Field_27 : constant String := "assume_default_options";
 
    Field_17 : constant String := "default_firebird";
    Field_18 : constant String := "default_lua";
