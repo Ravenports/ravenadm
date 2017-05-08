@@ -26,7 +26,9 @@ package Parameters is
          dir_packages    : HT.Text;
          dir_ccache      : HT.Text;
          dir_buildbase   : HT.Text;
+         dir_profile     : HT.Text;
          dir_logs        : HT.Text;
+         dir_options     : HT.Text;
          num_builders    : builders;
          jobs_limit      : builders;
          avoid_tmpfs     : Boolean;
@@ -115,10 +117,10 @@ private
    Field_03 : constant String := "directory_conspiracy";
    Field_04 : constant String := "directory_unkindness";
    Field_05 : constant String := "directory_distfiles";
-   Field_06 : constant String := "directory_packages";
-   Field_07 : constant String := "directory_ccache";
-   Field_08 : constant String := "directory_buildbase";
-   Field_09 : constant String := "directory_logs";
+   Field_06 : constant String := "directory_profile";
+   Field_07 : constant String := "directory_packages";
+   Field_08 : constant String := "directory_ccache";
+   Field_09 : constant String := "directory_buildbase";
    Field_10 : constant String := "number_of_builders";
    Field_11 : constant String := "max_jobs_per_builder";
    Field_12 : constant String := "avoid_tmpfs";
@@ -144,8 +146,8 @@ private
    raven_var     : constant String := "/var/ravenports";
 
    master_section : constant String := "Global Configuration";
-   pri_packages   : constant String := raven_var & "/[X]_packages";
-   pri_logs       : constant String := raven_var & "/logs/[X]";
+   pri_packages   : constant String := raven_var & "/[X]/packages";
+   pri_profile    : constant String := raven_var & "/[X]";
    pri_buildbase  : constant String := "/usr/obj/ravenports";
    ravenadm_ini   : constant String := "ravenadm.ini";
    conf_location  : constant String := raven_confdir & "/" & ravenadm_ini;

@@ -274,7 +274,7 @@ package body Pilot is
       portsdir   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       distfiles  : constant String := HT.USS (PM.configuration.dir_distfiles);
       packages   : constant String := HT.USS (PM.configuration.dir_packages);
-      logs       : constant String := HT.USS (PM.configuration.dir_logs);
+      profile    : constant String := HT.USS (PM.configuration.dir_profile);
       ccache     : constant String := HT.USS (PM.configuration.dir_ccache);
       buildbase  : constant String := HT.USS (PM.configuration.dir_buildbase) & "/";
 
@@ -283,7 +283,7 @@ package body Pilot is
         HT.leads (cwd, portsdir) or else
         HT.leads (cwd, distfiles) or else
         HT.leads (cwd, packages) or else
-        HT.leads (cwd, logs) or else
+        HT.leads (cwd, profile) or else
         HT.leads (cwd, ccache) or else
         HT.leads (cwd, buildbase)
       then

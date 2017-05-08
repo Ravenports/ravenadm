@@ -56,9 +56,7 @@ package body Parameters is
          return False;
       elsif invalid_directory (configuration.dir_distfiles, "[F] Distfiles") then
          return False;
-      elsif invalid_directory (configuration.dir_packages, "[G] Packages") then
-         return False;
-      elsif invalid_directory (configuration.dir_logs, "[J] Build logs") then
+      elsif invalid_directory (configuration.dir_profile, "[G] Profile") then
          return False;
       end if;
 
@@ -73,6 +71,33 @@ package body Parameters is
       then
          return False;
       end if;
+
+      declare
+         log_dir    : String := HT.USS (configuration.dir_profile) & "/logs";
+         option_dir : String := HT.USS (configuration.dir_profile) & "/options/defconf_cookies";
+         pkgs_dir   : String := HT.USS (configuration.dir_profile) & "/packages";
+         mk_dir     : String := HT.USS (configuration.dir_conspiracy) & "/Mk";
+      begin
+         if HT.equivalent (configuration.dir_packages, pkgs_dir) then
+            if not DIR.Exists (pkgs_dir) then
+               DIR.Create_Path (pkgs_dir);
+            end if;
+         else
+            if invalid_directory (configuration.dir_packages, "[H] Packages") then
+               return False;
+            end if;
+         end if;
+         if not DIR.Exists (mk_dir) then
+            TIO.Put_Line ("Conspiracy directory exists without Mk contents");
+            return False;
+         end if;
+         if not DIR.Exists (log_dir) then
+            DIR.Create_Path (log_dir);
+         end if;
+         if not DIR.Exists (option_dir) then
+            DIR.Create_Path (option_dir);
+         end if;
+      end;
 
       return True;
    end all_paths_valid;
@@ -390,7 +415,7 @@ package body Parameters is
       result.dir_packages   := HT.replace_substring (HT.SUS (pri_packages), "[X]", new_profile);
       result.dir_ccache     := HT.SUS (no_ccache);
       result.dir_buildbase  := HT.SUS (pri_buildbase);
-      result.dir_logs       := HT.replace_substring (HT.SUS (pri_logs), "[X]", new_profile);
+      result.dir_profile    := HT.replace_substring (HT.SUS (pri_profile), "[X]", new_profile);
       result.num_builders   := builders (def_builders);
       result.jobs_limit     := builders (def_jlimit);
       result.avoid_tmpfs    := not enough_memory (builders (def_builders));
@@ -454,11 +479,11 @@ package body Parameters is
       IFM.insert_or_update (profile_name, Field_04,
                             may_be_disabled (confrec.dir_unkindness, no_unkindness));
       IFM.insert_or_update (profile_name, Field_05, HT.USS (confrec.dir_distfiles));
-      IFM.insert_or_update (profile_name, Field_06, HT.USS (confrec.dir_packages));
-      IFM.insert_or_update (profile_name, Field_07,
+      IFM.insert_or_update (profile_name, Field_06, HT.USS (confrec.dir_profile));
+      IFM.insert_or_update (profile_name, Field_07, HT.USS (confrec.dir_packages));
+      IFM.insert_or_update (profile_name, Field_08,
                             may_be_disabled (confrec.dir_ccache, no_ccache));
-      IFM.insert_or_update (profile_name, Field_08, HT.USS (confrec.dir_buildbase));
-      IFM.insert_or_update (profile_name, Field_09, HT.USS (confrec.dir_logs));
+      IFM.insert_or_update (profile_name, Field_09, HT.USS (confrec.dir_buildbase));
       IFM.insert_or_update (profile_name, Field_10, set_builder (confrec.num_builders));
       IFM.insert_or_update (profile_name, Field_11, set_builder (confrec.jobs_limit));
       IFM.insert_or_update (profile_name, Field_12, set_boolean (confrec.avoid_tmpfs));
@@ -515,6 +540,9 @@ package body Parameters is
       def_jlimit   : Integer;
       profile      : constant String := IFM.show_value (section => master_section,
                                                         name    => global_01);
+      def_profile  : constant String :=
+                     HT.USS (HT.replace_substring (HT.SUS (pri_profile), "[X]", profile));
+      def_packages : constant String := def_profile & "/packages";
 
       function default_string (field_name : String; default : String) return HT.Text
       is
@@ -595,10 +623,10 @@ package body Parameters is
       configuration.dir_conspiracy := default_string (Field_03, std_conspiracy);
       configuration.dir_unkindness := default_string (Field_04, no_unkindness);
       configuration.dir_distfiles  := default_string (Field_05, std_distfiles);
-      configuration.dir_packages   := default_string (Field_06, pri_packages);
-      configuration.dir_ccache     := default_string (Field_07, no_ccache);
-      configuration.dir_buildbase  := default_string (Field_08, pri_buildbase);
-      configuration.dir_logs       := default_string (Field_09, pri_logs);
+      configuration.dir_profile    := default_string (Field_06, def_profile);
+      configuration.dir_packages   := default_string (Field_07, def_packages);
+      configuration.dir_ccache     := default_string (Field_08, no_ccache);
+      configuration.dir_buildbase  := default_string (Field_09, pri_buildbase);
       configuration.num_builders   := default_builder (Field_10, def_builders);
       configuration.jobs_limit     := default_builder (Field_11, def_jlimit);
       configuration.avoid_tmpfs    := tmpfs_transfer;
@@ -621,6 +649,8 @@ package body Parameters is
       configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/All");
       configuration.sysroot_pkg8   := HT.SUS (HT.USS (configuration.dir_sysroot) &
                                                 "/usr/bin/pkg-static");
+      configuration.dir_logs       := HT.SUS (HT.USS (configuration.dir_profile) & "/logs");
+      configuration.dir_options    := HT.SUS (HT.USS (configuration.dir_profile) & "/options");
 
    end transfer_configuration;
 

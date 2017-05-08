@@ -174,10 +174,10 @@ package body Configure is
          when  4 => nextt := dupe.dir_conspiracy;  origt := PM.configuration.dir_conspiracy;
          when  5 => nextt := dupe.dir_unkindness;  origt := PM.configuration.dir_unkindness;
          when  6 => nextt := dupe.dir_distfiles;   origt := PM.configuration.dir_distfiles;
-         when  7 => nextt := dupe.dir_packages;    origt := PM.configuration.dir_packages;
-         when  8 => nextt := dupe.dir_ccache;      origt := PM.configuration.dir_ccache;
-         when  9 => nextt := dupe.dir_buildbase;   origt := PM.configuration.dir_buildbase;
-         when 10 => nextt := dupe.dir_logs;        origt := PM.configuration.dir_logs;
+         when  7 => nextt := dupe.dir_profile;     origt := PM.configuration.dir_profile;
+         when  8 => nextt := dupe.dir_packages;    origt := PM.configuration.dir_packages;
+         when  9 => nextt := dupe.dir_ccache;      origt := PM.configuration.dir_ccache;
+         when 10 => nextt := dupe.dir_buildbase;   origt := PM.configuration.dir_buildbase;
          when 11 => nextn := dupe.num_builders;    orign := PM.configuration.num_builders;
          when 12 => nextn := dupe.jobs_limit;      orign := PM.configuration.jobs_limit;
          when 13 => nextb := dupe.avoid_tmpfs;     origb := PM.configuration.avoid_tmpfs;
@@ -248,10 +248,10 @@ package body Configure is
                         when  4 => dupe.dir_conspiracy := utp;
                         when  5 => dupe.dir_unkindness := utp;
                         when  6 => dupe.dir_distfiles  := utp;
-                        when  7 => dupe.dir_packages   := utp;
-                        when  8 => dupe.dir_ccache     := utp;
-                        when  9 => dupe.dir_buildbase  := utp;
-                        when 10 => dupe.dir_logs       := utp;
+                        when  7 => dupe.dir_profile    := utp;
+                        when  8 => dupe.dir_packages   := utp;
+                        when  9 => dupe.dir_ccache     := utp;
+                        when 10 => dupe.dir_buildbase  := utp;
                         when others => raise menu_error
                              with "Illegal value : " & opt'Img;
                      end case;
