@@ -184,4 +184,25 @@ package body File_Operations is
          raise file_handling;
    end concatenate_file;
 
+
+   --------------------------------------------------------------------------------------------
+   --  create_cookie
+   --------------------------------------------------------------------------------------------
+   procedure create_cookie (fullpath : String)
+   is
+      subtype File_String    is String (1 .. 1);
+      package File_String_IO is new Ada.Direct_IO (File_String);
+
+      file_handle : File_String_IO.File_Type;
+   begin
+      mkdirp_from_filename (fullpath);
+      File_String_IO.Create (File => file_handle,
+                             Mode => File_String_IO.Out_File,
+                             Name => fullpath);
+      File_String_IO.Close  (file_handle);
+   exception
+      when others =>
+         raise file_handling;
+   end create_cookie;
+
 end File_Operations;

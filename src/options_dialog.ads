@@ -120,5 +120,6 @@ private
    function colorize_groups (textdata : String) return TIC.Attributed_String;
    function colorize_option (textdata : String) return TIC.Attributed_String;
    procedure toggle_option (option_index : Positive);
+   procedure save_options;
 
 end Options_Dialog;

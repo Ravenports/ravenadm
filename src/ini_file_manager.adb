@@ -417,4 +417,13 @@ package body INI_File_Manager is
       return INI_sections.Contains (section_text);
    end section_exists;
 
+
+   --------------------------------------------------------------------------------------------
+   --  clear_section_data
+   --------------------------------------------------------------------------------------------
+   procedure clear_section_data is
+   begin
+      INI_sections.Clear;
+   end clear_section_data;
+
 end INI_File_Manager;

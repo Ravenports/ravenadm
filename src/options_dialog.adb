@@ -4,11 +4,18 @@
 with Definitions;  use Definitions;
 with Ada.Text_IO;
 with Ada.Exceptions;
+with Ada.Directories;
+with File_Operations;
+with INI_File_Manager;
+with Parameters;
 with Unix;
 
 package body Options_Dialog is
 
+   package FOP renames File_Operations;
+   package IFM renames INI_File_Manager;
    package TIO renames Ada.Text_IO;
+   package DIR renames Ada.Directories;
    package EX  renames Ada.Exceptions;
 
    --------------------------------------------------------------------------------------------
@@ -572,7 +579,7 @@ package body Options_Dialog is
                   arrow_points := arrow_points + 1;
                end if;
             when TIC.Key_F1 | Key_Num1 =>
-               --  save options
+               save_options;
                exit;
             when TIC.Key_F2 | Key_Num2 =>
                --  Reset to current
@@ -793,5 +800,78 @@ package body Options_Dialog is
             end if;
       end case;
    end toggle_option;
+
+
+   --------------------------------------------------------------------------------------------
+   --  save_options
+   --------------------------------------------------------------------------------------------
+   procedure save_options
+   is
+      matches_defaults : Boolean := True;
+      section1 : constant String := "parameters";
+      section2 : constant String := "options";
+      dir_opt  : constant String := HT.USS (Parameters.configuration.dir_options);
+      namebase : constant String := HT.USS (port_namebase);
+      cookie   : constant String := dir_opt & "/defconf_cookies/" & namebase;
+      optfile  : constant String := dir_opt & "/" & namebase;
+      optlist  : HT.Text;
+   begin
+      for x in 1 .. num_std_options loop
+         if formatted_opts (x).ticked_value /= formatted_opts (x).default_value then
+            matches_defaults := False;
+         end if;
+      end loop;
+      if matches_defaults then
+         --  If mode is to record all options, we create an options file every when they
+         --  match the defaults, otherwise we remove existing files.
+         --  Cookies are not checked under "record_options
+         if Parameters.configuration.record_options then
+            if DIR.Exists (cookie) then
+               DIR.Delete_File (cookie);
+            end if;
+         else
+            if DIR.Exists (optfile) then
+               DIR.Delete_File (optfile);
+            end if;
+
+            if Parameters.configuration.batch_mode then
+               if DIR.Exists (cookie) then
+                  DIR.Delete_File (cookie);
+               end if;
+            else
+               if not DIR.Exists (cookie) then
+                  FOP.create_cookie (cookie);
+               end if;
+            end if;
+            return;
+         end if;
+      end if;
+
+      --  Create/overwrite options configure
+      IFM.clear_section_data;
+
+      for x in 1 .. num_std_options loop
+         declare
+            NAME : String := HT.trim (HT.substring (formatted_opts (x).template, 6, 52));
+         begin
+            IFM.insert_or_update (section => section2,
+                                  name    => NAME,
+                                  value   => HT.bool2str (formatted_opts (x).ticked_value));
+            if HT.IsBlank (optlist) then
+               optlist := HT.SUS (NAME);
+            else
+               HT.SU.Append (optlist, "," & NAME);
+            end if;
+         end;
+      end loop;
+      IFM.insert_or_update (section1, "namebase", namebase);
+      IFM.insert_or_update (section1, "version",  HT.USS (port_version));
+      IFM.insert_or_update (section1, "available", HT.USS (optlist));
+
+      IFM.scribe_file (directory     => dir_opt,
+                       filename      => namebase,
+                       first_comment => "Option configuration for the " & namebase &
+                         " standard variant");
+   end save_options;
 
 end Options_Dialog;

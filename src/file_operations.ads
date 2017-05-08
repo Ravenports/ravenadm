@@ -36,6 +36,9 @@ package File_Operations is
    --  If "basefile" does not exist, just copy it (directory must already exist in that case)
    procedure concatenate_file (basefile : String; another_file : String);
 
+   --  Creates a zero-length file
+   procedure create_cookie (fullpath : String);
+
 private
 
    --  helper for create_pidfile

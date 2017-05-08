@@ -61,6 +61,9 @@ package INI_File_Manager is
    --  Return True if section exists
    function section_exists (section : String) return Boolean;
 
+   --  Ensure no previous data lingers
+   procedure clear_section_data;
+
 private
 
    package HT  renames HelperText;
