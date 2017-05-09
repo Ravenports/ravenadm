@@ -73,7 +73,7 @@ package body Parameters is
       end if;
 
       declare
-         log_dir    : String := HT.USS (configuration.dir_profile) & "/logs";
+         log_dir    : String := HT.USS (configuration.dir_profile) & "/logs/logs";
          option_dir : String := HT.USS (configuration.dir_profile) & "/options/defconf_cookies";
          pkgs_dir   : String := HT.USS (configuration.dir_profile) & "/packages";
          mk_dir     : String := HT.USS (configuration.dir_conspiracy) & "/Mk";

@@ -9,6 +9,7 @@ with File_Operations;
 with Port_Specification.Transform;
 with Specification_Parser;
 with PortScan.Log;
+with PortScan.Operations;
 with Parameters;
 with Signals;
 with Unix;
@@ -17,6 +18,7 @@ package body PortScan.Scan is
 
    package PM  renames Parameters;
    package LOG renames PortScan.Log;
+   package OPS renames PortScan.Operations;
    package FOP renames File_Operations;
    package PAR renames Specification_Parser;
    package PST renames Port_Specification.Transform;
@@ -402,40 +404,18 @@ package body PortScan.Scan is
          end if;
       end calc_dossier;
    begin
-      PAR.parse_specification_file (dossier         => calc_dossier,
-                                    specification   => thespec,
-                                    opsys_focus     => platform_type,
-                                    arch_focus      => sysrootver.arch,
-                                    success         => successful,
-                                    stop_at_targets => True);
+      OPS.parse_and_transform_buildsheet (specification => thespec,
+                                          successful    => successful,
+                                          buildsheet    => calc_dossier,
+                                          variant       => variant,
+                                          portloc       => "",
+                                          excl_targets  => True,
+                                          avoid_dialog  => True,
+                                          sysrootver    => sysrootver);
       if not successful then
          raise bsheet_parsing
            with calc_dossier & "-> " & PAR.get_parse_error;
       end if;
-
-      PST.set_option_defaults
-        (specs         => thespec,
-         variant       => variant,
-         opsys         => platform_type,
-         arch_standard => sysrootver.arch,
-         osrelease     => osrelease);
-
-      --  TODO: implement option caching and determination (changes next line)
-      PST.set_option_to_default_values (specs => thespec);
-
-      PST.set_outstanding_ignore
-        (specs         => thespec,
-         variant       => variant,
-         opsys         => platform_type,
-         arch_standard => sysrootver.arch,
-         osrelease     => osrelease,
-         osmajor       => HT.USS (sysrootver.major));
-
-      PST.apply_directives
-        (specs         => thespec,
-         variant       => variant,
-         arch_standard => sysrootver.arch,
-         osmajor       => HT.USS (sysrootver.major));
 
       rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
       rec.ignore_reason := HT.SUS (thespec.aggregated_ignore_reason);
@@ -488,40 +468,19 @@ package body PortScan.Scan is
          end if;
       end calc_dossier;
    begin
-      PAR.parse_specification_file (dossier         => calc_dossier,
-                                    specification   => thespec,
-                                    opsys_focus     => platform_type,
-                                    arch_focus      => sysrootver.arch,
-                                    success         => successful,
-                                    stop_at_targets => True);
+      OPS.parse_and_transform_buildsheet (specification => thespec,
+                                          successful    => successful,
+                                          buildsheet    => calc_dossier,
+                                          variant       => variant,
+                                          portloc       => "",
+                                          excl_targets  => True,
+                                          avoid_dialog  => False,
+                                          sysrootver    => sysrootver);
+
       if not successful then
          raise bsheet_parsing
            with calc_dossier & "-> " & PAR.get_parse_error;
       end if;
-
-      PST.set_option_defaults
-        (specs         => thespec,
-         variant       => variant,
-         opsys         => platform_type,
-         arch_standard => sysrootver.arch,
-         osrelease     => osrelease);
-
-      --  TODO: implement option caching and determination (changes next line)
-      PST.set_option_to_default_values (specs => thespec);
-
-      PST.set_outstanding_ignore
-        (specs         => thespec,
-         variant       => variant,
-         opsys         => platform_type,
-         arch_standard => sysrootver.arch,
-         osrelease     => osrelease,
-         osmajor       => HT.USS (sysrootver.major));
-
-      PST.apply_directives
-        (specs         => thespec,
-         variant       => variant,
-         arch_standard => sysrootver.arch,
-         osmajor       => HT.USS (sysrootver.major));
 
       rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
       rec.ignore_reason := HT.SUS (thespec.aggregated_ignore_reason);

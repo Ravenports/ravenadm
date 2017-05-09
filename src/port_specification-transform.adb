@@ -409,6 +409,27 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  define_option_setting
+   --------------------------------------------------------------------------------------------
+   procedure define_option_setting (specs : in out Portspecs; option : String; value : Boolean)
+   is
+      procedure set_option (Key : HT.Text; Element : in out Option_Helper);
+
+      optname_text : HT.Text := HT.SUS (option);
+
+      procedure set_option (Key : HT.Text; Element : in out Option_Helper) is
+      begin
+         Element.currently_set_ON := value;
+      end set_option;
+   begin
+      if specs.ops_helpers.Contains (optname_text) then
+         specs.ops_helpers.Update_Element (Position => specs.ops_helpers.Find (optname_text),
+                                           Process  => set_option'Access);
+      end if;
+   end define_option_setting;
+
+
+   --------------------------------------------------------------------------------------------
    --  release_format
    --------------------------------------------------------------------------------------------
    function release_format (candidate : String) return Boolean

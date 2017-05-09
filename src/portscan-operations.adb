@@ -13,6 +13,8 @@ with PortScan.Buildcycle;
 with Specification_Parser;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
+with INI_File_Manager;
+with Options_Dialog;
 
 package body PortScan.Operations is
 
@@ -25,6 +27,8 @@ package body PortScan.Operations is
    package PAR renames Specification_Parser;
    package PSM renames Port_Specification.Makefile;
    package PST renames Port_Specification.Transform;
+   package IFM renames INI_File_Manager;
+   package DLG renames Options_Dialog;
 
    --------------------------------------------------------------------------------------------
    --  parallel_bulk_run
@@ -2492,9 +2496,80 @@ package body PortScan.Operations is
       variant       : String;
       portloc       : String;
       excl_targets  : Boolean;
+      avoid_dialog  : Boolean;
       sysrootver    : sysroot_characteristics)
    is
+      function read_option_file return Boolean;
+      function launch_and_read return Boolean;
+
       makefile : String := portloc & "/Makefile";
+      dir_opt  : constant String := HT.USS (PM.configuration.dir_options);
+      optfile  : constant String := dir_opt & "/" & specification.get_namebase;
+      cookie   : constant String := dir_opt & "/defconf_cookies/" & specification.get_namebase;
+
+      function read_option_file return Boolean
+      is
+         result   : Boolean := True;
+         required : Natural := specification.get_list_length (Port_Specification.sp_opts_standard);
+      begin
+         IFM.scan_file (directory => dir_opt, filename => specification.get_namebase);
+         declare
+            list : constant String := IFM.show_value (section => "parameters",
+                                                      name    => "available");
+            num_opt : Natural := HT.count_char (list, LAT.Comma) + 1;
+         begin
+            if num_opt /= required then
+               result := False;
+            end if;
+            for item in 1 .. num_opt loop
+               declare
+                  setting  : Boolean;
+                  good     : Boolean := True;
+                  nv_name  : String := HT.specific_field (list, item, ",");
+                  nv_value : String := IFM.show_value ("options", nv_name);
+               begin
+                  if nv_value = "true" then
+                     setting := True;
+                  elsif nv_value = "false" then
+                     setting := False;
+                  else
+                     good   := False;
+                     result := False;
+                  end if;
+                  if good then
+                     if specification.option_exists (nv_name) then
+                        PST.define_option_setting (specification, nv_name, setting);
+                     else
+                        result := False;
+                     end if;
+                  end if;
+               end;
+            end loop;
+         end;
+         return result;
+      exception
+         when others =>
+            return False;
+      end read_option_file;
+
+      function launch_and_read return Boolean is
+      begin
+         PST.set_option_to_default_values (specification);
+         if not avoid_dialog then
+            if not DLG.launch_dialog (specification) then
+               return False;
+            end if;
+            if not DIR.Exists (optfile) then
+               TIO.Put_Line ("Saved option file missing after dialog executed.  bug?");
+               return False;
+            end if;
+            if not read_option_file then
+               TIO.Put_Line ("Saved option file invalid after dialog executed.  bug?");
+               return False;
+            end if;
+         end if;
+         return True;
+      end launch_and_read;
    begin
       PAR.parse_specification_file (dossier         => buildsheet,
                                     specification   => specification,
@@ -2516,8 +2591,51 @@ package body PortScan.Operations is
          arch_standard => sysrootver.arch,
          osrelease     => HT.USS (sysrootver.release));
 
-      --  TODO: Implement options correctly
-      PST.set_option_to_default_values (specs => specification);
+      --  If no available options, skip (remember, if variants there are ALWAYS options
+      --  otherwise
+      --    if batch mode, ignore cookies.  if no option file, use default values.
+      --    if not batch mode:
+      --       If option file, use it.
+      --       if no option file: if cookie exists, used default values, otherwise show dialog
+
+      if variant = variant_standard then
+         if specification.standard_options_present then
+            --  This port has at least one user-definable option
+            if PM.configuration.batch_mode then
+               --  In batch mode, option settings are optional.  Use default values if not set
+               if DIR.Exists (optfile) then
+                  if not read_option_file then
+                     TIO.Put_Line ("BATCH MODE ERROR: Invalid option configuration of " &
+                                     specification.get_namebase & ":standard port");
+                     TIO.Put_Line ("Run ravenadm set-options " & specification.get_namebase &
+                                     " to rectify the issue");
+                     successful := False;
+                  end if;
+               else
+                  PST.set_option_to_default_values (specification);
+               end if;
+            else
+               if DIR.Exists (optfile) then
+                  if not read_option_file then
+                     if not launch_and_read then
+                        successful := False;
+                     end if;
+                  end if;
+               else
+                  if DIR.Exists (cookie) then
+                     PST.set_option_to_default_values (specification);
+                  else
+                     if not launch_and_read then
+                        successful := False;
+                     end if;
+                  end if;
+               end if;
+            end if;
+         end if;
+      else
+         --  All defined options are dedicated to variant definition (nothing to configure)
+         PST.set_option_to_default_values (specification);
+      end if;
 
       PST.set_outstanding_ignore
         (specs         => specification,
@@ -2585,6 +2703,7 @@ package body PortScan.Operations is
                                       variant       => variant,
                                       portloc       => portloc,
                                       excl_targets  => False,
+                                      avoid_dialog  => True,
                                       sysrootver    => sysrootver);
       if not successful then
          return False;

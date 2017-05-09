@@ -111,6 +111,7 @@ package PortScan.Operations is
       variant       : String;
       portloc       : String;
       excl_targets  : Boolean;
+      avoid_dialog  : Boolean;
       sysrootver    : sysroot_characteristics);
 
 private

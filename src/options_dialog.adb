@@ -24,6 +24,10 @@ package body Options_Dialog is
    function launch_dialog (specification : in out PSP.Portspecs) return Boolean
    is
    begin
+      num_groups   := 0;
+      num_options  := 0;
+      arrow_points := 1;
+
       if not Start_Curses_Mode then
          TIO.Put_Line ("Failed to enter curses modes");
          return False;

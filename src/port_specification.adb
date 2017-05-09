@@ -446,6 +446,12 @@ package body Port_Specification is
             if value'Length > 14 then
                raise wrong_value with "'" & value & "' name is too long (14-char limit)";
             end if;
+            if HT.contains (value, ":") then
+               raise wrong_value with "'" & value & "' cannot contain colons";
+            end if;
+            if HT.contains (value, ",") then
+               raise wrong_value with "'" & value & "' cannot contain commas";
+            end if;
             specs.ops_avail.Append (text_value);
             specs.last_set := so_opts_avail;
             declare
@@ -3562,6 +3568,24 @@ package body Port_Specification is
       end if;
       return "single";
    end get_license_scheme;
+
+
+   --------------------------------------------------------------------------------------------
+   --  global_options_present
+   --------------------------------------------------------------------------------------------
+   function global_options_present (specs : Portspecs) return Boolean is
+   begin
+      return not specs.ops_avail.Contains (HT.SUS (options_none));
+   end global_options_present;
+
+
+   --------------------------------------------------------------------------------------------
+   --  standard_options_present
+   --------------------------------------------------------------------------------------------
+   function standard_options_present (specs : Portspecs) return Boolean is
+   begin
+      return not specs.ops_standard.Contains (HT.SUS (options_none));
+   end standard_options_present;
 
 
    --------------------------------------------------------------------------------------------

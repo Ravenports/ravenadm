@@ -158,6 +158,7 @@ package body Pilot is
                                              variant       => get_variant,
                                              portloc       => "",
                                              excl_targets  => False,
+                                             avoid_dialog  => False,
                                              sysrootver    => sysrootver);
       else
          DNE (HT.USS (dossier_text));
@@ -1047,6 +1048,7 @@ package body Pilot is
                                                 variant       => variant_standard,
                                                 portloc       => "",
                                                 excl_targets  => True,
+                                                avoid_dialog  => True,
                                                 sysrootver    => sysrootver);
             exit when not OPT.launch_dialog (specification);
          end;

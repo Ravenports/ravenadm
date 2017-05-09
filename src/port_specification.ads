@@ -242,6 +242,12 @@ package Port_Specification is
    --  Return "joined" table of group + options
    function option_block_for_dialog (specs : Portspecs) return String;
 
+   --  Return true if options_avail is not "none"
+   function global_options_present (specs : Portspecs) return Boolean;
+
+   --  Return true if ops_standard is not "none"
+   function standard_options_present (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;

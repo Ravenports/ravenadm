@@ -29,6 +29,9 @@ package Port_Specification.Transform is
       arch_standard : supported_arch;
       osrelease     : String);
 
+   --  Update current value of given option
+   procedure define_option_setting (specs : in out Portspecs; option : String; value : Boolean);
+
    procedure set_option_to_default_values (specs : in out Portspecs);
 
    procedure set_outstanding_ignore

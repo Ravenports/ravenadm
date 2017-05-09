@@ -80,9 +80,9 @@ private
    port_sdesc      : HT.Text;
    formatted_opts  : optstorage;
    formatted_grps  : group_titles;
-   num_groups      : Natural := 0;
-   num_options     : Natural := 0;
-   arrow_points    : Positive := 1;
+   num_groups      : Natural;
+   num_options     : Natural;
+   arrow_points    : Positive;
    offset          : Natural;
 
    function establish_colors return Boolean;
