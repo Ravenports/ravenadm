@@ -2500,12 +2500,10 @@ package body PortScan.Operations is
       sysrootver    : sysroot_characteristics)
    is
       function read_option_file return Boolean;
-      function launch_and_read return Boolean;
+      function launch_and_read (optfile, cookie : String) return Boolean;
 
       makefile : String := portloc & "/Makefile";
       dir_opt  : constant String := HT.USS (PM.configuration.dir_options);
-      optfile  : constant String := dir_opt & "/" & specification.get_namebase;
-      cookie   : constant String := dir_opt & "/defconf_cookies/" & specification.get_namebase;
 
       function read_option_file return Boolean
       is
@@ -2552,17 +2550,24 @@ package body PortScan.Operations is
             return False;
       end read_option_file;
 
-      function launch_and_read return Boolean is
+      function launch_and_read (optfile, cookie : String) return Boolean is
       begin
          PST.set_option_to_default_values (specification);
          if not avoid_dialog then
             if not DLG.launch_dialog (specification) then
                return False;
             end if;
+
+            if DIR.Exists (cookie) then
+               --  We keep the already-set standard option settings
+               return True;
+            end if;
+
             if not DIR.Exists (optfile) then
-               TIO.Put_Line ("Saved option file missing after dialog executed.  bug?");
+               TIO.Put_Line ("Saved option file and cookie missing after dialog executed.  bug?");
                return False;
             end if;
+
             if not read_option_file then
                TIO.Put_Line ("Saved option file invalid after dialog executed.  bug?");
                return False;
@@ -2598,44 +2603,52 @@ package body PortScan.Operations is
       --       If option file, use it.
       --       if no option file: if cookie exists, used default values, otherwise show dialog
 
-      if variant = variant_standard then
-         if specification.standard_options_present then
-            --  This port has at least one user-definable option
-            if PM.configuration.batch_mode then
-               --  In batch mode, option settings are optional.  Use default values if not set
-               if DIR.Exists (optfile) then
-                  if not read_option_file then
-                     TIO.Put_Line ("BATCH MODE ERROR: Invalid option configuration of " &
-                                     specification.get_namebase & ":standard port");
-                     TIO.Put_Line ("Run ravenadm set-options " & specification.get_namebase &
-                                     " to rectify the issue");
-                     successful := False;
-                  end if;
-               else
-                  PST.set_option_to_default_values (specification);
-               end if;
-            else
-               if DIR.Exists (optfile) then
-                  if not read_option_file then
-                     if not launch_and_read then
+      declare
+         optfile : constant String := dir_opt & "/" & specification.get_namebase;
+         cookie  : constant String := dir_opt & "/defconf_cookies/" & specification.get_namebase;
+      begin
+         if variant = variant_standard then
+            if specification.standard_options_present then
+               --  This port has at least one user-definable option
+               if PM.configuration.batch_mode then
+                  --  In batch mode, option settings are optional.  Use default values if not set
+                  if DIR.Exists (optfile) then
+                     if not read_option_file then
+                        TIO.Put_Line ("BATCH MODE ERROR: Invalid option configuration of " &
+                                        specification.get_namebase & ":standard port");
+                        TIO.Put_Line ("Run ravenadm set-options " & specification.get_namebase &
+                                        " to rectify the issue");
                         successful := False;
+                        return;
                      end if;
+                  else
+                     PST.set_option_to_default_values (specification);
                   end if;
                else
-                  if DIR.Exists (cookie) then
-                     PST.set_option_to_default_values (specification);
+                  if DIR.Exists (optfile) then
+                     if not read_option_file then
+                        if not launch_and_read (optfile, cookie) then
+                           successful := False;
+                           return;
+                        end if;
+                     end if;
                   else
-                     if not launch_and_read then
-                        successful := False;
+                     if DIR.Exists (cookie) then
+                        PST.set_option_to_default_values (specification);
+                     else
+                        if not launch_and_read (optfile, cookie) then
+                           successful := False;
+                           return;
+                        end if;
                      end if;
                   end if;
                end if;
             end if;
+         else
+            --  All defined options are dedicated to variant definition (nothing to configure)
+            PST.set_option_to_default_values (specification);
          end if;
-      else
-         --  All defined options are dedicated to variant definition (nothing to configure)
-         PST.set_option_to_default_values (specification);
-      end if;
+      end;
 
       PST.set_outstanding_ignore
         (specs         => specification,

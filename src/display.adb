@@ -54,6 +54,7 @@ package body Display is
       draw_static_builders_zone;
       Refresh_Zone (summary);
       Refresh_Zone (builder);
+      Refresh_Zone (action);
       return True;
    end launch_monitor;
 
