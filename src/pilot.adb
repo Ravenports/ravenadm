@@ -158,7 +158,7 @@ package body Pilot is
                                              variant       => get_variant,
                                              portloc       => "",
                                              excl_targets  => False,
-                                             avoid_dialog  => False,
+                                             avoid_dialog  => True,
                                              sysrootver    => sysrootver);
       else
          DNE (HT.USS (dossier_text));
@@ -166,6 +166,10 @@ package body Pilot is
       end if;
 
       if successful then
+         if not specification.post_transform_option_group_defaults_passes then
+            return;
+         end if;
+
          PSM.generator (specs         => specification,
                         variant       => get_variant,
                         opsys         => platform_type,
@@ -216,6 +220,18 @@ package body Pilot is
       if not successful then
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (PAR.get_parse_error);
+         return;
+      end if;
+
+      PST.set_option_defaults
+        (specs         => specification,
+         variant       => specification.get_list_item (Port_Specification.sp_variants, 1),
+         opsys         => platform_type,
+         arch_standard => sysrootver.arch,
+         osrelease     => HT.USS (sysrootver.release));
+
+      if not specification.post_transform_option_group_defaults_passes then
+         successful := False;
          return;
       end if;
 

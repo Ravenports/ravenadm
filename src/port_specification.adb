@@ -3521,6 +3521,87 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  post_transform_option_group_defaults_passes
+   --------------------------------------------------------------------------------------------
+   function post_transform_option_group_defaults_passes (specs : Portspecs) return Boolean
+   is
+      procedure radio_scan (pos_radio : string_crate.Cursor);
+      procedure restrict_scan (pos_radio : string_crate.Cursor);
+      procedure group_scan (position : string_crate.Cursor);
+      function display_opt_count (number : Natural) return String;
+
+      all_good : Boolean := True;
+      on_count : Natural;
+
+      function display_opt_count (number : Natural) return String is
+      begin
+         if number = 1 then
+            return "1 option";
+         else
+            return HT.int2str (number) & " options";
+         end if;
+      end display_opt_count;
+
+      procedure group_scan (position : string_crate.Cursor)
+      is
+         option : HT.Text renames string_crate.Element (position);
+      begin
+         if specs.ops_helpers.Contains (option) then
+            if specs.ops_helpers.Element (option).set_ON_by_default then
+               on_count := on_count + 1;
+            end if;
+         else
+            all_good := False;
+            TIO.Put_Line ("option" & HT.USS (option) & " is not defined.  bug?");
+            return;
+         end if;
+      end group_scan;
+
+      procedure radio_scan (pos_radio : string_crate.Cursor)
+      is
+         group : HT.Text renames string_crate.Element (pos_radio);
+      begin
+         on_count := 0;
+         if specs.optgroups.Contains (group) then
+            specs.optgroups.Element (group).list.Iterate (group_scan'Access);
+         else
+            all_good := False;
+            TIO.Put_Line ("radio group " & HT.USS (group) & " does not exist.  bug?");
+            return;
+         end if;
+         if on_count /= 1 then
+            all_good := False;
+            TIO.Put_Line ("radio group " & HT.USS (group) & " has " & display_opt_count (on_count)
+                          & " set by default, but radio groups require exactly 1");
+         end if;
+      end radio_scan;
+
+      procedure restrict_scan (pos_radio : string_crate.Cursor)
+      is
+         group : HT.Text renames string_crate.Element (pos_radio);
+      begin
+         on_count := 0;
+         if specs.optgroups.Contains (group) then
+            specs.optgroups.Element (group).list.Iterate (group_scan'Access);
+         else
+            all_good := False;
+            TIO.Put_Line ("restricted group " & HT.USS (group) & " does not exist.  bug?");
+            return;
+         end if;
+         if on_count < 1 then
+            all_good := False;
+            TIO.Put_Line ("restricted group " & HT.USS (group) & " has no options set by " &
+                          "default, but at least one is required");
+         end if;
+      end restrict_scan;
+   begin
+      specs.opt_radio.Iterate (radio_scan'Access);
+      specs.opt_restrict.Iterate (restrict_scan'Access);
+      return all_good;
+   end post_transform_option_group_defaults_passes;
+
+
+   --------------------------------------------------------------------------------------------
    --  subpackage_exists
    --------------------------------------------------------------------------------------------
    function subpackage_exists (specs : Portspecs; subpackage : String) return Boolean

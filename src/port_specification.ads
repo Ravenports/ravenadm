@@ -236,8 +236,12 @@ package Port_Specification is
    function post_parse_opt_desc_check_passes (specs : Portspecs) return Boolean;
 
    --  Returns true if all the option groups have at least 2 members
-   --  It also outputs to standard out which groups have only one memeber
+   --  It also outputs to standard out which groups have only one member
    function post_parse_option_group_size_passes (specs : Portspecs) return Boolean;
+
+   --  Checks radio and restricted groups.  Radio groups have to have exactly one option
+   --  set by (by default) and restricted groups need at least one.
+   function post_transform_option_group_defaults_passes (specs : Portspecs) return Boolean;
 
    --  Return "joined" table of group + options
    function option_block_for_dialog (specs : Portspecs) return String;
