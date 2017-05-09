@@ -53,14 +53,6 @@ package PortScan.Operations is
    --  removes processed port from the top of ranking queue and returns the port id
    function unlist_first_port return port_id;
 
-   --  After the initial queue is created, and before the limited sanity
-   --  check, we go through each port and check if it has cached options.
-   --  If it does, then it's checked for validity.  If it has too many or
-   --  too few options, or an option's name doesn't match, the port is
-   --  printed to stdout.  The rest of the ports are checked, but at that
-   --  point the function has failed.
-   function limited_cached_options_check return Boolean;
-
    --  Returns True on success; stores value in global external_repository
    function located_external_repository return Boolean;
 

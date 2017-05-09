@@ -1014,17 +1014,6 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  limited_cached_options_check
-   --------------------------------------------------------------------------------------------
-   function limited_cached_options_check return Boolean
-   is
-      --  TODO: Implement options
-   begin
-      return True;
-   end limited_cached_options_check;
-
-
-   --------------------------------------------------------------------------------------------
    --  located_external_repository
    --------------------------------------------------------------------------------------------
    function located_external_repository return Boolean
@@ -2618,6 +2607,8 @@ package body PortScan.Operations is
                                         specification.get_namebase & ":standard port");
                         TIO.Put_Line ("Run ravenadm set-options " & specification.get_namebase &
                                         " to rectify the issue");
+                        TIO.Put_Line ("Alternatively, set configuration option '[Q] Assume " &
+                                        "default options' to False");
                         successful := False;
                         return;
                      end if;

@@ -563,11 +563,6 @@ package body Pilot is
          OPS.delete_existing_packages_of_ports_list;
       end if;
 
-      if not OPS.limited_cached_options_check then
-         --  Error messages emitted by function
-         return False;
-      end if;
-
       if PM.configuration.defer_prebuilt then
          --  Before any remote operations, find the external repo
          if OPS.located_external_repository then
