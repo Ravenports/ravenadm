@@ -123,6 +123,9 @@ package Pilot is
    --  Provides information about currency of installed ravenports
    procedure check_ravenports_version;
 
+   --  Executes routine to update to the latest published ravenports
+   procedure update_to_latest_ravenports;
+
 private
 
    package HT renames HelperText;

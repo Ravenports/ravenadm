@@ -1076,4 +1076,13 @@ package body Pilot is
       Ravenports.check_version_available;
    end check_ravenports_version;
 
+
+   --------------------------------------------------------------------------------------------
+   --  update_to_latest_ravenports
+   --------------------------------------------------------------------------------------------
+   procedure update_to_latest_ravenports is
+   begin
+      Ravenports.retrieve_latest_ravenports;
+   end update_to_latest_ravenports;
+
 end Pilot;

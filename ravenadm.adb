@@ -133,8 +133,12 @@ begin
 
    case mandate is
       when configure | help => null;
+      when portsnap =>
+         if not Parameters.all_paths_valid (skip_mk_check => True) then
+            return;
+         end if;
       when others =>
-         if not Parameters.all_paths_valid then
+         if not Parameters.all_paths_valid (skip_mk_check => False) then
             return;
          end if;
    end case;
@@ -321,7 +325,10 @@ begin
          Pilot.check_ravenports_version;
 
       when portsnap =>
-         null;
+         --------------------------------
+         --  update-ports
+         --------------------------------
+         Pilot.update_to_latest_ravenports;
 
       when unset => null;
 

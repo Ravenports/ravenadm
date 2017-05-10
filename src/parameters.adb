@@ -21,7 +21,7 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    --  all_paths_valid
    --------------------------------------------------------------------------------------------
-   function all_paths_valid return Boolean
+   function all_paths_valid (skip_mk_check : Boolean) return Boolean
    is
       function invalid_directory (folder : HT.Text; desc : String) return Boolean;
 
@@ -87,10 +87,12 @@ package body Parameters is
                return False;
             end if;
          end if;
-         if not DIR.Exists (mk_dir) then
-            TIO.Put_Line ("Conspiracy directory exists without Mk contents");
-            TIO.Put_Line ("Try running 'ravenadm update-ports");
-            return False;
+         if not skip_mk_check then
+            if not DIR.Exists (mk_dir) then
+               TIO.Put_Line ("Conspiracy directory exists without Mk contents");
+               TIO.Put_Line ("Try running 'ravenadm update-ports'");
+               return False;
+            end if;
          end if;
          if not DIR.Exists (log_dir) then
             DIR.Create_Path (log_dir);

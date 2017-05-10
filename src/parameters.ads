@@ -67,7 +67,7 @@ package Parameters is
    --  Maybe a previously valid directory path has been removed.  This
    --  function returns true when all the paths still work.
    --  The configuration must be loaded before it's run, of course.
-   function all_paths_valid return Boolean;
+   function all_paths_valid (skip_mk_check : Boolean) return Boolean;
 
    --  Return true if the localbase is set to someplace it really shouldn't be
    function forbidden_localbase (candidate : String) return Boolean;
