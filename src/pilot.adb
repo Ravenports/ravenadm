@@ -24,6 +24,7 @@ with PortScan.Buildcycle;
 with PortScan.Scan;
 with PortScan.Log;
 with Options_Dialog;
+with Ravenports;
 
 package body Pilot is
 
@@ -1065,5 +1066,14 @@ package body Pilot is
          end;
       end loop;
    end change_options;
+
+
+   --------------------------------------------------------------------------------------------
+   --  check_ravenports_version
+   --------------------------------------------------------------------------------------------
+   procedure check_ravenports_version is
+   begin
+      Ravenports.check_version_available;
+   end check_ravenports_version;
 
 end Pilot;

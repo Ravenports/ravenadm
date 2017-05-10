@@ -120,6 +120,9 @@ package Pilot is
    --  Launches options dialog to allow user to set them
    procedure change_options;
 
+   --  Provides information about currency of installed ravenports
+   procedure check_ravenports_version;
+
 private
 
    package HT renames HelperText;

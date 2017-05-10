@@ -89,6 +89,7 @@ package body Parameters is
          end if;
          if not DIR.Exists (mk_dir) then
             TIO.Put_Line ("Conspiracy directory exists without Mk contents");
+            TIO.Put_Line ("Try running 'ravenadm update-ports");
             return False;
          end if;
          if not DIR.Exists (log_dir) then

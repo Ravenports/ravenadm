@@ -13,7 +13,7 @@ procedure Ravenadm is
    package TIO renames Ada.Text_IO;
 
    type mandate_type is (unset, help, dev, build, force, test, status, configure, locate, purge,
-                         changeopts);
+                         changeopts, checkports, portsnap);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
@@ -47,6 +47,10 @@ procedure Ravenadm is
          mandate := purge;
       elsif first = "set-options" then
          mandate := changeopts;
+      elsif first = "check-ports" then
+         mandate := checkports;
+      elsif first = "update-ports" then
+         mandate := portsnap;
       end if;
    end scan_first_command_word;
 
@@ -309,6 +313,15 @@ begin
          --  set-options
          --------------------------------
          Pilot.change_options;
+
+      when checkports =>
+         --------------------------------
+         --  check-ports
+         --------------------------------
+         Pilot.check_ravenports_version;
+
+      when portsnap =>
+         null;
 
       when unset => null;
 
