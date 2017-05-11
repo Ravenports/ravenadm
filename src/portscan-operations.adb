@@ -587,10 +587,8 @@ package body PortScan.Operations is
          QR := ranking_crate.Element (Position => cursor);
          if all_ports (QR.ap_index).ignored then
             result := QR.ap_index;
-            if curses_support then
-               DPY.insert_history
-                 (CYC.assemble_history_record (1, QR.ap_index, DPY.action_ignored));
-            end if;
+            DPY.insert_history
+              (CYC.assemble_history_record (1, QR.ap_index, DPY.action_ignored));
             run_package_hook (pkg_ignored, QR.ap_index);
             exit;
          end if;

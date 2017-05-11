@@ -12,8 +12,9 @@ procedure Ravenadm is
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
 
-   type mandate_type is (unset, help, dev, build, force, test, status, status_everything,
-                         configure, locate, purge, changeopts, checkports, portsnap);
+   type mandate_type is (unset, help, dev, build, build_everything, force, test,
+                         status, status_everything, configure, locate, purge, changeopts,
+                         checkports, portsnap);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
@@ -33,6 +34,8 @@ procedure Ravenadm is
          mandate := dev;
       elsif first = "build" then
          mandate := build;
+      elsif first = "build-everything" then
+         mandate := build_everything;
       elsif first = "force" then
          mandate := force;
       elsif first = "test" then
@@ -114,7 +117,7 @@ begin
    end if;
 
    case mandate is
-      when build | test | status =>
+      when build | build_everything | test | status | status_everything =>
          --  All commands involving replicant slaves
          if Pilot.launch_clash_detected then
             return;
@@ -123,8 +126,7 @@ begin
    end case;
 
    case mandate is
-      when build | test =>
-
+      when build | build_everything | test =>
          if Parameters.configuration.avec_ncurses and then
            not Pilot.TERM_defined_in_environment
          then
@@ -185,7 +187,7 @@ begin
    end case;
 
    case mandate is
-      when build | force | test | status | status_everything =>
+      when build | build_everything | force | test | status | status_everything =>
          if not Pilot.slave_platform_determined then
             return;
          end if;
@@ -239,6 +241,17 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.scan_stack_of_single_ports (always_build => False) and then
+           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
+         then
+            Pilot.perform_bulk_run (testmode => False);
+         end if;
+
+      when build_everything =>
+         --------------------------------
+         --  build-everything command
+         --------------------------------
+         if Pilot.install_compiler_packages and then
+           Pilot.fully_scan_ports_tree and then
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
