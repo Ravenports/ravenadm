@@ -1611,6 +1611,7 @@ package body PortScan.Operations is
       id           : port_id) return Boolean
    is
       procedure get_rundeps (position : subpackage_crate.Cursor);
+      procedure log_run_deps (position : subpackage_crate.Cursor);
 
       content  : String  := HT.USS (query_result);
       headport : constant String := HT.USS (all_ports (id).port_namebase) & LAT.Colon &
@@ -1631,6 +1632,24 @@ package body PortScan.Operations is
             end if;
          end if;
       end get_rundeps;
+
+      procedure log_run_deps (position : subpackage_crate.Cursor)
+      is
+         procedure logme (logpos : spkg_id_crate.Cursor);
+         rec : subpackage_record renames subpackage_crate.Element (position);
+         procedure logme (logpos : spkg_id_crate.Cursor) is
+            rec2 : PortScan.subpackage_identifier renames spkg_id_crate.Element (logpos);
+            message : constant String := get_port_variant (rec2.port) & " (" &
+              HT.USS (rec2.subpackage) & ")";
+         begin
+            LOG.obsolete_notice (message, debug_dep_check);
+         end logme;
+      begin
+         if HT.equivalent (rec.subpackage, subpackage) then
+            LOG.obsolete_notice ("Port requirements:", debug_dep_check);
+            rec.spkg_run_deps.Iterate (logme'Access);
+         end if;
+      end log_run_deps;
    begin
       all_ports (id).subpackages.Iterate (get_rundeps'Access);
       HT.initialize_markers (content, markers);
@@ -1683,6 +1702,7 @@ package body PortScan.Operations is
                        "port requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
                        "Query: " & LAT.LF & HT.USS (query_result) &
                        "Tripped on: " & line);
+                  all_ports (id).subpackages.Iterate (log_run_deps'Access);
                   return False;
                end if;
 
@@ -1717,6 +1737,7 @@ package body PortScan.Operations is
             message         => headport & " package has less dependencies than the port " &
               "requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
               "Query: " & LAT.LF & HT.USS (query_result));
+         all_ports (id).subpackages.Iterate (log_run_deps'Access);
          return False;
       end if;
 
