@@ -126,6 +126,9 @@ package Pilot is
    --  Executes routine to update to the latest published ravenports
    procedure update_to_latest_ravenports;
 
+   --  Scan entire ports tree
+   function fully_scan_ports_tree return Boolean;
+
 private
 
    package HT renames HelperText;

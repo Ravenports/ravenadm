@@ -38,10 +38,11 @@ package body PortScan.Scan is
       conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
    begin
+      --  Override BATCH_MODE setting when we build everything
+      PM.configuration.batch_mode := True;
+
       --  All scanning done on host system (no need to mount in a slave)
-      if not prescanned then
-         prescan_ports_tree (conspiracy, unkindness, sysrootver);
-      end if;
+      prescan_ports_tree (conspiracy, unkindness, sysrootver);
       prescan_unkindness (unkindness);
       LOG.set_scan_start_time (CAL.Clock);
       parallel_deep_scan (conspiracy    => conspiracy,
@@ -304,21 +305,14 @@ package body PortScan.Scan is
             end if;
          exception
             when issue : others =>
-               TIO.Put_Line (LAT.LF & "culprit: " & get_port_variant (all_ports (target_port)));
-               EX.Reraise_Occurrence (issue);
+               aborted := True;
+               TIO.Put_Line ("Scan aborted");
+               TIO.Put_Line ("culprit: " & get_port_variant (all_ports (target_port)));
+               TIO.Put_Line (EX.Exception_Information (issue));
          end populate;
       begin
          make_queue (lot).Iterate (populate'Access);
          finished (lot) := True;
-      exception
-         when issue : populate_error =>
-            aborted := True;
-            TIO.Put_Line ("Scan aborted during port data population.");
-            TIO.Put_Line (EX.Exception_Message (issue));
-         when issue : others =>
-            aborted := True;
-            TIO.Put_Line ("Scan aborted for an unknown reason.");
-            TIO.Put_Line (EX.Exception_Message (issue));
       end scan;
 
       scan_01 : scan (lot => 1);

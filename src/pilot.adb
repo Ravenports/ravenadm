@@ -537,6 +537,30 @@ package body Pilot is
 
 
    --------------------------------------------------------------------------------------------
+   --  fully_scan_ports_tree
+   --------------------------------------------------------------------------------------------
+   function fully_scan_ports_tree return Boolean
+   is
+      successful : Boolean := SCN.scan_entire_ports_tree (sysrootver);
+   begin
+      if successful then
+         SCN.set_build_priority;
+         if PortScan.queue_is_empty then
+            successful := False;
+            TIO.Put_Line ("There are no valid ports to build." & bailing);
+         end if;
+      else
+         if Signals.graceful_shutdown_requested then
+            TIO.Put_Line (shutreq);
+         else
+            TIO.Put_Line ("Failed to scan ports tree " & bailing);
+         end if;
+      end if;
+      return successful;
+   end fully_scan_ports_tree;
+
+
+   --------------------------------------------------------------------------------------------
    --  scan_stack_of_single_ports
    --------------------------------------------------------------------------------------------
    function scan_stack_of_single_ports (always_build : Boolean) return Boolean
@@ -549,12 +573,10 @@ package body Pilot is
             successful := False;
             TIO.Put_Line ("There are no valid ports to build." & bailing);
          end if;
-      end if;
-
-      <<clean_exit>>
-      if Signals.graceful_shutdown_requested then
-         successful := False;
-         TIO.Put_Line (shutreq);
+      else
+         if Signals.graceful_shutdown_requested then
+            TIO.Put_Line (shutreq);
+         end if;
       end if;
       return successful;
    end scan_stack_of_single_ports;

@@ -12,8 +12,8 @@ procedure Ravenadm is
    package CLI renames Ada.Command_Line;
    package TIO renames Ada.Text_IO;
 
-   type mandate_type is (unset, help, dev, build, force, test, status, configure, locate, purge,
-                         changeopts, checkports, portsnap);
+   type mandate_type is (unset, help, dev, build, force, test, status, status_everything,
+                         configure, locate, purge, changeopts, checkports, portsnap);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
@@ -39,6 +39,8 @@ procedure Ravenadm is
          mandate := test;
       elsif first = "status" then
          mandate := status;
+      elsif first = "status-everything" then
+         mandate := status_everything;
       elsif first = "configure" then
          mandate := configure;
       elsif first = "locate" then
@@ -183,7 +185,7 @@ begin
    end case;
 
    case mandate is
-      when build | force | test | status =>
+      when build | force | test | status | status_everything =>
          if not Pilot.slave_platform_determined then
             return;
          end if;
@@ -218,6 +220,17 @@ begin
             end if;
          else
             null;  -- reserved for upgrade_system_everything maybe
+         end if;
+
+      when status_everything =>
+         --------------------------------
+         --  status_everything command
+         --------------------------------
+         if Pilot.install_compiler_packages and then
+           Pilot.fully_scan_ports_tree and then
+           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
+         then
+            Pilot.display_results_of_dry_run;
          end if;
 
       when build =>
