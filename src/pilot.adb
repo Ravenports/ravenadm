@@ -1115,8 +1115,7 @@ package body Pilot is
    procedure generate_repository is
    begin
       if fully_scan_ports_tree then
-         Repository.rebuild_local_respository (remove_invalid_packages => True,
-                                               scan_slave              => scan_slave);
+         Repository.rebuild_local_respository (remove_invalid_packages => True);
       end if;
    end generate_repository;
 

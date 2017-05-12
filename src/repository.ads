@@ -12,10 +12,14 @@ package Repository is
    function write_pkg_repos_configuration_file return Boolean;
 
    --  Rebuild the local repository with pkg(8)
-   procedure rebuild_local_respository (remove_invalid_packages : Boolean;
-                                        scan_slave : builders);
+   procedure rebuild_local_respository (remove_invalid_packages : Boolean);
 
 private
+
+   bad_command : exception;
+
+   sorry : constant String := "The generated repository will not be signed due " &
+                              "to the misconfiguration.";
 
    --  Return the contents of the profile's signing command
    function signing_command return String;
@@ -35,7 +39,7 @@ private
    --  signed).  The permissions for the private key will be checked, and if
    --  not 400 and owned by root, it will fail fatally.
    --  Returns False with fatal fail, otherwises it always returns True
-   function acceptable_RSA_signing_support (ss_base : String) return Boolean;
+   function acceptable_RSA_signing_support return Boolean;
 
       --  Return True if repo is configured to be built with RSA
    function set_raven_conf_with_RSA return Boolean;
@@ -53,5 +57,11 @@ private
    --  port or older version) and inserts the origins of the remaining packages
    --  into the port list for a limited tree scan.
    procedure preclean_repository (repository : String);
+
+   --  The actual command to build a local repository (Returns True on success)
+   function build_repository (sign_command : String := "") return Boolean;
+
+   --  generic command, throws exception if exit code is not zero
+   procedure silent_exec (command : String);
 
 end Repository;

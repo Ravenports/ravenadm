@@ -2,7 +2,6 @@
 --  Reference: ../License.txt
 
 with Unix;
-with Replicant;
 with Parameters;
 with HelperText;
 with File_Operations;
@@ -15,7 +14,6 @@ with Ada.Text_IO;
 
 package body Repository is
 
-   package REP renames Replicant;
    package PM  renames Parameters;
    package HT  renames HelperText;
    package FOP renames File_Operations;
@@ -56,8 +54,6 @@ package body Repository is
       ext_command   : constant String := file_prefix & "signing_command";
       found_finger  : constant Boolean := DIR.Exists (fingerprint);
       found_command : constant Boolean := DIR.Exists (ext_command);
-      sorry         : constant String := "The generated repository will not " &
-                      "be externally signed due to the misconfiguration.";
    begin
       if found_finger and then found_command then
          if HT.IsBlank (FOP.head_n1 (fingerprint)) or else
@@ -72,11 +68,12 @@ package body Repository is
 
       if found_finger then
          TIO.Put_Line ("The profile fingerprint was found but not the signing command");
+         TIO.Put_Line (sorry);
       elsif found_command then
          TIO.Put_Line ("The profile signing command was found but not the fingerprint");
+         TIO.Put_Line (sorry);
       end if;
 
-      TIO.Put_Line (sorry);
       return False;
    end valid_signing_command;
 
@@ -84,17 +81,13 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    --  acceptable_RSA_signing_support
    --------------------------------------------------------------------------------------------
-   function acceptable_RSA_signing_support (ss_base : String) return Boolean
+   function acceptable_RSA_signing_support return Boolean
    is
       file_prefix   : constant String := get_file_prefix;
       key_private   : constant String := file_prefix & "private.key";
       key_public    : constant String := file_prefix & "public.key";
       found_private : constant Boolean := DIR.Exists (key_private);
       found_public  : constant Boolean := DIR.Exists (key_public);
-      sorry         : constant String := "The generated repository will not " &
-                      "be signed due to the misconfiguration.";
-      repo_key      : constant String := HT.USS (PM.configuration.dir_buildbase)
-                      & ss_base & "/etc/repo.key";
    begin
       if not found_private and then not found_public then
          return True;
@@ -121,15 +114,7 @@ package body Repository is
             return False;
          end if;
       end;
-      begin
-         DIR.Copy_File (Source_Name => key_private, Target_Name => repo_key);
-         return True;
-      exception
-         when failed : others =>
-            TIO.Put_Line ("Failed to copy private RSA key to builder.");
-            TIO.Put_Line (EX.Exception_Information (failed));
-            return False;
-      end;
+      return True;
    end acceptable_RSA_signing_support;
 
 
@@ -300,8 +285,7 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    --  rebuild_local_respository
    --------------------------------------------------------------------------------------------
-   procedure rebuild_local_respository (remove_invalid_packages : Boolean;
-                                        scan_slave : builders)
+   procedure rebuild_local_respository (remove_invalid_packages : Boolean)
    is
       ------------------------------------------------------------
       --  fully_scan_tree must be executed before this routine  --
@@ -327,25 +311,61 @@ package body Repository is
       if DIR.Exists (xz_pkgsite) then
          DIR.Delete_File (xz_pkgsite);
       end if;
-      TIO.Put_Line ("Rebuilding local repository.");
-      REP.initialize (testmode => False);
-      REP.launch_slave (scan_slave);
---        if valid_signing_command then
---           build_res := REP.build_repository (scan_slave,
---                                              sign_command => signing_command);
---        elsif acceptable_RSA_signing_support then
---           build_res := REP.build_repository (scan_slave);
---        else
---           build_res := False;
---        end if;
-build_res:=True;
-      REP.destroy_slave (scan_slave);
-      REP.finalize;
+      TIO.Put_Line ("Rebuilding local repository ...");
+      if valid_signing_command then
+         build_res := build_repository (signing_command);
+      elsif acceptable_RSA_signing_support then
+         build_res := build_repository;
+      else
+         build_res := False;
+      end if;
       if build_res then
-         TIO.Put_Line ("Local repository successfully rebuilt");
+         TIO.Put_Line ("Local repository successfully rebuilt.");
       else
          TIO.Put_Line ("Failed to rebuild repository.");
       end if;
    end rebuild_local_respository;
+
+
+   --------------------------------------------------------------------------------------------
+   --  silent_exec
+   --------------------------------------------------------------------------------------------
+   procedure silent_exec (command : String)
+   is
+      cmd_output : HT.Text;
+      success    : Boolean := Unix.piped_mute_command (command, cmd_output);
+   begin
+      if not success then
+         raise bad_command with command & " => failed: " & HT.USS (cmd_output);
+      end if;
+   end silent_exec;
+
+
+   --------------------------------------------------------------------------------------------
+   --  build_repository
+   --------------------------------------------------------------------------------------------
+   function build_repository (sign_command : String := "") return Boolean
+   is
+      key_private : constant String := get_file_prefix & "private.key";
+      use_key : constant Boolean := DIR.Exists (key_private);
+      use_cmd : constant Boolean := (sign_command /= "");
+      pkgdir  : constant String := HT.USS (PM.configuration.dir_packages);
+      command : constant String := host_pkg8 & " repo -q " & pkgdir;
+      sc_cmd  : constant String := command & " signing_command: " & sign_command;
+      cmd_out : HT.Text;
+   begin
+      if use_key then
+         silent_exec (command & " " & key_private);
+      elsif use_cmd then
+         silent_exec (sc_cmd);
+      else
+         silent_exec (command);
+      end if;
+      return True;
+   exception
+      when quepaso : others =>
+         TIO.Put_Line (EX.Exception_Message (quepaso));
+         return False;
+   end build_repository;
 
 end Repository;
