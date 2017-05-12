@@ -2660,18 +2660,18 @@ package body PortScan.Operations is
          end if;
       end;
 
+      PST.apply_directives
+        (specs         => specification,
+         variant       => variant,
+         arch_standard => sysrootver.arch,
+         osmajor       => HT.USS (sysrootver.major));
+
       PST.set_outstanding_ignore
         (specs         => specification,
          variant       => variant,
          opsys         => platform_type,
          arch_standard => sysrootver.arch,
          osrelease     => HT.USS (sysrootver.release),
-         osmajor       => HT.USS (sysrootver.major));
-
-      PST.apply_directives
-        (specs         => specification,
-         variant       => variant,
-         arch_standard => sysrootver.arch,
          osmajor       => HT.USS (sysrootver.major));
 
       if portloc /= "" then
