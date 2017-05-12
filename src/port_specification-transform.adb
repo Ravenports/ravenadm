@@ -67,6 +67,7 @@ package body Port_Specification.Transform is
                      when qmake_on            => specs.qmake_args.Append (item);
                      when test_target_on      => specs.test_tgt.Append (item);
                      when makefile_on         => specs.mk_verbatim.Append (item);
+                     when only_for_opsys_on   => specs.inc_opsys.Append (item);
                      when uses_on             =>
                         declare
                            stripped      : String  := HT.part_1 (itemstr, ":");
@@ -197,6 +198,7 @@ package body Port_Specification.Transform is
             augment (makefile_on,          rec.MAKEFILE_ON);
             augment (make_args_on,         rec.MAKE_ARGS_ON);
             augment (make_env_on,          rec.MAKE_ENV_ON);
+            augment (only_for_opsys_on,    rec.ONLY_FOR_OPSYS_ON);
             augment (patchfiles_on,        rec.PATCHFILES_ON);
             augment (plist_sub_on,         rec.PLIST_SUB_ON);
             augment (qmake_on,             rec.QMAKE_ON);

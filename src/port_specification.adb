@@ -1384,6 +1384,8 @@ package body Port_Specification is
                Element.MAKE_ARGS_ON.Append (value_text);
             when make_env_on =>
                Element.MAKE_ENV_ON.Append (value_text);
+            when only_for_opsys_on =>
+               Element.ONLY_FOR_OPSYS_ON.Append (value_text);
             when patchfiles_on =>
                Element.PATCHFILES_ON.Append (value_text);
             when plist_sub_on =>
@@ -1507,6 +1509,10 @@ package body Port_Specification is
             if HT.contains (value, ":") then
                raise wrong_value with "option descriptions cannot contain colon characters";
             end if;
+         when only_for_opsys_on =>
+            if not UTL.valid_lower_opsys (value) then
+               raise wrong_value with "opsys '" & value & "' is not valid.";
+            end if;
          when not_supported_helper | not_helper_format =>
             null;
       end case;
@@ -1564,6 +1570,7 @@ package body Port_Specification is
             when makefile_on           => return rec.MAKEFILE_ON.Is_Empty;
             when make_args_on          => return rec.MAKE_ARGS_ON.Is_Empty;
             when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
+            when only_for_opsys_on     => return rec.ONLY_FOR_OPSYS_ON.Is_Empty;
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
             when plist_sub_on          => return rec.PLIST_SUB_ON.Is_Empty;
             when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
@@ -3940,6 +3947,7 @@ package body Port_Specification is
          print_opt_vector (rec.MAKEFILE_ON, "MAKEFILE_ON");
          print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
+         print_opt_vector (rec.ONLY_FOR_OPSYS_ON, "ONLY_FOR_OPSYS_ON");
          print_opt_vector (rec.PATCHFILES_ON, "PATCHFILES_ON");
          print_opt_vector (rec.PLIST_SUB_ON, "PLIST_SUB_ON");
          print_opt_vector (rec.PREVENTS_ON, "PREVENTS_ON");

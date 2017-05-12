@@ -1264,6 +1264,7 @@ package body Specification_Parser is
          ("MAKEFILE_ON          ", PSP.makefile_on),
          ("MAKE_ARGS_ON         ", PSP.make_args_on),
          ("MAKE_ENV_ON          ", PSP.make_env_on),
+         ("ONLY_FOR_OPSYS_ON    ", PSP.only_for_opsys_on),
          ("PATCHFILES_ON        ", PSP.patchfiles_on),
          ("PLIST_SUB_ON         ", PSP.plist_sub_on),
          ("PREVENTS_ON          ", PSP.prevents_on),

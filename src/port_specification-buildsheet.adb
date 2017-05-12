@@ -332,6 +332,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.MAKEFILE_ON, "MAKEFILE_ON");
          dump_helper (name, rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          dump_helper (name, rec.MAKE_ENV_ON, "MAKE_ENV_ON");
+         dump_helper (name, rec.ONLY_FOR_OPSYS_ON, "ONLY_FOR_OPSYS_ON");
          dump_helper (name, rec.PATCHFILES_ON, "PATCHFILES_ON");
          dump_helper (name, rec.PLIST_SUB_ON, "PLIST_SUB_ON");
          dump_helper (name, rec.PREVENTS_ON, "PREVENTS_ON");
