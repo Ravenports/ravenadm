@@ -48,7 +48,7 @@ package Definitions is
    --  Modify following with post-patch sed accordingly
    platform_type  : constant supported_opsys := dragonfly;
    host_localbase : constant String := "/raven";
-   host_pkg8      : constant String := host_localbase & "/sbin/pkg";
+   host_pkg8      : constant String := host_localbase & "/sbin/pkg-static";
    ravenexec      : constant String := host_localbase & "/libexec/ravenexec";
 
 end Definitions;
