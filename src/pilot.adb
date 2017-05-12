@@ -25,6 +25,7 @@ with PortScan.Scan;
 with PortScan.Log;
 with Options_Dialog;
 with Ravenports;
+with Repository;
 
 package body Pilot is
 
@@ -1106,5 +1107,17 @@ package body Pilot is
    begin
       Ravenports.retrieve_latest_ravenports;
    end update_to_latest_ravenports;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_repository
+   --------------------------------------------------------------------------------------------
+   procedure generate_repository is
+   begin
+      if fully_scan_ports_tree then
+         Repository.rebuild_local_respository (remove_invalid_packages => True,
+                                               scan_slave              => scan_slave);
+      end if;
+   end generate_repository;
 
 end Pilot;

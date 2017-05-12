@@ -14,7 +14,7 @@ procedure Ravenadm is
 
    type mandate_type is (unset, help, dev, build, build_everything, force, test,
                          status, status_everything, configure, locate, purge, changeopts,
-                         checkports, portsnap);
+                         checkports, portsnap, repository);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
@@ -56,6 +56,8 @@ procedure Ravenadm is
          mandate := checkports;
       elsif first = "update-ports" then
          mandate := portsnap;
+      elsif first = "generate-repository" then
+         mandate := repository;
       end if;
    end scan_first_command_word;
 
@@ -355,6 +357,12 @@ begin
          --  update-ports
          --------------------------------
          Pilot.update_to_latest_ravenports;
+
+      when repository =>
+         --------------------------------
+         --  generate-repository
+         --------------------------------
+         Pilot.generate_repository;
 
       when unset => null;
 

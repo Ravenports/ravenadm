@@ -1669,4 +1669,30 @@ package body PortScan.Scan is
    end purge_obsolete_distfiles;
 
 
+   --------------------------------------------------------------------------------------------
+   --  scan_repository
+   --------------------------------------------------------------------------------------------
+   function scan_repository (repository : String) return Boolean
+   is
+      pkg_search : DIR.Search_Type;
+      dirent     : DIR.Directory_Entry_Type;
+      pkg_index  : scanners := scanners'First;
+      result     : Boolean := False;
+   begin
+      DIR.Start_Search (Search    => pkg_search,
+                        Directory => repository,
+                        Filter    => (DIR.Ordinary_File => True, others => False),
+                        Pattern   => "*" & arc_ext);
+      while DIR.More_Entries (Search => pkg_search) loop
+         DIR.Get_Next_Entry (Search => pkg_search, Directory_Entry => dirent);
+         declare
+            pkgname : HT.Text := HT.SUS (DIR.Simple_Name (dirent));
+         begin
+            package_list.Append (pkgname);
+            result := True;
+         end;
+      end loop;
+      DIR.End_Search (pkg_search);
+      return result;
+   end scan_repository;
 end PortScan.Scan;

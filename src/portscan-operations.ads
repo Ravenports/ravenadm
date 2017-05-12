@@ -106,6 +106,10 @@ package PortScan.Operations is
       avoid_dialog  : Boolean;
       sysrootver    : sysroot_characteristics);
 
+   --  Using a populated package_list, cross off all package names that are found in the current
+   --  all_ports data.  Whatever is left represents obsolete packages which are then removed.
+   procedure eliminate_obsolete_packages;
+
 private
 
    package PM  renames Parameters;

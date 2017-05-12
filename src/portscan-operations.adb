@@ -2740,4 +2740,47 @@ package body PortScan.Operations is
    end build_subpackages;
 
 
+   --------------------------------------------------------------------------------------------
+   --  eliminate_obsolete_packages
+   --------------------------------------------------------------------------------------------
+   procedure eliminate_obsolete_packages
+   is
+      procedure search (position : subpackage_crate.Cursor);
+      procedure kill (position : string_crate.Cursor);
+
+      id : port_index;
+      counter : Natural := 0;
+      repo : constant String := HT.USS (PM.configuration.dir_repository) & "/";
+
+      procedure search (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+         subpackage   : constant String := HT.USS (rec.subpackage);
+         package_name : HT.Text := HT.SUS (calculate_package_name (id, subpackage) & arc_ext);
+      begin
+         if package_list.Contains (package_name) then
+            package_list.Delete (package_list.Find_Index (package_name));
+         end if;
+      end search;
+
+      procedure kill (position : string_crate.Cursor)
+      is
+         package_name : constant String := HT.USS (string_crate.Element (position));
+      begin
+         DIR.Delete_File (repo & package_name);
+         counter := counter + 1;
+      exception
+         when others =>
+            TIO.Put (LAT.LF & "Failed to remove " & package_name);
+      end kill;
+   begin
+      for index in port_index'First .. last_port loop
+         id := index;
+         all_ports (index).subpackages.Iterate (search'Access);
+      end loop;
+      TIO.Put ("Removing obsolete packages ... ");
+      package_list.Iterate (kill'Access);
+      TIO.Put_Line ("done!  (packaged deleted: " & HT.int2str (counter) & ")");
+   end eliminate_obsolete_packages;
+
 end PortScan.Operations;

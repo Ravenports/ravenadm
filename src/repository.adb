@@ -1,21 +1,25 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Definitions; use Definitions;
-
 with Unix;
+with Replicant;
 with Parameters;
 with HelperText;
 with File_Operations;
+with PortScan.Scan;
+with PortScan.Operations;
+with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Text_IO;
 
 package body Repository is
 
+   package REP renames Replicant;
    package PM  renames Parameters;
    package HT  renames HelperText;
    package FOP renames File_Operations;
+   package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package EX  renames Ada.Exceptions;
    package TIO renames Ada.Text_IO;
@@ -219,5 +223,129 @@ package body Repository is
       --  fallback, use default
       return default;
    end get_repos_dir;
+
+
+   --------------------------------------------------------------------------------------------
+   --  write_pkg_repos_configuration_file
+   --------------------------------------------------------------------------------------------
+   function write_pkg_repos_configuration_file return Boolean
+   is
+      repdir : constant String := get_repos_dir;
+      target : constant String := repdir & "/00_raven.conf";
+      pkgdir : constant String := HT.USS (PM.configuration.dir_packages);
+      pubkey : constant String := get_file_prefix & "-public.key";
+      keydir : constant String := PM.raven_confdir & "/keys";
+      tstdir : constant String := keydir & "/trusted";
+      autgen : constant String := "# Automatically generated." & LAT.LF;
+      fpfile : constant String := tstdir & "/fingerprint." & HT.USS (PM.configuration.profile);
+      handle : TIO.File_Type;
+      vscmd  : Boolean := False;
+   begin
+      if DIR.Exists (target) then
+         DIR.Delete_File (target);
+      elsif not DIR.Exists (repdir) then
+         DIR.Create_Path (repdir);
+      end if;
+      TIO.Create (File => handle, Mode => TIO.Out_File, Name => target);
+      TIO.Put_Line (handle, autgen);
+      TIO.Put_Line (handle, "Raven: {");
+      TIO.Put_Line (handle, "  url      : file://" & pkgdir & ",");
+      TIO.Put_Line (handle, "  priority : 0,");
+      TIO.Put_Line (handle, "  enabled  : yes,");
+      if valid_signing_command then
+         vscmd := True;
+         TIO.Put_Line (handle, "  signature_type : FINGERPRINTS,");
+         TIO.Put_Line (handle, "  fingerprints   : " & keydir);
+      elsif set_raven_conf_with_RSA then
+         TIO.Put_Line (handle, "  signature_type : PUBKEY,");
+         TIO.Put_Line (handle, "  pubkey         : " & pubkey);
+      end if;
+      TIO.Put_Line (handle, "}");
+      TIO.Close (handle);
+      if vscmd then
+         if DIR.Exists (fpfile) then
+            DIR.Delete_File (fpfile);
+         elsif not DIR.Exists (tstdir) then
+            DIR.Create_Path (tstdir);
+         end if;
+         TIO.Create (File => handle, Mode => TIO.Out_File, Name => fpfile);
+         TIO.Put_Line (handle, autgen);
+         TIO.Put_Line (handle, "function    : sha256");
+         TIO.Put_Line (handle, "fingerprint : " & profile_fingerprint);
+         TIO.Close (handle);
+      end if;
+      return True;
+   exception
+      when others =>
+         TIO.Put_Line ("Error: failed to create " & target);
+         if TIO.Is_Open (handle) then
+            TIO.Close (handle);
+         end if;
+         return False;
+   end write_pkg_repos_configuration_file;
+
+
+   --------------------------------------------------------------------------------------------
+   --  rebuild_local_respository
+   --------------------------------------------------------------------------------------------
+   procedure preclean_repository (repository : String)
+   is
+   begin
+      if PortScan.Scan.scan_repository (repository) then
+         PortScan.Operations.eliminate_obsolete_packages;
+      end if;
+   end preclean_repository;
+
+
+   --------------------------------------------------------------------------------------------
+   --  rebuild_local_respository
+   --------------------------------------------------------------------------------------------
+   procedure rebuild_local_respository (remove_invalid_packages : Boolean;
+                                        scan_slave : builders)
+   is
+      ------------------------------------------------------------
+      --  fully_scan_tree must be executed before this routine  --
+      ------------------------------------------------------------
+      repo       : constant String := HT.USS (PM.configuration.dir_repository);
+      main       : constant String := HT.USS (PM.configuration.dir_packages);
+      xz_meta    : constant String := main & "/meta.txz";
+      xz_digest  : constant String := main & "/digests.txz";
+      xz_pkgsite : constant String := main & "/packagesite.txz";
+      bs_error   : constant String := "Rebuild Repository: Failed to bootstrap builder";
+      build_res  : Boolean;
+   begin
+      if remove_invalid_packages then
+         preclean_repository (repo);
+      end if;
+
+      if DIR.Exists (xz_meta) then
+         DIR.Delete_File (xz_meta);
+      end if;
+      if DIR.Exists (xz_digest) then
+         DIR.Delete_File (xz_digest);
+      end if;
+      if DIR.Exists (xz_pkgsite) then
+         DIR.Delete_File (xz_pkgsite);
+      end if;
+      TIO.Put_Line ("Rebuilding local repository.");
+      REP.initialize (testmode => False);
+      REP.launch_slave (scan_slave);
+--        if valid_signing_command then
+--           build_res := REP.build_repository (scan_slave,
+--                                              sign_command => signing_command);
+--        elsif acceptable_RSA_signing_support then
+--           build_res := REP.build_repository (scan_slave);
+--        else
+--           build_res := False;
+--        end if;
+build_res:=True;
+      REP.destroy_slave (scan_slave);
+      REP.finalize;
+      if build_res then
+         TIO.Put_Line ("Local repository successfully rebuilt");
+      else
+         TIO.Put_Line ("Failed to rebuild repository.");
+      end if;
+   end rebuild_local_respository;
 
 end Repository;

@@ -129,6 +129,9 @@ package Pilot is
    --  Scan entire ports tree
    function fully_scan_ports_tree return Boolean;
 
+   --  Executes routine to validate and create repository files
+   procedure generate_repository;
+
 private
 
    package HT renames HelperText;
