@@ -2196,7 +2196,7 @@ package body PortScan.Operations is
       sharedir     : constant String := host_localbase & "/share/ravenadm";
    begin
       DIR.Create_Path (reportdir);
-      DIR.Copy_File (sharedir & "/synth.png",     reportdir & "/synth.png");
+      DIR.Copy_File (sharedir & "/raven.png",     reportdir & "/raven.png");
       DIR.Copy_File (sharedir & "/favicon.png",   reportdir & "/favicon.png");
       DIR.Copy_File (sharedir & "/progress.js",   reportdir & "/progress.js");
       DIR.Copy_File (sharedir & "/progress.css",  reportdir & "/progress.css");
