@@ -942,9 +942,7 @@ package body PortScan.Operations is
             numskipped := numskipped + 1;
             LOG.scribe (PortScan.total, "           Skipped: " & get_port_variant (purged), False);
             LOG.scribe (PortScan.skipped, get_port_variant (purged) & " by " & culprit, False);
-            if curses_support then
-               DPY.insert_history (CYC.assemble_history_record (1, purged, DPY.action_skipped));
-            end if;
+            DPY.insert_history (CYC.assemble_history_record (1, purged, DPY.action_skipped));
             record_history_skipped (elapsed => LOG.elapsed_now,
                                     origin  => get_port_variant (purged),
                                     reason  => culprit);
