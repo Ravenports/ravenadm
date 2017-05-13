@@ -147,6 +147,9 @@ private
    bailing    : constant String := "  (ravenadm must exit)";
    shutreq    : constant String := "Graceful shutdown requested, exiting ...";
    brkname    : constant String := "ENTERAFTER";
+   badformat  : constant String := "Invalid format: ";
+   badname    : constant String := "Invalid port namebase: ";
+   badvariant : constant String := "Invalid port variant: ";
 
    scan_slave : constant builders := 9;
    ss_base    : constant String   := "/SL09";
@@ -170,5 +173,10 @@ private
       bad_format   : out Boolean;
       assume_std   : out Boolean;
       known_std    : out Boolean) return Boolean;
+
+   --  scan given file.  Everything line must be either blank (whitespace
+   --  ignored) or a valid port origin, and returns true if it is.
+   --  Internally, the ports are stacked.
+   function valid_origin_file (regular_file : String) return Boolean;
 
 end Pilot;

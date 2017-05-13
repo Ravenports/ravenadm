@@ -733,11 +733,21 @@ package body Pilot is
    function store_origins (start_from : Positive) return Boolean
    is
       --  format is <namebase>:<variant>
-      badformat  : constant String := "Invalid format: ";
-      badname    : constant String := "Invalid port namebase: ";
-      badvariant : constant String := "Invalid port variant: ";
    begin
       all_stdvar := True;
+      if CLI.Argument_Count = 2 then
+         --  Check if this is a file
+         declare
+            potential_file : String renames CLI.Argument (2);
+            use type DIR.File_Kind;
+         begin
+            if DIR.Exists (potential_file) and then
+              DIR.Kind (potential_file) = DIR.Ordinary_File
+            then
+               return valid_origin_file (potential_file);
+            end if;
+         end;
+      end if;
       for k in start_from .. CLI.Argument_Count loop
          declare
             Argk : constant String := CLI.Argument (k);
@@ -861,6 +871,55 @@ package body Pilot is
          end;
       end if;
    end valid_origin;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_origin_file
+   --------------------------------------------------------------------------------------------
+   function valid_origin_file (regular_file : String) return Boolean
+   is
+      origin_list : constant String := FOP.get_file_contents (regular_file);
+      markers     : HT.Line_Markers;
+      good        : Boolean := True;
+      total       : Natural := 0;
+   begin
+      HT.initialize_markers (origin_list, markers);
+      loop
+         exit when not HT.next_line_present (origin_list, markers);
+         declare
+            line         : constant String := HT.extract_line (origin_list, markers);
+            bad_namebase : Boolean;
+            bad_format   : Boolean;
+            add_standard : Boolean;
+            is_stdvar    : Boolean;
+         begin
+            if not HT.IsBlank (line) then
+               if valid_origin (line, bad_namebase, bad_format, add_standard, is_stdvar) then
+                  if add_standard then
+                     PortScan.insert_into_portlist (line & LAT.Colon & variant_standard);
+                  else
+                     PortScan.insert_into_portlist (line);
+                  end if;
+                  if not is_stdvar then
+                     all_stdvar := False;
+                  end if;
+                  total := total + 1;
+               else
+                  if bad_format then
+                     TIO.Put_Line (badformat & "'" & line & "'");
+                  elsif bad_namebase then
+                     TIO.Put_Line (badname & "'" & line & "'");
+                  else
+                     TIO.Put_Line (badvariant & "'" & line & "'");
+                  end if;
+                  good := False;
+                  exit;
+               end if;
+            end if;
+         end;
+      end loop;
+      return (total > 0) and then good;
+   end valid_origin_file;
 
 
    --------------------------------------------------------------------------------------------
