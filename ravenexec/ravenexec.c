@@ -17,6 +17,9 @@
 #if defined __DragonFly__ || defined __FreeBSD__
 #include <sys/procctl.h>
 #endif
+#ifndef __unused
+#define __unused __attribute__((__unused__))
+#endif
 
 /*
  * reap_process kills per given pid and waits for it to return
@@ -122,7 +125,9 @@ main (int argc, char *argv[])
    dup2 (fd, STDOUT_FILENO);
    dup2 (fd, STDERR_FILENO);
    close (fd);
+#ifndef __linux__
    closefrom (3);
+#endif
 
 #ifdef PROC_REAP_ACQUIRE
    /*
