@@ -988,7 +988,7 @@ package body PortScan.Buildcycle is
       function probe_load return String
       is
          bsd  : constant String := "/usr/bin/env LANG=C /sbin/sysctl vm.loadavg";
-         lin  : constant String := "/usr/bin/cat /proc/loadavg";
+         lin  : constant String := "/bin/cat /proc/loadavg";
          sol  : constant String := "/usr/bin/uptime";
       begin
          case platform_type is

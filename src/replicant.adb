@@ -21,6 +21,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure initialize (testmode  : Boolean)
    is
+      raven_sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
       mm     : constant String := get_master_mount;
       sretc  : constant String := raven_sysroot & "/usr/share";
       maspas : constant String := "/master.passwd";
@@ -48,8 +49,10 @@ package body Replicant is
             DIR.Copy_File (sretc & passwd, mm & passwd);
             DIR.Copy_File (sretc & maspas, mm & maspas);
             DIR.Copy_File (sretc & group,  mm & group);
-         when linux     |
-              sunos     => null;  -- passwd not used
+         when linux     =>
+            DIR.Copy_File (sretc & passwd, mm & passwd);
+            DIR.Copy_File (sretc & group,  mm & group);
+         when sunos     => null;  -- passwd not used
       end case;
       case platform_type is
          when dragonfly |
@@ -534,7 +537,7 @@ package body Replicant is
               netbsd    |
               openbsd   => return "/bin/df -h -t null,tmpfs,devfs,procfs";
          when sunos     => return "/usr/sbin/df -h";
-         when linux     => return "/usr/bin/df -h";
+         when linux     => return "/bin/df -h -a";
       end case;
    end df_command;
 
@@ -546,7 +549,7 @@ package body Replicant is
    is
       bsd_command : constant String := "/sbin/umount " & device_or_node;
       sol_command : constant String := "/usr/sbin/umount " & device_or_node;
-      lin_command : constant String := "/usr/bin/umount " & device_or_node;
+      lin_command : constant String := "/bin/umount " & device_or_node;
    begin
       --  failure to unmount causes stderr squawks which messes up curses display
       --  Just log it and ignore for now (Add robustness later)
@@ -573,7 +576,7 @@ package body Replicant is
       cmd_freebsd   : constant String := "/sbin/mount_nullfs";
       cmd_dragonfly : constant String := "/sbin/mount_null";
       cmd_solaris   : constant String := "/usr/sbin/mount -F lofs";
-      cmd_linux     : constant String := "/usr/bin/mount --bind";
+      cmd_linux     : constant String := "/bin/mount --bind";
       command       : HT.Text;
    begin
       if not DIR.Exists (mount_point) then
@@ -611,15 +614,16 @@ package body Replicant is
       cmd_freebsd   : constant String := "/sbin/mount -t tmpfs";
       cmd_dragonfly : constant String := "/sbin/mount_tmpfs";
       cmd_solaris   : constant String := "/sbin/mount -F tmpfs";
+      cmd_linux     : constant String := "/bin/mount -t tmpfs";
       command       : HT.Text;
    begin
       case platform_type is
          when freebsd   |
               netbsd    |
-              openbsd   |
-              linux     => command := HT.SUS (cmd_freebsd);
+              openbsd   => command := HT.SUS (cmd_freebsd);
          when dragonfly => command := HT.SUS (cmd_dragonfly);
          when sunos     => command := HT.SUS (cmd_solaris);
+         when linux     => command := HT.SUS (cmd_linux);
          when macos     =>
             raise scenario_unexpected with
               "Null mounting not supported on " & platform_type'Img;
@@ -646,7 +650,7 @@ package body Replicant is
    procedure mount_devices (path_to_dev : String)
    is
       bsd_command : constant String := "/sbin/mount -t devfs devfs " & path_to_dev;
-      lin_command : constant String := "/usr/bin/mount --bind /dev " & path_to_dev;
+      lin_command : constant String := "/bin/mount --bind /dev " & path_to_dev;
    begin
       case platform_type is
          when dragonfly |
@@ -676,7 +680,7 @@ package body Replicant is
    is
       bsd_command : constant String := "/sbin/mount -t procfs proc " & path_to_proc;
       net_command : constant String := "/sbin/mount_procfs /proc " & path_to_proc;
-      lin_command : constant String := "/usr/bin/mount --bind /proc " & path_to_proc;
+      lin_command : constant String := "/bin/mount --bind /proc " & path_to_proc;
    begin
       case platform_type is
          when dragonfly |
@@ -783,6 +787,11 @@ package body Replicant is
          --  e.g. <slave>/var/empty does not exist on NetBSD
          return;
       end if;
+      if platform_type = linux then
+         --  chattr does not work on tmpfs partitions
+         --  It appears immutable locking can't be supported on Linux
+         return;
+      end if;
       case platform_type is
          when freebsd   => command := HT.SUS (cmd_freebsd);
          when dragonfly |
@@ -866,7 +875,7 @@ package body Replicant is
       mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
-      if need_procfs then
+      if need_procfs or else platform_type = linux then
          mount_procfs (path_to_proc => location (slave_base, proc));
       end if;
 
@@ -910,7 +919,7 @@ package body Replicant is
          unmount (location (slave_base, ccache));
       end if;
 
-      if need_procfs then
+      if need_procfs or else platform_type = linux then
          unmount_procfs (location (slave_base, proc));
       end if;
 
@@ -1123,8 +1132,11 @@ package body Replicant is
       TIO.Create (File => shells,
                   Mode => TIO.Out_File,
                   Name => path_to_etc & "/shells");
-      TIO.Put_Line (shells, "/bin/sh" & LAT.LF);
-      TIO.Put_Line (shells, "/bin/csh" & LAT.LF);
+      TIO.Put_Line (shells, "/bin/sh");
+      TIO.Put_Line (shells, "/bin/csh");
+      if platform_type = linux then
+         TIO.Put_Line (shells, "/bin/bash");
+      end if;
       TIO.Close (shells);
    end create_etc_shells;
 
