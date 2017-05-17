@@ -62,11 +62,10 @@ private
 
    type mount_mode is (readonly, readwrite);
    type folder_operation is (lock, unlock);
-   type folder is (bin, libexec, usr,
+   type folder is (bin, libexec, usr, lib, lib64,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, home,
                    proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain);
-   subtype subfolder is folder range bin .. usr;
    subtype safefolders is folder range bin .. ccache;
 
    --  home and root need to be set readonly
@@ -78,6 +77,7 @@ private
    root_etc_default : constant String := "/etc/defaults";
    root_etc_rcd     : constant String := "/etc/rc.d";
    root_lib         : constant String := "/lib";
+   root_lib64       : constant String := "/lib64";
    root_tmp         : constant String := "/tmp";
    root_var         : constant String := "/var";
    root_home        : constant String := "/home";

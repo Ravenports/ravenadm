@@ -724,6 +724,8 @@ package body Replicant is
          when root        => return mount_base & root_root;
          when xports      => return mount_base & root_xports;
          when port        => return mount_base & root_port;
+         when lib         => return mount_base & root_lib;
+         when lib64       => return mount_base & root_lib64;
          when libexec     => return mount_base & root_libexec;
          when packages    => return mount_base & root_packages;
          when distfiles   => return mount_base & root_distfiles;
@@ -827,19 +829,11 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure launch_slave  (id : builders; need_procfs : Boolean := False)
     is
-      function clean_mount_point (point : folder) return String;
-
       slave_base  : constant String := get_slave_mount (id);
       slave_local : constant String := slave_base & "_localbase";
       dir_system  : constant String := HT.USS (PM.configuration.dir_sysroot);
       lbase       : constant String := HT.USS (PM.configuration.dir_localbase);
       etc_path    : constant String := location (slave_base, etc);
-
-      function clean_mount_point (point : folder) return String is
-      begin
-         return location (dir_system, point);
-      end clean_mount_point;
-
    begin
       forge_directory (slave_base);
 
@@ -863,10 +857,17 @@ package body Replicant is
          forge_directory (location (slave_base, mnt));
       end loop;
 
-      for mnt in subfolder'Range loop
-         mount_nullfs (target      => clean_mount_point (mnt),
-                       mount_point => location (slave_base, mnt));
-      end loop;
+      mount_nullfs (location (dir_system, bin),  location (slave_base, bin));
+      mount_nullfs (location (dir_system, usr),  location (slave_base, usr));
+      case platform_type is
+         when freebsd | dragonfly | netbsd | openbsd =>
+            mount_nullfs (location (dir_system, libexec),  location (slave_base, libexec));
+         when linux =>
+            mount_nullfs (location (dir_system, lib),  location (slave_base, lib));
+            mount_nullfs (location (dir_system, lib64),  location (slave_base, lib64));
+         when macos | sunos =>
+            null;  --  for now
+      end case;
 
       folder_access (location (slave_base, home), lock);
       folder_access (location (slave_base, root), lock);
@@ -935,9 +936,17 @@ package body Replicant is
       folder_access (location (slave_base, home), unlock);
       folder_access (location (slave_base, var) & "/empty", unlock);
 
-      for mnt in subfolder'Range loop
-         unmount (location (slave_base, mnt));
-      end loop;
+      unmount (location (slave_base, bin));
+      unmount (location (slave_base, usr));
+      case platform_type is
+         when freebsd | dragonfly | netbsd | openbsd =>
+            unmount (location (slave_base, libexec));
+         when linux =>
+            unmount (location (slave_base, lib));
+            unmount (location (slave_base, lib64));
+         when macos | sunos =>
+            null;
+      end case;
 
       if PM.configuration.avoid_tmpfs then
          unmount (slave_base & lbase);
