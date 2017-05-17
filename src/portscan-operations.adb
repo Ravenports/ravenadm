@@ -1077,8 +1077,16 @@ package body PortScan.Operations is
       --   L: ELF 64-bit LSB executable, x86-64
       --  NATIVE Solaris (we use our own file)
       --  /usr/bin/sh:    ELF 64-bit LSB executable AMD64 Version 1
+
+      fragment : constant String := HT.trim (HT.specific_field (fileinfo, 2, ","));
+      answer   : filearch := (others => ' ');
    begin
-      return fileinfo (fileinfo'First + 27 .. fileinfo'First + 37);
+      if fragment'Length > filearch'Length then
+         answer := fragment (fragment'First .. fragment'First + filearch'Length - 1);
+      else
+         answer (answer'First .. answer'First + fragment'Length - 1) := fragment;
+      end if;
+      return answer;
    end isolate_arch_from_file_type;
 
 
@@ -1091,6 +1099,7 @@ package body PortScan.Operations is
       function suffix    (arch : filearch) return String;
       function get_major (fileinfo : String; OS : String) return String;
       function even      (fileinfo : String) return String;
+      procedure craft_common_endings (release : String);
 
       sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
       command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
@@ -1196,6 +1205,18 @@ package body PortScan.Operations is
          return major;
       end get_major;
 
+      procedure craft_common_endings (release : String) is
+      begin
+         HT.SU.Append (abi_formats.calculated_abi, release & ":");
+         HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
+         abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
+         abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
+         HT.SU.Append (abi_formats.calculated_abi, newsuffix (arch));
+         HT.SU.Append (abi_formats.calculated_alt_abi, suffix (arch));
+         HT.SU.Append (abi_formats.calc_abi_noarch, "*");
+         HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+      end craft_common_endings;
+
    begin
       UN   := Unix.piped_command (command, status);
       arch := isolate_arch_from_file_type (HT.USS (UN));
@@ -1221,33 +1242,28 @@ package body PortScan.Operations is
             begin
                abi_formats.calculated_abi     := HT.SUS (fbsd1);
                abi_formats.calculated_alt_abi := HT.SUS (fbsd2);
-               HT.SU.Append (abi_formats.calculated_abi, release & ":");
-               HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
-               abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-               abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-               HT.SU.Append (abi_formats.calculated_abi, newsuffix (arch));
-               HT.SU.Append (abi_formats.calculated_alt_abi, suffix (arch));
-               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-               HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+               craft_common_endings (release);
             end;
          when netbsd =>
             declare
-               net1     : constant String := "NetBSD:";
-               net2     : constant String := "netbsd:";
-               release  : constant String := get_major (HT.USS (UN), "NetBSD ");
+               net1    : constant String := "NetBSD:";
+               net2    : constant String := "netbsd:";
+               release : constant String := get_major (HT.USS (UN), "NetBSD ");
             begin
                abi_formats.calculated_abi     := HT.SUS (net1);
                abi_formats.calculated_alt_abi := HT.SUS (net2);
-               HT.SU.Append (abi_formats.calculated_abi, release & ":");
-               HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
-               abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-               abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-               HT.SU.Append (abi_formats.calculated_abi, newsuffix (arch));
-               HT.SU.Append (abi_formats.calculated_alt_abi, suffix (arch));
-               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-               HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+               craft_common_endings (release);
             end;
-         when linux   => null;  --  TBD (check ABI first)
+         when linux   =>
+            declare
+               gnu1    : constant String := "GNU:";
+               gnu2    : constant String := "gnu:";
+               release : constant String := "0";   --  requires fix to pkg (TBW)
+            begin
+               abi_formats.calculated_abi     := HT.SUS (gnu1);
+               abi_formats.calculated_alt_abi := HT.SUS (gnu2);
+               craft_common_endings (release);
+            end;
          when sunos   => null;  --  TBD (check ABI first)
          when macos   => null;
          when openbsd => null;
