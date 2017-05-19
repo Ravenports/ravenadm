@@ -889,32 +889,76 @@ package body PortScan.Buildcycle is
 
       procedure scan (position : string_crate.Cursor)
       is
-         line      : String := HT.USS (string_crate.Element (position));
-         paths     : String := HT.part_1 (line, " ");
-         library   : String := HT.part_2 (line, " ");
-         lib_text  : HT.Text := HT.SUS (library);
-         numfields : Natural := HT.count_char (paths, LAT.Colon) + 1;
-         errmsg    : String := errmsg_prefix & library &
-                     " is not in located in /usr/lib or within the RPATH/RUNPATH";
-         systemlib : String := "/usr/lib/" & library;
-         syslibtxt : HT.Text := HT.SUS (systemlib);
-         attempted : Boolean := False;
+         procedure squawk;
+         function get_system_lib_level_1 return String;
+         function get_system_lib_level_2 return String;
+
+         line        : String := HT.USS (string_crate.Element (position));
+         paths       : constant String := HT.part_1 (line, " ");
+         library     : constant String := HT.part_2 (line, " ");
+         numfields   : constant Natural := HT.count_char (paths, LAT.Colon) + 1;
+         attempted   : Boolean := False;
+
+         function get_system_lib_level_1 return String is
+         begin
+            if platform_type = linux then
+               return "/lib64";
+            else
+               return "/lib";
+            end if;
+         end get_system_lib_level_1;
+
+         function get_system_lib_level_2 return String is
+         begin
+            if platform_type = linux then
+               return "/usr/lib64";
+            else
+               return "/usr/lib";
+            end if;
+         end get_system_lib_level_2;
+
+         systemdir_1 : constant String := get_system_lib_level_1;
+         systemdir_2 : constant String := get_system_lib_level_2;
+         systemlib_1 : constant String := systemdir_1 & "/" & library;
+         systemlib_2 : constant String := systemdir_2 & "/" & library;
+         syslib_1txt : HT.Text := HT.SUS (systemlib_1);
+         syslib_2txt : HT.Text := HT.SUS (systemlib_2);
+
+         procedure squawk is
+         begin
+            TIO.Put_Line (trackers (id).log_handle,
+                          errmsg_prefix & library & " is not in located in " & systemdir_1 &
+                            ", " & systemdir_2 & " or within the RPATH/RUNPATH");
+         end squawk;
+
       begin
-         --  Check /usr/lib first
-         if trackers (id).goodpaths.Contains (syslibtxt) then
+         --  Check system library paths first
+         if trackers (id).goodpaths.Contains (syslib_1txt) or else
+           trackers (id).goodpaths.Contains (syslib_2txt)
+         then
             return;
          end if;
-         if not trackers (id).checkpaths.Contains (syslibtxt) then
-            if DIR.Exists (root & systemlib) then
-               trackers (id).goodpaths.Append (syslibtxt);
+
+         if not trackers (id).checkpaths.Contains (syslib_1txt) then
+            if DIR.Exists (root & systemlib_1) then
+               trackers (id).goodpaths.Append (syslib_1txt);
                return;
             end if;
-            trackers (id).checkpaths.Append (syslibtxt);
+            trackers (id).checkpaths.Append (syslib_1txt);
             attempted := True;
          end if;
 
-         if paths = "" then
-            TIO.Put_Line (trackers (id).log_handle, errmsg);
+         if not trackers (id).checkpaths.Contains (syslib_2txt) then
+            if DIR.Exists (root & systemlib_2) then
+               trackers (id).goodpaths.Append (syslib_2txt);
+               return;
+            end if;
+            trackers (id).checkpaths.Append (syslib_2txt);
+            attempted := True;
+         end if;
+
+         if HT.IsBlank (paths) then
+            squawk;
             result := fail_result;
             return;
          end if;
@@ -940,7 +984,7 @@ package body PortScan.Buildcycle is
          end loop;
 
          if attempted then
-            TIO.Put_Line (trackers (id).log_handle, errmsg);
+            squawk;
             result := fail_result;
          end if;
       end scan;
