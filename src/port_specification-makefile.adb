@@ -38,6 +38,7 @@ package body Port_Specification.Makefile is
       procedure dump_ext_zip   (position : string_crate.Cursor);
       procedure dump_ext_7z    (position : string_crate.Cursor);
       procedure dump_ext_lha   (position : string_crate.Cursor);
+      procedure dump_ext_deb   (position : string_crate.Cursor);
       procedure dump_line      (position : string_crate.Cursor);
       procedure dump_extract_head_tail (position : list_crate.Cursor);
       procedure dump_dirty_extract (position : string_crate.Cursor);
@@ -136,6 +137,8 @@ package body Port_Specification.Makefile is
                send (varname & "=", True);
                crate.Iterate (Process => print_module'Access);
                send ("");
+            when 11 =>
+               crate.Iterate (Process => dump_ext_deb'Access);
             when others =>
                raise dev_error;
          end case;
@@ -308,6 +311,14 @@ package body Port_Specification.Makefile is
          send ("EXTRACT_HEAD_" & N & "=lha xfpw=${EXTRACT_WRKDIR_" & N & "}");
          send ("EXTRACT_TAIL_" & N & "=# empty");
       end dump_ext_lha;
+
+      procedure dump_ext_deb (position : string_crate.Cursor)
+      is
+         N : String := HT.USS (string_crate.Element (position));
+      begin
+         send ("EXTRACT_HEAD_" & N & "=ar -x");
+         send ("EXTRACT_TAIL_" & N & "=&& ${TAR} -xf data.tar.*");
+      end dump_ext_deb;
 
       procedure dump_dirty_extract (position : string_crate.Cursor)
       is

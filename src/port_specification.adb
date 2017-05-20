@@ -56,6 +56,7 @@ package body Port_Specification is
       specs.extract_zip.Clear;
       specs.extract_lha.Clear;
       specs.extract_7z.Clear;
+      specs.extract_deb.Clear;
       specs.extract_dirty.Clear;
       specs.extract_head.Clear;
       specs.extract_tail.Clear;
@@ -564,6 +565,11 @@ package body Port_Specification is
             verify_df_index;
             verify_special_exraction;
             specs.extract_zip.Append (text_value);
+         when sp_ext_deb =>
+            verify_entry_is_post_options;
+            verify_df_index;
+            verify_special_exraction;
+            specs.extract_deb.Append (text_value);
          when sp_ext_dirty =>
             verify_entry_is_post_options;
             verify_df_index;
@@ -4005,6 +4011,7 @@ package body Port_Specification is
             when sp_ext_zip       => specs.extract_zip.Iterate (Process => print_item'Access);
             when sp_ext_7z        => specs.extract_7z.Iterate (Process => print_item'Access);
             when sp_ext_lha       => specs.extract_lha.Iterate (Process => print_item'Access);
+            when sp_ext_deb       => specs.extract_deb.Iterate (Process => print_item'Access);
             when sp_ext_dirty     => specs.extract_dirty.Iterate (Process => print_item'Access);
             when sp_make_args     => specs.make_args.Iterate (Process => print_item'Access);
             when sp_make_env      => specs.make_env.Iterate (Process => print_item'Access);
@@ -4191,6 +4198,7 @@ package body Port_Specification is
       print_vector_list ("EXTRACT_WITH_UNZIP", sp_ext_zip);
       print_vector_list ("EXTRACT_WITH_7Z", sp_ext_7z);
       print_vector_list ("EXTRACT_WITH_LHA", sp_ext_lha);
+      print_vector_list ("EXTRACT_DEB_PACKAGE", sp_ext_deb);
       print_vector_list ("EXTRACT_DIRTY", sp_ext_dirty);
       print_group_list  ("EXTRACT_HEAD", sp_ext_head);
       print_group_list  ("EXTRACT_TAIL", sp_ext_tail);

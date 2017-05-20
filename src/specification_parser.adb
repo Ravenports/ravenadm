@@ -434,6 +434,7 @@ package body Specification_Parser is
                      when ext_zip          => build_list (spec, PSP.sp_ext_zip, line);
                      when ext_7z           => build_list (spec, PSP.sp_ext_7z, line);
                      when ext_lha          => build_list (spec, PSP.sp_ext_lha, line);
+                     when ext_deb          => build_list (spec, PSP.sp_ext_deb, line);
                      when ext_dirty        => build_list (spec, PSP.sp_ext_dirty, line);
                      when make_args        => build_list (spec, PSP.sp_make_args, line);
                      when make_env         => build_list (spec, PSP.sp_make_env, line);
@@ -1022,7 +1023,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 132;
+      total_singlets : constant Positive := 133;
 
       type singlet_pair is
          record
@@ -1081,6 +1082,7 @@ package body Specification_Parser is
          ("DOWNLOAD_GROUPS       ", 15, dl_groups),
          ("EPOCH                 ",  5, epoch),
          ("EXPIRATION_DATE       ", 15, expiration),
+         ("EXTRACT_DEB_PACKAGE   ", 19, ext_deb),
          ("EXTRACT_DIRTY         ", 13, ext_dirty),
          ("EXTRACT_ONLY          ", 12, ext_only),
          ("EXTRACT_WITH_7Z       ", 15, ext_7z),

@@ -39,7 +39,8 @@ package Port_Specification is
                        sp_lic_file, sp_lic_scheme, sp_skip_ccache, sp_test_tgt, sp_exrun,
                        sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
                        sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
-                       sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group);
+                       sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
+                       sp_ext_deb);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -403,6 +404,7 @@ private
          extract_zip   : string_crate.Vector;
          extract_lha   : string_crate.Vector;
          extract_7z    : string_crate.Vector;
+         extract_deb   : string_crate.Vector;
          extract_dirty : string_crate.Vector;
          extract_head  : list_crate.Map;
          extract_tail  : list_crate.Map;

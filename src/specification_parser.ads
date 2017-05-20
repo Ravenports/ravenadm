@@ -55,7 +55,7 @@ private
                          catchall, shift_install, diode, lic_scheme, lic_file, lic_name,
                          skip_ccache, test_target, mandirs, invalid_rpath, debugging, broken_ssl,
                          test_args, gnome_comp, rc_scripts, ug_subpackage, broken_mysql,
-                         broken_pgsql, og_radio, og_restrict, og_unlimited);
+                         broken_pgsql, og_radio, og_restrict, og_unlimited, ext_deb);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);

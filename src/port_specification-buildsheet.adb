@@ -653,6 +653,7 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_WITH_UNZIP",   specs.extract_zip, 2);
       send ("EXTRACT_WITH_7Z",      specs.extract_7z, 2);
       send ("EXTRACT_WITH_LHA",     specs.extract_lha, 2);
+      send ("EXTRACT_DEB_PACKAGE",  specs.extract_deb, 2);
       send ("EXTRACT_HEAD",         specs.extract_head, 5);
       send ("EXTRACT_TAIL",         specs.extract_tail, 5);
       blank_line;
