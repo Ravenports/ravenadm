@@ -1637,6 +1637,8 @@ package body Port_Specification.Transform is
       procedure apply_to_list1 (position : list_crate.Cursor);
       procedure apply_to_list2 (position : list_crate.Cursor);
       procedure apply_to_list3 (position : list_crate.Cursor);
+      procedure apply_to_list4 (position : list_crate.Cursor);
+      procedure apply_to_list5 (position : list_crate.Cursor);
       procedure alter (Key : HT.Text; Element : in out group_list);
 
       procedure alter (Key : HT.Text; Element : in out group_list) is
@@ -1659,6 +1661,16 @@ package body Port_Specification.Transform is
          specs.extract_tail.Update_Element (Position => position,
                                             Process  => alter'Access);
       end apply_to_list3;
+      procedure apply_to_list4 (position : list_crate.Cursor) is
+      begin
+         specs.var_opsys.Update_Element (Position => position,
+                                         Process  => alter'Access);
+      end apply_to_list4;
+      procedure apply_to_list5 (position : list_crate.Cursor) is
+      begin
+         specs.var_arch.Update_Element (Position => position,
+                                        Process  => alter'Access);
+      end apply_to_list5;
 
    begin
       UTL.apply_cbc_string (specs.install_wrksrc);
@@ -1690,6 +1702,8 @@ package body Port_Specification.Transform is
       specs.catch_all.Iterate (apply_to_list1'Access);
       specs.extract_head.Iterate (apply_to_list2'Access);
       specs.extract_tail.Iterate (apply_to_list3'Access);
+      specs.var_opsys.Iterate (apply_to_list4'Access);
+      specs.var_arch.Iterate (apply_to_list5'Access);
 
    end apply_curly_bracket_conversions;
 
