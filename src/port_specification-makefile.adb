@@ -713,6 +713,7 @@ package body Port_Specification.Makefile is
       send ("ZIP-EXTRACT",      specs.extract_zip, 3);
       send ("7Z-EXTRACT",       specs.extract_7z, 4);
       send ("LHA-EXTRACT",      specs.extract_lha, 5);
+      send ("DEB-EXTRACT",      specs.extract_deb, 11);
       send ("EXTRACT_HEAD",     specs.extract_head, 6);
       send ("EXTRACT_TAIL",     specs.extract_tail, 6);
       dump_broken;
