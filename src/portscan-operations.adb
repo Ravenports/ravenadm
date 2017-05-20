@@ -2318,7 +2318,7 @@ package body PortScan.Operations is
          when netbsd | openbsd =>
             return "/sbin/swapctl -lk";
          when linux =>
-            return "/usr/sbin/swapon --bytes --show=NAME,SIZE,USED,PRIO";
+            return "/sbin/swapon --bytes --show=NAME,SIZE,USED,PRIO";
          when sunos =>
             return "/usr/sbin/swap -l";
          when macos =>
