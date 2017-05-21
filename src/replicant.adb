@@ -864,6 +864,7 @@ package body Replicant is
          when freebsd | dragonfly | netbsd | openbsd =>
             mount_nullfs (location (dir_system, libexec),  location (slave_base, libexec));
          when linux =>
+            mount_nullfs (location (dir_system, lib),  location (slave_base, lib));
             mount_nullfs (location (dir_system, lib64),  location (slave_base, lib64));
          when macos | sunos =>
             null;  --  for now
@@ -942,6 +943,7 @@ package body Replicant is
          when freebsd | dragonfly | netbsd | openbsd =>
             unmount (location (slave_base, libexec));
          when linux =>
+            unmount (location (slave_base, lib));
             unmount (location (slave_base, lib64));
          when macos | sunos =>
             null;
