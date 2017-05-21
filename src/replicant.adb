@@ -79,14 +79,15 @@ package body Replicant is
          when dragonfly |
               freebsd   =>
             DIR.Copy_File (sretc & hints, mm & hints);
+            DIR.Copy_File (sretc & trmcap, mm & trmcap);
          when netbsd    |
               openbsd   =>
             DIR.Copy_File (sretc & nhints, mm & nhints);
+            DIR.Copy_File (sretc & trmcap, mm & trmcap);
          when linux     |
               macos     |
               sunos     => null;
       end case;
-      DIR.Copy_File (sretc & trmcap, mm & trmcap);
       create_mtree_exc_preinst (mm);
       create_mtree_exc_preconfig (mm);
 
@@ -863,7 +864,6 @@ package body Replicant is
          when freebsd | dragonfly | netbsd | openbsd =>
             mount_nullfs (location (dir_system, libexec),  location (slave_base, libexec));
          when linux =>
-            mount_nullfs (location (dir_system, lib),  location (slave_base, lib));
             mount_nullfs (location (dir_system, lib64),  location (slave_base, lib64));
          when macos | sunos =>
             null;  --  for now
