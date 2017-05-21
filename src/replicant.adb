@@ -942,7 +942,6 @@ package body Replicant is
          when freebsd | dragonfly | netbsd | openbsd =>
             unmount (location (slave_base, libexec));
          when linux =>
-            unmount (location (slave_base, lib));
             unmount (location (slave_base, lib64));
          when macos | sunos =>
             null;
