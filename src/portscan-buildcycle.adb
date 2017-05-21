@@ -902,7 +902,7 @@ package body PortScan.Buildcycle is
          function get_system_lib_level_1 return String is
          begin
             if platform_type = linux then
-               return "/lib64";
+               return "/lib/x86_64-linux-gnu";
             else
                return "/lib";
             end if;
@@ -911,7 +911,7 @@ package body PortScan.Buildcycle is
          function get_system_lib_level_2 return String is
          begin
             if platform_type = linux then
-               return "/usr/lib64";
+               return "/usr/lib/x86_64-linux-gnu";
             else
                return "/usr/lib";
             end if;
