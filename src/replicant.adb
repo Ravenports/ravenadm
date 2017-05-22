@@ -33,7 +33,8 @@ package body Replicant is
       nhints : constant String := "/ld.so.hints";
       trmcap : constant String := "/termcap";
       group  : constant String := "/group";
-      ldconf : constant String := "/x86_64-linux-gnu.conf";
+      ldcnf1 : constant String := "/x86_64-linux-gnu.conf";
+      ldcnf2 : constant String := "/ld.so.conf";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
@@ -86,7 +87,8 @@ package body Replicant is
             DIR.Copy_File (sretc & nhints, mm & nhints);
             DIR.Copy_File (sretc & trmcap, mm & trmcap);
          when linux     =>
-            DIR.Copy_File (sretc & ldconf, mm & ldconf);
+            DIR.Copy_File (sretc & ldcnf1, mm & ldcnf1);
+            DIR.Copy_File (sretc & ldcnf2, mm & ldcnf2);
          when macos     |
               sunos     => null;
       end case;
@@ -1094,6 +1096,7 @@ package body Replicant is
       mtree1 : constant String := "/mtree.preconfig.exclude";
       mtree2 : constant String := "/mtree.prestage.exclude";
       trmcap : constant String := "/termcap";
+      ldcnf2 : constant String := "/ld.so.conf";
 
       procedure install (filename : String) is
       begin
@@ -1111,6 +1114,7 @@ package body Replicant is
       install (mtree1);
       install (mtree2);
       install (trmcap);
+      install (ldcnf2);
    end install_passwd_and_group;
 
 
