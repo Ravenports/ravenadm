@@ -64,7 +64,7 @@ private
    type folder_operation is (lock, unlock);
    type folder is (bin, libexec, usr, lib, lib64,
                    xports, packages, distfiles,
-                   dev, etc, etc_default, etc_rcd, home,
+                   dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
                    proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain);
    subtype safefolders is folder range bin .. ccache;
 
@@ -76,6 +76,7 @@ private
    root_etc         : constant String := "/etc";
    root_etc_default : constant String := "/etc/defaults";
    root_etc_rcd     : constant String := "/etc/rc.d";
+   root_etc_ldsocnf : constant String := "/etc/ld.so.conf.d";
    root_lib         : constant String := "/lib";
    root_lib64       : constant String := "/lib64";
    root_tmp         : constant String := "/tmp";
@@ -169,6 +170,9 @@ private
 
    --  create /etc/shells, required by install scripts of some packages
    procedure create_etc_shells (path_to_etc : String);
+
+   --  Install linux /etc/ld.so.conf.d/* file
+   procedure install_linux_ldsoconf (path_to_etc_ldsocnf : String);
 
     --  create /etc/make.conf in slave
    procedure create_make_conf (path_to_etc : String);

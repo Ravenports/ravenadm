@@ -33,6 +33,7 @@ package body Replicant is
       nhints : constant String := "/ld.so.hints";
       trmcap : constant String := "/termcap";
       group  : constant String := "/group";
+      ldconf : constant String := "/x86_64-linux-gnu.conf";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
@@ -84,8 +85,9 @@ package body Replicant is
               openbsd   =>
             DIR.Copy_File (sretc & nhints, mm & nhints);
             DIR.Copy_File (sretc & trmcap, mm & trmcap);
-         when linux     |
-              macos     |
+         when linux     =>
+            DIR.Copy_File (sretc & ldconf, mm & ldconf);
+         when macos     |
               sunos     => null;
       end case;
       create_mtree_exc_preinst (mm);
@@ -508,6 +510,7 @@ package body Replicant is
          & "./etc/pwd.db" & LAT.LF
          & "./etc/shells" & LAT.LF
          & "./etc/spwd.db" & LAT.LF
+         & "./etc/ld.so.conf.d/x86_64-linux-gnu.conf" & LAT.LF
          & "./var/db" & LAT.LF
          & "./var/log" & LAT.LF
          & "./var/mail" & LAT.LF
@@ -718,6 +721,7 @@ package body Replicant is
          when etc         => return mount_base & root_etc;
          when etc_default => return mount_base & root_etc_default;
          when etc_rcd     => return mount_base & root_etc_rcd;
+         when etc_ldsocnf => return mount_base & root_etc_ldsocnf;
          when tmp         => return mount_base & root_tmp;
          when var         => return mount_base & root_var;
          when home        => return mount_base & root_home;
@@ -896,6 +900,7 @@ package body Replicant is
       install_passwd_and_group (etc_path);
       create_etc_services      (etc_path);
       create_etc_shells        (etc_path);
+      install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
 
    exception
       when hiccup : others =>
@@ -1107,6 +1112,28 @@ package body Replicant is
       install (mtree2);
       install (trmcap);
    end install_passwd_and_group;
+
+
+   --------------------------------------------------------------------------------------------
+   --  install_linux_ldsoconf
+   --------------------------------------------------------------------------------------------
+   procedure install_linux_ldsoconf (path_to_etc_ldsocnf : String)
+   is
+      procedure install (filename : String);
+
+      mm     : constant String := get_master_mount;
+      ldconf : constant String := "/x86_64-linux-gnu.conf";
+
+      procedure install (filename : String) is
+      begin
+         if DIR.Exists (mm & filename) then
+            DIR.Copy_File (Source_Name => mm & filename,
+                           Target_Name => path_to_etc_ldsocnf & filename);
+         end if;
+      end install;
+   begin
+      install (ldconf);
+   end install_linux_ldsoconf;
 
 
    --------------------------------------------------------------------------------------------
