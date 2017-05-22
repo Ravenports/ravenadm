@@ -638,6 +638,9 @@ package body Port_Specification.Buildsheet is
       send ("BUILD_DEPENDS",        specs.build_deps, 1);
       send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, 1);
       send ("RUN_DEPENDS",          specs.run_deps, 1);
+      send ("B_DEPS",               specs.opsys_b_deps, 5);
+      send ("BR_DEPS",              specs.opsys_br_deps, 5);
+      send ("R_DEPS",               specs.opsys_r_deps, 5);
       send ("EXRUN",                specs.extra_rundeps, 4);
       blank_line;
       send ("USERS",                specs.users, 2);

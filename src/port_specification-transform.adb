@@ -230,6 +230,7 @@ package body Port_Specification.Transform is
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_extraction_deps (specs);
+      apply_opsys_dependencies (specs);
       apply_cpe_module (specs, arch_standard, osmajor);
       apply_gmake_module (specs);
       apply_scons_module (specs);
@@ -1627,6 +1628,44 @@ package body Port_Specification.Transform is
       end if;
 
    end apply_perl_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_opsys_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure apply_opsys_dependencies (specs : in out Portspecs)
+   is
+      procedure scan_dep (position : string_crate.Cursor);
+
+      type deptype is (os_build, os_run, os_buildrun);
+
+      dt : deptype;
+      key_opsys : HT.Text := HT.SUS (UTL.lower_opsys (platform_type));
+
+      procedure scan_dep (position : string_crate.Cursor)
+      is
+         dependency : String := HT.USS (string_crate.Element (position));
+      begin
+         case dt is
+            when os_build    => add_build_depends (specs, dependency);
+            when os_run      => add_run_depends (specs, dependency);
+            when os_buildrun => add_buildrun_depends (specs, dependency);
+         end case;
+      end scan_dep;
+   begin
+      if specs.opsys_b_deps.Contains (key_opsys) then
+         dt := os_build;
+         specs.opsys_b_deps.Element (key_opsys).list.Iterate (scan_dep'Access);
+      end if;
+      if specs.opsys_r_deps.Contains (key_opsys) then
+         dt := os_run;
+         specs.opsys_r_deps.Element (key_opsys).list.Iterate (scan_dep'Access);
+      end if;
+      if specs.opsys_br_deps.Contains (key_opsys) then
+         dt := os_buildrun;
+         specs.opsys_br_deps.Element (key_opsys).list.Iterate (scan_dep'Access);
+      end if;
+   end apply_opsys_dependencies;
 
 
    --------------------------------------------------------------------------------------------

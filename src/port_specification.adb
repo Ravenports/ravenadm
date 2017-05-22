@@ -81,6 +81,9 @@ package body Port_Specification is
       specs.build_deps.Clear;
       specs.buildrun_deps.Clear;
       specs.run_deps.Clear;
+      specs.opsys_b_deps.Clear;
+      specs.opsys_r_deps.Clear;
+      specs.opsys_br_deps.Clear;
       specs.cflags.Clear;
       specs.cxxflags.Clear;
       specs.cppflags.Clear;
@@ -956,6 +959,12 @@ package body Port_Specification is
             specs.optgroup_desc.Insert (text_group, initial_rec);
          when sp_opt_group =>
             specs.optgroups.Insert (text_group, initial_rec);
+         when sp_os_bdep =>
+            specs.opsys_b_deps.Insert (text_group, initial_rec);
+         when sp_os_rdep =>
+            specs.opsys_r_deps.Insert (text_group, initial_rec);
+         when sp_os_brdep =>
+            specs.opsys_br_deps.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1230,6 +1239,56 @@ package body Port_Specification is
             end if;
             specs.optgroups.Update_Element (Position => specs.optgroups.Find (text_key),
                                             Process  => grow'Access);
+         when sp_os_bdep | sp_os_rdep | sp_os_brdep =>
+            verify_entry_is_post_options;
+            if not valid_dependency_format (value) then
+               raise wrong_value with "invalid dependency format '" & value & "'";
+            end if;
+
+            declare
+               good : Boolean := True;
+            begin
+               case field is
+                  when sp_os_bdep =>
+                     good := not specs.opsys_b_deps.Contains (text_key) or else
+                       not specs.opsys_b_deps.Element (text_key).list.Contains (text_value);
+                  when sp_buildrun_deps =>
+                     good := not specs.opsys_br_deps.Contains (text_key) or else
+                       not specs.opsys_br_deps.Element (text_key).list.Contains (text_value);
+                  when sp_run_deps =>
+                     good := not specs.opsys_r_deps.Contains (text_key) or else
+                       not specs.opsys_r_deps.Element (text_key).list.Contains (text_value);
+                  when others => null;
+               end case;
+               if not good then
+                  raise wrong_value with "duplicate definition: " & key & "=" & value;
+               end if;
+            end;
+
+            case field is
+               when sp_os_bdep =>
+                  if not specs.opsys_b_deps.Contains (text_key) then
+                     specs.establish_group (sp_os_bdep, key);
+                  end if;
+                  specs.opsys_b_deps.Update_Element
+                    (Position => specs.opsys_b_deps.Find (text_key),
+                     Process  => grow'Access);
+               when sp_buildrun_deps =>
+                  if not specs.opsys_br_deps.Contains (text_key) then
+                     specs.establish_group (sp_os_brdep, key);
+                  end if;
+                  specs.opsys_br_deps.Update_Element
+                    (Position => specs.opsys_br_deps.Find (text_key),
+                     Process  => grow'Access);
+               when sp_run_deps =>
+                  if not specs.opsys_r_deps.Contains (text_key) then
+                     specs.establish_group (sp_os_rdep, key);
+                  end if;
+                  specs.opsys_r_deps.Update_Element
+                    (Position => specs.opsys_r_deps.Find (text_key),
+                     Process  => grow'Access);
+               when others => null;
+            end case;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -4075,6 +4134,9 @@ package body Port_Specification is
             when sp_catchall         => specs.catch_all.Iterate (dump'Access);
             when sp_opt_descr        => specs.optgroup_desc.Iterate (dump'Access);
             when sp_opt_group        => specs.optgroups.Iterate (dump'Access);
+            when sp_os_bdep          => specs.opsys_b_deps.Iterate (dump'Access);
+            when sp_os_rdep          => specs.opsys_r_deps.Iterate (dump'Access);
+            when sp_os_brdep         => specs.opsys_br_deps.Iterate (dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -4187,6 +4249,9 @@ package body Port_Specification is
       print_vector_list ("BUILDRUN_DEPENDS", sp_buildrun_deps);
       print_vector_list ("RUN_DEPENDS", sp_run_deps);
       print_group_list  ("EXRUN", sp_exrun);
+      print_group_list  ("B_DEPS", sp_os_bdep);
+      print_group_list  ("BR_DEPS", sp_os_brdep);
+      print_group_list  ("R_DEPS", sp_os_rdep);
       print_vector_list ("USES", sp_uses);
       print_vector_list ("GNOME_COMPONENTS", sp_gnome);
       print_vector_list ("SUB_LIST", sp_sub_list);

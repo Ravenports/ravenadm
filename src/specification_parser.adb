@@ -377,6 +377,22 @@ package body Specification_Parser is
                                              field => PSP.sp_opt_group,
                                              key   => tkey,
                                              value => tvalue);
+                        when b_deps =>
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_os_bdep,
+                                             key   => tkey,
+                                             value => tvalue);
+                        when r_deps =>
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_os_rdep,
+                                             key   => tkey,
+                                             value => tvalue);
+                        when br_deps =>
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_os_brdep,
+                                             key   => tkey,
+                                             value => tvalue);
+
                         when not_array => null;
                      end case;
                   end;
@@ -946,7 +962,7 @@ package body Specification_Parser is
    is
       subtype array_string is String (1 .. 12);
 
-      total_arrays : constant Positive := 15;
+      total_arrays : constant Positive := 18;
 
       type array_pair is
          record
@@ -958,6 +974,8 @@ package body Specification_Parser is
       all_arrays : constant array (1 .. total_arrays) of array_pair :=
         (
          ("BROKEN      ", broken),
+         ("BR_DEPS     ", br_deps),
+         ("B_DEPS      ", b_deps),
          ("DEF         ", def),
          ("DISTFILE    ", distfile),
          ("EXRUN       ", extra_rundep),
@@ -966,6 +984,7 @@ package body Specification_Parser is
          ("OPTDESCR    ", opt_descr),
          ("OPTGROUP    ", opt_group),
          ("OPT_ON      ", option_on),
+         ("R_DEPS      ", r_deps),
          ("SDESC       ", sdesc),
          ("SITES       ", sites),
          ("SPKGS       ", spkgs),
