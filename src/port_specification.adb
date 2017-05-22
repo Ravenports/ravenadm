@@ -1252,10 +1252,10 @@ package body Port_Specification is
                   when sp_os_bdep =>
                      good := not specs.opsys_b_deps.Contains (text_key) or else
                        not specs.opsys_b_deps.Element (text_key).list.Contains (text_value);
-                  when sp_buildrun_deps =>
+                  when sp_os_brdep =>
                      good := not specs.opsys_br_deps.Contains (text_key) or else
                        not specs.opsys_br_deps.Element (text_key).list.Contains (text_value);
-                  when sp_run_deps =>
+                  when sp_os_rdep =>
                      good := not specs.opsys_r_deps.Contains (text_key) or else
                        not specs.opsys_r_deps.Element (text_key).list.Contains (text_value);
                   when others => null;
@@ -1273,14 +1273,14 @@ package body Port_Specification is
                   specs.opsys_b_deps.Update_Element
                     (Position => specs.opsys_b_deps.Find (text_key),
                      Process  => grow'Access);
-               when sp_buildrun_deps =>
+               when sp_os_brdep =>
                   if not specs.opsys_br_deps.Contains (text_key) then
                      specs.establish_group (sp_os_brdep, key);
                   end if;
                   specs.opsys_br_deps.Update_Element
                     (Position => specs.opsys_br_deps.Find (text_key),
                      Process  => grow'Access);
-               when sp_run_deps =>
+               when sp_os_rdep =>
                   if not specs.opsys_r_deps.Contains (text_key) then
                      specs.establish_group (sp_os_rdep, key);
                   end if;
