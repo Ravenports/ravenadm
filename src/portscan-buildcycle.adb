@@ -559,7 +559,7 @@ package body PortScan.Buildcycle is
       function set_terminal (enable_tty : Boolean) return String is
       begin
          if enable_tty then
-            return "TERM=xterm ";
+            return "TERM=cons25 ";
          end if;
          return "TERM=dumb ";
       end set_terminal;
