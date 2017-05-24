@@ -1,6 +1,9 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+--  GCC 6.0 only
+--  pragma Suppress (Tampering_Check);
+
 with Definitions; use Definitions;
 with HelperText;
 with Ada.Text_IO;
@@ -8,9 +11,6 @@ with Ada.Text_IO;
 private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Ordered_Sets;
 private with Ada.Containers.Vectors;
-
---  GCC 6.0 only
---  pragma Suppress (Tampering_Check);
 
 package PortScan is
 
