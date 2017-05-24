@@ -1,6 +1,9 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+--  GCC 6.0 only
+--  pragma Suppress (Tampering_Check);
+
 private with HelperText;
 private with Ada.Containers.Vectors;
 private with Ada.Containers.Hashed_Maps;
