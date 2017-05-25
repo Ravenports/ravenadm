@@ -1220,9 +1220,22 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    procedure interact_with_builder (id : builders)
    is
-      root    : constant String := get_root (id);
-      command : String := chroot & root & environment_override (id, True) & "/bin/sh";
-      result  : Boolean;
+      function shell return String;
+
+      root   : constant String := get_root (id);
+      result : Boolean;
+
+      function shell return String is
+      begin
+         case platform_type is
+            when linux =>
+               return "/bin/bash";
+            when others =>
+               return "/bin/sh";
+         end case;
+      end shell;
+
+      command : String := chroot & root & environment_override (id, True) & shell;
    begin
       TIO.Put_Line ("Entering interactive test mode at the builder root directory.");
       TIO.Put_Line ("Type 'exit' when done exploring.");
