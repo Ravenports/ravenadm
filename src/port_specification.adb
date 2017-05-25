@@ -133,12 +133,7 @@ package body Port_Specification is
       specs.broken_mysql.Clear;
       specs.broken_pgsql.Clear;
 
-      if platform_type = linux then
-         --  disable until linux is bootstrapped (and library situation is understood better)
-         specs.fatal_rpath := False;
-      else
-         specs.fatal_rpath := True;
-      end if;
+      specs.fatal_rpath := True;
 
       specs.last_set := so_initialized;
    end initialize;
