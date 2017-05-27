@@ -220,7 +220,7 @@ package body Configure is
          TIO.Put (LAT.LF & "Set valid path for directory");
          if opt = 5 then
             TIO.Put (" (or 'none' to indicate no custom ports): ");
-         elsif opt = 8 then
+         elsif opt = 9 then
             TIO.Put (" (or 'none' to disable ccache): ");
          else
             TIO.Put (": ");
