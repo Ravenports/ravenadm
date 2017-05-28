@@ -1095,10 +1095,11 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure establish_package_architecture
    is
-      function newsuffix (arch : filearch) return String;
-      function suffix    (arch : filearch) return String;
-      function get_major (fileinfo : String; OS : String) return String;
-      function even      (fileinfo : String) return String;
+      function newsuffix   (arch : filearch) return String;
+      function suffix      (arch : filearch) return String;
+      function get_major   (fileinfo : String; OS : String) return String;
+      function even        (fileinfo : String) return String;
+      function get_version (fileinfo : String; OS : String) return String;
       procedure craft_common_endings (release : String);
 
       sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
@@ -1205,6 +1206,14 @@ package body PortScan.Operations is
          return major;
       end get_major;
 
+      function get_version (fileinfo : String; OS : String) return String
+      is
+         --  GNU/Linux 2.6.32, BuildID[sha1]=03d7a9de009544a1fe82313544a3c36e249858cc, stripped
+         rest  : constant String := HT.part_2 (fileinfo, OS);
+      begin
+         return HT.part_1 (rest, ",");
+      end get_version;
+
       procedure craft_common_endings (release : String) is
       begin
          HT.SU.Append (abi_formats.calculated_abi, release & ":");
@@ -1256,9 +1265,9 @@ package body PortScan.Operations is
             end;
          when linux   =>
             declare
-               gnu1    : constant String := "GNU:";
-               gnu2    : constant String := "gnu:";
-               release : constant String := "0";   --  requires fix to pkg (TBW)
+               gnu1    : constant String := "Linux:";
+               gnu2    : constant String := "linux:";
+               release : constant String := get_version (HT.USS (UN), "GNU/Linux ");
             begin
                abi_formats.calculated_abi     := HT.SUS (gnu1);
                abi_formats.calculated_alt_abi := HT.SUS (gnu2);
