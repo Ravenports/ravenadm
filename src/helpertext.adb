@@ -446,7 +446,7 @@ package body HelperText is
       if shuttle.utilized then
          ndx := AS.Fixed.Index (Source  => block_text,
                                 Pattern => LAT.LF & start_with,
-                                From    => shuttle.front_marker + 2);
+                                From    => shuttle.front_marker + 1);
          if ndx = 0 then
             return False;
          else
