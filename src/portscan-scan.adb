@@ -44,6 +44,7 @@ package body PortScan.Scan is
       --  All scanning done on host system (no need to mount in a slave)
       prescan_ports_tree (conspiracy, unkindness, sysrootver);
       prescan_unkindness (unkindness);
+      set_portlist_to_everything;
       LOG.set_scan_start_time (CAL.Clock);
       parallel_deep_scan (conspiracy    => conspiracy,
                           unkindness    => unkindness,
@@ -185,25 +186,36 @@ package body PortScan.Scan is
                portkey  : HT.Text := HT.SUS (namebase & ":" & varxname);
                kc       : portkey_crate.Cursor;
                success  : Boolean;
+               use type portkey_crate.Cursor;
             begin
-               ports_keys.Insert (Key      => portkey,
-                                  New_Item => lot_counter,
-                                  Position => kc,
-                                  Inserted => success);
-               last_port := lot_counter;
-               all_ports (lot_counter).sequence_id   := lot_counter;
-               all_ports (lot_counter).key_cursor    := kc;
-               all_ports (lot_counter).port_namebase := HT.SUS (namebase);
-               all_ports (lot_counter).port_variant  := HT.SUS (varxname);
-               all_ports (lot_counter).bucket        := bucket;
-               all_ports (lot_counter).unkind_custom := True;
-
-               make_queue (lot_number).Append (lot_counter);
-               lot_counter := lot_counter + 1;
-               if lot_number = max_lots then
-                  lot_number := 1;
+               if ports_keys.Contains (portkey) then
+                  kc := ports_keys.Find (portkey);
+                  for x in 1 .. last_port loop
+                     if all_ports (x).key_cursor = kc then
+                        all_ports (x).unkind_custom := True;
+                        exit;
+                     end if;
+                  end loop;
                else
-                  lot_number := lot_number + 1;
+                  ports_keys.Insert (Key      => portkey,
+                                     New_Item => lot_counter,
+                                     Position => kc,
+                                     Inserted => success);
+                  last_port := lot_counter;
+                  all_ports (lot_counter).sequence_id   := lot_counter;
+                  all_ports (lot_counter).key_cursor    := kc;
+                  all_ports (lot_counter).port_namebase := HT.SUS (namebase);
+                  all_ports (lot_counter).port_variant  := HT.SUS (varxname);
+                  all_ports (lot_counter).bucket        := bucket;
+                  all_ports (lot_counter).unkind_custom := True;
+
+                  make_queue (lot_number).Append (lot_counter);
+                  lot_counter := lot_counter + 1;
+                  if lot_number = max_lots then
+                     lot_number := 1;
+                  else
+                     lot_number := lot_number + 1;
+                  end if;
                end if;
             end;
          end loop;
@@ -260,6 +272,21 @@ package body PortScan.Scan is
          end loop;
       end loop;
    end prescan_unkindness;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_portlist_to_everything
+   --------------------------------------------------------------------------------------------
+   procedure set_portlist_to_everything is
+   begin
+      for x in 1 .. last_port loop
+         declare
+            portkey : String := get_port_variant (all_ports (x));
+         begin
+            portlist.Append (HT.SUS (portkey));
+         end;
+      end loop;
+   end set_portlist_to_everything;
 
 
    --------------------------------------------------------------------------------------------

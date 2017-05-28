@@ -140,4 +140,7 @@ private
       success       : out Boolean;
       show_progress : Boolean);
 
+   --  Set the portlist as if the user provided a list of every port via command line
+   procedure set_portlist_to_everything;
+
 end PortScan.Scan;
