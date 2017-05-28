@@ -2341,12 +2341,13 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function get_swap_status return Float
    is
+      type memtype is mod 2**64;
       command : String := swapinfo_command;
       status  : Integer;
       comres  : HT.Text;
 
-      blocks_total : Natural := 0;
-      blocks_used  : Natural := 0;
+      blocks_total : memtype := 0;
+      blocks_used  : memtype := 0;
    begin
       if platform_type = macos then
          return 0.0;
@@ -2365,8 +2366,8 @@ package body PortScan.Operations is
          command_result : String := HT.USS (comres);
          markers        : HT.Line_Markers;
          line_present   : Boolean;
-         oneline_total  : Natural;
-         oneline_other  : Natural;
+         oneline_total  : memtype;
+         oneline_other  : memtype;
       begin
          HT.initialize_markers (command_result, markers);
          --  Throw first line away (valid for all platforms
@@ -2392,19 +2393,19 @@ package body PortScan.Operations is
                      case platform_type is
                         when freebsd | dragonfly | netbsd | openbsd =>
                            blocks_total := blocks_total +
-                                           Natural'Value (HT.specific_field (line, 4));
+                                           memtype'Value (HT.specific_field (line, 4));
                            blocks_used  := blocks_used +
-                                           Natural'Value (HT.specific_field (line, 3));
+                                           memtype'Value (HT.specific_field (line, 3));
                         when sunos =>
-                           oneline_total := Natural'Value (HT.specific_field (line, 4));
-                           oneline_other := Natural'Value (HT.specific_field (line, 5));
+                           oneline_total := memtype'Value (HT.specific_field (line, 4));
+                           oneline_other := memtype'Value (HT.specific_field (line, 5));
                            blocks_total  := blocks_total + oneline_total;
                            blocks_used   := blocks_used + (oneline_total - oneline_other);
                         when linux =>
                            blocks_total := blocks_total +
-                                           Natural'Value (HT.specific_field (line, 2));
+                                           memtype'Value (HT.specific_field (line, 2));
                            blocks_used  := blocks_used +
-                                           Natural'Value (HT.specific_field (line, 3));
+                                           memtype'Value (HT.specific_field (line, 3));
                         when macos => null;
                      end case;
                   exception

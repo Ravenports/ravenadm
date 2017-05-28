@@ -1045,8 +1045,8 @@ package body PortScan.Buildcycle is
             when linux =>
                lo := 0;
                return generic_system_command (lin);
-         when sunos =>
-            return generic_system_command (sol);
+            when sunos =>
+               return generic_system_command (sol);
          end case;
       end probe_load;
 
@@ -1058,17 +1058,9 @@ package body PortScan.Buildcycle is
                stripped : constant String := comres (comres'First + lo .. comres'Last);
             begin
                if instant_load then
-                  declare
-                     instant : String := HT.part_1 (stripped, " ");
-                  begin
-                     return Float'Value (instant);
-                  end;
+                  return Float'Value (HT.specific_field (stripped, 1, " "));
                else
-                  declare
-                     min5 : String := HT.part_1 (HT.part_2 (stripped, " "), " ");
-                  begin
-                      return Float'Value (min5);
-                  end;
+                  return Float'Value (HT.specific_field (stripped, 2, " "));
                end if;
             end;
          when sunos =>
@@ -1076,17 +1068,9 @@ package body PortScan.Buildcycle is
                stripped : constant String := HT.part_2 (comres, "load average: ");
             begin
                if instant_load then
-                  declare
-                     instant  : constant String := HT.part_1 (stripped, ", ");
-                  begin
-                     return Float'Value (instant);
-                  end;
+                  return Float'Value (HT.specific_field (stripped, 1, ", "));
                else
-                  declare
-                     min5 : String := HT.part_1 (HT.part_2 (stripped, ", "), ", ");
-                  begin
-                      return Float'Value (min5);
-                  end;
+                  return Float'Value (HT.specific_field (stripped, 2, ", "));
                end if;
             end;
       end case;
