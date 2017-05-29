@@ -1387,7 +1387,7 @@ package body Port_Specification.Transform is
          hit_run   := argument_present (specs, module, RUN);
 
          if not (hit_build or else hit_both or else hit_run) then
-            hit_build := True;
+            hit_both := True;
          end if;
       end if;
 
