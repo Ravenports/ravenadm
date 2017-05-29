@@ -124,6 +124,7 @@ package body Port_Specification is
       specs.var_arch.Clear;
       specs.test_tgt.Clear;
       specs.test_args.Clear;
+      specs.test_env.Clear;
       specs.extra_rundeps.Clear;
       specs.mandirs.Clear;
       specs.mk_verbatim.Clear;
@@ -590,6 +591,9 @@ package body Port_Specification is
          when sp_test_tgt =>
             verify_entry_is_post_options;
             specs.test_tgt.Append (text_value);
+         when sp_test_env =>
+            verify_entry_is_post_options;
+            specs.test_env.Append (text_value);
          when sp_cflags =>
             verify_entry_is_post_options;
             specs.cflags.Append (text_value);
@@ -4096,6 +4100,7 @@ package body Port_Specification is
             when sp_groups        => specs.groups.Iterate (Process => print_item'Access);
             when sp_test_tgt      => specs.test_tgt.Iterate (print_item'Access);
             when sp_test_args     => specs.test_args.Iterate (print_item'Access);
+            when sp_test_env      => specs.test_env.Iterate (print_item'Access);
             when sp_mandirs       => specs.mandirs.Iterate (print_item'Access);
             when sp_broken_ssl    => specs.broken_ssl.Iterate (print_item'Access);
             when sp_broken_mysql  => specs.broken_mysql.Iterate (print_item'Access);
@@ -4314,6 +4319,7 @@ package body Port_Specification is
       print_group_list  ("VAR_ARCH", sp_var_arch);
       print_vector_list ("TEST_TARGET", sp_test_tgt);
       print_vector_list ("TEST_ARGS", sp_test_args);
+      print_vector_list ("TEST_ENV", sp_test_env);
       print_vector_list ("RC_SUBR", sp_rcscript);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);

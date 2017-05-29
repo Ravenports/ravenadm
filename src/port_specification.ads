@@ -43,7 +43,7 @@ package Port_Specification is
                        sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
                        sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
-                       sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep);
+                       sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -462,6 +462,7 @@ private
          install_tgt   : string_crate.Vector;
          test_tgt      : string_crate.Vector;
          test_args     : string_crate.Vector;
+         test_env      : string_crate.Vector;
          install_wrksrc : HT.Text;
          plist_sub     : string_crate.Vector;
 

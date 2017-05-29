@@ -1378,8 +1378,8 @@ package body Port_Specification.Transform is
          return;
       end if;
       if no_arguments_present (specs, module) then
-         hit_build := True;
-         hit_both  := False;
+         hit_build := False;
+         hit_both  := True;
          hit_run   := False;
       else
          hit_build := argument_present (specs, module, BUILD);
@@ -1724,8 +1724,10 @@ package body Port_Specification.Transform is
 
       apply_cbc_string_crate (specs.config_args);
       apply_cbc_string_crate (specs.config_env);
-      apply_cbc_string_crate (specs.make_env);
       apply_cbc_string_crate (specs.make_args);
+      apply_cbc_string_crate (specs.make_env);
+      apply_cbc_string_crate (specs.test_args);
+      apply_cbc_string_crate (specs.test_env);
       apply_cbc_string_crate (specs.cflags);
       apply_cbc_string_crate (specs.cxxflags);
       apply_cbc_string_crate (specs.cppflags);

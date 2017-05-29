@@ -715,6 +715,7 @@ package body Port_Specification.Buildsheet is
       send ("CMAKE_ARGS",           specs.cmake_args, 1);
       send ("TEST_TARGET",          specs.test_tgt, 2);
       send ("TEST_ARGS",            specs.test_args, 1);
+      send ("TEST_ENV",             specs.test_env, 1);
       send ("VAR_OPSYS",            specs.var_opsys, 4);
       send ("VAR_ARCH",             specs.var_arch, 4);
 
