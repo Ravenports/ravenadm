@@ -279,11 +279,13 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure set_portlist_to_everything is
    begin
-      for x in 1 .. last_port loop
+      for x in 0 .. last_port loop
          declare
             portkey : String := get_port_variant (all_ports (x));
          begin
-            portlist.Append (HT.SUS (portkey));
+            if not HT.equivalent (all_ports (x).port_namebase, default_compiler) then
+               portlist.Append (HT.SUS (portkey));
+            end if;
          end;
       end loop;
    end set_portlist_to_everything;
