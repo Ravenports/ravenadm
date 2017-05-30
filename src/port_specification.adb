@@ -72,6 +72,7 @@ package body Port_Specification is
       specs.single_job    := False;
       specs.shift_install := False;
       specs.debugging_on  := False;
+      specs.generated     := False;
       specs.build_wrksrc  := HT.blank;
       specs.makefile      := HT.blank;
       specs.destdirname   := HT.blank;
@@ -1367,6 +1368,8 @@ package body Port_Specification is
             specs.fatal_rpath := False;
          when sp_debugging =>
             specs.debugging_on := value;
+         when sp_generated =>
+            specs.generated := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -4201,6 +4204,7 @@ package body Port_Specification is
             when sp_skip_ccache    => TIO.Put_Line (specs.skip_ccache'Img);
             when sp_rpath_warning  => TIO.Put_Line (specs.fatal_rpath'Img);
             when sp_debugging      => TIO.Put_Line (specs.debugging_on'Img);
+            when sp_generated      => TIO.Put_Line (specs.generated'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -4323,6 +4327,7 @@ package body Port_Specification is
       print_vector_list ("TEST_ARGS", sp_test_args);
       print_vector_list ("TEST_ENV", sp_test_env);
       print_vector_list ("RC_SUBR", sp_rcscript);
+      print_boolean     ("GENERATED", sp_generated);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

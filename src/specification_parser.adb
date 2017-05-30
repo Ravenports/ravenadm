@@ -436,6 +436,7 @@ package body Specification_Parser is
                      when shift_install    => set_boolean (spec, PSP.sp_inst_tchain, line);
                      when invalid_rpath    => set_boolean (spec, PSP.sp_rpath_warning, line);
                      when debugging        => set_boolean (spec, PSP.sp_debugging, line);
+                     when generated        => set_boolean (spec, PSP.sp_generated, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -1043,7 +1044,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 134;
+      total_singlets : constant Positive := 136;
 
       type singlet_pair is
          record
@@ -1109,6 +1110,8 @@ package body Specification_Parser is
          ("EXTRACT_WITH_LHA      ", 16, ext_lha),
          ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
          ("EXTRA_PATCHES         ", 13, extra_patches),
+         ("FPC_EQUIVALENT        ", 14, catchall),
+         ("GENERATED             ",  9, generated),
          ("GNOME_COMPONENTS      ", 16, gnome_comp),
          ("GNU_CONFIGURE_PREFIX  ", 20, gnu_cfg_prefix),
          ("GROUPS                ",  6, groups),

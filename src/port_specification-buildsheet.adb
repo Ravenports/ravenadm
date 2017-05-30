@@ -664,9 +664,11 @@ package body Port_Specification.Buildsheet is
       send ("LICENSE_NAME",         specs.lic_names, 1);
       send ("LICENSE_SCHEME",       specs.lic_scheme);
       send ("LICENSE_FILE",         specs.lic_files, 1);
+      blank_line;
       send ("PREFIX",               specs.prefix);
       send ("INFO",                 specs.info, 1);
       send_catchall;
+      send ("GENERATED",            specs.generated, True);
       send ("SKIP_CCACHE",          specs.skip_ccache, True);
       blank_line;
       send ("PATCH_WRKSRC",         specs.patch_wrksrc);
