@@ -52,6 +52,12 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
+   PYTHON27 : constant String := "python27:single:standard";
+   PYTHON34 : constant String := "python34:single:standard";
+   PYTHON35 : constant String := "python35:single:standard";
+   TCL85    : constant String := "tcl85:complete:standard";
+   TCL86    : constant String := "tcl86:complete:standard";
+
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;
 

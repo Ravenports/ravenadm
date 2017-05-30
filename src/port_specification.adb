@@ -1186,7 +1186,9 @@ package body Port_Specification is
                raise wrong_type with "subpackage key '" & key & "' has not been defined.";
             end if;
             if not valid_dependency_format (value) then
-               if value /= "ssl" then
+               if value /= "ssl" and then value /= "python" and then value /= "tcl"
+                 and then value /= "perl"
+               then
                   raise wrong_value with "invalid dependency format '" & value & "'";
                end if;
             end if;

@@ -1267,9 +1267,6 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "python";
       SETUPTOOLS : constant String := "python-setuptools:single:";
-      PYTHON27   : constant String := "python27:single:standard";
-      PYTHON34   : constant String := "python34:single:standard";
-      PYTHON35   : constant String := "python35:single:standard";
       PY27       : constant String := "py27";
       PY34       : constant String := "py34";
       PY35       : constant String := "py35";
@@ -1281,24 +1278,24 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, PY27) then
             add_build_depends (specs, PYTHON27);
-            add_build_depends    (specs, SETUPTOOLS & PY27);
+            add_build_depends (specs, SETUPTOOLS & PY27);
          elsif argument_present (specs, module, PY34) then
             add_build_depends (specs, PYTHON34);
-            add_build_depends    (specs, SETUPTOOLS & PY34);
+            add_build_depends (specs, SETUPTOOLS & PY34);
          else -- default to py35
             add_build_depends (specs, PYTHON35);
-            add_build_depends    (specs, SETUPTOOLS & PY35);
+            add_build_depends (specs, SETUPTOOLS & PY35);
          end if;
       else
          if argument_present (specs, module, PY27) then
             add_buildrun_depends (specs, PYTHON27);
-            add_buildrun_depends    (specs, SETUPTOOLS & PY27);
+            add_buildrun_depends (specs, SETUPTOOLS & PY27);
          elsif argument_present (specs, module, PY34) then
             add_buildrun_depends (specs, PYTHON34);
-            add_buildrun_depends    (specs, SETUPTOOLS & PY34);
+            add_buildrun_depends (specs, SETUPTOOLS & PY34);
          else -- default to py35
             add_buildrun_depends (specs, PYTHON35);
-            add_buildrun_depends    (specs, SETUPTOOLS & PY35);
+            add_buildrun_depends (specs, SETUPTOOLS & PY35);
          end if;
       end if;
    end apply_python_module;
@@ -1415,8 +1412,6 @@ package body Port_Specification.Transform is
 
       function pick_tcl return String
       is
-         TCL85 : String := "tcl85:complete:standard";
-         TCL86 : String := "tcl86:complete:standard";
          def_setting : String := HT.USS (Parameters.configuration.def_tcl_tk);
       begin
          if argument_present (specs, module, "8.5") then
@@ -1437,8 +1432,8 @@ package body Port_Specification.Transform is
          return;
       end if;
       if no_arguments_present (specs, module) then
-         hit_build := True;
-         hit_both  := False;
+         hit_build := False;
+         hit_both  := True;
          hit_run   := False;
       else
          hit_build := argument_present (specs, module, BUILD);
@@ -1446,7 +1441,7 @@ package body Port_Specification.Transform is
          hit_run   := argument_present (specs, module, RUN);
 
          if not (hit_build or else hit_both or else hit_run) then
-            hit_build := True;
+            hit_both := True;
          end if;
       end if;
 
@@ -1571,7 +1566,7 @@ package body Port_Specification.Transform is
 
       function retrieve_dependency return String
       is
-         rport_default : String := "perl-5.24";
+         rport_default : String := "perl-" & default_perl;
          suffix        : String := ":primary:standard";
          def_setting   : String := HT.USS (Parameters.configuration.def_perl);
          override_dep  : String := "perl-" & def_setting;
@@ -1943,10 +1938,7 @@ package body Port_Specification.Transform is
    is
       procedure convert1 (position1 : list_crate.Cursor);
       procedure convert2 (Key : HT.Text; Element : in out group_list);
-      procedure check    (position3 : string_crate.Cursor);
       procedure convert3 (Element : in out HT.Text);
-
-      found : Boolean;
 
       procedure convert3 (Element : in out HT.Text)
       is
@@ -1962,31 +1954,61 @@ package body Port_Specification.Transform is
                   Element := HT.SUS (setting & ":single:standard");
                end if;
             end;
+         elsif exrundep = "python" then
+            if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
+               Element := HT.SUS (PYTHON27);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON34)) then
+               Element := HT.SUS (PYTHON34);
+            else
+              Element := HT.SUS (PYTHON35);
+            end if;
+         elsif exrundep = "tcl" then
+            if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
+               Element := HT.SUS (TCL85);
+            else
+               Element := HT.SUS (TCL86);
+            end if;
+         elsif exrundep = "perl" then
+            declare
+               setting : String := HT.USS (Parameters.configuration.def_perl);
+               suffix  : String := ":primary:standard";
+            begin
+               if setting = ports_default then
+                  Element := HT.SUS ("perl-" & default_perl & suffix);
+               else
+                  Element := HT.SUS ("perl-" & setting & suffix);
+               end if;
+            end;
          end if;
       end convert3;
 
-      procedure convert2 (Key : HT.Text; Element : in out group_list) is
-      begin
-         Element.list.Update_Element (Position => Element.list.Find (HT.SUS ("ssl")),
-                                      Process  => convert3'Access);
-      end convert2;
-
-      procedure check (position3 : string_crate.Cursor)
+      procedure convert2 (Key : HT.Text; Element : in out group_list)
       is
-         value : String := HT.USS (string_crate.Element (position3));
+         txt_ssl    : HT.Text := HT.SUS ("ssl");
+         txt_python : HT.Text := HT.SUS ("python");
+         txt_tcl    : HT.Text := HT.SUS ("tcl");
+         txt_perl   : HT.Text := HT.SUS ("perl");
       begin
-         if value = "ssl" then
-            found := True;
+         if Element.list.Contains (txt_ssl) then
+            Element.list.Update_Element (Position => Element.list.Find (txt_ssl),
+                                         Process  => convert3'Access);
          end if;
-      end check;
+         if Element.list.Contains (txt_python) then
+            Element.list.Update_Element (Position => Element.list.Find (txt_python),
+                                         Process  => convert3'Access);
+         end if;
+         if Element.list.Contains (txt_tcl) then
+            Element.list.Update_Element (Position => Element.list.Find (txt_tcl),
+                                         Process  => convert3'Access);
+         end if;
+         if Element.list.Contains (txt_perl) then
+            Element.list.Update_Element (Position => Element.list.Find (txt_perl),
+                                         Process  => convert3'Access);
+         end if;
+      end convert2;
 
       procedure convert1 (position1 : list_crate.Cursor) is
       begin
-         found := False;
-         list_crate.Element (position1).list.Iterate (check'Access);
-         if not found then
-            return;
-         end if;
          specs.extra_rundeps.Update_Element (Position => position1,
                                              Process  => convert2'Access);
       end convert1;
