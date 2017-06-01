@@ -3867,6 +3867,30 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  port_is_generated
+   --------------------------------------------------------------------------------------------
+   function port_is_generated (specs : Portspecs) return Boolean is
+   begin
+      return specs.generated;
+   end port_is_generated;
+
+
+   --------------------------------------------------------------------------------------------
+   --  equivalent_fpc_port
+   --------------------------------------------------------------------------------------------
+   function equivalent_fpc_port (specs : Portspecs) return String
+   is
+      result : HT.Text := HT.SUS ("N/A");
+      key : HT.Text := HT.SUS ("FPC_EQUIVALENT");
+   begin
+      if specs.catch_all.Contains (key) then
+         result := specs.catch_all.Element (key).list.First_Element;
+      end if;
+      return HT.USS (result);
+   end equivalent_fpc_port;
+
+
+   --------------------------------------------------------------------------------------------
    --  last_catchall_key
    --------------------------------------------------------------------------------------------
    function option_already_in_group (specs : Portspecs; option_name : String) return Boolean

@@ -1000,10 +1000,12 @@ package body PortScan.Scan is
       procedure scan_port (position : string_crate.Cursor);
 
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
-      conname    : constant String := "conspiracy_variants";
-      finalcvar  : constant String := conspiracy & "/Mk/Misc/" & conname;
-      summary    : constant String := conspiracy & "/Mk/Misc/summary.txt";
+      misc_dir   : constant String := conspiracy & "/Mk/Misc/";
+      finalcvar  : constant String := misc_dir & "conspiracy_variants";
+      finalfpceq : constant String := misc_dir & "fpc_equivalents";
+      summary    : constant String := misc_dir & "summary.txt";
       indexfile  : TIO.File_Type;
+      fpcfile    : TIO.File_Type;
       bucket     : bucket_code;
       total_ports    : Natural := 0;
       total_variants : Natural := 0;
@@ -1044,6 +1046,16 @@ package body PortScan.Scan is
                end;
             end loop;
             TIO.Put_Line (indexfile, "");
+            declare
+               vers : constant String := customspec.get_field_value (PSP.sp_version);
+            begin
+               TIO.Put (fpcfile, namebase & " " & vers & " ");
+               if customspec.port_is_generated then
+                  TIO.Put_Line (fpcfile, "generated");
+               else
+                  TIO.Put_Line (fpcfile, customspec.equivalent_fpc_port);
+               end if;
+            end;
          end;
       end scan_port;
    begin
@@ -1052,6 +1064,10 @@ package body PortScan.Scan is
       TIO.Create (File => indexfile,
                   Mode => TIO.Out_File,
                   Name => finalcvar);
+
+      TIO.Create (File => fpcfile,
+                  Mode => TIO.Out_File,
+                  Name => finalfpceq);
 
       for highdigit in AF'Range loop
          for lowdigit in AF'Range loop
@@ -1085,6 +1101,7 @@ package body PortScan.Scan is
       end loop;
 
       TIO.Close (indexfile);
+      TIO.Close (fpcfile);
       LOG.set_scan_complete (CAL.Clock);
 
       TIO.Put_Line ("Index successfully generated.");
@@ -1110,6 +1127,9 @@ package body PortScan.Scan is
       when issue : others =>
          if TIO.Is_Open (indexfile) then
             TIO.Close (indexfile);
+         end if;
+         if TIO.Is_Open (fpcfile) then
+            TIO.Close (fpcfile);
          end if;
          TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
    end generate_conspiracy_index;

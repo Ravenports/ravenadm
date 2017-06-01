@@ -256,6 +256,12 @@ package Port_Specification is
    --  Return true if ops_standard is not "none"
    function standard_options_present (specs : Portspecs) return Boolean;
 
+   --  Return True if the port is generated
+   function port_is_generated (specs : Portspecs) return Boolean;
+
+   --  If catchall FPC_EQUIVALENT is defined, return its value, otherwise return "N/A".
+   function equivalent_fpc_port (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;
