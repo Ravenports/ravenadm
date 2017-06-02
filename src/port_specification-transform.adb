@@ -259,6 +259,7 @@ package body Port_Specification.Transform is
       apply_tcl_module (specs);
       apply_ccache (specs);
       apply_gnome_components_dependencies (specs);
+      apply_xorg_components_dependencies (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
       apply_gcc_run_module (specs, variant, "c++", "cxx_run");
       apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
@@ -2130,8 +2131,9 @@ package body Port_Specification.Transform is
    is
       procedure import (position : string_crate.Cursor);
 
-      port_libxml2 : constant String := "libxml2:single:standard";
-      port_libxslt : constant String := "libxslt:single:standard";
+      ss           : constant String := ":single:standard";
+      port_libxml2 : constant String := "libxml2";
+      port_libxslt : constant String := "libxslt";
 
       procedure import (position : string_crate.Cursor)
       is
@@ -2140,13 +2142,50 @@ package body Port_Specification.Transform is
       begin
          case comp is
             when invalid_component => null;  --  should be impossible
-            when libxml2 => add_buildrun_depends (specs, port_libxml2);
-            when libxslt => add_buildrun_depends (specs, port_libxslt);
-                            add_buildrun_depends (specs, port_libxml2);
+            when libxml2 => add_buildrun_depends (specs, port_libxml2 & ss);
+            when libxslt => add_buildrun_depends (specs, port_libxslt & ss);
+                            add_buildrun_depends (specs, port_libxml2 & ss);
          end case;
       end import;
    begin
       specs.gnome_comps.Iterate (import'Access);
    end apply_gnome_components_dependencies;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_xorg_components_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure apply_xorg_components_dependencies  (specs : in out Portspecs)
+   is
+      procedure import (position : string_crate.Cursor);
+
+      --  All xorg components have this format : xorg-{COMPONENT}:single:standard
+      --  All xorg components ending in "proto" are build-only depends
+      --      The rest are considered libraries (buildrun type)
+      --  All libraries depend on pkgconfig and xorg-macros
+
+      uses_xorg : Boolean := False;
+      ss        : constant String := ":single:standard";
+
+      procedure import (position : string_crate.Cursor)
+      is
+         component_text : HT.Text renames string_crate.Element (position);
+         component  : constant String := HT.USS (component_text);
+         dependency : constant String := "xorg-" & component & ss;
+      begin
+         if HT.trails (component, "proto") then
+            add_build_depends (specs, dependency);
+         else
+            add_buildrun_depends (specs, dependency);
+         end if;
+         uses_xorg := True;
+      end import;
+   begin
+      specs.xorg_comps.Iterate (import'Access);
+      if uses_xorg and then not HT.trails (specs.get_namebase, "proto") then
+         add_build_depends (specs, "xorg-macros" & ss);
+         add_build_depends (specs, "pkgconfig" & ss);
+      end if;
+   end apply_xorg_components_dependencies;
 
 end Port_Specification.Transform;

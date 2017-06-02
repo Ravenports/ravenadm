@@ -131,6 +131,7 @@ package body Port_Specification is
       specs.mk_verbatim.Clear;
       specs.broken_ssl.Clear;
       specs.gnome_comps.Clear;
+      specs.xorg_comps.Clear;
       specs.subr_scripts.Clear;
       specs.broken_mysql.Clear;
       specs.broken_pgsql.Clear;
@@ -727,6 +728,16 @@ package body Port_Specification is
                end if;
             end;
             specs.gnome_comps.Append (text_value);
+         when sp_xorg =>
+            verify_entry_is_post_options;
+            declare
+               comp : xorg_type := determine_xorg_component (value);
+            begin
+               if comp = invalid_component then
+                  raise wrong_value with "XORG_COMPONENTS component not recognized: " & value;
+               end if;
+            end;
+            specs.xorg_comps.Append (text_value);
          when sp_rcscript =>
             verify_entry_is_post_options;
             if not HT.contains (value, ":") then
@@ -3099,6 +3110,97 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  determine_xorg_component
+   --------------------------------------------------------------------------------------------
+   function determine_xorg_component (component : String) return xorg_type
+   is
+      total_keywords : constant Positive := xorg_type'Pos (xorg_type'Last) + 1;
+
+      subtype keyword_string is String (1 .. 18);
+
+      type keyword_pair is
+         record
+            keyword : keyword_string;
+            keytype : xorg_type;
+         end record;
+
+      --  It is critical that this list be alphabetized correctly.
+
+      all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
+        (
+         ("INVALID           ", invalid_component),
+         ("bigreqsproto      ", bigreqsproto),
+         ("compositeproto    ", compositeproto),
+         ("damageproto       ", damageproto),
+         ("dmxproto          ", dmxproto),
+         ("dri2proto         ", dri2proto),
+         ("dri3proto         ", dri3proto),
+         ("evieproto         ", evieproto),
+         ("fixesproto        ", fixesproto),
+         ("fontcacheproto    ", fontcacheproto),
+         ("fontsproto        ", fontsproto),
+         ("glproto           ", glproto),
+         ("ice               ", ice),
+         ("inputproto        ", inputproto),
+         ("kbproto           ", kbproto),
+         ("presentproto      ", presentproto),
+         ("printproto        ", printproto),
+         ("randrproto        ", randrproto),
+         ("recordproto       ", recordproto),
+         ("renderproto       ", renderproto),
+         ("resourceproto     ", resourceproto),
+         ("scrnsaverproto    ", scrnsaverproto),
+         ("sm                ", sm),
+         ("trapproto         ", trapproto),
+         ("videoproto        ", videoproto),
+         ("x11               ", x11),
+         ("xau               ", xau),
+         ("xcb               ", xcb),
+         ("xcmiscproto       ", xcmiscproto),
+         ("xdmcp             ", xdmcp),
+         ("xextproto         ", xextproto),
+         ("xf86bigfontproto  ", xf86bigfontproto),
+         ("xf86dgaproto      ", xf86dgaproto),
+         ("xf86driproto      ", xf86driproto),
+         ("xf86miscproto     ", xf86miscproto),
+         ("xf86rushproto     ", xf86rushproto),
+         ("xf86vidmodeproto  ", xf86vidmodeproto),
+         ("xineramaproto     ", xineramaproto),
+         ("xproto            ", xproto),
+         ("xproxymngproto    ", xproxymngproto),
+         ("xtransproto       ", xtransproto)
+        );
+
+      bandolier    : keyword_string := (others => LAT.Space);
+      Low          : Natural := all_keywords'First;
+      High         : Natural := all_keywords'Last;
+      Mid          : Natural;
+   begin
+      if component'Length > keyword_string'Length or else
+        component'Length < 2
+      then
+         return invalid_component;
+      end if;
+
+      bandolier (1 .. component'Length) := component;
+
+      loop
+         Mid := (Low + High) / 2;
+         if bandolier = all_keywords (Mid).keyword  then
+            return all_keywords (Mid).keytype;
+         elsif bandolier < all_keywords (Mid).keyword then
+            exit when Low = Mid;
+            High := Mid - 1;
+         else
+            exit when High = Mid;
+            Low := Mid + 1;
+         end if;
+      end loop;
+      return invalid_component;
+   end determine_xorg_component;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
@@ -4135,6 +4237,7 @@ package body Port_Specification is
             when sp_broken_mysql  => specs.broken_mysql.Iterate (print_item'Access);
             when sp_broken_pgsql  => specs.broken_pgsql.Iterate (print_item'Access);
             when sp_gnome         => specs.gnome_comps.Iterate (print_item'Access);
+            when sp_xorg          => specs.xorg_comps.Iterate (print_item'Access);
             when sp_rcscript      => specs.subr_scripts.Iterate (print_item'Access);
             when sp_og_radio      => specs.opt_radio.Iterate (print_item'Access);
             when sp_og_restrict   => specs.opt_restrict.Iterate (print_item'Access);
@@ -4284,6 +4387,7 @@ package body Port_Specification is
       print_group_list  ("R_DEPS", sp_os_rdep);
       print_vector_list ("USES", sp_uses);
       print_vector_list ("GNOME_COMPONENTS", sp_gnome);
+      print_vector_list ("XORG_COMPONENTS", sp_xorg);
       print_vector_list ("SUB_LIST", sp_sub_list);
       print_vector_list ("SUB_FILES", sp_sub_files);
       print_group_list  ("OPTION HELPERS", sp_opt_helper);

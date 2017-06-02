@@ -649,6 +649,7 @@ package body Port_Specification.Buildsheet is
       blank_line;
       send ("USES",                 specs.uses, 2);
       send ("GNOME_COMPONENTS",     specs.gnome_comps, 2);
+      send ("XORG_COMPONENTS",      specs.xorg_comps, 2);
       blank_line;
       send ("DISTNAME",             specs.distname);
       send ("EXTRACT_DIRTY",        specs.extract_dirty, 2);

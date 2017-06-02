@@ -489,6 +489,7 @@ package body Specification_Parser is
                      when broken_mysql     => build_list (spec, PSP.sp_broken_mysql, line);
                      when broken_pgsql     => build_list (spec, PSP.sp_broken_pgsql, line);
                      when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
+                     when xorg_comp        => build_list (spec, PSP.sp_xorg, line);
                      when rc_scripts       => build_list (spec, PSP.sp_rcscript, line);
                      when og_radio         => build_list (spec, PSP.sp_og_radio, line);
                      when og_restrict      => build_list (spec, PSP.sp_og_restrict, line);
@@ -1044,7 +1045,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 136;
+      total_singlets : constant Positive := 137;
 
       type singlet_pair is
          record
@@ -1191,7 +1192,8 @@ package body Specification_Parser is
          ("USERS                 ",  5, users),
          ("USES                  ",  4, uses),
          ("VARIANTS              ",  8, variants),
-         ("VERSION               ",  7, version)
+         ("VERSION               ",  7, version),
+         ("XORG_COMPONENTS       ", 15, xorg_comp)
         );
 
       function nailed (index : Natural) return Boolean

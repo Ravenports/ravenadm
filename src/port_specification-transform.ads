@@ -108,6 +108,7 @@ private
    procedure apply_opsys_dependencies     (specs : in out Portspecs);
 
    procedure apply_gnome_components_dependencies (specs : in out Portspecs);
+   procedure apply_xorg_components_dependencies  (specs : in out Portspecs);
    procedure apply_default_version_transformations (specs : in out Portspecs);
    procedure apply_curly_bracket_conversions (specs : in out Portspecs);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);

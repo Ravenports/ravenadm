@@ -43,7 +43,8 @@ package Port_Specification is
                        sp_mandirs, sp_rpath_warning, sp_debugging, sp_broken_ssl, sp_test_args,
                        sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
-                       sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated);
+                       sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
+                       sp_xorg);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -291,6 +292,15 @@ private
    type gnome_type is
      (libxml2, libxslt, invalid_component);
 
+   type xorg_type is
+     (bigreqsproto, compositeproto, damageproto, dmxproto, dri2proto, dri3proto, evieproto,
+      fixesproto, fontcacheproto, fontsproto, glproto, inputproto, kbproto, presentproto,
+      printproto, randrproto, recordproto, renderproto, resourceproto, scrnsaverproto, trapproto,
+      videoproto, xcmiscproto, xextproto, xf86bigfontproto, xf86dgaproto, xf86driproto,
+      xf86miscproto, xf86rushproto, xf86vidmodeproto, xineramaproto, xproto, xproxymngproto,
+      xtransproto, ice, sm, x11, xau, xcb, xdmcp,
+      invalid_component);
+
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
       Index_Type   => Positive,
@@ -465,6 +475,7 @@ private
          cmake_args    : string_crate.Vector;
          qmake_args    : string_crate.Vector;
          gnome_comps   : string_crate.Vector;
+         xorg_comps    : string_crate.Vector;
          info          : string_crate.Vector;
          install_tgt   : string_crate.Vector;
          test_tgt      : string_crate.Vector;
@@ -566,6 +577,9 @@ private
 
    --  Checks against known list of gnome components and identifies it
    function determine_gnome_component (component : String) return gnome_type;
+
+   --  Checks against known list of xorg components and identifies it
+   function determine_xorg_component (component : String) return xorg_type;
 
    --  Given a string GITHUB/account:project:tag(:directory) return a standard
    --  distribution file name.  Also works for GH/ prefix.
