@@ -142,6 +142,7 @@ package body PortScan.Tests is
                if HT.leads (line, "@comment ") or else
                  HT.leads (line, "@terminfo") or else
                  HT.leads (line, "@rmtry ") or else
+                 HT.leads (line, "@postunexec ") or else
                  HT.leads (line, "@postexec ")
                then
                   null;
