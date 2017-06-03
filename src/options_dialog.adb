@@ -856,7 +856,7 @@ package body Options_Dialog is
 
       for x in 1 .. num_std_options loop
          declare
-            NAME : String := HT.trim (HT.substring (formatted_opts (x).template, 6, 52));
+            NAME : String := HT.trim (HT.substring (formatted_opts (x).template, 6, 51));
          begin
             IFM.insert_or_update (section => section2,
                                   name    => NAME,
