@@ -254,7 +254,9 @@ package body Port_Specification.Transform is
       apply_bison_module (specs);
       apply_mysql_module (specs);
       apply_pgsql_module (specs);
+      apply_ninja_module (specs);
       apply_python_module (specs);
+      apply_zlib_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
       apply_ccache (specs);
@@ -782,6 +784,34 @@ package body Port_Specification.Transform is
          add_build_depends (specs, dependency);
       end if;
    end apply_gmake_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_ninja_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_ninja_module (specs : in out Portspecs)
+   is
+      module     : String := "ninja";
+      dependency : String := "ninja:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dependency);
+      end if;
+   end apply_ninja_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_zlib_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_zlib_module (specs : in out Portspecs)
+   is
+      module     : String := "zlib";
+      dependency : String := "zlib:complete:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_zlib_module;
 
 
    --------------------------------------------------------------------------------------------

@@ -2811,7 +2811,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 36;
+      total_modules : constant Positive := 38;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2842,6 +2842,7 @@ package body Port_Specification is
          "makeinfo       ",
          "mysql          ",
          "ncurses        ",
+         "ninja          ",
          "pgsql          ",
          "perl           ",
          "perl-interp    ",
@@ -2853,7 +2854,8 @@ package body Port_Specification is
          "sqlite         ",
          "ssl            ",
          "tcl            ",
-         "terminfo       "
+         "terminfo       ",
+         "zlib           "
         );
       bandolier : uses_string := (others => ' ');
 
@@ -3143,6 +3145,7 @@ package body Port_Specification is
          ("ice               ", ice),
          ("inputproto        ", inputproto),
          ("kbproto           ", kbproto),
+         ("pixman            ", pixman),
          ("presentproto      ", presentproto),
          ("printproto        ", printproto),
          ("randrproto        ", randrproto),
@@ -3157,7 +3160,9 @@ package body Port_Specification is
          ("xau               ", xau),
          ("xcb               ", xcb),
          ("xcmiscproto       ", xcmiscproto),
+         ("xdamage           ", xdamage),
          ("xdmcp             ", xdmcp),
+         ("xext              ", xext),
          ("xextproto         ", xextproto),
          ("xf86bigfontproto  ", xf86bigfontproto),
          ("xf86dgaproto      ", xf86dgaproto),
@@ -3165,10 +3170,16 @@ package body Port_Specification is
          ("xf86miscproto     ", xf86miscproto),
          ("xf86rushproto     ", xf86rushproto),
          ("xf86vidmodeproto  ", xf86vidmodeproto),
+         ("xfixes            ", xfixes),
          ("xineramaproto     ", xineramaproto),
          ("xproto            ", xproto),
          ("xproxymngproto    ", xproxymngproto),
-         ("xtransproto       ", xtransproto)
+         ("xrender           ", xrender),
+         ("xshmfence         ", xshmfence),
+         ("xtransproto       ", xtransproto),
+         ("xv                ", xv),
+         ("xvmc              ", xvmc),
+         ("xxf86vm           ", xxf86vm)
         );
 
       bandolier    : keyword_string := (others => LAT.Space);
