@@ -3378,7 +3378,8 @@ package body Port_Specification is
          ("OpenSSL   ", OPENSSL),
          ("PSFL      ", PSFL),
          ("PUBDOM    ", PUBDOM),
-         ("PostgreSQL", POSTGRESQL)  --  lowercase "o" after all capitals
+         ("PostgreSQL", POSTGRESQL),  --  lowercase "o" after all capitals
+         ("ZLIB      ", ZLIB)
         );
 
       bandolier    : keyword_string := (others => LAT.Space);

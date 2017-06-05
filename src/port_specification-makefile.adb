@@ -969,6 +969,7 @@ package body Port_Specification.Makefile is
          when OPENSSL    => return "OpenSSL License";
          when POSTGRESQL => return "PostgreSQL Licence";
          when PSFL       => return "Python Software Foundation License";
+         when ZLIB       => return "zlib License";
       end case;
    end standard_license_names;
 
