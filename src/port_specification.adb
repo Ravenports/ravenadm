@@ -3145,6 +3145,7 @@ package body Port_Specification is
          ("ice               ", ice),
          ("inputproto        ", inputproto),
          ("kbproto           ", kbproto),
+         ("pciaccess         ", pciaccess),
          ("pixman            ", pixman),
          ("presentproto      ", presentproto),
          ("printproto        ", printproto),
