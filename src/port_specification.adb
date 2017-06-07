@@ -3162,6 +3162,8 @@ package body Port_Specification is
          ("x11               ", x11),
          ("xau               ", xau),
          ("xcb               ", xcb),
+         ("xcb-render-util   ", xcb_render_util),
+         ("xcb-util          ", xcb_util),
          ("xcmiscproto       ", xcmiscproto),
          ("xdamage           ", xdamage),
          ("xdmcp             ", xdmcp),
