@@ -2811,7 +2811,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 39;
+      total_modules : constant Positive := 40;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2850,6 +2850,7 @@ package body Port_Specification is
          "pkgconfig      ",
          "python         ",
          "readline       ",
+         "ruby           ",
          "shebangfix     ",
          "scons          ",
          "sqlite         ",
@@ -3380,6 +3381,7 @@ package body Port_Specification is
          ("PSFL      ", PSFL),
          ("PUBDOM    ", PUBDOM),
          ("PostgreSQL", POSTGRESQL),  --  lowercase "o" after all capitals
+         ("RUBY      ", RUBY),
          ("ZLIB      ", ZLIB)
         );
 

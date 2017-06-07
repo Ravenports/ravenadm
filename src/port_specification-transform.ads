@@ -57,6 +57,8 @@ private
    PYTHON35 : constant String := "python35:single:standard";
    TCL85    : constant String := "tcl85:complete:standard";
    TCL86    : constant String := "tcl86:complete:standard";
+   RUBY23   : constant String := "ruby23:primary:standard";
+   RUBY24   : constant String := "ruby24:primary:standard";
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;
@@ -100,6 +102,7 @@ private
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_zlib_module      (specs : in out Portspecs);
    procedure apply_jpeg_module      (specs : in out Portspecs);
+   procedure apply_ruby_module      (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
                                      variant : String;
                                      module  : String;

@@ -256,6 +256,7 @@ package body Port_Specification.Transform is
       apply_pgsql_module (specs);
       apply_ninja_module (specs);
       apply_python_module (specs);
+      apply_ruby_module (specs);
       apply_zlib_module (specs);
       apply_jpeg_module (specs);
       apply_lua_module (specs);
@@ -1331,6 +1332,37 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_python_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_ruby_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_ruby_module (specs : in out Portspecs)
+   is
+      module     : constant String := "ruby";
+      v23        : constant String := "v23";
+      v24        : constant String := "v24";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) or else
+        argument_present (specs, module, "interp")
+      then
+         return;
+      end if;
+
+      if argument_present (specs, module, "build") then
+         if argument_present (specs, module, v23) then
+            add_build_depends (specs, RUBY23);
+         else -- default to ruby24
+            add_build_depends (specs, RUBY24);
+         end if;
+      else
+         if argument_present (specs, module, v23) then
+            add_buildrun_depends (specs, RUBY23);
+         else -- default to ruby24
+            add_buildrun_depends (specs, RUBY24);
+         end if;
+      end if;
+   end apply_ruby_module;
 
 
    --------------------------------------------------------------------------------------------
