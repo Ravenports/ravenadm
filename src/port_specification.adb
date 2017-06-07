@@ -2811,7 +2811,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 38;
+      total_modules : constant Positive := 39;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2837,6 +2837,7 @@ package body Port_Specification is
          "gmake          ",
          "gprbuild       ",
          "iconv          ",
+         "jpeg           ",
          "libtool        ",
          "lua            ",
          "makeinfo       ",

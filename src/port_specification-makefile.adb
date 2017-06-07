@@ -214,6 +214,7 @@ package body Port_Specification.Makefile is
            module = "gettext-tools" or else
            module = "bison" or else
            module = "zlib" or else
+           module = "jpeg" or else
            module = "readline" or else
            module = "execinfo" or else
            module = "sqlite" or else

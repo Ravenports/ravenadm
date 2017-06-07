@@ -99,6 +99,7 @@ private
    procedure apply_autoconf_module  (specs : in out Portspecs);
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_zlib_module      (specs : in out Portspecs);
+   procedure apply_jpeg_module      (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
                                      variant : String;
                                      module  : String;
