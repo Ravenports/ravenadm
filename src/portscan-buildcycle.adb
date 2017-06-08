@@ -343,6 +343,8 @@ package body PortScan.Buildcycle is
       phase_name : constant String  := "test / deinstall build dependencies";
       root       : constant String := get_root (id);
       PKG_DELETE : constant String := "/usr/bin/pkg-static delete -f -y ";
+      AUTOREMOVE : constant String := chroot & root & environment_override (id) &
+                                      "/usr/bin/pkg-static autoremove -y";
       still_good : Boolean := True;
       timed_out  : Boolean;
    begin
@@ -367,6 +369,15 @@ package body PortScan.Buildcycle is
             end if;
          end;
       end loop;
+
+      if still_good then
+         TIO.Put_Line (trackers (id).log_handle, "===>  Autoremoving orphaned packages");
+         TIO.Close (trackers (id).log_handle);
+         still_good := generic_execute (id, AUTOREMOVE, timed_out, time_limit);
+         TIO.Open (File => trackers (id).log_handle,
+                   Mode => TIO.Append_File,
+                   Name => LOG.log_name (trackers (id).seq_id));
+      end if;
 
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
