@@ -935,6 +935,9 @@ package body Port_Specification is
             if group'Length > 15 then
                raise wrong_value with "'" & group & "' value is too long (15-char limit)";
             end if;
+            if HT.contains (group, "+") then
+               raise wrong_type with "'" & group & "' contains illegal character '+'";
+            end if;
             if specs.dl_sites.Contains (text_group) then
                raise dupe_list_value with group;
             end if;
@@ -3182,6 +3185,7 @@ package body Port_Specification is
          ("xf86vidmodeproto  ", xf86vidmodeproto),
          ("xfixes            ", xfixes),
          ("xfont             ", xfont),
+         ("xft               ", xft),
          ("xineramaproto     ", xineramaproto),
          ("xproto            ", xproto),
          ("xproxymngproto    ", xproxymngproto),
