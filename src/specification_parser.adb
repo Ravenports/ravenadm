@@ -1045,7 +1045,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 141;
+      total_singlets : constant Positive := 144;
 
       type singlet_pair is
          record
@@ -1115,6 +1115,9 @@ package body Specification_Parser is
          ("EXTRACT_WITH_LHA      ", 16, ext_lha),
          ("EXTRACT_WITH_UNZIP    ", 18, ext_zip),
          ("EXTRA_PATCHES         ", 13, extra_patches),
+         ("FONTNAME              ",  8, catchall),
+         ("FONTROOTDIR           ", 11, catchall),
+         ("FONTSDIR              ",  8, catchall),
          ("FPC_EQUIVALENT        ", 14, catchall),
          ("GENERATED             ",  9, generated),
          ("GNOME_COMPONENTS      ", 16, gnome_comp),

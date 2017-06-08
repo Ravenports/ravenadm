@@ -93,6 +93,7 @@ private
    procedure apply_python_module    (specs : in out Portspecs);
    procedure apply_lua_module       (specs : in out Portspecs);
    procedure apply_tcl_module       (specs : in out Portspecs);
+   procedure apply_fonts_module     (specs : in out Portspecs);
    procedure apply_cmake_module     (specs : in out Portspecs);
    procedure apply_ninja_module     (specs : in out Portspecs);
    procedure apply_mysql_module     (specs : in out Portspecs);

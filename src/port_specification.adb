@@ -2811,7 +2811,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 41;
+      total_modules : constant Positive := 42;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2831,6 +2831,7 @@ package body Port_Specification is
          "destdirfix     ",
          "dos2unix       ",
          "execinfo       ",
+         "fonts          ",
          "fortran        ",
          "gettext-runtime",
          "gettext-tools  ",
@@ -3180,6 +3181,7 @@ package body Port_Specification is
          ("xf86rushproto     ", xf86rushproto),
          ("xf86vidmodeproto  ", xf86vidmodeproto),
          ("xfixes            ", xfixes),
+         ("xfont             ", xfont),
          ("xineramaproto     ", xineramaproto),
          ("xproto            ", xproto),
          ("xproxymngproto    ", xproxymngproto),

@@ -255,6 +255,7 @@ package body Port_Specification.Transform is
       apply_mysql_module (specs);
       apply_pgsql_module (specs);
       apply_ninja_module (specs);
+      apply_fonts_module (specs);
       apply_python_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
@@ -1378,6 +1379,38 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_ruby_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_fonts_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_fonts_module (specs : in out Portspecs)
+   is
+      module      : String := "fonts";
+      fontconfig  : String := "fontconfig:primary:standard";
+      mkfontdir   : String := "xorg-mkfontdir:single:standard";
+      mkfontscale : String := "xorg-mkfontscale:single:standard";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) or else
+        argument_present (specs, module, "fontsdir")
+      then
+         add_buildrun_depends (specs, mkfontdir);
+         add_buildrun_depends (specs, mkfontscale);
+         return;
+      end if;
+      if argument_present (specs, module, "fc") then
+         add_buildrun_depends (specs, fontconfig);
+         return;
+      end if;
+      if argument_present (specs, module, "fcfontsdir") then
+         add_buildrun_depends (specs, fontconfig);
+         add_buildrun_depends (specs, mkfontdir);
+         add_buildrun_depends (specs, mkfontscale);
+      end if;
+   end apply_fonts_module;
 
 
    --------------------------------------------------------------------------------------------
