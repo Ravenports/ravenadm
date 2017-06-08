@@ -258,6 +258,7 @@ package body Port_Specification.Transform is
       apply_python_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
+      apply_mesa_module (specs);
       apply_jpeg_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
@@ -814,6 +815,20 @@ package body Port_Specification.Transform is
          add_buildrun_depends (specs, dependency);
       end if;
    end apply_zlib_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_mesa_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_mesa_module (specs : in out Portspecs)
+   is
+      module     : String := "mesa";
+      dependency : String := "mesa:libs:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_mesa_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -2235,6 +2250,8 @@ package body Port_Specification.Transform is
       ss           : constant String := ":single:standard";
       port_libxml2 : constant String := "libxml2";
       port_libxslt : constant String := "libxslt";
+      port_glib    : constant String := "glib";
+      port_gettext : constant String := "gettext:runtime:standard";
 
       procedure import (position : string_crate.Cursor)
       is
@@ -2243,6 +2260,8 @@ package body Port_Specification.Transform is
       begin
          case comp is
             when invalid_component => null;  --  should be impossible
+            when glib    => add_buildrun_depends (specs, port_glib & ss);
+                            add_buildrun_depends (specs, port_gettext);
             when libxml2 => add_buildrun_depends (specs, port_libxml2 & ss);
             when libxslt => add_buildrun_depends (specs, port_libxslt & ss);
                             add_buildrun_depends (specs, port_libxml2 & ss);

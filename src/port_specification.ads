@@ -290,7 +290,7 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (libxml2, libxslt, invalid_component);
+     (glib, libxml2, libxslt, invalid_component);
 
    type xorg_type is
      (bigreqsproto, compositeproto, damageproto, dmxproto, dri2proto, dri3proto, evieproto,

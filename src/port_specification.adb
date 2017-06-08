@@ -2811,7 +2811,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 40;
+      total_modules : constant Positive := 41;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2841,6 +2841,7 @@ package body Port_Specification is
          "libtool        ",
          "lua            ",
          "makeinfo       ",
+         "mesa           ",
          "mysql          ",
          "ncurses        ",
          "ninja          ",
@@ -3008,6 +3009,7 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("INVALID           ", invalid_component),
+         ("glib              ", glib),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt)
         );
