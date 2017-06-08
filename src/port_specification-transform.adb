@@ -2285,6 +2285,8 @@ package body Port_Specification.Transform is
       port_libxslt : constant String := "libxslt";
       port_glib    : constant String := "glib";
       port_gettext : constant String := "gettext:runtime:standard";
+      port_cairo   : constant String := "cairo";
+      port_gobspec : constant String := "gobject-introspection";
 
       procedure import (position : string_crate.Cursor)
       is
@@ -2293,11 +2295,22 @@ package body Port_Specification.Transform is
       begin
          case comp is
             when invalid_component => null;  --  should be impossible
-            when glib    => add_buildrun_depends (specs, port_glib & ss);
-                            add_buildrun_depends (specs, port_gettext);
+            when glib    => null;
             when libxml2 => add_buildrun_depends (specs, port_libxml2 & ss);
             when libxslt => add_buildrun_depends (specs, port_libxslt & ss);
                             add_buildrun_depends (specs, port_libxml2 & ss);
+            when cairo   => add_buildrun_depends (specs, port_cairo & ss);
+            when introspection =>
+                            add_buildrun_depends (specs, port_gobspec & ss);
+                            specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
+                            specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
+         end case;
+         --  These components imply glib
+         case comp is
+            when introspection | glib =>
+               add_buildrun_depends (specs, port_glib & ss);
+               add_buildrun_depends (specs, port_gettext);
+            when others => null;
          end case;
       end import;
    begin

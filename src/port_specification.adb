@@ -3010,7 +3010,9 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("INVALID           ", invalid_component),
+         ("cairo             ", cairo),
          ("glib              ", glib),
+         ("introspection     ", introspection),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt)
         );
@@ -3018,7 +3020,6 @@ package body Port_Specification is
 --  atk
 --  atkmm
 --  atspi
---  cairo
 --  cairomm
 --  dconf
 --  esound
@@ -3052,7 +3053,6 @@ package body Port_Specification is
 --  gvfs
 --  intlhack
 --  intltool
---  introspection
 --  libartlgpl2
 --  libbonobo
 --  libbonoboui
