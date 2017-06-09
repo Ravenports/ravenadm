@@ -810,10 +810,10 @@ package body Port_Specification.Transform is
    procedure apply_zlib_module (specs : in out Portspecs)
    is
       module     : String := "zlib";
-      dependency : String := "zlib:complete:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, dependency);
+         add_build_depends (specs, "zlib:static:standard");
+         add_buildrun_depends (specs, "zlib:shared:standard");
       end if;
    end apply_zlib_module;
 
@@ -1104,14 +1104,13 @@ package body Port_Specification.Transform is
    procedure apply_libiconv_module (specs : in out Portspecs)
    is
       module            : String := "iconv";
-      full_dependency   : String := "libiconv:complete:standard";
+      shared_dependency : String := "libiconv:shared:standard";
       static_dependency : String := "libiconv:static:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
-         if argument_present (specs, module, BUILD) then
-            add_build_depends (specs, static_dependency);
-         else
-            add_buildrun_depends (specs, full_dependency);
+         add_build_depends (specs, static_dependency);
+         if not argument_present (specs, module, BUILD) then
+            add_buildrun_depends (specs, shared_dependency);
          end if;
       end if;
    end apply_libiconv_module;
@@ -1667,8 +1666,8 @@ package body Port_Specification.Transform is
       module       : String  := "bdb";
       dep_static_5 : String  := "db5:static:standard";
       dep_static_6 : String  := "db6:static:standard";
-      dep_shared_5 : String  := "db5:complete:standard";
-      dep_shared_6 : String  := "db6:complete:standard";
+      dep_shared_5 : String  := "db5:shared:standard";
+      dep_shared_6 : String  := "db6:shared:standard";
       need_static  : Boolean := False;
       need_six     : Boolean := False;
    begin
@@ -1681,13 +1680,13 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "6") then
          need_six := True;
       end if;
-      if need_static then
-         if need_six then
-            add_build_depends (specs, dep_static_6);
-         else
-            add_build_depends (specs, dep_static_5);
-         end if;
+
+      if need_six then
+         add_build_depends (specs, dep_static_6);
       else
+         add_build_depends (specs, dep_static_5);
+      end if;
+      if not need_static then
          if need_six then
             add_buildrun_depends (specs, dep_shared_6);
          else
