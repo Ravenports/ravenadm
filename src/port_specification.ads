@@ -302,8 +302,8 @@ private
       videoproto, xcmiscproto, xextproto, xf86bigfontproto, xf86dgaproto, xf86driproto,
       xf86miscproto, xf86rushproto, xf86vidmodeproto, xineramaproto, xproto, xproxymngproto,
       xtransproto, fontenc, fontutil, ice, pciaccess, pixman, sm, x11, xau, xcb, xcb_util,
-      xcb_render_util, xdamage, xdmcp, xext, xfixes, xfont, xft, xrender, xshmfence,
-      xv, xvmc, xxf86vm,
+      xcb_render_util, xcomposite, xcursor, xdamage, xdmcp, xext, xfixes, xfont, xft, xi,
+      xinerama, xrender, xshmfence, xtst, xv, xvmc, xxf86vm,
       invalid_component);
 
    package string_crate is new CON.Vectors
