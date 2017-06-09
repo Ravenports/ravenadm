@@ -2767,7 +2767,10 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  combined_dependency_origins
    --------------------------------------------------------------------------------------------
-   function combined_dependency_origins (specs : Portspecs; include_run : Boolean) return String
+   function combined_dependency_origins
+     (specs        : Portspecs;
+      include_run  : Boolean;
+      limit_to_run : Boolean) return String
    is
       procedure scan  (position : string_crate.Cursor);
       procedure print (position : string_crate.Cursor);
@@ -2800,10 +2803,15 @@ package body Port_Specification is
       end scan_package;
 
    begin
-      specs.build_deps.Iterate (scan'Access);
+      if not limit_to_run then
+         specs.build_deps.Iterate (scan'Access);
+      end if;
+
       specs.buildrun_deps.Iterate (scan'Access);
-      if include_run then
+
+      if limit_to_run or else include_run then
          specs.run_deps.Iterate (scan'Access);
+         specs.extra_rundeps.Iterate (scan_package'Access);
       end if;
 
       combined.Iterate (print'Access);

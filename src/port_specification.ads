@@ -216,7 +216,11 @@ package Port_Specification is
    function missing_subpackage_definition (specs : Portspecs) return Boolean;
 
    --  Return string block (delimited by LF) of unique build + buildrun + run depends (optional)
-   function combined_dependency_origins (specs : Portspecs; include_run : Boolean) return String;
+   --  If limit_to_run is true, only run dependencies are returned
+   function combined_dependency_origins
+     (specs        : Portspecs;
+      include_run  : Boolean;
+      limit_to_run : Boolean) return String;
 
    --  Runs through specs to ensure all license framework information is present.
    function post_parse_license_check_passes (specs : Portspecs) return Boolean;

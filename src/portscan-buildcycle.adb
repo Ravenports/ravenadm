@@ -93,6 +93,9 @@ package body PortScan.Buildcycle is
                REP.unhook_toolchain (id);
                if R and then testing then
                   R := deinstall_all_packages (id);
+                  if R then
+                     R := install_run_depends (specification, id);
+                  end if;
                end if;
 
             when pkg_package =>
@@ -276,6 +279,42 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
+   --  pkg_install_subroutine
+   --------------------------------------------------------------------------------------------
+   function pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean
+   is
+      timed_out  : Boolean;
+      time_limit : execution_limit  := max_time_without_output (install);
+      PKG_ADD    : constant String  := "/usr/bin/pkg-static add ";
+      portkey    : constant String  := convert_depend_origin_to_portkey (line);
+      ptid       : constant port_id := ports_keys (HT.SUS (portkey));
+      pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
+      pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
+      pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
+      fullpath   : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
+      command    : constant String  := chroot & root & env_vars & PKG_ADD &
+                                       "/packages/All/" & pkgfile;
+      still_good : Boolean := True;
+   begin
+      if DIR.Exists (fullpath) then
+         TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
+         TIO.Close (trackers (id).log_handle);
+         still_good := generic_execute (id, command, timed_out, time_limit);
+         TIO.Open (File => trackers (id).log_handle,
+                   Mode => TIO.Append_File,
+                   Name => LOG.log_name (trackers (id).seq_id));
+         if timed_out then
+            TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+         end if;
+      else
+         still_good := False;
+         TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
+      end if;
+      return still_good;
+   end pkg_install_subroutine;
+
+
+   --------------------------------------------------------------------------------------------
    --  exec_phase_depends
    --------------------------------------------------------------------------------------------
    function  exec_phase_depends
@@ -283,53 +322,60 @@ package body PortScan.Buildcycle is
       phase_name    : String;
       id            : builders) return Boolean
    is
-      time_limit : execution_limit := max_time_without_output (install);
-      block      : constant String :=
-                   specification.combined_dependency_origins (include_run => False);
-      PKG_ADD    : constant String := "/usr/bin/pkg-static add ";
       root       : constant String := get_root (id);
-      markers    : HT.Line_Markers;
+      env_vars   : constant String := environment_override (id);
       still_good : Boolean := True;
-      timed_out  : Boolean;
+      markers    : HT.Line_Markers;
+      block      : constant String :=
+        specification.combined_dependency_origins (include_run  => not testing,
+                                                   limit_to_run => False);
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-
-       HT.initialize_markers (block, markers);
+      HT.initialize_markers (block, markers);
       loop
          exit when not still_good;
          exit when not HT.next_line_present (block, markers);
          declare
-            line       : constant String  := HT.extract_line (block, markers);
-            portkey    : constant String  := convert_depend_origin_to_portkey (line);
-            ptid       : constant port_id := ports_keys (HT.SUS (portkey));
-            pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
-            pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
-            pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
-            fullpath   : constant String  := HT.USS (PM.configuration.dir_repository) & "/" &
-                                             pkgfile;
-            command    : constant String  := chroot & root & environment_override (id) &
-                                             PKG_ADD &  "/packages/All/" & pkgfile;
+            line : constant String  := HT.extract_line (block, markers);
          begin
-            if DIR.Exists (fullpath) then
-               TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
-               TIO.Close (trackers (id).log_handle);
-               still_good := generic_execute (id, command, timed_out, time_limit);
-               TIO.Open (File => trackers (id).log_handle,
-                         Mode => TIO.Append_File,
-                         Name => LOG.log_name (trackers (id).seq_id));
-               if timed_out then
-                  TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-               end if;
-            else
-               still_good := False;
-               TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
-            end if;
+            still_good := pkg_install_subroutine (id, root, env_vars, line);
          end;
       end loop;
-
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_depends;
+
+
+   --------------------------------------------------------------------------------------------
+   --  install_run_depends
+   --------------------------------------------------------------------------------------------
+   function  install_run_depends
+     (specification : PSP.Portspecs;
+      id            : builders) return Boolean
+   is
+      phase_name : constant String := "test / install run dependencies";
+      root       : constant String := get_root (id);
+      env_vars   : constant String := environment_override (id);
+      still_good : Boolean := True;
+      markers    : HT.Line_Markers;
+      block      : constant String :=
+        specification.combined_dependency_origins (include_run  => True,
+                                                   limit_to_run => True);
+   begin
+      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
+      HT.initialize_markers (block, markers);
+      loop
+         exit when not still_good;
+         exit when not HT.next_line_present (block, markers);
+         declare
+            line : constant String  := HT.extract_line (block, markers);
+         begin
+            still_good := pkg_install_subroutine (id, root, env_vars, line);
+         end;
+      end loop;
+      LOG.log_phase_end (trackers (id).log_handle);
+      return still_good;
+   end install_run_depends;
 
 
    --------------------------------------------------------------------------------------------

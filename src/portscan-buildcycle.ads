@@ -122,6 +122,11 @@ private
    function  watchdog_message (minutes : execution_limit) return String;
    function  get_port_prefix (id : builders) return String;
    function  deinstall_all_packages (id : builders) return Boolean;
+   function  pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean;
+
+   function  install_run_depends
+     (specification : PSP.Portspecs;
+      id            : builders) return Boolean;
 
    function  generic_execute
      (id         : builders;
