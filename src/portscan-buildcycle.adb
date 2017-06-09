@@ -90,10 +90,10 @@ package body PortScan.Buildcycle is
                if testing and run_selftest then
                   R := exec_phase_generic (id, phase);
                end if;
-               if R and then testing then
-                  R := remove_build_depends (specification, id);
-               end if;
                REP.unhook_toolchain (id);
+               if R and then testing then
+                  R := deinstall_all_packages (id);
+               end if;
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
@@ -284,7 +284,8 @@ package body PortScan.Buildcycle is
       id            : builders) return Boolean
    is
       time_limit : execution_limit := max_time_without_output (install);
-      block      : constant String := specification.combined_dependency_origins;
+      block      : constant String :=
+                   specification.combined_dependency_origins (include_run => False);
       PKG_ADD    : constant String := "/usr/bin/pkg-static add ";
       root       : constant String := get_root (id);
       markers    : HT.Line_Markers;
@@ -332,56 +333,28 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
-   --  remove_build_depends
+   --  deinstall_all_packages
    --------------------------------------------------------------------------------------------
-   function  remove_build_depends
-     (specification : PSP.Portspecs;
-      id            : builders) return Boolean
+   function deinstall_all_packages (id : builders) return Boolean
    is
       time_limit : execution_limit := max_time_without_output (test);
-      numdeps    : constant Natural := specification.get_list_length (PSP.sp_build_deps);
-      phase_name : constant String  := "test / deinstall build dependencies";
       root       : constant String := get_root (id);
-      PKG_DELETE : constant String := "/usr/bin/pkg-static delete -f -y ";
-      AUTOREMOVE : constant String := chroot & root & environment_override (id) &
-                                      "/usr/bin/pkg-static autoremove -y";
+      phase_name : constant String := "test / deinstall all packages";
+      PKG_RM_ALL : constant String := "/usr/bin/pkg-static delete -a -y ";
+      command    : constant String := chroot & root & environment_override (id) & PKG_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-
-      for dep_id in 1 .. numdeps loop
-         exit when not still_good;
-         declare
-            dependency : String := specification.get_list_item (PSP.sp_build_deps, dep_id);
-            pkgname    : constant String  := HT.replace_all (dependency, LAT.Colon, LAT.Hyphen);
-            command    : constant String := chroot & root & environment_override (id) &
-                         PKG_DELETE & pkgname;
-         begin
-            TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
-            TIO.Close (trackers (id).log_handle);
-            still_good := generic_execute (id, command, timed_out, time_limit);
-            TIO.Open (File => trackers (id).log_handle,
-                      Mode => TIO.Append_File,
-                      Name => LOG.log_name (trackers (id).seq_id));
-            if timed_out then
-               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-            end if;
-         end;
-      end loop;
-
-      if still_good then
-         TIO.Put_Line (trackers (id).log_handle, "===>  Autoremoving orphaned packages");
-         TIO.Close (trackers (id).log_handle);
-         still_good := generic_execute (id, AUTOREMOVE, timed_out, time_limit);
-         TIO.Open (File => trackers (id).log_handle,
-                   Mode => TIO.Append_File,
-                   Name => LOG.log_name (trackers (id).seq_id));
-      end if;
-
+      TIO.Put_Line (trackers (id).log_handle, "===>  Autoremoving orphaned packages");
+      TIO.Close (trackers (id).log_handle);
+      still_good := generic_execute (id, command, timed_out, time_limit);
+      TIO.Open (File => trackers (id).log_handle,
+                Mode => TIO.Append_File,
+                Name => LOG.log_name (trackers (id).seq_id));
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
-   end remove_build_depends;
+   end deinstall_all_packages;
 
 
    --------------------------------------------------------------------------------------------

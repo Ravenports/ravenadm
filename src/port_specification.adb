@@ -2767,7 +2767,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  combined_dependency_origins
    --------------------------------------------------------------------------------------------
-   function combined_dependency_origins (specs : Portspecs) return String
+   function combined_dependency_origins (specs : Portspecs; include_run : Boolean) return String
    is
       procedure scan  (position : string_crate.Cursor);
       procedure print (position : string_crate.Cursor);
@@ -2802,7 +2802,9 @@ package body Port_Specification is
    begin
       specs.build_deps.Iterate (scan'Access);
       specs.buildrun_deps.Iterate (scan'Access);
-      specs.run_deps.Iterate (scan'Access);
+      if include_run then
+         specs.run_deps.Iterate (scan'Access);
+      end if;
 
       combined.Iterate (print'Access);
       return HT.USS (result);
@@ -4020,6 +4022,31 @@ package body Port_Specification is
       end if;
       return HT.USS (result);
    end equivalent_fpc_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  run_dependency
+   --------------------------------------------------------------------------------------------
+   function run_dependency (specs : Portspecs; dependency : String) return Boolean
+   is
+      procedure scan1 (position1 : list_crate.Cursor);
+
+      key   : HT.Text := HT.SUS (dependency);
+      found : Boolean := False;
+
+      procedure scan1 (position1 : list_crate.Cursor) is
+      begin
+         if not found then
+            found := list_crate.Element (position1).list.Contains (key);
+         end if;
+      end scan1;
+   begin
+      if specs.buildrun_deps.Contains (key) or else specs.run_deps.Contains (key) then
+         return True;
+      end if;
+      specs.extra_rundeps.Iterate (scan1'Access);
+      return found;
+   end run_dependency;
 
 
    --------------------------------------------------------------------------------------------

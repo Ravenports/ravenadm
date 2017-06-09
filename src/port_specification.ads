@@ -215,8 +215,8 @@ package Port_Specification is
    --  Returns True if one or more variants have no defined subpackages.
    function missing_subpackage_definition (specs : Portspecs) return Boolean;
 
-   --  Return string block (delimited by LF) of unique build + buildrun + run depends.
-   function combined_dependency_origins (specs : Portspecs) return String;
+   --  Return string block (delimited by LF) of unique build + buildrun + run depends (optional)
+   function combined_dependency_origins (specs : Portspecs; include_run : Boolean) return String;
 
    --  Runs through specs to ensure all license framework information is present.
    function post_parse_license_check_passes (specs : Portspecs) return Boolean;
@@ -262,6 +262,9 @@ package Port_Specification is
 
    --  If catchall FPC_EQUIVALENT is defined, return its value, otherwise return "N/A".
    function equivalent_fpc_port (specs : Portspecs) return String;
+
+   --  Returns True if given dependency is present as run_depends or buildrun_depends
+   function run_dependency (specs : Portspecs; dependency : String) return Boolean;
 
 private
 

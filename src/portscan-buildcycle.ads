@@ -121,6 +121,7 @@ private
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
    function  get_port_prefix (id : builders) return String;
+   function  deinstall_all_packages (id : builders) return Boolean;
 
    function  generic_execute
      (id         : builders;
@@ -131,10 +132,6 @@ private
    function  exec_phase_depends
      (specification : PSP.Portspecs;
       phase_name    : String;
-      id            : builders) return Boolean;
-
-   function  remove_build_depends
-     (specification : PSP.Portspecs;
       id            : builders) return Boolean;
 
    function  dynamically_linked
