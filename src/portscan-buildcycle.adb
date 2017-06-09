@@ -364,19 +364,13 @@ package body PortScan.Buildcycle is
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
       HT.initialize_markers (block, markers);
-      --  One exception:
-      --  When a port has a run dependency on itself (possible with EXRUN[]), skip
-      --  as the packages haven't been built yet.
       loop
          exit when not still_good;
          exit when not HT.next_line_present (block, markers);
          declare
             line : constant String  := HT.extract_line (block, markers);
-            namebase : constant String := HT.specific_field (line, 1, ":");
          begin
-            if not HT.equivalent (all_ports (trackers (id).seq_id).port_namebase, namebase) then
-               still_good := pkg_install_subroutine (id, root, env_vars, line);
-            end if;
+            still_good := pkg_install_subroutine (id, root, env_vars, line);
          end;
       end loop;
       LOG.log_phase_end (trackers (id).log_handle);

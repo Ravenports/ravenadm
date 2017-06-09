@@ -2781,10 +2781,16 @@ package body Port_Specification is
 
       procedure scan (position : string_crate.Cursor)
       is
-         text_value : HT.Text renames string_crate.Element (position);
+         --  One exception:
+         --  When a port has a dependency on itself (possible with EXRUN[]), skip
+
+         text_value  : HT.Text renames string_crate.Element (position);
+         dep_namebase : constant String :=  HT.specific_field (HT.USS (text_value), 1, ":");
       begin
-         if not combined.Contains (text_value) then
-            combined.Append (text_value);
+         if not HT.equivalent (specs.namebase, dep_namebase) then
+            if not combined.Contains (text_value) then
+               combined.Append (text_value);
+            end if;
          end if;
       end scan;
 
