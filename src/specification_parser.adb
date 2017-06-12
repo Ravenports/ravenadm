@@ -86,9 +86,11 @@ package body Specification_Parser is
                if line'Length = 1 then
                   goto line_done;
                end if;
-               if line'Length > 79 then
-                  last_parse_error := HT.SUS (LN & "Comment length exceeds 79 columns");
-                  exit;
+               if not specification.port_is_generated then
+                  if line'Length > 79 then
+                     last_parse_error := HT.SUS (LN & "Comment length exceeds 79 columns");
+                     exit;
+                  end if;
                end if;
                if line (line'First + 1) /= LAT.Space then
                   last_parse_error := HT.SUS (LN & "Space does not follow hash in comment");
