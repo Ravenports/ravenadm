@@ -818,8 +818,10 @@ package body Pilot is
             end if;
             return
               special = variant or else
-              special (special'First .. special'First + variant'Length) = variant & " " or else
-              special (special'Last - variant'Length .. special'Last) = " " & variant or else
+              (special'First + variant'Length <= special'Last and then
+               special (special'First .. special'First + variant'Length) = variant & " ") or else
+              (special'Last > variant'Length and then
+               special (special'Last - variant'Length .. special'Last) = " " & variant) or else
               AS.Fixed.Index (special, " " & variant & " ") /= 0;
          end;
       end variant_valid;

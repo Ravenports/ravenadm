@@ -715,7 +715,7 @@ package body HelperText is
       end if;
 
       declare
-         ssm1   : constant Natural := substring'Length - 1;
+         ssm1   : constant Integer := substring'Length - 1;
          strlen : constant Natural := S'Length + (num_to_replace * ssm1);
          product : String (1 .. strlen);
          ndx : Positive := 1;

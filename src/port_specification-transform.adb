@@ -1703,9 +1703,12 @@ package body Port_Specification.Transform is
    is
       function retrieve_dependency return String;
 
-      module        : String := "perl";
-      pmodbuild     : String := "p5-Module-Build:primary:standard";
-      pmodbuildtiny : String := "p5-Module-Build-Tiny:primary:standard";
+      module        : constant String := "perl";
+      pmodbuild     : constant String := "perl-Module-Build:single:";
+      pmodbuildtiny : constant String := "perl-Module-Build-Tiny:single:";
+      perl_522      : constant String := "522";
+      perl_524      : constant String := "522";
+      dep_suffix    : String := "   ";
       hit_run       : Boolean;
       hit_build     : Boolean;
       hit_both      : Boolean;
@@ -1720,14 +1723,24 @@ package body Port_Specification.Transform is
          def_setting   : String := HT.USS (Parameters.configuration.def_perl);
          override_dep  : String := "perl-" & def_setting;
       begin
-         if def_setting = ports_default then
-            return rport_default & suffix;
+         if argument_present (specs, module, perl_522) then
+            dep_suffix := perl_522;
+            return "perl-5.22" & suffix;
+         elsif argument_present (specs, module, perl_524) then
+            dep_suffix := perl_524;
+            return "perl-5.24" & suffix;
          else
-            return override_dep & suffix;
+            if def_setting = ports_default then
+               dep_suffix := HT.replace_char (default_perl, LAT.Full_Stop, "");
+               return rport_default & suffix;
+            else
+               dep_suffix := HT.replace_char (def_setting, LAT.Full_Stop, "");
+               return override_dep & suffix;
+            end if;
          end if;
       end retrieve_dependency;
 
-      dependency    : String := retrieve_dependency;
+      dependency : String := retrieve_dependency;
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1766,9 +1779,9 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_bmod then
-         add_build_depends (specs, pmodbuild);
+         add_build_depends (specs, pmodbuild & dep_suffix);
       elsif hit_bmodtiny then
-         add_build_depends (specs, pmodbuildtiny);
+         add_build_depends (specs, pmodbuildtiny & dep_suffix);
       end if;
 
    end apply_perl_module;
