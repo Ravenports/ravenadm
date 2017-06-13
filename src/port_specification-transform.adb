@@ -2222,9 +2222,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_perl);
          begin
             if setting = ports_default or else setting = default_perl then
-               return name_subpackage & "perl524";
+               return name_subpackage & "524";
             else
-               return name_subpackage & "perl522";
+               return name_subpackage & "522";
             end if;
          end;
       else
@@ -2303,6 +2303,7 @@ package body Port_Specification.Transform is
       port_gettext : constant String := "gettext:runtime:standard";
       port_cairo   : constant String := "cairo";
       port_gobspec : constant String := "gobject-introspection";
+      port_intltool : constant String := "intltool";
 
       procedure import (position : string_crate.Cursor)
       is
@@ -2316,6 +2317,7 @@ package body Port_Specification.Transform is
             when libxslt => add_buildrun_depends (specs, port_libxslt & ss);
                             add_buildrun_depends (specs, port_libxml2 & ss);
             when cairo   => add_buildrun_depends (specs, port_cairo & ss);
+            when intltool => add_build_depends (specs, port_intltool & ss);
             when introspection =>
                             add_buildrun_depends (specs, port_gobspec & ss);
                             specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));

@@ -145,6 +145,8 @@ package body PortScan.Tests is
                  HT.leads (line, "@fontsdir") or else
                  HT.leads (line, "@fc") or else
                  HT.leads (line, "@rmtry ") or else
+                 HT.leads (line, "@exec ") or else
+                 HT.leads (line, "@unexec ") or else
                  HT.leads (line, "@postunexec ") or else
                  HT.leads (line, "@postexec ")
                then

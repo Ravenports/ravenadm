@@ -2830,7 +2830,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 42;
+      total_modules : constant Positive := 43;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2857,6 +2857,7 @@ package body Port_Specification is
          "gmake          ",
          "gprbuild       ",
          "iconv          ",
+         "intltoolfix    ",
          "jpeg           ",
          "libtool        ",
          "lua            ",
@@ -3031,6 +3032,7 @@ package body Port_Specification is
          ("INVALID           ", invalid_component),
          ("cairo             ", cairo),
          ("glib              ", glib),
+         ("intltool          ", intltool),
          ("introspection     ", introspection),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt)
@@ -3070,8 +3072,6 @@ package body Port_Specification is
 --  gtksourceview
 --  gtksourceviewmm
 --  gvfs
---  intlhack
---  intltool
 --  libartlgpl2
 --  libbonobo
 --  libbonoboui
