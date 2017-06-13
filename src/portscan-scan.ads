@@ -115,7 +115,7 @@ private
    procedure iterate_reverse_deps;
    procedure iterate_drill_down;
 
-   procedure drill_down (next_target : port_index; original_target : port_index);
+   procedure drill_down (next_target : port_index; circular_flag : in out Boolean);
 
     --  some helper routines
    function get_max_lots return scanners;

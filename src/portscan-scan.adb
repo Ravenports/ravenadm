@@ -844,12 +844,14 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  iterate_reverse_deps
    --------------------------------------------------------------------------------------------
-   procedure iterate_drill_down is
+   procedure iterate_drill_down
+   is
+      monaco : Boolean := False;
    begin
       rank_queue.Clear;
       for port in port_index'First .. last_port loop
          if all_ports (port).scanned then
-            drill_down (next_target => port, original_target => port);
+            drill_down (next_target => port, circular_flag => monaco);
             declare
                ndx : constant port_index   := port_index (all_ports (port).reverse_score);
                QR  : constant queue_record := (ap_index      => port,
@@ -858,6 +860,9 @@ package body PortScan.Scan is
                rank_queue.Insert (New_Item => QR);
             end;
          end if;
+         if monaco then
+            raise circular_logic with "Circular dependency detected during drill down";
+         end if;
       end loop;
    end iterate_drill_down;
 
@@ -865,7 +870,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  drill_down
    --------------------------------------------------------------------------------------------
-   procedure drill_down (next_target : port_index; original_target : port_index)
+   procedure drill_down (next_target : port_index; circular_flag : in out Boolean)
    is
       procedure stamp_and_drill (cursor : block_crate.Cursor);
       procedure slurp_scanned (cursor : block_crate.Cursor);
@@ -876,8 +881,8 @@ package body PortScan.Scan is
       is
          rev_id  : port_index := block_crate.Element (Position => cursor);
       begin
-         if not all_ports (original_target).all_reverse.Contains (rev_id) then
-            all_ports (original_target).all_reverse.Insert (rev_id, rev_id);
+         if not all_ports (next_target).all_reverse.Contains (rev_id) then
+            all_ports (next_target).all_reverse.Insert (rev_id, rev_id);
          end if;
       end slurp_scanned;
 
@@ -885,36 +890,41 @@ package body PortScan.Scan is
       is
          pmc : port_index := block_crate.Element (Position => cursor);
       begin
-         if not all_ports (original_target).all_reverse.Contains (pmc) then
-            all_ports (original_target).all_reverse.Insert (pmc, pmc);
-         end if;
-         if pmc = original_target then
-            declare
-               top_port  : constant String := get_port_variant (all_ports (original_target));
-               this_port : constant String := get_port_variant (all_ports (next_target));
-            begin
-               raise circular_logic with top_port & " <=> " & this_port;
-            end;
-         end if;
+         if all_ports (pmc).scan_locked then
+            --  We've already seen this port (circular dependency)
+            circular_flag := True;
+            TIO.Put_Line ("!! Dependency violation on " & get_port_variant (all_ports (pmc)));
+         else
+            if not all_ports (next_target).all_reverse.Contains (pmc) then
+               all_ports (next_target).all_reverse.Insert (pmc, pmc);
+            end if;
 
-         if not all_ports (pmc).rev_scanned then
-            drill_down (next_target => pmc, original_target => pmc);
+            if not all_ports (pmc).rev_scanned then
+               drill_down (next_target => pmc, circular_flag => circular_flag);
+            end if;
+            all_ports (pmc).all_reverse.Iterate (slurp_scanned'Access);
          end if;
-         all_ports (pmc).all_reverse.Iterate (slurp_scanned'Access);
       end stamp_and_drill;
 
    begin
       if not rec.scanned then
          return;
       end if;
-      if rec.rev_scanned then
+      if rec.rev_scanned or else circular_flag then
          --  It is possible to get here if an earlier port scanned this port
          --  as a reverse dependencies
          return;
       end if;
+      rec.scan_locked := True;
       rec.blocks.Iterate (stamp_and_drill'Access);
+      rec.scan_locked := False;
+
       rec.reverse_score := port_index (rec.all_reverse.Length);
       rec.rev_scanned := True;
+
+      if circular_flag then
+         TIO.Put_Line ("... backtrace " & get_port_variant (all_ports (next_target)));
+      end if;
    end drill_down;
 
 
