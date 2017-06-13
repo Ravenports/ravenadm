@@ -1779,9 +1779,13 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_bmod then
-         add_build_depends (specs, pmodbuild & dep_suffix);
+         if specs.get_namebase /= "perl-Module-Build" then
+            add_build_depends (specs, pmodbuild & dep_suffix);
+         end if;
       elsif hit_bmodtiny then
-         add_build_depends (specs, pmodbuildtiny & dep_suffix);
+         if specs.get_namebase /= "perl-Module-Build-Tiny" then
+            add_build_depends (specs, pmodbuildtiny & dep_suffix);
+         end if;
       end if;
 
    end apply_perl_module;
