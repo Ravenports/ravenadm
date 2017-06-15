@@ -3203,6 +3203,7 @@ package body Port_Specification is
          ("xf86vidmodeproto  ", xf86vidmodeproto),
          ("xfixes            ", xfixes),
          ("xfont             ", xfont),
+         ("xfont2            ", xfont2),
          ("xft               ", xft),
          ("xi                ", xi),
          ("xinerama          ", xinerama),
