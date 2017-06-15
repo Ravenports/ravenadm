@@ -3207,6 +3207,7 @@ package body Port_Specification is
          ("xi                ", xi),
          ("xinerama          ", xinerama),
          ("xineramaproto     ", xineramaproto),
+         ("xkbfile           ", xkbfile),
          ("xmu               ", xmu),
          ("xproto            ", xproto),
          ("xproxymngproto    ", xproxymngproto),
