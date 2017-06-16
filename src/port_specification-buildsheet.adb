@@ -323,6 +323,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.DF_INDEX_ON, "DF_INDEX_ON");
          dump_helper (name, rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          dump_helper (name, rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
+         dump_helper (name, rec.GNOME_COMPONENTS_ON, "GNOME_COMPONENTS_ON");
          dump_helper (name, rec.IMPLIES_ON, "IMPLIES_ON");
          dump_helper (name, rec.INFO_ON, "INFO_ON");
          dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
@@ -346,6 +347,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.TEST_TARGET_ON, "TEST_TARGET_ON");
          dump_helper (name, rec.USES_OFF, "USES_OFF");
          dump_helper (name, rec.USES_ON, "USES_ON");
+         dump_helper (name, rec.XORG_COMPONENTS_ON, "XORG_COMPONENTS_ON");
       end expand_option_record;
 
       procedure send_options is

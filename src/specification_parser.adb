@@ -1047,7 +1047,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 144;
+      total_singlets : constant Positive := 146;
 
       type singlet_pair is
          record
@@ -1143,6 +1143,8 @@ package body Specification_Parser is
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
          ("MANDIRS               ",  7, mandirs),
+         ("MESON_ARGS            ", 10, catchall),
+         ("MESON_BUILD_DIR       ", 15, catchall),
          ("MUST_CONFIGURE        ", 14, must_configure),
          ("NAMEBASE              ",  8, namebase),
          ("NCURSES_RPATH         ", 13, catchall),
@@ -1256,7 +1258,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 46;
+      total_helpers : constant Positive := 48;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1292,6 +1294,7 @@ package body Specification_Parser is
          ("DF_INDEX_ON          ", PSP.df_index_on),
          ("EXTRACT_ONLY_ON      ", PSP.extract_only_on),
          ("EXTRA_PATCHES_ON     ", PSP.extra_patches_on),
+         ("GNOME_COMPONENTS_ON  ", PSP.gnome_comp_on),
          ("IMPLIES_ON           ", PSP.implies_on),
          ("INFO_ON              ", PSP.info_on),
          ("INSTALL_TARGET_ON    ", PSP.install_target_on),
@@ -1314,7 +1317,8 @@ package body Specification_Parser is
          ("SUB_LIST_ON          ", PSP.sub_list_on),
          ("TEST_TARGET_ON       ", PSP.test_target_on),
          ("USES_OFF             ", PSP.uses_off),
-         ("USES_ON              ", PSP.uses_on)
+         ("USES_ON              ", PSP.uses_on),
+         ("XORG_COMPONENTS_ON   ", PSP.xorg_comp_on)
         );
 
       end_opt_name : Natural;

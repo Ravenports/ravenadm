@@ -54,6 +54,7 @@ package body Port_Specification.Transform is
                      when df_index_on         => specs.df_index.Append (item);
                      when extract_only_on     => specs.extract_only.Append (item);
                      when extra_patches_on    => specs.extra_patches.Append (item);
+                     when gnome_comp_on       => specs.gnome_comps.Append (item);
                      when install_target_on   => specs.install_tgt.Append (item);
                      when keywords_on         => specs.keywords.Append (item);
                      when ldflags_on          => specs.ldflags.Append (item);
@@ -68,6 +69,7 @@ package body Port_Specification.Transform is
                      when test_target_on      => specs.test_tgt.Append (item);
                      when makefile_on         => specs.mk_verbatim.Append (item);
                      when only_for_opsys_on   => specs.inc_opsys.Append (item);
+                     when xorg_comp_on        => specs.xorg_comps.Append (item);
                      when uses_on             =>
                         declare
                            stripped      : String  := HT.part_1 (itemstr, ":");
@@ -192,6 +194,7 @@ package body Port_Specification.Transform is
             augment (cxxflags_on,          rec.CXXFLAGS_ON);
             augment (df_index_on,          rec.DF_INDEX_ON);
             augment (extra_patches_on,     rec.EXTRA_PATCHES_ON);
+            augment (gnome_comp_on,        rec.GNOME_COMPONENTS_ON);
             augment (install_target_on,    rec.INSTALL_TARGET_ON);
             augment (keywords_on,          rec.KEYWORDS_ON);
             augment (ldflags_on,           rec.LDFLAGS_ON);
@@ -207,6 +210,7 @@ package body Port_Specification.Transform is
             augment (sub_list_on,          rec.SUB_LIST_ON);
             augment (test_target_on,       rec.TEST_TARGET_ON);
             augment (uses_on,              rec.USES_ON);
+            augment (xorg_comp_on,         rec.XORG_COMPONENTS_ON);
          else
             augment (buildrun_depends_off, rec.BUILDRUN_DEPENDS_OFF);
             augment (build_depends_off,    rec.BUILD_DEPENDS_OFF);
@@ -254,6 +258,7 @@ package body Port_Specification.Transform is
       apply_bison_module (specs);
       apply_mysql_module (specs);
       apply_pgsql_module (specs);
+      apply_meson_module (specs);
       apply_ninja_module (specs);
       apply_fonts_module (specs);
       apply_python_module (specs);
@@ -796,12 +801,26 @@ package body Port_Specification.Transform is
    procedure apply_ninja_module (specs : in out Portspecs)
    is
       module     : String := "ninja";
-      dependency : String := "ninja:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, NINJA);
+      end if;
+   end apply_ninja_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_meson_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_meson_module (specs : in out Portspecs)
+   is
+      module     : String := "meson";
+      dependency : String := "meson:single:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, dependency);
+         add_build_depends (specs, NINJA);
       end if;
-   end apply_ninja_module;
+   end apply_meson_module;
 
 
    --------------------------------------------------------------------------------------------

@@ -59,6 +59,7 @@ private
    TCL86    : constant String := "tcl86:complete:standard";
    RUBY23   : constant String := "ruby23:primary:standard";
    RUBY24   : constant String := "ruby24:primary:standard";
+   NINJA    : constant String := "ninja:single:standard";
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;
@@ -95,6 +96,7 @@ private
    procedure apply_tcl_module       (specs : in out Portspecs);
    procedure apply_fonts_module     (specs : in out Portspecs);
    procedure apply_cmake_module     (specs : in out Portspecs);
+   procedure apply_meson_module     (specs : in out Portspecs);
    procedure apply_ninja_module     (specs : in out Portspecs);
    procedure apply_mysql_module     (specs : in out Portspecs);
    procedure apply_pgsql_module     (specs : in out Portspecs);
