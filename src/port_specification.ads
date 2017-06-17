@@ -297,7 +297,8 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (cairo, glib, intltool, introspection, libxml2, libxslt, invalid_component);
+     (atk, cairo, glib, gtk3, intltool, introspection, pango,
+      libxml2, libxslt, invalid_component);
 
    type xorg_type is
      (bigreqsproto, compositeproto, damageproto, dmxproto, dri2proto, dri3proto, evieproto,

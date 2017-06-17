@@ -2339,6 +2339,9 @@ package body Port_Specification.Transform is
       port_glib    : constant String := "glib";
       port_gettext : constant String := "gettext:runtime:standard";
       port_cairo   : constant String := "cairo";
+      port_atk     : constant String := "atk";
+      port_gtk3    : constant String := "gtk3";
+      port_pango   : constant String := "pango:primary:standard";
       port_gobspec : constant String := "gobject-introspection";
       port_intltool : constant String := "intltool";
 
@@ -2353,16 +2356,21 @@ package body Port_Specification.Transform is
             when libxml2 => add_buildrun_depends (specs, port_libxml2 & ss);
             when libxslt => add_buildrun_depends (specs, port_libxslt & ss);
                             add_buildrun_depends (specs, port_libxml2 & ss);
+            when atk     => add_buildrun_depends (specs, port_atk & ss);
             when cairo   => add_buildrun_depends (specs, port_cairo & ss);
-            when intltool => add_build_depends (specs, port_intltool & ss);
+            when pango   => add_buildrun_depends (specs, port_pango);
+            when intltool => add_build_depends   (specs, port_intltool & ss);
             when introspection =>
                             add_buildrun_depends (specs, port_gobspec & ss);
                             specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                             specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
+            when gtk3    => add_buildrun_depends (specs, port_gtk3 & ss);
+                            add_buildrun_depends (specs, port_atk & ss);
+                            add_buildrun_depends (specs, port_pango);
          end case;
          --  These components imply glib
          case comp is
-            when introspection | glib =>
+            when introspection | glib | atk | pango =>
                add_buildrun_depends (specs, port_glib & ss);
                add_buildrun_depends (specs, port_gettext);
             when others => null;

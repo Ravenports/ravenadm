@@ -3047,15 +3047,17 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("INVALID           ", invalid_component),
+         ("atk               ", atk),
          ("cairo             ", cairo),
          ("glib              ", glib),
+         ("gtk3              ", gtk3),
          ("intltool          ", intltool),
          ("introspection     ", introspection),
          ("libxml2           ", libxml2),
-         ("libxslt           ", libxslt)
+         ("libxslt           ", libxslt),
+         ("pango             ", pango)
         );
 
---  atk
 --  atkmm
 --  atspi
 --  cairomm
@@ -3065,7 +3067,6 @@ package body Port_Specification is
 --  gconf2
 --  gconfmm26
 --  gdkpixbuf2
---  glib20
 --  glibmm
 --  gnomecontrolcenter
 --  gnomedesktop
@@ -3079,7 +3080,6 @@ package body Port_Specification is
 --  gsound
 --  gtkiconcache
 --  gtk20
---  gtk30
 --  gtkhtml3
 --  gtkhtml4
 --  gtkmm20
@@ -3113,7 +3113,6 @@ package body Port_Specification is
 --  metacity
 --  nautilus3
 --  orbit2
---  pango
 --  pangomm
 --  pangox-compat
 --  pygnome2
