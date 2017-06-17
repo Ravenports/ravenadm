@@ -2845,7 +2845,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 44;
+      total_modules : constant Positive := 45;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2863,6 +2863,7 @@ package body Port_Specification is
          "compiler       ",
          "cpe            ",
          "destdirfix     ",
+         "display        ",
          "dos2unix       ",
          "execinfo       ",
          "fonts          ",
@@ -3281,7 +3282,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 67;
+      total_keywords : constant Positive := 68;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -3346,6 +3347,7 @@ package body Port_Specification is
          "sysutils     ",
          "textproc     ",
          "vietnamese   ",
+         "wayland      ",
          "www          ",
          "x11          ",
          "x11_clocks   ",

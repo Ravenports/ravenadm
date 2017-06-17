@@ -250,6 +250,7 @@ package body Port_Specification.Transform is
       apply_gettext_tools_module (specs);
       apply_autoconf_module (specs);
       apply_execinfo_module (specs);
+      apply_display_module (specs);
       apply_sqlite_module (specs);
       apply_cmake_module (specs);
       apply_perl_module (specs);
@@ -1236,6 +1237,23 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_gprbuild_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_display_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_display_module (specs : in out Portspecs)
+   is
+      module : String := "display";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      add_build_depends (specs, "xorg-server:single:virtual");
+      add_build_depends (specs, "xorg-misc-bitmap-fonts:single:standard");
+      add_build_depends (specs, "xorg-font-alias:single:standard");
+      add_build_depends (specs, "daemonize:single:standard");
+   end apply_display_module;
 
 
    --------------------------------------------------------------------------------------------

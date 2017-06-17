@@ -101,6 +101,7 @@ private
    procedure apply_mysql_module     (specs : in out Portspecs);
    procedure apply_pgsql_module     (specs : in out Portspecs);
    procedure apply_sqlite_module    (specs : in out Portspecs);
+   procedure apply_display_module   (specs : in out Portspecs);
    procedure apply_autoconf_module  (specs : in out Portspecs);
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_zlib_module      (specs : in out Portspecs);
