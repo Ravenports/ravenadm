@@ -3511,8 +3511,8 @@ package body Port_Specification is
          ("LDAPS         ", LDAPS),
          ("MYSQL         ", MYSQL),
          ("NLS           ", NLS),
-         ("PERL_522      ", PERL522),
          ("PERL_524      ", PERL524),
+         ("PERL_526      ", PERL526),
          ("PGSQL         ", PGSQL),
          ("PNG           ", PNG),
          ("PY27          ", PY27),
@@ -3576,8 +3576,8 @@ package body Port_Specification is
          when LDAPS   => return "LDAP protocol over SSL support";
          when MYSQL   => return "MySQL database support";
          when NLS     => return "Native Language Support";
-         when PERL522 => return "Build using Perl 5.22";
          when PERL524 => return "Build using Perl 5.24";
+         when PERL526 => return "Build using Perl 5.26";
          when PGSQL   => return "PostgreSQL database support";
          when PNG     => return "PNG image format support";
          when PY27    => return "Build using Python 2.7";

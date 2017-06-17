@@ -1743,8 +1743,8 @@ package body Port_Specification.Transform is
       module        : constant String := "perl";
       pmodbuild     : constant String := "perl-Module-Build:single:";
       pmodbuildtiny : constant String := "perl-Module-Build-Tiny:single:";
-      perl_522      : constant String := "522";
-      perl_524      : constant String := "522";
+      perl_526      : constant String := "526";
+      perl_524      : constant String := "524";
       dep_suffix    : String := "   ";
       hit_run       : Boolean;
       hit_build     : Boolean;
@@ -1760,9 +1760,9 @@ package body Port_Specification.Transform is
          def_setting   : String := HT.USS (Parameters.configuration.def_perl);
          override_dep  : String := "perl-" & def_setting;
       begin
-         if argument_present (specs, module, perl_522) then
-            dep_suffix := perl_522;
-            return "perl-5.22" & suffix;
+         if argument_present (specs, module, perl_526) then
+            dep_suffix := perl_526;
+            return "perl-5.26" & suffix;
          elsif argument_present (specs, module, perl_524) then
             dep_suffix := perl_524;
             return "perl-5.24" & suffix;
@@ -2259,9 +2259,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_perl);
          begin
             if setting = ports_default or else setting = default_perl then
-               return name_subpackage & "524";
+               return name_subpackage & "526";
             else
-               return name_subpackage & "522";
+               return name_subpackage & "524";
             end if;
          end;
       else
