@@ -770,6 +770,7 @@ package body Port_Specification.Makefile is
       send ("TEST_TARGET",      specs.test_tgt, 1);
       send ("TEST_ARGS",        specs.test_args, 1);
       send ("TEST_ENV",         specs.test_env, 1);
+      send ("GENERATED",        specs.generated, True);
       dump_subr;
 
       specs.mk_verbatim.Iterate (print_verbation'Access);
