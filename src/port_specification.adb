@@ -2845,7 +2845,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 46;
+      total_modules : constant Positive := 47;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2892,6 +2892,7 @@ package body Port_Specification is
          "readline       ",
          "ruby           ",
          "shebangfix     ",
+         "schemas        ",
          "scons          ",
          "sqlite         ",
          "ssl            ",
@@ -3500,6 +3501,7 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("ASM           ", ASM),
+         ("COLORD        ", COLORD),
          ("CUPS          ", CUPS),
          ("DBUS          ", DBUS),
          ("DEBUG         ", DEBUG),
@@ -3567,6 +3569,7 @@ package body Port_Specification is
    begin
       case option is
          when ASM     => return "Use optimized assembly code";
+         when COLORD  => return "Color management via colord";
          when CUPS    => return "CUPS printing system support";
          when DBUS    => return "D-Bus IPC system support";
          when DEBUG   => return "Build with debugging support";

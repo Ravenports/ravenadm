@@ -550,7 +550,9 @@ package body PortScan.Scan is
                   begin
                      idrec.port := depindex;
                      idrec.subpackage := HT.SUS (extract_subpackage (dep));
-                     newrec.spkg_run_deps.Append (idrec);
+                     if not newrec.spkg_run_deps.Contains (idrec) then
+                        newrec.spkg_run_deps.Append (idrec);
+                     end if;
                   end;
                end;
             end loop;
@@ -565,7 +567,9 @@ package body PortScan.Scan is
                   begin
                      idrec.port := depindex;
                      idrec.subpackage := HT.SUS (extract_subpackage (dep));
-                     newrec.spkg_run_deps.Append (idrec);
+                     if not newrec.spkg_run_deps.Contains (idrec) then
+                        newrec.spkg_run_deps.Append (idrec);
+                     end if;
                   end;
                end loop;
                for si in Positive range 1 .. thespec.get_list_length (PSP.sp_run_deps) loop
@@ -577,7 +581,9 @@ package body PortScan.Scan is
                   begin
                      idrec.port := depindex;
                      idrec.subpackage := HT.SUS (extract_subpackage (dep));
-                     newrec.spkg_run_deps.Append (idrec);
+                     if not newrec.spkg_run_deps.Contains (idrec) then
+                        newrec.spkg_run_deps.Append (idrec);
+                     end if;
                   end;
                end loop;
             end if;
@@ -591,7 +597,9 @@ package body PortScan.Scan is
                      if innersub /= spkg_complete then
                         idrec.port := target;
                         idrec.subpackage := HT.SUS (innersub);
-                        newrec.spkg_run_deps.Append (idrec);
+                        if not newrec.spkg_run_deps.Contains (idrec) then
+                           newrec.spkg_run_deps.Append (idrec);
+                        end if;
                      end if;
                   end;
                end loop;

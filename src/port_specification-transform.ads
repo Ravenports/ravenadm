@@ -60,6 +60,7 @@ private
    RUBY23   : constant String := "ruby23:primary:standard";
    RUBY24   : constant String := "ruby24:primary:standard";
    NINJA    : constant String := "ninja:single:standard";
+   GNOMELIB : constant String := "glib:single:standard";
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;
@@ -102,6 +103,7 @@ private
    procedure apply_pgsql_module     (specs : in out Portspecs);
    procedure apply_sqlite_module    (specs : in out Portspecs);
    procedure apply_display_module   (specs : in out Portspecs);
+   procedure apply_schemas_module   (specs : in out Portspecs);
    procedure apply_autoconf_module  (specs : in out Portspecs);
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_zlib_module      (specs : in out Portspecs);

@@ -271,6 +271,7 @@ package body Port_Specification.Transform is
       apply_lua_module (specs);
       apply_tcl_module (specs);
       apply_ccache (specs);
+      apply_schemas_module (specs);
       apply_gnome_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
@@ -1267,6 +1268,19 @@ package body Port_Specification.Transform is
          add_run_depends (specs, "gtk-update-icon-cache:single:standard");
       end if;
    end apply_gnome_icons_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_schemas_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_schemas_module (specs : in out Portspecs)
+   is
+      module : String := "schemas";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_run_depends (specs, GNOMELIB);
+      end if;
+   end apply_schemas_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -2349,7 +2363,6 @@ package body Port_Specification.Transform is
       ss           : constant String := ":single:standard";
       port_libxml2 : constant String := "libxml2";
       port_libxslt : constant String := "libxslt";
-      port_glib    : constant String := "glib";
       port_gettext : constant String := "gettext:runtime:standard";
       port_cairo   : constant String := "cairo";
       port_atk     : constant String := "atk";
@@ -2386,7 +2399,7 @@ package body Port_Specification.Transform is
          --  These components imply glib
          case comp is
             when introspection | glib | atk | pango | gdkpixbuf =>
-               add_buildrun_depends (specs, port_glib & ss);
+               add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, port_gettext);
             when others => null;
          end case;
