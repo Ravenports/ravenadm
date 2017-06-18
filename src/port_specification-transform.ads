@@ -113,6 +113,7 @@ private
                                      module  : String;
                                      gccsubpackage : String);
 
+   procedure apply_gnome_icons_module     (specs : in out Portspecs);
    procedure apply_gettext_runtime_module (specs : in out Portspecs);
    procedure apply_gettext_tools_module   (specs : in out Portspecs);
    procedure apply_extraction_deps        (specs : in out Portspecs);

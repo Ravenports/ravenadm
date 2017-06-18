@@ -2845,7 +2845,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 45;
+      total_modules : constant Positive := 46;
 
       subtype uses_string is String (1 .. 15);
 
@@ -2871,6 +2871,7 @@ package body Port_Specification is
          "gettext-runtime",
          "gettext-tools  ",
          "gmake          ",
+         "gnome-icons    ",
          "gprbuild       ",
          "iconv          ",
          "intltoolfix    ",
@@ -3049,6 +3050,7 @@ package body Port_Specification is
          ("INVALID           ", invalid_component),
          ("atk               ", atk),
          ("cairo             ", cairo),
+         ("gdkpixbuf         ", gdkpixbuf),
          ("glib              ", glib),
          ("gtk3              ", gtk3),
          ("intltool          ", intltool),
@@ -3281,7 +3283,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 68;
+      total_keywords : constant Positive := 69;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -3354,6 +3356,7 @@ package body Port_Specification is
          "x11_fm       ",
          "x11_fonts    ",
          "x11_servers  ",
+         "x11_themes   ",
          "x11_toolkits ",
          "x11_wm       "
         );
@@ -3497,6 +3500,8 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("ASM           ", ASM),
+         ("CUPS          ", CUPS),
+         ("DBUS          ", DBUS),
          ("DEBUG         ", DEBUG),
          ("ICONV         ", ICONV),
          ("IDN           ", IDN),
@@ -3562,6 +3567,8 @@ package body Port_Specification is
    begin
       case option is
          when ASM     => return "Use optimized assembly code";
+         when CUPS    => return "CUPS printing system support";
+         when DBUS    => return "D-Bus IPC system support";
          when DEBUG   => return "Build with debugging support";
          when ICONV   => return "Encoding conversion support via iconv";
          when IDN     => return "International Domain Names support";

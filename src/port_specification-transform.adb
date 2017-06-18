@@ -248,6 +248,7 @@ package body Port_Specification.Transform is
       apply_info_presence (specs);
       apply_gettext_runtime_module (specs);
       apply_gettext_tools_module (specs);
+      apply_gnome_icons_module (specs);
       apply_autoconf_module (specs);
       apply_execinfo_module (specs);
       apply_display_module (specs);
@@ -1246,14 +1247,26 @@ package body Port_Specification.Transform is
    is
       module : String := "display";
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, "xorg-server:single:virtual");
+         add_build_depends (specs, "xorg-misc-bitmap-fonts:single:standard");
+         add_build_depends (specs, "xorg-font-alias:single:standard");
+         add_build_depends (specs, "daemonize:single:standard");
       end if;
-      add_build_depends (specs, "xorg-server:single:virtual");
-      add_build_depends (specs, "xorg-misc-bitmap-fonts:single:standard");
-      add_build_depends (specs, "xorg-font-alias:single:standard");
-      add_build_depends (specs, "daemonize:single:standard");
    end apply_display_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gnome_icons_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gnome_icons_module (specs : in out Portspecs)
+   is
+      module : String := "gnome-icons";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_run_depends (specs, "gtk-update-icon-cache:single:standard");
+      end if;
+   end apply_gnome_icons_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -2343,6 +2356,7 @@ package body Port_Specification.Transform is
       port_gtk3    : constant String := "gtk3";
       port_pango   : constant String := "pango:primary:standard";
       port_gobspec : constant String := "gobject-introspection";
+      port_pixbuf  : constant String := "gdk-pixbuf:primary:standard";
       port_intltool : constant String := "intltool";
 
       procedure import (position : string_crate.Cursor)
@@ -2359,7 +2373,8 @@ package body Port_Specification.Transform is
             when atk     => add_buildrun_depends (specs, port_atk & ss);
             when cairo   => add_buildrun_depends (specs, port_cairo & ss);
             when pango   => add_buildrun_depends (specs, port_pango);
-            when intltool => add_build_depends   (specs, port_intltool & ss);
+            when intltool  => add_build_depends    (specs, port_intltool & ss);
+            when gdkpixbuf => add_buildrun_depends (specs, port_pixbuf);
             when introspection =>
                             add_buildrun_depends (specs, port_gobspec & ss);
                             specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
@@ -2370,7 +2385,7 @@ package body Port_Specification.Transform is
          end case;
          --  These components imply glib
          case comp is
-            when introspection | glib | atk | pango =>
+            when introspection | glib | atk | pango | gdkpixbuf =>
                add_buildrun_depends (specs, port_glib & ss);
                add_buildrun_depends (specs, port_gettext);
             when others => null;

@@ -290,14 +290,14 @@ private
       MIT, MPL, POSTGRESQL, PSFL, PUBDOM, OPENSSL, RUBY, ZLIB);
 
    type described_option_set is
-     (ASM, DEBUG, ICONV, IDN, IPV4, IPV6, JAVA,
+     (ASM, CUPS, DBUS, DEBUG, ICONV, IDN, IPV4, IPV6, JAVA,
       LANG_CN, LANG_KO, LANG_RU,
       LDAP, LDAPS, MYSQL, NLS, PERL524, PERL526, PGSQL, PNG, PY27, PY34, PY35,
       SQLITE, STATIC, TCL, TCLTK, THREADS, ZLIB,
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (atk, cairo, glib, gtk3, intltool, introspection, pango,
+     (atk, cairo, glib, gtk3, gdkpixbuf, intltool, introspection, pango,
       libxml2, libxslt, invalid_component);
 
    type xorg_type is
