@@ -3575,6 +3575,7 @@ package body Port_Specification is
       --  It is critical that this list be alphabetized correctly.
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
+         ("AALIB         ", AALIB),
          ("ASM           ", ASM),
          ("COLORD        ", COLORD),
          ("CUPS          ", CUPS),
@@ -3593,21 +3594,27 @@ package body Port_Specification is
          ("LDAP          ", LDAP),
          ("LDAPS         ", LDAPS),
          ("MYSQL         ", MYSQL),
+         ("NAS           ", NAS),
          ("NLS           ", NLS),
+         ("OPENGL        ", OPENGL),
+         ("OSS           ", OSS),
          ("PERL_524      ", PERL524),
          ("PERL_526      ", PERL526),
          ("PGSQL         ", PGSQL),
          ("PNG           ", PNG),
+         ("PULSEAUDIO    ", PULSEAUDIO),
          ("PY27          ", PY27),
          ("PY34          ", PY34),
          ("PY35          ", PY35),
          ("READLINE      ", READLINE),
+         ("SNDIO         ", SNDIO),
          ("SQLITE        ", SQLITE),
          ("STATIC        ", STATIC),
          ("SYSLOG        ", SYSLOG),
          ("TCL           ", TCL),
          ("TCLTK         ", TCLTK),
          ("THREADS       ", THREADS),
+         ("X11           ", X11),
          ("ZLIB          ", ZLIB)
         );
 
@@ -3647,6 +3654,7 @@ package body Port_Specification is
    function default_description (option : described_option_set) return String is
    begin
       case option is
+         when AALIB        => return "AAlib graphics library support";
          when ASM          => return "Use optimized assembly code";
          when COLORD       => return "Color management via colord";
          when CUPS         => return "CUPS printing system support";
@@ -3665,21 +3673,27 @@ package body Port_Specification is
          when LDAP         => return "LDAP protocol support";
          when LDAPS        => return "LDAP protocol over SSL support";
          when MYSQL        => return "MySQL database support";
+         when NAS          => return "Network Audio System support";
          when NLS          => return "Native Language Support";
+         when OPENGL       => return "2D/3D rendering support via OpenGL";
+         when OSS          => return "Open Sound System support";
          when PERL524      => return "Build using Perl 5.24";
          when PERL526      => return "Build using Perl 5.26";
          when PGSQL        => return "PostgreSQL database support";
          when PNG          => return "PNG image format support";
+         when PULSEAUDIO   => return "PulseAudio sound server support";
          when PY27         => return "Build using Python 2.7";
          when PY34         => return "Build using Python 3.4";
          when PY35         => return "Build using Python 3.5";
          when READLINE     => return "Command line editing via libreadline";
+         when SNDIO        => return "Sndio audio support";
          when SQLITE       => return "SQLite database support";
          when STATIC       => return "Build static executables and/or libraries";
          when SYSLOG       => return "Syslog logging support";
          when TCL          => return "Tcl scripting language support";
          when TCLTK        => return "Tcl/Tk GUI toolkit support";
          when THREADS      => return "Threading support";
+         when X11          => return "X11 (graphics) support";
          when ZLIB         => return "zlib compression support";
          when OPT_NOT_DEFINED => return "dev error, OPT_NOT_DEFINED";
       end case;

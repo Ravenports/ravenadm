@@ -2443,11 +2443,11 @@ package body Port_Specification.Transform is
          end case;
          case comp is
             when sdl1 | gfx1 | image1 | mixer1 | net1 | ttf1 =>
-               add_buildrun_depends (specs, "sdl1" & ss);
+               add_buildrun_depends (specs, "sdl1:primary:standard");
                specs.make_env.Append (menv1);
                specs.config_env.Append (menv1);
             when sdl2 | gfx2 | image2 | mixer2 | net2 | ttf2 =>
-               add_buildrun_depends (specs, "sdl2" & ss);
+               add_buildrun_depends (specs, "sdl2:primary:standard");
                specs.make_env.Append (menv2);
                specs.config_env.Append (menv2);
             when invalid_component => null;
