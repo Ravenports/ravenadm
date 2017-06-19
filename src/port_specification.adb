@@ -3505,6 +3505,7 @@ package body Port_Specification is
          ("CUPS          ", CUPS),
          ("DBUS          ", DBUS),
          ("DEBUG         ", DEBUG),
+         ("DOCS          ", DOCS),
          ("ICONV         ", ICONV),
          ("IDN           ", IDN),
          ("IPV4          ", IPV4),
@@ -3524,8 +3525,10 @@ package body Port_Specification is
          ("PY27          ", PY27),
          ("PY34          ", PY34),
          ("PY35          ", PY35),
+         ("READLINE      ", READLINE),
          ("SQLITE        ", SQLITE),
          ("STATIC        ", STATIC),
+         ("SYSLOG        ", SYSLOG),
          ("TCL           ", TCL),
          ("TCLTK         ", TCLTK),
          ("THREADS       ", THREADS),
@@ -3573,6 +3576,7 @@ package body Port_Specification is
          when CUPS    => return "CUPS printing system support";
          when DBUS    => return "D-Bus IPC system support";
          when DEBUG   => return "Build with debugging support";
+         when DOCS    => return "Build and install documentation";
          when ICONV   => return "Encoding conversion support via iconv";
          when IDN     => return "International Domain Names support";
          when IPV4    => return "IPv4 protocol support";
@@ -3592,8 +3596,10 @@ package body Port_Specification is
          when PY27    => return "Build using Python 2.7";
          when PY34    => return "Build using Python 3.4";
          when PY35    => return "Build using Python 3.5";
+         when READLINE => return "Command line editing via libreadline";
          when SQLITE  => return "SQLite database support";
          when STATIC  => return "Build static executables and/or libraries";
+         when SYSLOG  => return "Syslog logging support";
          when TCL     => return "Tcl scripting language support";
          when TCLTK   => return "Tcl/Tk GUI toolkit support";
          when THREADS => return "Threading support";
