@@ -273,6 +273,7 @@ package body Port_Specification.Transform is
       apply_ccache (specs);
       apply_schemas_module (specs);
       apply_gnome_components_dependencies (specs);
+      apply_sdl_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
       apply_gcc_run_module (specs, variant, "c++", "cxx_run");
@@ -2407,6 +2408,54 @@ package body Port_Specification.Transform is
    begin
       specs.gnome_comps.Iterate (import'Access);
    end apply_gnome_components_dependencies;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_sdl_components_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure apply_sdl_components_dependencies  (specs : in out Portspecs)
+   is
+      procedure import (position : string_crate.Cursor);
+
+      ss : constant String := ":single:standard";
+      menv1 : HT.Text := HT.SUS ("SDL_CONFIG=""${LOCALBASE}/bin/sdl-config""");
+      menv2 : HT.Text := HT.SUS ("SDL_CONFIG=""${LOCALBASE}/bin/sdl2-config""");
+
+      procedure import (position : string_crate.Cursor)
+      is
+         component_text : HT.Text renames string_crate.Element (position);
+         comp : sdl_type := determine_sdl_component (HT.USS (component_text));
+      begin
+         case comp is
+            when invalid_component => null;  --  should be impossible
+            when sdl1 => null;
+            when sdl2 => null;
+            when gfx1   => add_buildrun_depends (specs, "sdl1_gfx" & ss);
+            when gfx2   => add_buildrun_depends (specs, "sdl2_gfx" & ss);
+            when image1 => add_buildrun_depends (specs, "sdl1_image" & ss);
+            when image2 => add_buildrun_depends (specs, "sdl2_image" & ss);
+            when mixer1 => add_buildrun_depends (specs, "sdl1_mixer" & ss);
+            when mixer2 => add_buildrun_depends (specs, "sdl2_mixer" & ss);
+            when net1   => add_buildrun_depends (specs, "sdl1_net" & ss);
+            when net2   => add_buildrun_depends (specs, "sdl2_net" & ss);
+            when ttf1   => add_buildrun_depends (specs, "sdl1_ttf" & ss);
+            when ttf2   => add_buildrun_depends (specs, "sdl2_ttf2" & ss);
+         end case;
+         case comp is
+            when sdl1 | gfx1 | image1 | mixer1 | net1 | ttf1 =>
+               add_buildrun_depends (specs, "sdl1" & ss);
+               specs.make_env.Append (menv1);
+               specs.config_env.Append (menv1);
+            when sdl2 | gfx2 | image2 | mixer2 | net2 | ttf2 =>
+               add_buildrun_depends (specs, "sdl2" & ss);
+               specs.make_env.Append (menv2);
+               specs.config_env.Append (menv2);
+            when invalid_component => null;
+         end case;
+      end import;
+   begin
+      specs.sdl_comps.Iterate (import'Access);
+   end apply_sdl_components_dependencies;
 
 
    --------------------------------------------------------------------------------------------

@@ -492,6 +492,7 @@ package body Specification_Parser is
                      when broken_pgsql     => build_list (spec, PSP.sp_broken_pgsql, line);
                      when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
                      when xorg_comp        => build_list (spec, PSP.sp_xorg, line);
+                     when sdl_comp         => build_list (spec, PSP.sp_sdl, line);
                      when rc_scripts       => build_list (spec, PSP.sp_rcscript, line);
                      when og_radio         => build_list (spec, PSP.sp_og_radio, line);
                      when og_restrict      => build_list (spec, PSP.sp_og_restrict, line);
@@ -1047,7 +1048,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 157;
+      total_singlets : constant Positive := 158;
 
       type singlet_pair is
          record
@@ -1178,6 +1179,7 @@ package body Specification_Parser is
          ("RC_SUBR               ",  7, rc_scripts),
          ("REVISION              ",  8, revision),
          ("RUN_DEPENDS           ", 11, run_deps),
+         ("SDL_COMPONENTS        ", 14, sdl_comp),
          ("SET_DEBUGGING_ON      ", 16, debugging),
          ("SHEBANG_FILES         ", 13, catchall),
          ("SHEBANG_GLOB          ", 12, catchall),

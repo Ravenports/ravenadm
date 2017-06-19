@@ -44,7 +44,7 @@ package Port_Specification is
                        sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
                        sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
-                       sp_xorg);
+                       sp_xorg, sp_sdl);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -313,6 +313,10 @@ private
       xp, xpm, xrandr, xrender, xres, xshmfence, xt, xtst, xv, xvmc, xxf86vm,
       invalid_component);
 
+   type sdl_type is
+     (sdl1, sdl2, gfx1, gfx2, image1, image2, mixer1, mixer2, net1, net2, ttf1, ttf2,
+      invalid_component);
+
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
       Index_Type   => Positive,
@@ -490,6 +494,7 @@ private
          qmake_args     : string_crate.Vector;
          gnome_comps    : string_crate.Vector;
          xorg_comps     : string_crate.Vector;
+         sdl_comps      : string_crate.Vector;
          info           : string_crate.Vector;
          install_tgt    : string_crate.Vector;
          test_tgt       : string_crate.Vector;
@@ -594,6 +599,9 @@ private
 
    --  Checks against known list of xorg components and identifies it
    function determine_xorg_component (component : String) return xorg_type;
+
+   --  Checks against known list of SDL components and identifies it
+   function determine_sdl_component (component : String) return sdl_type;
 
    --  Given a string GITHUB/account:project:tag(:directory) return a standard
    --  distribution file name.  Also works for GH/ prefix.
