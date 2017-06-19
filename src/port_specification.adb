@@ -3252,6 +3252,7 @@ package body Port_Specification is
          ("xrandr            ", xrandr),
          ("xrender           ", xrender),
          ("xres              ", xres),
+         ("xscrnsaver        ", xscrnsaver),
          ("xshmfence         ", xshmfence),
          ("xt                ", xt),
          ("xtransproto       ", xtransproto),
@@ -3576,6 +3577,7 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("AALIB         ", AALIB),
+         ("ALSA          ", ALSA),
          ("ASM           ", ASM),
          ("COLORD        ", COLORD),
          ("CUPS          ", CUPS),
@@ -3608,6 +3610,7 @@ package body Port_Specification is
          ("PY35          ", PY35),
          ("READLINE      ", READLINE),
          ("SNDIO         ", SNDIO),
+         ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
          ("STATIC        ", STATIC),
          ("SYSLOG        ", SYSLOG),
@@ -3655,6 +3658,7 @@ package body Port_Specification is
    begin
       case option is
          when AALIB        => return "AAlib graphics library support";
+         when ALSA         => return "ALSA audio architecture support";
          when ASM          => return "Use optimized assembly code";
          when COLORD       => return "Color management via colord";
          when CUPS         => return "CUPS printing system support";
@@ -3687,6 +3691,7 @@ package body Port_Specification is
          when PY35         => return "Build using Python 3.5";
          when READLINE     => return "Command line editing via libreadline";
          when SNDIO        => return "Sndio audio support";
+         when SOUND        => return "Sound (audio) support";
          when SQLITE       => return "SQLite database support";
          when STATIC       => return "Build static executables and/or libraries";
          when SYSLOG       => return "Syslog logging support";

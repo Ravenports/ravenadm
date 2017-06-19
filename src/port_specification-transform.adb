@@ -2447,7 +2447,7 @@ package body Port_Specification.Transform is
                specs.make_env.Append (menv1);
                specs.config_env.Append (menv1);
             when sdl2 | gfx2 | image2 | mixer2 | net2 | ttf2 =>
-               add_buildrun_depends (specs, "sdl2:primary:standard");
+               add_buildrun_depends (specs, "sdl2:single:standard");
                specs.make_env.Append (menv2);
                specs.config_env.Append (menv2);
             when invalid_component => null;

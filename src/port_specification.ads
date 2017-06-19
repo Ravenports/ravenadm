@@ -290,12 +290,12 @@ private
       MIT, MPL, POSTGRESQL, PSFL, PUBDOM, OPENSSL, RUBY, ZLIB);
 
    type described_option_set is
-     (AALIB, ASM, COLORD, CUPS, DBUS, DEBUG, DOCS, FIREBIRD, ICONV, IDN, IPV4, IPV6, JAVA,
+     (AALIB, ALSA, ASM, COLORD, CUPS, DBUS, DEBUG, DOCS, FIREBIRD, ICONV, IDN, IPV4, IPV6, JAVA,
       LANG_CN, LANG_KO, LANG_RU,
       LDAP, LDAPS, MYSQL, NAS, NLS, OPENGL, OSS, PERL524, PERL526, PGSQL, PNG, PULSEAUDIO,
       PY27, PY34, PY35,
       READLINE,
-      SNDIO, SQLITE, STATIC, SYSLOG, TCL, TCLTK, THREADS, X11, ZLIB,
+      SNDIO, SOUND, SQLITE, STATIC, SYSLOG, TCL, TCLTK, THREADS, X11, ZLIB,
       OPT_NOT_DEFINED);
 
    type gnome_type is
@@ -311,7 +311,7 @@ private
       xtransproto, dmx, fontenc, fontutil, ice, pciaccess, pixman, sm, x11, xau, xaw, xcb,
       xcb_util, xcb_util_image, xcb_util_keysyms, xcb_util_wm, xcb_render_util, xcomposite,
       xcursor, xdamage, xdmcp, xext, xfixes, xfont, xfont2, xft, xi, xinerama, xkbfile, xmu,
-      xp, xpm, xrandr, xrender, xres, xshmfence, xt, xtst, xv, xvmc, xxf86vm,
+      xp, xpm, xrandr, xrender, xres, xscrnsaver, xshmfence, xt, xtst, xv, xvmc, xxf86vm,
       invalid_component);
 
    type sdl_type is
