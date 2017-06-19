@@ -3506,6 +3506,7 @@ package body Port_Specification is
          ("DBUS          ", DBUS),
          ("DEBUG         ", DEBUG),
          ("DOCS          ", DOCS),
+         ("FIREBIRD      ", FIREBIRD),
          ("ICONV         ", ICONV),
          ("IDN           ", IDN),
          ("IPV4          ", IPV4),
@@ -3577,6 +3578,7 @@ package body Port_Specification is
          when DBUS    => return "D-Bus IPC system support";
          when DEBUG   => return "Build with debugging support";
          when DOCS    => return "Build and install documentation";
+         when FIREBIRD => return "Firebird (Interbase) database support";
          when ICONV   => return "Encoding conversion support via iconv";
          when IDN     => return "International Domain Names support";
          when IPV4    => return "IPv4 protocol support";
