@@ -1047,7 +1047,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 150;
+      total_singlets : constant Positive := 157;
 
       type singlet_pair is
          record
@@ -1167,6 +1167,13 @@ package body Specification_Parser is
          ("PATCH_WRKSRC          ", 12, patch_wrksrc),
          ("PLIST_SUB             ",  9, plist_sub),
          ("PREFIX                ",  6, prefix),
+         ("PYD_BUILDARGS         ", 13, catchall),
+         ("PYD_BUILD_TARGET      ", 16, catchall),
+         ("PYD_CONFIGUREARGS     ", 17, catchall),
+         ("PYD_CONFIGURE_TARGET  ", 20, catchall),
+         ("PYD_INSTALLARGS       ", 15, catchall),
+         ("PYD_INSTALL_TARGET    ", 18, catchall),
+         ("PYSETUP               ",  7, catchall),
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("RC_SUBR               ",  7, rc_scripts),
          ("REVISION              ",  8, revision),
