@@ -816,7 +816,8 @@ package body Port_Specification.Buildsheet is
         "DISTFILE[1]=" & tab & tab & "x-${PORTVERSION}.tar.gz:main" & CR & CR &
         "SPKGS[standard]=" & tab & "single" & CR & CR &
         "OPTIONS_AVAILABLE=" & tab & "none" & CR &
-        "OPTIONS_STANDARD=" & tab & "none";
+        "OPTIONS_STANDARD=" & tab & "none" & CR & CR &
+        "FPC_EQUIVALENT=" & tab & "...";
 
       template : TIO.File_Type;
 
@@ -828,6 +829,8 @@ package body Port_Specification.Buildsheet is
          TIO.Put_Line (template, part1);
          TIO.Put_Line (template, part2);
          TIO.Close (template);
+         DIR.Create_Directory ("manifests");
+         DIR.Create_Directory ("descriptions");
       else
          TIO.Put_Line (part1);
          TIO.Put_Line (part2);
