@@ -2899,6 +2899,7 @@ package body Port_Specification is
          "perl           ",
          "perl-interp    ",
          "pkgconfig      ",
+         "png            ",
          "python         ",
          "readline       ",
          "ruby           ",
