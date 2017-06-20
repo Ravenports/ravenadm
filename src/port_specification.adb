@@ -2856,7 +2856,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 47;
+      total_modules : constant Positive := 48;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3067,6 +3067,9 @@ package body Port_Specification is
          ("gtk3              ", gtk3),
          ("intltool          ", intltool),
          ("introspection     ", introspection),
+         ("libcroco          ", libcroco),
+         ("libgsf            ", libgsf),
+         ("librsvg           ", librsvg),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
          ("pango             ", pango)
@@ -3115,11 +3118,9 @@ package body Port_Specification is
 --  libgnomeprint
 --  libgnomeprintui
 --  libgnomeui
---  libgsf
 --  libgtkhtml
 --  libgtksourceviewmm
 --  libidl
---  librsvg2
 --  libsigc++12
 --  libsigc++20
 --  libwnck

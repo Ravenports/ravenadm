@@ -2362,15 +2362,15 @@ package body Port_Specification.Transform is
       procedure import (position : string_crate.Cursor);
 
       ss           : constant String := ":single:standard";
+      ps           : constant String := ":primary:standard";
       port_libxml2 : constant String := "libxml2";
       port_libxslt : constant String := "libxslt";
       port_gettext : constant String := "gettext:runtime:standard";
       port_cairo   : constant String := "cairo";
       port_atk     : constant String := "atk";
       port_gtk3    : constant String := "gtk3";
-      port_pango   : constant String := "pango:primary:standard";
+      port_pango   : constant String := "pango";
       port_gobspec : constant String := "gobject-introspection";
-      port_pixbuf  : constant String := "gdk-pixbuf:primary:standard";
       port_intltool : constant String := "intltool";
 
       procedure import (position : string_crate.Cursor)
@@ -2386,11 +2386,15 @@ package body Port_Specification.Transform is
                             add_buildrun_depends (specs, port_libxml2 & ss);
             when atk     => add_buildrun_depends (specs, port_atk & ss);
             when cairo   => add_buildrun_depends (specs, port_cairo & ss);
-            when pango   => add_buildrun_depends (specs, port_pango);
+            when pango   => add_buildrun_depends (specs, port_pango & ps);
             when intltool  => add_build_depends    (specs, port_intltool & ss);
-            when gdkpixbuf => add_buildrun_depends (specs, port_pixbuf);
+            when gdkpixbuf => add_buildrun_depends (specs, "gdk-pixbuf" & ps);
+            when libgsf    => add_buildrun_depends (specs, "libgsf" & ps);
+            when libcroco  => add_buildrun_depends (specs, "libcroco" & ps);
+            when librsvg   => add_buildrun_depends (specs, "librsvg" & ps);
             when introspection =>
-                            add_buildrun_depends (specs, port_gobspec & ss);
+                            add_build_depends (specs, port_gobspec & ss);
+                            add_build_depends (specs, PYTHON27);
                             specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                             specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
             when gtk3    => add_buildrun_depends (specs, port_gtk3 & ss);

@@ -300,7 +300,7 @@ private
 
    type gnome_type is
      (atk, cairo, glib, gtk3, gdkpixbuf, intltool, introspection, pango,
-      libxml2, libxslt, invalid_component);
+      libcroco, libgsf, librsvg, libxml2, libxslt, invalid_component);
 
    type xorg_type is
      (bigreqsproto, compositeproto, damageproto, dmxproto, dri2proto, dri3proto, evieproto,
