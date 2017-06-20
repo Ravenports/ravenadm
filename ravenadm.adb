@@ -14,7 +14,7 @@ procedure Ravenadm is
 
    type mandate_type is (unset, help, dev, build, build_everything, force, test, test_everything,
                          status, status_everything, configure, locate, purge, changeopts,
-                         checkports, portsnap, repository);
+                         checkports, portsnap, repository, list_subpackages);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex);
 
    procedure scan_first_command_word;
@@ -60,6 +60,8 @@ procedure Ravenadm is
          mandate := portsnap;
       elsif first = "generate-repository" then
          mandate := repository;
+      elsif first = "subpackages" then
+         mandate := list_subpackages;
       end if;
    end scan_first_command_word;
 
@@ -152,7 +154,7 @@ begin
    end case;
 
    case mandate is
-      when help | locate => null;
+      when help | locate | list_subpackages => null;
          low_rights := True;
       when others =>
          if Pilot.insufficient_privileges then
@@ -177,7 +179,7 @@ begin
    end if;
 
    case mandate is
-      when build | force | test | changeopts =>
+      when build | force | test | changeopts | list_subpackages =>
          if not Pilot.store_origins (start_from => 2) then
             return;
          end if;
@@ -346,6 +348,12 @@ begin
          --  locate
          --------------------------------
          Pilot.locate (get_arg (2));
+
+      when list_subpackages =>
+         --------------------------------
+         --  subpackages
+         --------------------------------
+         Pilot.list_subpackages;
 
       when purge =>
          --------------------------------

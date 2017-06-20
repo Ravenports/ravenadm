@@ -125,6 +125,19 @@ package body Pilot is
 
 
    --------------------------------------------------------------------------------------------
+   --  list_subpackages
+   --------------------------------------------------------------------------------------------
+   procedure list_subpackages
+   is
+      successful : Boolean := SCN.scan_provided_list_of_ports (False, sysrootver);
+   begin
+      if successful then
+         OPS.list_subpackages_of_queued_ports;
+      end if;
+   end list_subpackages;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_makefile
    --------------------------------------------------------------------------------------------
    procedure generate_makefile (optional_directory : String;
@@ -734,6 +747,10 @@ package body Pilot is
    is
       --  format is <namebase>:<variant>
    begin
+      if CLI.Argument_Count < 2 then
+         TIO.Put_Line ("This command requires a list of one or more port origins.");
+         return False;
+      end if;
       all_stdvar := True;
       if CLI.Argument_Count = 2 then
          --  Check if this is a file

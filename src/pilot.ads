@@ -132,6 +132,9 @@ package Pilot is
    --  Executes routine to validate and create repository files
    procedure generate_repository;
 
+   --  Lists the subpackages of all given ports
+   procedure list_subpackages;
+
 private
 
    package HT renames HelperText;

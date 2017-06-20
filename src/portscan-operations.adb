@@ -570,6 +570,34 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
+   --  list_subpackages_of_queued_ports
+   --------------------------------------------------------------------------------------------
+   procedure list_subpackages_of_queued_ports
+   is
+      procedure list (plcursor : string_crate.Cursor);
+      procedure list (plcursor : string_crate.Cursor)
+      is
+         procedure name (position : subpackage_crate.Cursor);
+         origin : HT.Text renames string_crate.Element (plcursor);
+         pndx   : constant port_index := ports_keys.Element (origin);
+         procedure name (position : subpackage_crate.Cursor)
+         is
+            rec        : subpackage_record renames subpackage_crate.Element (position);
+            subpackage : constant String := HT.USS (rec.subpackage);
+         begin
+            TIO.Put (" " & subpackage);
+         end name;
+      begin
+         TIO.Put (HT.USS (origin) & " subpackages:");
+         all_ports (pndx).subpackages.Iterate (name'Access);
+         TIO.Put_Line ("");
+      end list;
+   begin
+      portlist.Iterate (list'Access);
+   end list_subpackages_of_queued_ports;
+
+
+   --------------------------------------------------------------------------------------------
    --  next_ignored_port
    --------------------------------------------------------------------------------------------
    function next_ignored_port return port_id

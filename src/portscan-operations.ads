@@ -110,6 +110,9 @@ package PortScan.Operations is
    --  all_ports data.  Whatever is left represents obsolete packages which are then removed.
    procedure eliminate_obsolete_packages;
 
+   --  Using a populated package list, print out all subpackages for each package
+   procedure list_subpackages_of_queued_ports;
+
 private
 
    package PM  renames Parameters;
