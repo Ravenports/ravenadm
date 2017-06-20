@@ -1742,7 +1742,40 @@ package body Port_Specification is
       case field is
          when sp_dl_sites =>
             return specs.dl_sites.Contains (text_group);
-         when others => return False;
+         when sp_subpackages =>
+            return specs.subpackages.Contains (text_group);
+         when sp_vopts =>
+            return specs.variantopts.Contains (text_group);
+         when sp_ext_head =>
+            return specs.extract_head.Contains (text_group);
+         when sp_ext_tail =>
+            return specs.extract_tail.Contains (text_group);
+         when sp_makefile_targets =>
+            return specs.make_targets.Contains (text_group);
+         when sp_options_on =>
+            return specs.options_on.Contains (text_group);
+         when sp_broken =>
+            return specs.broken.Contains (text_group);
+         when sp_var_opsys =>
+            return specs.var_opsys.Contains (text_group);
+         when sp_var_arch =>
+            return specs.var_arch.Contains (text_group);
+         when sp_exrun =>
+            return specs.extra_rundeps.Contains (text_group);
+         when sp_catchall =>
+            return specs.catch_all.Contains (text_group);
+         when sp_opt_descr =>
+            return specs.optgroup_desc.Contains (text_group);
+         when sp_opt_group =>
+            return specs.optgroups.Contains (text_group);
+         when sp_os_bdep =>
+            return specs.opsys_b_deps.Contains (text_group);
+         when sp_os_rdep =>
+            return specs.opsys_r_deps.Contains (text_group);
+         when sp_os_brdep =>
+            return specs.opsys_br_deps.Contains (text_group);
+         when others =>
+            return False;
       end case;
    end group_exists;
 

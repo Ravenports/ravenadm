@@ -817,7 +817,7 @@ package body Port_Specification.Buildsheet is
         "SPKGS[standard]=" & tab & "single" & CR & CR &
         "OPTIONS_AVAILABLE=" & tab & "none" & CR &
         "OPTIONS_STANDARD=" & tab & "none" & CR & CR &
-        "FPC_EQUIVALENT=" & tab & "...";
+        "FPC_EQUIVALENT=" & tab & tab & "...";
 
       template : TIO.File_Type;
 
