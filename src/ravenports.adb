@@ -56,7 +56,8 @@ package body Ravenports is
       sysroot       : constant String := HT.USS (PM.configuration.dir_sysroot);
       fetch_program : constant String := sysroot & "/usr/bin/fetch";
       cmd_output    : HT.Text;
-      cmd : constant String := fetch_program & " -q " & remote_version & " -o " & tmp_location;
+      cmd           : constant String := fetch_program & " -q --no-verify-peer " &
+                                         remote_version & " -o " & tmp_location;
       use type DIR.File_Kind;
    begin
       if not DIR.Exists ("/tmp") or else
