@@ -2400,17 +2400,20 @@ package body Port_Specification.Transform is
    is
       procedure import (position : string_crate.Cursor);
 
-      ss           : constant String := ":single:standard";
-      ps           : constant String := ":primary:standard";
-      port_libxml2 : constant String := "libxml2";
-      port_libxslt : constant String := "libxslt";
-      port_gettext : constant String := "gettext:runtime:standard";
-      port_cairo   : constant String := "cairo";
-      port_atk     : constant String := "atk";
-      port_gtk3    : constant String := "gtk3";
-      port_pango   : constant String := "pango";
-      port_gobspec : constant String := "gobject-introspection";
+      ss            : constant String := ":single:standard";
+      ps            : constant String := ":primary:standard";
+      port_libxml2  : constant String := "libxml2";
+      port_libxslt  : constant String := "libxslt";
+      port_gettext  : constant String := "gettext:runtime:standard";
+      port_cairo    : constant String := "cairo";
+      port_atk      : constant String := "atk";
+      port_gtk3     : constant String := "gtk3";
+      port_pango    : constant String := "pango";
+      port_gobspec  : constant String := "gobject-introspection";
       port_intltool : constant String := "intltool";
+      port_pygobj   : constant String := "python-pygobject:primary:py" &
+        HT.replace_char (default_python3, '.', "");
+
 
       procedure import (position : string_crate.Cursor)
       is
@@ -2419,18 +2422,19 @@ package body Port_Specification.Transform is
       begin
          case comp is
             when invalid_component => null;  --  should be impossible
-            when glib    => null;
-            when libxml2 => add_buildrun_depends (specs, port_libxml2 & ss);
-            when libxslt => add_buildrun_depends (specs, port_libxslt & ss);
-                            add_buildrun_depends (specs, port_libxml2 & ss);
-            when atk     => add_buildrun_depends (specs, port_atk & ss);
-            when cairo   => add_buildrun_depends (specs, port_cairo & ss);
-            when pango   => add_buildrun_depends (specs, port_pango & ps);
+            when glib      => null;
+            when libxml2   => add_buildrun_depends (specs, port_libxml2 & ss);
+            when libxslt   => add_buildrun_depends (specs, port_libxslt & ss);
+                              add_buildrun_depends (specs, port_libxml2 & ss);
+            when atk       => add_buildrun_depends (specs, port_atk & ss);
+            when cairo     => add_buildrun_depends (specs, port_cairo & ss);
+            when pango     => add_buildrun_depends (specs, port_pango & ps);
             when intltool  => add_build_depends    (specs, port_intltool & ss);
             when gdkpixbuf => add_buildrun_depends (specs, "gdk-pixbuf" & ps);
             when libgsf    => add_buildrun_depends (specs, "libgsf" & ps);
             when libcroco  => add_buildrun_depends (specs, "libcroco" & ps);
             when librsvg   => add_buildrun_depends (specs, "librsvg" & ps);
+            when pygobject => add_buildrun_depends (specs, port_pygobj);
             when introspection =>
                             add_build_depends (specs, port_gobspec & ss);
                             add_build_depends (specs, PYTHON27);
@@ -2438,11 +2442,11 @@ package body Port_Specification.Transform is
                             specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
             when gtk3    => add_buildrun_depends (specs, port_gtk3 & ss);
                             add_buildrun_depends (specs, port_atk & ss);
-                            add_buildrun_depends (specs, port_pango);
+                            add_buildrun_depends (specs, port_pango & ps);
          end case;
          --  These components imply glib
          case comp is
-            when introspection | glib | atk | pango | gdkpixbuf =>
+            when introspection | glib | atk | pango | gdkpixbuf | pygobject =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, port_gettext);
             when others => null;

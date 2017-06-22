@@ -3106,7 +3106,8 @@ package body Port_Specification is
          ("librsvg           ", librsvg),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
-         ("pango             ", pango)
+         ("pango             ", pango),
+         ("pygobject         ", pygobject)
         );
 
 --  atkmm
@@ -3165,7 +3166,6 @@ package body Port_Specification is
 --  pangomm
 --  pangox-compat
 --  pygnome2
---  pygobject
 --  pygtk2
 --  pygtksourceview
 --  referencehack

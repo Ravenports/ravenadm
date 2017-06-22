@@ -299,7 +299,7 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (atk, cairo, glib, gtk3, gdkpixbuf, intltool, introspection, pango,
+     (atk, cairo, glib, gtk3, gdkpixbuf, intltool, introspection, pango, pygobject,
       libcroco, libgsf, librsvg, libxml2, libxslt, invalid_component);
 
    type xorg_type is

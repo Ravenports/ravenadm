@@ -661,8 +661,8 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_WITH_7Z",      specs.extract_7z, 2);
       send ("EXTRACT_WITH_LHA",     specs.extract_lha, 2);
       send ("EXTRACT_DEB_PACKAGE",  specs.extract_deb, 2);
-      send ("EXTRACT_HEAD",         specs.extract_head, 5);
-      send ("EXTRACT_TAIL",         specs.extract_tail, 5);
+      send ("EXTRACT_HEAD",         specs.extract_head, 4);
+      send ("EXTRACT_TAIL",         specs.extract_tail, 4);
       blank_line;
       send ("LICENSE",              specs.licenses, 2);
       send ("LICENSE_NAME",         specs.lic_names, 1);
