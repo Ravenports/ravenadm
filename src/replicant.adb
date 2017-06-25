@@ -551,26 +551,34 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  unmount
    --------------------------------------------------------------------------------------------
-   procedure unmount (device_or_node : String)
+   procedure unmount (device_or_node : String; retry_times : Natural := 0)
    is
       bsd_command : constant String := "/sbin/umount " & device_or_node;
       sol_command : constant String := "/usr/sbin/umount " & device_or_node;
       lin_command : constant String := "/bin/umount " & device_or_node;
+      counter     : Natural := 0;
    begin
       --  failure to unmount causes stderr squawks which messes up curses display
       --  Just log it and ignore for now (Add robustness later)
-      case platform_type is
-         when dragonfly |
-              freebsd   |
-              macos     |
-              netbsd    |
-              openbsd   => execute (bsd_command);
-         when linux     => execute (lin_command);
-         when sunos     => execute (sol_command);
-      end case;
-
-   exception
-      when others => null;  -- silently fail
+      loop
+         begin
+            exit when counter > retry_times;
+            case platform_type is
+               when dragonfly |
+                    freebsd   |
+                    macos     |
+                    netbsd    |
+                    openbsd   => execute (bsd_command);
+               when linux     => execute (lin_command);
+               when sunos     => execute (sol_command);
+            end case;
+            exit;
+         exception
+            when others =>
+               counter := counter + 1;
+               delay 5.0;
+         end;
+      end loop;
    end unmount;
 
 
@@ -958,13 +966,13 @@ package body Replicant is
       end case;
 
       if PM.configuration.avoid_tmpfs then
-         unmount (slave_base & lbase);
+         unmount (slave_base & lbase, 5);
          annihilate_directory_tree (slave_local);
       else
          if lbase = bsd_localbase then
-            unmount (slave_base & lbase);
+            unmount (slave_base & lbase, 5);
          end if;
-         unmount (slave_base);
+         unmount (slave_base, 5);
       end if;
       annihilate_directory_tree (slave_base);
 

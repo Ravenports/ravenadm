@@ -121,7 +121,7 @@ private
 
    --  platform-specific localhost command "umount"
    --  Throws exception if unmount attempt was unsuccessful
-   procedure unmount (device_or_node : String);
+   procedure unmount (device_or_node : String; retry_times : Natural := 0);
 
    --  Throws exception if mount attempt was unsuccessful or if nullfs is unsupported
    procedure mount_nullfs (target, mount_point : String; mode : mount_mode := readonly);
