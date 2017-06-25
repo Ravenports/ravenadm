@@ -906,7 +906,8 @@ package body Replicant is
 
    exception
       when hiccup : others =>
-         EX.Reraise_Occurrence (hiccup);
+         TIO.Put_Line (abnormal_log,
+                       "LAUNCH SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
    end launch_slave;
 
 
@@ -969,7 +970,8 @@ package body Replicant is
 
    exception
       when hiccup : others =>
-         EX.Reraise_Occurrence (hiccup);
+         TIO.Put_Line (abnormal_log,
+                       "DESTROY SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
    end destroy_slave;
 
 
