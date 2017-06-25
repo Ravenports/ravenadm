@@ -6,6 +6,7 @@ with Ada.Directories;
 with Ada.Containers.Vectors;
 with Ada.Characters.Latin_1;
 with Parameters;
+with Signals;
 with Unix;
 
 package body Replicant is
@@ -576,7 +577,7 @@ package body Replicant is
          exception
             when others =>
                counter := counter + 1;
-               delay 5.0;
+               delay 10.0;
          end;
       end loop;
    end unmount;
@@ -916,6 +917,7 @@ package body Replicant is
       when hiccup : others =>
          TIO.Put_Line (abnormal_log,
                        "LAUNCH SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
+         Signals.initiate_shutdown;
    end launch_slave;
 
 
@@ -972,7 +974,7 @@ package body Replicant is
          if lbase = bsd_localbase then
             unmount (slave_base & lbase, 5);
          end if;
-         unmount (slave_base, 5);
+         unmount (slave_base, 50);
       end if;
       annihilate_directory_tree (slave_base);
 
@@ -980,6 +982,7 @@ package body Replicant is
       when hiccup : others =>
          TIO.Put_Line (abnormal_log,
                        "DESTROY SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
+         Signals.initiate_shutdown;
    end destroy_slave;
 
 

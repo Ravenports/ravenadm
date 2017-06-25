@@ -6,6 +6,9 @@ package Signals is
    --  Returns True if Interrupt signal (control-C) has been detected
    function graceful_shutdown_requested return Boolean;
 
+   --  Enable exception handlers to initiate a shutdown upon detecting an issue
+   procedure initiate_shutdown;
+
 private
 
    control_q_break : Boolean := False;

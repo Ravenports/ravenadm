@@ -9,9 +9,9 @@ package body Signals is
    package TIO renames Ada.Text_IO;
    package LAT renames Ada.Characters.Latin_1;
 
-   -----------------------------------
-   --  graceful_shutdown_requested  --
-   -----------------------------------
+   --------------------------------------------------------------------------------------------
+   --  graceful_shutdown_requested
+   --------------------------------------------------------------------------------------------
    function graceful_shutdown_requested return Boolean
    is
       caught_char : Character;
@@ -29,5 +29,14 @@ package body Signals is
    exception
       when others => return control_q_break;
    end graceful_shutdown_requested;
+
+
+   --------------------------------------------------------------------------------------------
+   --  initiate_shutdown
+   --------------------------------------------------------------------------------------------
+   procedure initiate_shutdown is
+   begin
+      control_q_break := True;
+   end initiate_shutdown;
 
 end Signals;
