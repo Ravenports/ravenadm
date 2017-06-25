@@ -287,37 +287,39 @@ package body PortScan.Operations is
                end case;
             exception
                when earthquake : others =>
-                    LOG.scribe (total, LOG.elapsed_now & " UNHANDLED EXCEPTION: " &
-                       EX.Exception_Information (earthquake), False);
+                  LOG.scribe (total, LOG.elapsed_now & " UNHANDLED SLAVE LOOP EXCEPTION: " &
+                                EX.Exception_Information (earthquake), False);
+                  run_complete := True;
             end;
          end loop;
          exit when run_complete and all_idle;
-         if cntcycle = cycle_count'Last then
-            cntcycle := cycle_count'First;
-            LOG.flush_log (success);
-            LOG.flush_log (failure);
-            LOG.flush_log (skipped);
-            LOG.flush_log (total);
-            if curses_support then
-               if cntrefresh = refresh_count'Last then
-                  cntrefresh := refresh_count'First;
-                  DPY.set_full_redraw_next_update;
-               else
-                  cntrefresh := cntrefresh + 1;
-               end if;
-               sumdata.Initially := LOG.port_counter_value (total);
-               sumdata.Built     := LOG.port_counter_value (success);
-               sumdata.Failed    := LOG.port_counter_value (failure);
-               sumdata.Ignored   := LOG.port_counter_value (ignored);
-               sumdata.Skipped   := LOG.port_counter_value (skipped);
-               sumdata.elapsed   := LOG.elapsed_now;
-               sumdata.swap      := get_swap_status;
-               sumdata.load      := CYC.load_core (True);
-               sumdata.pkg_hour  := LOG.hourly_build_rate;
-               sumdata.impulse   := LOG.impulse_rate;
-               DPY.summarize (sumdata);
+         begin
+            if cntcycle = cycle_count'Last then
+               cntcycle := cycle_count'First;
+               LOG.flush_log (success);
+               LOG.flush_log (failure);
+               LOG.flush_log (skipped);
+               LOG.flush_log (total);
+               if curses_support then
+                  if cntrefresh = refresh_count'Last then
+                     cntrefresh := refresh_count'First;
+                     DPY.set_full_redraw_next_update;
+                  else
+                     cntrefresh := cntrefresh + 1;
+                  end if;
+                  sumdata.Initially := LOG.port_counter_value (total);
+                  sumdata.Built     := LOG.port_counter_value (success);
+                  sumdata.Failed    := LOG.port_counter_value (failure);
+                  sumdata.Ignored   := LOG.port_counter_value (ignored);
+                  sumdata.Skipped   := LOG.port_counter_value (skipped);
+                  sumdata.elapsed   := LOG.elapsed_now;
+                  sumdata.swap      := get_swap_status;
+                  sumdata.load      := CYC.load_core (True);
+                  sumdata.pkg_hour  := LOG.hourly_build_rate;
+                  sumdata.impulse   := LOG.impulse_rate;
+                  DPY.summarize (sumdata);
 
-               for b in builders'First .. num_builders loop
+                  for b in builders'First .. num_builders loop
                      if builder_states (b) = shutdown then
                         DPY.update_builder (CYC.builder_status (b, True, False));
                      elsif builder_states (b) = idle then
@@ -326,56 +328,62 @@ package body PortScan.Operations is
                         CYC.set_log_lines (b);
                         DPY.update_builder (CYC.builder_status (b));
                      end if;
-               end loop;
-               DPY.refresh_builder_window;
-               DPY.refresh_history_window;
-            else
-               --  text mode support, periodic status reports
-               if cntalert = alert_count'Last then
-                  cntalert := alert_count'First;
-                  TIO.Put_Line (LOG.elapsed_now & " =>    " &
-                                  "  Left:" & LOG.ports_remaining_to_build'Img &
-                                  "  Succ:" & LOG.port_counter_value (success)'Img &
-                                  "  Fail:" & LOG.port_counter_value (failure)'Img &
-                                  "  Skip:" & LOG.port_counter_value (skipped)'Img &
-                                  "   Ign:" & LOG.port_counter_value (ignored)'Img);
-               else
-                  cntalert := cntalert + 1;
-               end if;
-
-               --  Update log lines every 4 seconds for the watchdog
-               if cntrefresh = refresh_count'Last then
-                  cntrefresh := refresh_count'First;
-                  for b in builders'First .. num_builders loop
-                     if builder_states (b) /= shutdown and then
-                       builder_states (b) /= idle
-                     then
-                        CYC.set_log_lines (b);
-                     end if;
                   end loop;
+                  DPY.refresh_builder_window;
+                  DPY.refresh_history_window;
                else
-                  cntrefresh := cntrefresh + 1;
-               end if;
-            end if;
+                  --  text mode support, periodic status reports
+                  if cntalert = alert_count'Last then
+                     cntalert := alert_count'First;
+                     TIO.Put_Line (LOG.elapsed_now & " =>    " &
+                                     "  Left:" & LOG.ports_remaining_to_build'Img &
+                                     "  Succ:" & LOG.port_counter_value (success)'Img &
+                                     "  Fail:" & LOG.port_counter_value (failure)'Img &
+                                     "  Skip:" & LOG.port_counter_value (skipped)'Img &
+                                     "   Ign:" & LOG.port_counter_value (ignored)'Img);
+                  else
+                     cntalert := cntalert + 1;
+                  end if;
 
-            --  Generate latest history file every 3 seconds.
-            --  With a poll period of 6 seconds, we need twice that frequency to avoid aliasing
-            --  Note that in text mode, the logs are updated every 4 seconds, so in this mode
-            --  the log lines will often be identical for a cycle.
-            if cntwww = www_count'Last then
-               cntwww := www_count'First;
-               write_history_json;
-               write_summary_json (active            => True,
-                                   states            => builder_states,
-                                   num_builders      => num_builders,
-                                   num_history_files => history.segment);
+                  --  Update log lines every 4 seconds for the watchdog
+                  if cntrefresh = refresh_count'Last then
+                     cntrefresh := refresh_count'First;
+                     for b in builders'First .. num_builders loop
+                        if builder_states (b) /= shutdown and then
+                          builder_states (b) /= idle
+                        then
+                           CYC.set_log_lines (b);
+                        end if;
+                     end loop;
+                  else
+                     cntrefresh := cntrefresh + 1;
+                  end if;
+               end if;
+
+               --  Generate latest history file every 3 seconds.
+               --  With a poll period of 6 seconds, we need twice that frequency to avoid aliasing
+               --  Note that in text mode, the logs are updated every 4 seconds, so in this mode
+               --  the log lines will often be identical for a cycle.
+               if cntwww = www_count'Last then
+                  cntwww := www_count'First;
+                  write_history_json;
+                  write_summary_json (active            => True,
+                                      states            => builder_states,
+                                      num_builders      => num_builders,
+                                      num_history_files => history.segment);
+               else
+                  cntwww := cntwww + 1;
+               end if;
             else
-               cntwww := cntwww + 1;
+               cntcycle := cntcycle + 1;
             end if;
-         else
-            cntcycle := cntcycle + 1;
-         end if;
-         delay 0.10;
+            delay 0.10;
+         exception
+            when earthquake : others =>
+               LOG.scribe (total, LOG.elapsed_now & " UNHANDLED BULK RUN EXCEPTION: " &
+                             EX.Exception_Information (earthquake), False);
+               exit;
+         end;
       end loop;
       if PM.configuration.avec_ncurses and then curses_support
       then

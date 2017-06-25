@@ -191,7 +191,7 @@ package body Parameters is
 
 
    --------------------------------------------------------------------------------------------
-   --  query_physical_memory
+   --  alternative_profiles_exist
    --------------------------------------------------------------------------------------------
    function alternative_profiles_exist return Boolean is
    begin
