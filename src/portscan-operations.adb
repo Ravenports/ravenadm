@@ -117,6 +117,11 @@ package body PortScan.Operations is
                text_display (builder, "         Shutting down");
             end if;
          end if;
+      exception
+         when earthquake : others =>
+            LOG.scribe (total, LOG.elapsed_now & " UNHANDLED TASK" & builder'Img & " EXCEPTION: " &
+                          EX.Exception_Information (earthquake), False);
+            Signals.initiate_shutdown;
       end build;
 
       builder_01 : build (builder => 1);
@@ -289,7 +294,7 @@ package body PortScan.Operations is
                when earthquake : others =>
                   LOG.scribe (total, LOG.elapsed_now & " UNHANDLED SLAVE LOOP EXCEPTION: " &
                                 EX.Exception_Information (earthquake), False);
-                  run_complete := True;
+                  Signals.initiate_shutdown;
             end;
          end loop;
          exit when run_complete and all_idle;
