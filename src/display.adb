@@ -1,16 +1,19 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Ada.Exceptions;
 with Ada.Text_IO;
 with HelperText;
 with Signals;
 with Unix;
+with PortScan.Log;
 
 package body Display is
 
    package  HT renames HelperText;
    package SIG renames Signals;
    package TIO renames Ada.Text_IO;
+   package EX  renames Ada.Exceptions;
 
    ----------------------
    --  launch_monitor  --
@@ -94,6 +97,9 @@ package body Display is
             when TIC.Curses_Exception => null;
          end;
       end loop;
+   exception
+      when thunder : others =>
+         log_non_curses_exception (EX.Exception_Message (thunder));
    end set_full_redraw_next_update;
 
 
@@ -304,6 +310,9 @@ package body Display is
       colorado (data.elapsed, c_elapsed, 70, 1);
 
       Refresh_Zone (summary);
+   exception
+      when thunder : others =>
+         log_non_curses_exception (EX.Exception_Message (thunder));
    end summarize;
 
 
@@ -347,6 +356,9 @@ package body Display is
       colorado (BR.phase,   c_bldphase, 15, row, True);
       colorado (BR.origin,  c_origin,   29, row, False);
       colorado (BR.LLines,  c_standard, 71, row, True);
+   exception
+      when thunder : others =>
+         log_non_curses_exception (EX.Exception_Message (thunder));
    end update_builder;
 
 
@@ -356,6 +368,9 @@ package body Display is
    procedure refresh_builder_window is
    begin
       Refresh_Zone (builder);
+   exception
+      when thunder : others =>
+         log_non_curses_exception (EX.Exception_Message (thunder));
    end refresh_builder_window;
 
 
@@ -466,6 +481,9 @@ package body Display is
          end if;
       end loop;
       Refresh_Zone (action);
+   exception
+      when thunder : others =>
+         log_non_curses_exception (EX.Exception_Message (thunder));
    end refresh_history_window;
 
 
@@ -710,5 +728,15 @@ package body Display is
       end if;
       return result;
    end fmtpc;
+
+
+   ------------------------------------------------------------------------
+   --  log_non_curses_exception
+   ------------------------------------------------------------------------
+   procedure log_non_curses_exception (message_text : String) is
+   begin
+      PortScan.Log.scribe (PortScan.total, "DISPLAY EXCEPTION EXCOUNTERED !!", False);
+      PortScan.Log.scribe (PortScan.total, message_text, True);
+   end log_non_curses_exception;
 
 end Display;

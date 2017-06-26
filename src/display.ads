@@ -164,4 +164,6 @@ private
    procedure Return_To_Text_Mode;
    procedure Refresh_Zone (zone : zones);
 
+   procedure log_non_curses_exception (message_text : String);
+
 end Display;
