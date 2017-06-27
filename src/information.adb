@@ -65,4 +65,36 @@ package body Information is
       TIO.Put_Line (gap & copyright & LAT.LF);
    end print_header;
 
+
+   --------------------------------------------------------------------------------------------
+   --  short_help_screen
+   --------------------------------------------------------------------------------------------
+   procedure short_help_screen
+   is
+      R : constant Character := LAT.LF;
+   begin
+      print_header;
+      TIO.Put_Line
+        (
+           "ravenadm build               <origins> Incrementally build specified ports" & R &
+           "ravenadm build-everything    Incrementally build all ports" & R &
+           "ravenadm check-ports         Check for existence of new ravenports release" & R &
+           "ravenadm configure           Launch main configuration menu" & R &
+           "ravenadm dev                 <subcommand> Ravenports developers' commands" & R &
+           "ravenadm force               <origins> (Re)build specified packages" & R &
+           "ravenadm generate-repository Generate pkg(8) repository with current packages" & R &
+           "ravenadm locate              <namebase> List directory location of single port" & R &
+           "ravenadm set-options         <namebase> Change port's options via dialog" & R &
+           "ravenadm status              <origins> Dry-run results (build <orig> preview)" & R &
+           "ravenadm status-everything   Dry-run results (build-everything preview)" & R &
+           "ravenadm subpackages         <origins> List subpackages of specified ports" & R &
+           "ravenadm test                <origins> force build with developer checks" & R &
+           "ravenadm test-everything     Force build every Ravenport with dev. checks" & R &
+           "ravenadm update-ports        Update Ravenports to latest published version" & R &
+           R &
+           "To view detailed man pages, type " &
+           LAT.Quotation & "ravenadm help <command>" & LAT.Quotation
+        );
+   end short_help_screen;
+
 end Information;

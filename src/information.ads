@@ -9,6 +9,7 @@ package Information is
    procedure display_usage;
    procedure display_unknown_command (first_word : String);
    procedure display_unknown_command (first_word, second_word : String);
+   procedure short_help_screen;
 
 private
 

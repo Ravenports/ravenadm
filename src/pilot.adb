@@ -77,6 +77,54 @@ package body Pilot is
 
 
    --------------------------------------------------------------------------------------------
+   --  show_short_help
+   --------------------------------------------------------------------------------------------
+   procedure show_short_help is
+   begin
+      NFO.short_help_screen;
+   end show_short_help;
+
+
+   --------------------------------------------------------------------------------------------
+   --  launch_man_page
+   --------------------------------------------------------------------------------------------
+   procedure launch_man_page (level2 : String)
+   is
+      result   : Boolean;
+      level2ok : Boolean := False;
+      man_page : constant String :=
+        host_localbase & "/share/man/man1/ravenadm-" & level2 & ".1.gz";
+   begin
+      if
+        level2 = "dev" or else
+        level2 = "build" or else
+        level2 = "build-everything" or else
+        level2 = "force" or else
+        level2 = "test" or else
+        level2 = "test-everything" or else
+        level2 = "status" or else
+        level2 = "status-everything" or else
+        level2 = "configure" or else
+        level2 = "locate" or else
+        level2 = "purge-distfiles" or else
+        level2 = "set-options" or else
+        level2 = "check-ports" or else
+        level2 = "update-ports" or else
+        level2 = "generate-repository" or else
+        level2 = "subpackages"
+      then
+         if DIR.Exists (man_page) then
+            result := Unix.external_command ("/usr/bin/man " & man_page);
+         else
+            TIO.Put_Line (errprefix & "the " & level2 & " man page is missing");
+         end if;
+      else
+         TIO.Put_Line ("'" & level2 & "' is not a valid command (so no help is available)");
+      end if;
+   end launch_man_page;
+
+
+   --------------------------------------------------------------------------------------------
    --  dump_ravensource
    --------------------------------------------------------------------------------------------
    procedure dump_ravensource (optional_directory : String)

@@ -320,7 +320,11 @@ begin
          --------------------------------
          --  help command
          --------------------------------
-         null;  --  tbw
+         if CLI.Argument_Count > 1 then
+            Pilot.launch_man_page (CLI.Argument (2));
+         else
+            Pilot.show_short_help;
+         end if;
 
       when test =>
          --------------------------------
