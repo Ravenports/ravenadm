@@ -53,7 +53,7 @@ private
    RUN      : constant String := "run";
 
    PYTHON27 : constant String := "python27:single:standard";
-   PYTHON34 : constant String := "python34:single:standard";
+   PYTHON36 : constant String := "python36:single:standard";
    PYTHON35 : constant String := "python35:single:standard";
    TCL85    : constant String := "tcl85:complete:standard";
    TCL86    : constant String := "tcl86:complete:standard";
@@ -138,7 +138,7 @@ private
    procedure add_run_depends      (specs : in out Portspecs; dependency : String);
    procedure add_exrun_depends    (specs : in out Portspecs; dependency, subpackage : String);
 
-   --  Convert e.g. python_default to py34/py35 depending on current defaults.
+   --  Convert e.g. python_default to py35/py36 depending on current defaults.
    --  True for all defaults as they get formed
    function transform_defaults (dep : String) return String;
 

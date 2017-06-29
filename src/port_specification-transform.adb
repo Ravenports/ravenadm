@@ -1386,7 +1386,7 @@ package body Port_Specification.Transform is
       module     : constant String := "python";
       SETUPTOOLS : constant String := "python-setuptools:single:";
       PY27       : constant String := "py27";
-      PY34       : constant String := "py34";
+      PY36       : constant String := "py36";
       PY35       : constant String := "py35";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
@@ -1397,23 +1397,23 @@ package body Port_Specification.Transform is
          if argument_present (specs, module, PY27) then
             add_build_depends (specs, PYTHON27);
             add_build_depends (specs, SETUPTOOLS & PY27);
-         elsif argument_present (specs, module, PY34) then
-            add_build_depends (specs, PYTHON34);
-            add_build_depends (specs, SETUPTOOLS & PY34);
-         else -- default to py35
+         elsif argument_present (specs, module, PY35) then
             add_build_depends (specs, PYTHON35);
             add_build_depends (specs, SETUPTOOLS & PY35);
+         else -- default to py36
+            add_build_depends (specs, PYTHON36);
+            add_build_depends (specs, SETUPTOOLS & PY36);
          end if;
       else
          if argument_present (specs, module, PY27) then
             add_buildrun_depends (specs, PYTHON27);
             add_buildrun_depends (specs, SETUPTOOLS & PY27);
-         elsif argument_present (specs, module, PY34) then
-            add_buildrun_depends (specs, PYTHON34);
-            add_buildrun_depends (specs, SETUPTOOLS & PY34);
-         else -- default to py35
+         elsif argument_present (specs, module, PY35) then
             add_buildrun_depends (specs, PYTHON35);
             add_buildrun_depends (specs, SETUPTOOLS & PY35);
+         else -- default to py36
+            add_buildrun_depends (specs, PYTHON36);
+            add_buildrun_depends (specs, SETUPTOOLS & PY36);
          end if;
       end if;
    end apply_python_module;
@@ -2231,10 +2231,10 @@ package body Port_Specification.Transform is
          elsif exrundep = "python" then
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
                Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON34)) then
-               Element := HT.SUS (PYTHON34);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON35)) then
+               Element := HT.SUS (PYTHON35);
             else
-              Element := HT.SUS (PYTHON35);
+              Element := HT.SUS (PYTHON36);
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
@@ -2320,9 +2320,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & "py35";
+               return name_subpackage & "py36";
             else
-               return name_subpackage & "py34";
+               return name_subpackage & "py35";
             end if;
          end;
       elsif HT.trails (dep, ":perl_default") then

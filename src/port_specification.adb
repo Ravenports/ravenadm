@@ -3647,8 +3647,8 @@ package body Port_Specification is
          ("PNG           ", PNG),
          ("PULSEAUDIO    ", PULSEAUDIO),
          ("PY27          ", PY27),
-         ("PY34          ", PY34),
          ("PY35          ", PY35),
+         ("PY36          ", PY36),
          ("READLINE      ", READLINE),
          ("SNDIO         ", SNDIO),
          ("SOUND         ", SOUND),
@@ -3728,8 +3728,8 @@ package body Port_Specification is
          when PNG          => return "PNG image format support";
          when PULSEAUDIO   => return "PulseAudio sound server support";
          when PY27         => return "Build using Python 2.7";
-         when PY34         => return "Build using Python 3.4";
          when PY35         => return "Build using Python 3.5";
+         when PY36         => return "Build using Python 3.6";
          when READLINE     => return "Command line editing via libreadline";
          when SNDIO        => return "Sndio audio support";
          when SOUND        => return "Sound (audio) support";
