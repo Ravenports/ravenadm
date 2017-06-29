@@ -103,9 +103,11 @@ package body Port_Specification.Transform is
                      when cmake_args_off       => specs.cmake_args.Append (item);
                      when cflags_off           => specs.cflags.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
+                     when gnome_comp_off       => specs.gnome_comps.Append (item);
                      when qmake_off            => specs.qmake_args.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
                      when sub_list_off         => specs.sub_list.Append (item);
+                     when xorg_comp_off        => specs.xorg_comps.Append (item);
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL-true");
                         specs.cmake_args.Append (special);
@@ -217,11 +219,13 @@ package body Port_Specification.Transform is
             augment (cflags_off,           rec.CFLAGS_OFF);
             augment (cmake_args_off,       rec.CMAKE_ARGS_OFF);
             augment (configure_args_off,   rec.CONFIGURE_ARGS_OFF);
+            augment (gnome_comp_off,       rec.GNOME_COMPONENTS_OFF);
             augment (makefile_off,         rec.MAKEFILE_OFF);
             augment (qmake_off,            rec.QMAKE_OFF);
             augment (run_depends_off,      rec.RUN_DEPENDS_OFF);
             augment (sub_list_off,         rec.SUB_LIST_OFF);
             augment (uses_off,             rec.USES_OFF);
+            augment (xorg_comp_off,        rec.XORG_COMPONENTS_OFF);
          end if;
          augment (cmake_bool_f_both,      rec.CMAKE_BOOL_F_BOTH);
          augment (cmake_bool_t_both,      rec.CMAKE_BOOL_T_BOTH);
@@ -2407,6 +2411,7 @@ package body Port_Specification.Transform is
       port_gettext  : constant String := "gettext:runtime:standard";
       port_cairo    : constant String := "cairo";
       port_atk      : constant String := "atk";
+      port_gtk2     : constant String := "gtk2";
       port_gtk3     : constant String := "gtk3";
       port_pango    : constant String := "pango";
       port_gobspec  : constant String := "gobject-introspection";
@@ -2440,6 +2445,9 @@ package body Port_Specification.Transform is
                             add_build_depends (specs, PYTHON27);
                             specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                             specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
+            when gtk2    => add_buildrun_depends (specs, port_gtk2 & ss);
+                            add_buildrun_depends (specs, port_atk & ss);
+                            add_buildrun_depends (specs, port_pango & ps);
             when gtk3    => add_buildrun_depends (specs, port_gtk3 & ss);
                             add_buildrun_depends (specs, port_atk & ss);
                             add_buildrun_depends (specs, port_pango & ps);

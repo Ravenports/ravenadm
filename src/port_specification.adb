@@ -1466,6 +1466,8 @@ package body Port_Specification is
                Element.EXTRA_PATCHES_ON.Append (value_text);
             when extract_only_on  =>
                Element.EXTRACT_ONLY_ON.Append (value_text);
+            when gnome_comp_off =>
+               Element.GNOME_COMPONENTS_OFF.Append (value_text);
             when gnome_comp_on =>
                Element.GNOME_COMPONENTS_ON.Append (value_text);
             when implies_on =>
@@ -1514,6 +1516,8 @@ package body Port_Specification is
                Element.USES_OFF.Append (value_text);
             when uses_on =>
                Element.USES_ON.Append (value_text);
+            when xorg_comp_off =>
+               Element.XORG_COMPONENTS_OFF.Append (value_text);
             when xorg_comp_on =>
                Element.XORG_COMPONENTS_ON.Append (value_text);
             when not_helper_format | not_supported_helper =>
@@ -1561,11 +1565,11 @@ package body Port_Specification is
             if not valid_dependency_format (value) then
                raise wrong_value with "invalid dependency format '" & value & "'";
             end if;
-         when xorg_comp_on =>
+         when xorg_comp_on | xorg_comp_off =>
             if determine_xorg_component (value) = invalid_component then
                raise wrong_value with "xorg component '" & value & "' is not valid";
             end if;
-         when gnome_comp_on =>
+         when gnome_comp_on | gnome_comp_off =>
             if determine_gnome_component (value) = invalid_component then
                raise wrong_value with "gnome component '" & value & "' is not valid";
             end if;
@@ -1674,6 +1678,7 @@ package body Port_Specification is
             when description           => return HT.IsBlank (rec.option_description);
             when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
             when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
+            when gnome_comp_off        => return rec.GNOME_COMPONENTS_OFF.Is_Empty;
             when gnome_comp_on         => return rec.GNOME_COMPONENTS_ON.Is_Empty;
             when implies_on            => return rec.IMPLIES_ON.Is_Empty;
             when info_on               => return rec.INFO_ON.Is_Empty;
@@ -1698,6 +1703,7 @@ package body Port_Specification is
             when test_target_on        => return rec.TEST_TARGET_ON.Is_Empty;
             when uses_off              => return rec.USES_OFF.Is_Empty;
             when uses_on               => return rec.USES_ON.Is_Empty;
+            when xorg_comp_off         => return rec.XORG_COMPONENTS_OFF.Is_Empty;
             when xorg_comp_on          => return rec.XORG_COMPONENTS_ON.Is_Empty;
             when not_helper_format     => return False;
             when not_supported_helper  => return False;
@@ -3098,6 +3104,7 @@ package body Port_Specification is
          ("cairo             ", cairo),
          ("gdkpixbuf         ", gdkpixbuf),
          ("glib              ", glib),
+         ("gtk2              ", gtk2),
          ("gtk3              ", gtk3),
          ("intltool          ", intltool),
          ("introspection     ", introspection),
@@ -3131,7 +3138,6 @@ package body Port_Specification is
 --  gnomevfs2
 --  gsound
 --  gtkiconcache
---  gtk20
 --  gtkhtml3
 --  gtkhtml4
 --  gtkmm20
@@ -4396,6 +4402,7 @@ package body Port_Specification is
          print_opt_vector (rec.DF_INDEX_ON, "DF_INDEX_ON");
          print_opt_vector (rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          print_opt_vector (rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
+         print_opt_vector (rec.GNOME_COMPONENTS_OFF, "GNOME_COMPONENTS_OFF");
          print_opt_vector (rec.GNOME_COMPONENTS_ON, "GNOME_COMPONENTS_ON");
          print_opt_vector (rec.IMPLIES_ON, "IMPLIES_ON");
          print_opt_vector (rec.INFO_ON, "INFO_ON");
@@ -4419,6 +4426,7 @@ package body Port_Specification is
          print_opt_vector (rec.TEST_TARGET_ON, "TEST_TARGET_ON");
          print_opt_vector (rec.USES_OFF, "USES_OFF");
          print_opt_vector (rec.USES_ON, "USES_ON");
+         print_opt_vector (rec.XORG_COMPONENTS_OFF, "XORG_COMPONENTS_OFF");
          print_opt_vector (rec.XORG_COMPONENTS_ON, "XORG_COMPONENTS_ON");
       end dump_option;
 

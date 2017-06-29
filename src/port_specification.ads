@@ -57,7 +57,8 @@ package Port_Specification is
                          patchfiles_on, plist_sub_on, prevents_on, qmake_off, qmake_on,
                          run_depends_off, run_depends_on, sub_files_on, sub_list_off,
                          sub_list_on, test_target_on, uses_off, uses_on, makefile_off,
-                         makefile_on, description, only_for_opsys_on, xorg_comp_on, gnome_comp_on);
+                         makefile_on, description, only_for_opsys_on, xorg_comp_off, xorg_comp_on,
+                         gnome_comp_off, gnome_comp_on);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -299,7 +300,7 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (atk, cairo, glib, gtk3, gdkpixbuf, intltool, introspection, pango, pygobject,
+     (atk, cairo, glib, gtk2, gtk3, gdkpixbuf, intltool, introspection, pango, pygobject,
       libcroco, libgsf, librsvg, libxml2, libxslt, invalid_component);
 
    type xorg_type is
@@ -396,7 +397,9 @@ private
          TEST_TARGET_ON        : string_crate.Vector;
          USES_OFF              : string_crate.Vector;
          USES_ON               : string_crate.Vector;
+         XORG_COMPONENTS_OFF   : string_crate.Vector;
          XORG_COMPONENTS_ON    : string_crate.Vector;
+         GNOME_COMPONENTS_OFF  : string_crate.Vector;
          GNOME_COMPONENTS_ON   : string_crate.Vector;
       end record;
 
