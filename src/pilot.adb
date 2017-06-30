@@ -93,7 +93,7 @@ package body Pilot is
       result   : Boolean;
       level2ok : Boolean := False;
       man_page : constant String :=
-        host_localbase & "/share/man/man1/ravenadm-" & level2 & ".1.gz";
+        host_localbase & "/share/man/man8/ravenadm-" & level2 & ".8.gz";
    begin
       if
         level2 = "dev" or else

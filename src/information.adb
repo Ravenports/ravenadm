@@ -84,6 +84,7 @@ package body Information is
            "ravenadm force               <origins> (Re)build specified packages" & R &
            "ravenadm generate-repository Generate pkg(8) repository with current packages" & R &
            "ravenadm locate              <namebase> List directory location of single port" & R &
+           "ravenadm purge-distfiles     Delete obsolete tarballs to reclaim disk space" & R &
            "ravenadm set-options         <namebase> Change port's options via dialog" & R &
            "ravenadm status              <origins> Dry-run results (build <orig> preview)" & R &
            "ravenadm status-everything   Dry-run results (build-everything preview)" & R &
