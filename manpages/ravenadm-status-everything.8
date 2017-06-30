@@ -1,0 +1,37 @@
+.Dd June 30, 2017
+.Dt STATUS-EVERYTHING 8
+.Os
+.Sh NAME
+.Nm "ravenadm status-everything"
+.Nd perform build dry run against entire tree
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+The
+.Nm
+command is the equivalent of passing a list of every single port in the
+Ravenports tree to the
+.Xr ravenadm-status 8
+command.
+.Sh NOTES
+Rather than linearly scanning the ports tree as is done by the
+.Em ravenadm status
+command, this command will split the tree into equal-size lists and feed
+these lists to individual scanners that all work in parallel.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

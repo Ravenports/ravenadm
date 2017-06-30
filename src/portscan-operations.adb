@@ -1350,7 +1350,7 @@ package body PortScan.Operations is
       listlog       : TIO.File_Type;
       goodlog       : Boolean;
       using_screen  : constant Boolean := Unix.screen_attached;
-      filename      : constant String := "/tmp/synth_prefetch_list.txt";
+      filename      : constant String := "/tmp/ravenadm_prefetch_list.txt";
       package_list  : HT.Text := HT.blank;
 
       procedure set_delete (Element : in out subpackage_record) is

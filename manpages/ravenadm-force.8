@@ -1,0 +1,41 @@
+.Dd June 30, 2017
+.Dt FORCE 8
+.Os
+.Sh NAME
+.Nm "ravenadm force"
+.Nd build listed ports even if valid packages of those ports exist.
+.Sh SYNOPSIS
+.Nm
+.Ar namebase1[:variant]
+.Op namebase2[:variant], ...
+.Nm
+.Ar path-to-list
+.Sh DESCRIPTION
+The
+.Nm
+command is the equivalent of deleting the packages of the listed ports
+before executing the 
+.Xr ravenadm-build 8
+command with the same arguments.
+.Pp
+This means the listed ports will
+.Em always
+be built, but the dependencies of these ports are only rebuilt on an
+as-needed basis.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

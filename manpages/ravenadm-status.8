@@ -1,0 +1,78 @@
+.Dd June 30, 2017
+.Dt STATUS 8
+.Os
+.Sh NAME
+.Nm "ravenadm status"
+.Nd perform build dry run
+.Sh SYNOPSIS
+.Nm
+.Ar namebase1[:variant]
+.Op namebase2[:variant], ...
+.Nm
+.Ar path-to-list
+.Sh DESCRIPTION
+The
+.Nm
+command shows what the result of a
+.Em ravenadm build
+command with the same arguments would be.  That command builds ports
+incrementally, meaning that if existing packages are still valid, the build
+of the corresponding ports will be skipped.  As this is a dry run command,
+no actual building occurs.
+.Sh OUTPUT
+The command will list all the ports that would be build along with an
+indication for the reason.  The reasons could be:
+.Bl -tag -width _U_
+.It [N]
+New package.  In the profile's package directory, no package set for a port in
+the build queue exists in any form.
+.It [R]
+Rebuild existing package.  For a given port in the build queue, a package
+set does exist, but it needs to be rebuilt due to anticipated rebuilds earlier
+in its dependency chain.
+.It [U]
+Upgrade existing package.  For a given port in the build queue, a package
+set exists but its for an earlier version, so a new package set has to be
+generated.
+.El
+.Pp
+After this list, the build totals are displayed.  The same
+information is logged to
+.Pa /tmp/ravenadm_status_results.txt
+since the full list is often longer than the terminal height.
+.Sh FILES
+.Bl -tag -width _profile
+.It ravenadm_status_results.txt
+Whenever a status command is run, a list of ports that would build with the
+actual command is produced at
+.Pa /tmp/synth_status_results.txt
+.It ravenadm_prefetch_list.txt
+When the configuration option to use suitable prebuilt packages has been
+selected, the status command will compile a list of packages that would be
+fetched by the build command and it writes that data to
+.Pa /tmp/synth_prefetch_list.txt
+.It 06_obsolete_packages.log
+Whenever an existing package is considered invalid by the build or status
+command, the detailed reason is logged at
+.Pa <profile-log-dir>/06_obsolete_packages.log .
+Typical reasons include a change in option settings, a change in the port's
+option definitions, or more likely, the rebuild of a dependency.  Whenever
+there is a question upon why the port is getting rebuilt, check this log.
+.El
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8
