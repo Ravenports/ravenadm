@@ -1,0 +1,116 @@
+.Dd June 30, 2017
+.Dt GENERATE-REPOSITORY 8
+.Os
+.Sh NAME
+.Nm "ravenadm generate-repository"
+.Nd create
+.Xr pkg 8
+repository catalog
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+The
+.Nm
+command is a wrapper that executes the
+.Em repo
+command of
+.Xr pkg 8 ,
+which is used to create a catalog of the packages built by ravenadm.
+Prior to creating the repository, ravenadm will delete all obsolete packages
+to prevent them from ending up in the catalog.
+.Pp
+If ravenadm is building packages restricted to the localhost machine,
+building a repository is not strictly necessary.  The root user can install
+packages directory from the ravenadm packages directory using the
+.Em add
+command of
+.Xr pkg 8 ,
+which will automatically pull in dependencies from the same directory.
+However, if packages are being built for multiple clients, creating a
+repository for those clients to use is the recommended approach.
+.Sh ENVIRONMENT
+.Bl -tag -width RAVENPROFILE
+.It Ev RAVENPROFILE
+When this environment variable is set, it will override the setting for the
+active profile if the variable contents match a known profile name.  The
+profiles set the path for the packages directory which is used by the
+.Em repo
+command of
+.Xr pkg 8 .
+.El
+.Sh FILES
+The following files affect the creation of the repository catalog:
+.Bl -tag -width _profile
+.It <profile>-private.key
+This is one of two files required to support the signing of the repository
+by a local RSA key.  It is the output of the
+.Cm openssl genrsa
+command; see the EXAMPLE section for how to generate it.  The file
+permissions are required to be set at 400.  For the default
+profile, the file is normally located at
+.Pa /raven/etc/ravenadm/primary-private.key
+.It <profile>-public.key
+This is the second of two files required to support the signing of the
+repository by a local RSA key.  The command confirms the public counterpart
+of the signing key is available because its path is required for the
+generated pkg repository configuration file.  For the default profile,
+the file is normally located at
+.Pa /raven/etc/ravenadm/primary-public.key
+.It <profile>-signing_command
+This is one of two files required to support the signing of the repository
+by an external signing server.  It consists of a single line containing
+the command; see the EXAMPLE section.  For the default profile, the file
+is normally located at
+.Pa /raven/etc/ravenadm/primary-signing_command
+.It <profile>-fingerprint
+This is the second of two files required to support the signing of the
+repository by an external signing server.  It consists of a single line
+containing the SHA 256 hash of the public key that is the counterpart of
+the key that signed the repository.  For the default profile, the file
+is normally located at
+.Pa /raven/etc/ravenadm/primary-fingerprint
+.El
+.Sh EXAMPLES
+To activate the signing of default profile's repository with a local RSA
+key, generate the two key files:
+.Bd -literal -offset indent
+% cd /raven/etc/ravenadm
+% openssl genrsa -out primary-private.key 2048
+% chmod 0400 primary-private.key
+% openssl rsa -in primary-private.key -out primary-public.key -pubout
+.Ed
+.Pp
+To activate the signing of default profile's repository with an external
+signing server, two files need to be created.  It's assumed the signing
+server has already been configured as described by the
+.Xr pkg-repo 8
+man page, and that the keys are located in the repo.pub and repo.key files.
+On the signing server which is 192.168.0.44 in this example:
+.Bd -literal -offset indent
+% sha256 -q repo.pub > primary-fingerprint
+% echo "/usr/bin/ssh 192.168.0.44 /raven/bin/sign.sh" \\
+  > primary-signing_command
+.Ed
+.Pp
+Then move both files to /raven/etc/ravenadm directory on the build server.
+The build server root user needs to have a passphrase-free SSH key access
+to the signing server in order for ravenadm to sign the repository.
+.Sh SEE ALSO
+.Xr pkg 8 ,
+.Xr pkg-repo 8 ,
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

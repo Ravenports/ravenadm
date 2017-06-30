@@ -1,0 +1,47 @@
+.Dd June 30, 2017
+.Dt SUBPACKAGES 8
+.Os
+.Sh NAME
+.Nm "ravenadm subpackages"
+.Nd list subpackages of the given port variants
+.Sh SYNOPSIS
+.Nm
+.Ar namebase1[:variant]
+.Op namebase2[:variant], ...
+.Nm
+.Ar path-to-list
+.Sh DESCRIPTION
+.Nm
+is a convenient command for developers to determine which subpackages are
+defined for a given port variant.  The command accepts a list of
+namebase:variant identifiers or a path to a file containing a list (one
+identifier per line).  If the variant is not specified,
+.Do
+standard
+.Dc
+will be assumed.
+.Sh EXAMPLES
+An example passing a list of port identifiers to the command:
+.Bd -literal -offset indent
+% ravenadm subpackages gmake gmake:nls postgresql96
+gmake:standard subpackages: single
+gmake:nls subpackages: single
+postgresql96:standard subpackages: complete server client contrib plperl plpython pltcl docs
+.Ed
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

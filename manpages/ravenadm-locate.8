@@ -1,0 +1,61 @@
+.Dd June 30, 2017
+.Dt LOCATE 8
+.Os
+.Sh NAME
+.Nm "ravenadm locate"
+.Nd display location of port buildsheet
+.Sh SYNOPSIS
+.Nm
+.Ar namebase
+.Sh DESCRIPTION
+.Nm
+is primarily used by developers to determine if a port exists and if so,
+which bucket directory it has been placed in.
+.Pp
+The Ravenports collection has been split into 256
+.Do
+bucket
+.Dc
+directories.  The port's
+.Em namebase
+determines into which bucket directory the port is placed.  The same
+bucket directory is used for both the finished Ravenports tree and the
+Ravensource materials tree.
+.Sh EXAMPLES
+The configuration setting for the Conspiracy directory affects the output of
+this command.  The buckets are subdirectories of the Conspiracy directory.
+.Bd -literal -offset indent
+% ravenadm locate m4
+Found at /var/ravenports/conspiracy/bucket_0E/m4
+.Ed
+.Pp
+Ports developers will use this command to determine where to create a new
+port in the Ravensource materials tree:
+.Bd -literal -offset indent
+% ravenadm locate mynewport
+Does not exist at /var/ravenports/conspiracy/bucket_C3/mynewport
+.Ed
+.Pp
+In this example, the port developer would create the bucket_C3/mynewport
+directory in the Ravensource tree and put the port's source files there.
+.Sh NOTES
+The bucket directory is determined by applying the SHA1 hash to the port's
+namebase, then converting the first two characters of the resulting digest
+to upper case.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

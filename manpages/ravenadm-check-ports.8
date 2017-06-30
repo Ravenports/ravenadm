@@ -1,0 +1,42 @@
+.Dd June 30, 2017
+.Dt CHECK-PORTS 8
+.Os
+.Sh NAME
+.Nm "ravenadm check-ports"
+.Nd checks for available updates to Ravenports tree
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+.Nm
+informs the user to whether the installed ravenports tree is current or if a
+newer version is available.
+.Sh EXAMPLES
+Sample output when the Ravenports tree is current:
+.Bd -literal -offset indent
+% ravenadm check-ports
+The latest version of Ravenports, 20170629.2, is currently installed.
+.Ed
+.Pp
+Sample output when the Ravenports tree can be updated:
+.Bd -literal -offset indent
+% ravenadm check-ports
+A newer version of Ravenports is available: 20170630.1
+The 20170629.2 version is currently installed.
+.Ed
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

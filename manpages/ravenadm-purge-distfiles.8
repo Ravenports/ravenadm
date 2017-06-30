@@ -1,0 +1,36 @@
+.Dd June 30, 2017
+.Dt PURGE-DISTFILES 8
+.Os
+.Sh NAME
+.Nm "ravenadm purge-distfiles"
+.Nd delete obsolete distribution files
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+.Nm
+is a useful command that will first scan the entire Ravenports tree to
+gather a complete list of specified distribution tarballs and other source
+files, and then it will scan the contents of the distfiles directory as
+specified by the current profile's configuration.  All source distribution
+files present in the directory that are not specified by the Ravenports
+tree will be removed.
+.Pp
+This can result in gigabytes of recovered disk space if significant time has
+passed since the distfiles directory was last cleaned.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8
