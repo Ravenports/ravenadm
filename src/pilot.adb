@@ -1191,6 +1191,7 @@ package body Pilot is
    procedure change_options
    is
       number_ports : constant Natural := PortScan.build_request_length;
+      issues : HT.Text;
    begin
       --  First confirm all given origins are the standard variants
       if not all_stdvar then
@@ -1211,9 +1212,17 @@ package body Pilot is
                                                 excl_targets  => True,
                                                 avoid_dialog  => True,
                                                 sysrootver    => sysrootver);
-            exit when not OPT.launch_dialog (specification);
+            if not specification.standard_options_present then
+               HT.SU.Append (issues, "User error: The " & specification.get_namebase &
+                               " has no options to configure." & LAT.LF);
+            else
+               exit when not OPT.launch_dialog (specification);
+            end if;
          end;
       end loop;
+      if not HT.IsBlank (issues) then
+         TIO.Put (HT.USS (issues));
+      end if;
    end change_options;
 
 

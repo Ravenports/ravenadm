@@ -1,0 +1,113 @@
+.Dd June 30, 2017
+.Dt SET-OPTIONS 8
+.Os
+.Sh NAME
+.Nm "ravenadm set-options"
+.Nd Set options of standard variant of port via ncurses dialog
+.Sh SYNOPSIS
+.Nm
+.Ar namebase
+.Sh DESCRIPTION
+The build of some ports may be modified by the user through the use of port
+option switches.  This is only possible on the
+.Em standard
+variant of the port.  Most ports do not provide standard options.  In rare
+cases, a port may not have a
+.Em standard
+variant.
+.Pp
+The standard variant options have default values, although these defaults
+may be affect by the host operating system or architecture.
+.Pp
+There are two configuration settings that affect port options.
+.Bl -enum
+.It
+If the profile is configured to
+.Do
+Assume default options
+.Dc ,
+then ravenadm will use the default port options values in the absence of
+explicit option settings.  If this setting is false and no options are
+explicitly set, ravenadm will display the options dialog sequentially for
+all ports in the build queue that lack explicitly set ports options.
+.It
+If the profile is configured to
+.Do
+Always record options
+.Dc ,
+then ravenadm will create an option file that defines default values for the
+port options on ports that lack explicit option settings.  This only occurs
+when ravenadm is configured to
+.Do
+Assume default options
+.Dc
+because otherwise ravenadm forces the user to define these settings
+manually.  The purpose of this setting is to alert the user when port
+options change, because ravenadm will halt when saved option files do not
+match available options.
+.El
+.Pp
+The options dialog is displayed using ncurses, and is intended to be
+self-explanatory.  Each option has an assigned letter (A .. Z and a .. z).
+That provides a maximum of 52 options.  When less than 27 options are
+defined, the keyboard entry is case-insensitive.  A slower alternative is to
+use the arrow keys to move the yellow carot to the desired option and to use
+the space bar to toggle the option settings.
+.Bl -tag -width F1_or_1
+.It F1 or 1
+This key will save the settings and exit.  If the settings match the port
+defaults and the
+.Do
+Always record options
+.Dc
+configuration is set to False, any existing options files will be deleted.
+This means the port configuration will
+.Do
+float
+.Dc
+with the option settings.
+.It F2 or 2
+This key will set the option values to how they were when the dialog was
+first launched.
+.It F3 or 3
+This key will set the option values to the port's default values.
+.El
+.Pp
+This is a manual command that affects one port at a time.  If the port has
+no options, ravenadm will complain accordingly.  The option dialog shown by
+this command will be shown repeatedly before the building of a bulk run if
+the profile's configuration requires this behavior.
+.Sh NOTES
+Options can be grouped.  There are three kinds of groups:
+.Bl -tag -width RESTRICTED
+.It RADIO
+By definition, only one option member of a radio group can be selected at a
+time.   All radio groups come with one option set.  Setting another option
+within the group to true will cause deselection of the previously set option.
+.It RESTRICTED
+In a restricted group, at least one option must be selected.  There is no
+limit to how many options within the group can be selected, but ravenadm
+will prevent the last set option from being deselected.
+.It UNLIMITED
+In an unlimited group, there are no restrictions on the option settings.
+The only purpose to the grouping is for logical or cosmetic reasons.  The
+port would treat ungrouped options identically to members of unlimited
+groups.
+.El
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8
