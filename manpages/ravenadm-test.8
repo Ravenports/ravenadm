@@ -1,0 +1,103 @@
+.Dd June 30, 2017
+.Dt TEST 8
+.Os
+.Sh NAME
+.Nm "ravenadm test"
+.Nd build listed ports with additional checks
+.Sh SYNOPSIS
+.Nm
+.Ar namebase[:variant]
+.Op namebase2[:variant], ...
+.Nm
+.Ar path-to-list
+.Sh DESCRIPTION
+The
+.Nm
+command is the equivalent of deleting the packages of the listed ports
+before executing the
+.Xr ravenadm-build 8
+command with the same arguments, but performing additional developer checks
+to ensure the port buildsheets are properly constructed.
+.Pp
+Moreover, when a single port is specified, interacting with the build is
+possible.  This is done to troublesheet issues, generate patches, etc.
+.Pp
+Primarily the additional checks will be against the packing manifests to
+ensure all listed files are present in the stage directory, and that no
+files or directories are present there that aren't listed.  Additionally,
+checks will be made against dynamically linked files to ensure any linked
+libraries can be found by the run-time linker without the help of ldconf or
+specific configuration files (meaning that the binaries contain valid
+RPATH/RUNPATH tags to direct the runtime linker).  The framework will also
+perform quality assurance checks that are not normally performed.  Caught
+issues are typically considered fatal, meaning their presence fails the
+build.
+.Sh ENVIRONMENT
+.Bl -tag -width ENTERAFTER
+.It Ev ENTERAFTER
+This environment variable only applies with the
+.Cm test
+command, and then only when a single port is specified.  If both of those
+conditions are satisfied, and the variable has the value of:
+.Bl -dash -compact -width 1
+.It
+extract
+.It
+patch
+.It
+configure
+.It
+build
+.It
+stage
+.It
+package
+.It
+install
+.It
+deinstall
+.El
+then an interactive build will be attempted. First, all the port's
+prerequisites are built normally and
+.Nm
+will return to text mode. If everything built successfully, the specified
+port will build up to and including the point specified by ENTERAFTER. At
+that point, control will be given to the user by providing them with a
+shell with the current directory set at the root of the builder.
+When the user is done, they should terminate the shell with the
+.Cm exit
+command to signal
+.Nm
+to clean up and terminate. This is a developer tool to troubleshoot port
+build problems and it is not intended for the average user.
+.It Ev SELFTEST
+This environment variable only applies with the
+.Cm test
+command.  When it is defined, the
+.Dq test
+target is executed as part of the build cycle; this target is not executed
+under any other circumstances.
+.El
+.Sh FILES
+The files defined in the FILES section of
+.Xr ravenadm-build 8
+and
+.Xr ravenadm 8
+also apply to this command.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

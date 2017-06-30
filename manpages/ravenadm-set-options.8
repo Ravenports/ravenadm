@@ -7,6 +7,7 @@
 .Sh SYNOPSIS
 .Nm
 .Ar namebase
+.Op namebase2, ...
 .Sh DESCRIPTION
 The build of some ports may be modified by the user through the use of port
 option switches.  This is only possible on the
@@ -73,10 +74,11 @@ first launched.
 This key will set the option values to the port's default values.
 .El
 .Pp
-This is a manual command that affects one port at a time.  If the port has
-no options, ravenadm will complain accordingly.  The option dialog shown by
-this command will be shown repeatedly before the building of a bulk run if
-the profile's configuration requires this behavior.
+This is a manual command that affects the listed ports sequentially.
+If the port has no options, ravenadm will complain accordingly.
+The option dialog shown by this command will be shown repeatedly before
+the building of a bulk run if the profile's configuration requires this
+behavior.
 .Sh NOTES
 Options can be grouped.  There are three kinds of groups:
 .Bl -tag -width RESTRICTED

@@ -1,0 +1,219 @@
+.Dd June 30, 2017
+.Dt BUILD 8
+.Os
+.Sh NAME
+.Nm "ravenadm build"
+.Nd build listed ports and all of their dependencies
+.Sh SYNOPSIS
+.Nm
+.Ar namebase[:variant]
+.Op namebase2[:variant], ...
+.Nm
+.Ar path-to-list
+.Sh DESCRIPTION
+The
+.Nm
+command is used to build specified ports and all dependencies they require.
+It is incremental by nature, meaning that if there is a complete set of
+subpackages already available for a given port, that port and its
+dependencies will not be added to the build queue.  It is entirely possible
+that a build command results in no ports being built if all previously built
+subpackages of the build list are still valid.
+.Pp
+The command accepts a list of
+namebase:variant identifiers or a path to a file containing a list (one
+identifier per line).  If the variant is not specified,
+.Do
+standard
+.Dc
+will be assumed.
+.Pp
+A real-time web interface is generated during every build, regardless if the
+curses real-time display is used.  See the FILES section for details on how
+to monitor the parallel builds using a browser.
+.Sh ENVIRONMENT
+.Bl -tag -width hook_pkg_ignored
+.It Ev RAVENPROFILE
+When this environment variable is set to name of an existing ravenadm
+profile, that profile will be loaded when ravenadm
+is launch rather than the active profile.  It is a temporary override;
+removing the variable will allow the default profile to load again.
+.El
+.Sh FILES
+The following files may be used or created:
+.Bl -tag -width hook_pkg_ignored
+.It <profile>-make.conf
+This is an optional, user-provided file. If it exists, the builder's
+generated make.conf file will be appended with the contents of this file.
+For the default profile, the file would normally be located at
+.Pa /raven/etc/ravenadm/primary-make.conf .
+Care must be taken not to override values set by ravenadm.  Most users will
+never create this configuration file.  It is for experts or for those
+directed to create the file with specific contents.
+.It <profile>-environment
+This is an optional, user-provided file. It contains a list of name-value
+pairs joined with an equals sign (e.g. HTTP_PROXY=http://proxyserver:8888),
+one pair per line.  If the file exists, these variables will be defined
+in the builder environment.  For the default profile, the file would
+normally be located at
+.Pa /raven/etc/ravenadm/primary-environment .
+.It index.html
+For every build run, ravenadm installs a web summary within the build logs
+directory.  For the default profile, the file would be located at
+.Pa /var/ravenports/primary/logs/index.html .
+.Pp
+To remotely view the web report with a browser, a web server must be present
+and configured to expose the logs directory.  The web report is dynamic and
+updated 10 times per minute.  The complete history is available and
+searchable, with quick-filters on "Built", "Failed", "Ignored" and "Skipped"
+fields as well as on the "No." column which is useful to examine cascaded
+skips.  The search filter can be quickly cleared by clicking on the "Total"
+field.
+.It port logs
+Every single attempt at building a port generates a build log. The name of
+the log is always in the form of [namebase]___[variant].log so that subsequent
+builds will overwrite previous attempts. They are created in the directory
+specified by the configuration, which is typically at
+.Pa /var/ravenports/primary/logs/logs
+for an unmodified default profile.
+.It hook_run_start
+If this file exists, and it is executable
+.Po
+or it is a symbolic link that leads to an executable file
+.Pc
+then it will be executed by ravenadm
+at the start of the build. The same requirement exists for all hooks. This
+hook, and the next five hooks all define the following common environment
+variables:
+.Ev PROFILE ,
+.Ev DIR_PACKAGES ,
+.Ev DIR_LOCALBASE ,
+.Ev DIR_CONSPIRACY ,
+.Ev DIR_CUSTOM_PORTS ,
+.Ev DIR_DISTFILES ,
+.Ev DIR_LOGS ,
+.Ev DIR_BUILDBASE .
+Uniquely, this hook also defines PORTS_QUEUED which is the number of ports that
+ravenadm will attempt to build. This file must be colocated with ravenadm.ini,
+so that would be
+.Pa /raven/etc/ravenadm/hook_run_start
+for most installations.
+.It hook_run_end
+This hook is fired when the build completes. In addition to the common
+definitions, it defines
+.Ev PORTS_BUILT ,
+.Ev PORTS_FAILED ,
+.Ev PORTS_IGNORED ,
+and
+.Ev PORTS_SKIPPED
+in the environment,
+which represents the results of the build.
+.It hook_pkg_success
+This hook is fired whenever a builder successfully packages a port. In
+addition to the common definitions, it defines
+.Ev RESULT=success ,
+.Ev ORIGIN ,
+and
+.Ev PKGNAME
+in the environment.
+.It hook_pkg_failure
+This hook is fired whenever a builder fails to package a port. In addition
+to the common definitions, it defines
+.Ev RESULT=failure ,
+.Ev ORIGIN ,
+and
+.Ev PKGNAME
+in the environment.
+.It hook_pkg_ignored
+This hook is fired prior to the start of a build when ravenadm
+prescans the queue for ports that are to be ignored according to the ports
+tree. Once the build has started, this hook is never fired again. In
+addition to the common definitions, it defines
+.Ev RESULT=ignored ,
+.Ev ORIGIN ,
+and
+.Ev PKGNAME
+in the environment.
+.It hook_pkg_skipped
+This hook is fired whenever a package gets ignored or fails which in turns
+cascades into a number of ports getting removed from the build queue due to
+the dependency's failure. This may fire before the build starts due to
+ignored prescanning, or any time during the build. In addition to the common
+definitions, it defines
+.Ev RESULT=skipped ,
+.Ev ORIGIN ,
+and
+.Ev PKGNAME
+in the environment.
+.El
+.Sh EXAMPLES
+The following illustrates how to fix distribution file fetching when a proxy
+server is being used.
+.Pp
+Define custom environment variables for each profile, e.g. create
+.Pa /raven/etc/ravenadm/primary-environment
+with the follow content:
+.Bd -literal -offset indent
+HTTP_PROXY=http://proxyserver:8888
+FTP_PROXY=http://proxyserver:8888
+
+http_proxy=http://proxyserver:8888
+ftp_proxy=http://proxyserver:8888
+.Ed
+.Pp
+The following illustrates how to run ravenadm inside a FreeBSD jail,
+although there is very little benefit from doing so.
+.Pp
+Add the following to
+.Pa /etc/jail.conf .
+.Bd -literal -offset indent
+enforce_statfs=0
+allow.mount
+allow.mount.nullfs
+allow.mount.tmpfs
+allow.mount.devfs
+allow.chflags
+.Ed
+.Sh NOTES
+.Ss Graceful exit
+If a user wants to stop the build, the best approach is to press the
+Control-Q key combination. The ravenadm will shut down as soon as it can.
+During the building phase no new builds will start after the shutdown is
+initiated, but the active builders will continue until completion.
+.Ss Unprivileged users
+At this time, ravenadm can only be executed by the root user for most
+commands, including all varieties of the build command.
+.Ss Impulse indicator
+A common question is "What does the Impulse indicator on the display mean?"
+It is the package build rate (packages/hour) over the last 500 seconds.  For
+the first roughly ten minutes of a bulk run, the
+.Dq Impulse
+rate and the
+.Dq Pkg/Hour
+rate will be identical. After that, the
+.Dq Impulse
+build rate will differ from the rate averaged over the entire elapsed time,
+often by a great amount.  It's just a way to gauge the package production
+rate over the previous few minutes.
+.Ss Supported architectures
+Synth is written in Ada, and thus an Ada compiler or cross-compiler is
+required to build it.  The currently supported architectures are x86_64 (aka
+amd64), i386, and aarch64 (aka ARMv8).  Support for other architectures is
+technically possible.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8
