@@ -1,0 +1,327 @@
+.Dd June 30, 2017
+.Dt CONFIGURE 8
+.Os
+.Sh NAME
+.Nm "ravenadm configure"
+.Nd launch interactive configuration menu
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+The
+.Nm
+command launches the top-level interactive menu uses to allow users to
+intuitively and correctly configure ravenadm without having to edit text
+files.
+.Pp
+Configuration of ravenadm is based on the concept of
+.Do
+profiles
+.Dc ,
+which allow an unlimited number of saved configurations that can be selected
+via the command line on a per-execution basis.  Profiles can also be used to
+build multiple repositories with differing parameters, environment, and
+options.
+.Pp
+Upon the initial execution of
+.Nm ,
+the default profile
+.Do
+primary
+.Dc
+is dynamically created after scanning the localhost for available physical
+memory and number of available CPUs.  The generated profile is usually
+appropriate and may not require modification.  The most important
+configuration item to inspect is profile's default storage area to ensure
+plenty of hard disk space is available there.
+.Pp
+The main menu can spawn submenus, primarily for profile creation, switching
+and deletion and also to specify the default version of software where
+multiple versions are present (e.g. database servers, perl, python, ruby,
+etc.)
+.Sh TOP-LEVEL MENU
+The top-level menu contains 17 items, marked A though Q.  Pressing the key
+associated with the menu item allows it to be edited (case insensitive).
+.Bl -tag -width 12345
+.It [A] System root directory
+The basis for cross-platform support on Ravenports is that all supported
+platforms have equivalent build environments.  The system root directory is
+the location in which that environment is installed.  The location is
+affected by the defined localbase (option [C]) and the operating system of
+the local host (DragonFly, FreeBSD, Linux, SunOS, etc).  The system root is
+built by Ravenports, hence support for new platforms requires a nontrivial
+bootstrap process to create the initial system root.
+.Pp
+Default value:
+.Pa /raven/share/raven/sysroot/<OpSys>/
+.It [B] Toolchain directory
+The toolchain directory contains the standardized compiler collection and
+binutils used by those compilers.  It also stores the compiler subpackages
+that are automatically copied to the packages directory so that ports
+requiring compiler runtime libraries can load them as needed.  The path is
+affected by the defined localbase (option [C]).  The toolchain is installed
+from a Ravenports package.
+.Pp
+Default value:
+.Pa /raven/share/raven/toolchain
+.It [C] Localbase directory
+The localbase is the top-level directory in which all the ports are
+installed.  Changing the localbase requires a new system-root to be built,
+which is not trivial and not recommended.  The default Ravenports localbase
+is unique and thus will never conflict will locally built software.
+.Pp
+Default value:
+.Pa /raven
+.It [D] Conspiracy directory
+This is the directory that contains the released Ravenports tree.  The
+tree is normally updated though the
+.Do
+ravenadm update-ports
+.Dc
+command, although a user could modify it differently, perhaps targetting a
+cloned git repository, for example.
+.Pp
+Default value:
+.Pa /var/ravenports/conspiracy
+.It [E] Custom ports directory
+A directory for custom ports has the same exact structure as the conspiracy
+directory (up to 256 buckets).  This directory contains buildsheets for
+ports that are not present in the official Ravenports release as well as
+different versions or variants for those that are.  Ports in this directory
+have a higher priority over those in the Conspiracy directory.  This is the
+basis for tailoring Ravenports as required.
+.Pp
+Default value:
+.Em none
+.It [F] Distfiles directory
+This is the directory used to cache the distribution files after they are
+downloaded the first time during a port build.  Subsequent builds of the
+same port will be able to skip the fetch stage as the distfiles will be
+available at the start.
+.Pp
+Default value:
+.Pa /var/ravenports/distfiles
+.It [G] Profile directory (logs+)
+There are several types of data unique to a profile, e.g. build logs, saved
+port options, built packages, etc.  Rather than having a configuration item
+for each one, Ravenadm automatically creates subdirectories under the
+profile directory as needed.
+.Pp
+Default value:
+.Pa /var/ravenports/primary
+.It [H] Packages directory
+Due to the large hardspace requirements of storing built packages, this
+profile subdirectory can be individually configured if required.
+.Pp
+Default value:
+.Pa /var/ravenports/primary/packages
+.It [I] Compiler cache directory
+This is the directory used by ccache. The use of ccache is recommended in
+most use cases, but the capability is disabled by default.  To enable ccache,
+create a directory (e.g.
+.Pa /var/db/ccache-raven
+) and then update this option to use the new directory.
+.Pp
+Default value:
+.Em none
+.It [J] Build base directory
+This is the directory upon which all the builders will mount. Subdirectories
+are created as necessary, but are removed when the builder shuts down. If
+ravenadm is abruptly stopped, the next invocation of ravenadm will remove
+the work fragments from the build base. When ravenadm is not use in, this
+directory should be empty.
+.Pp
+Default value:
+.Pa /usr/obj/ravenports
+.It [K] Num. concurrent builders
+When the profile is first created, the host system is analyzed. The default
+value is selected depending on the available RAM and the number of CPUs on
+the host system. Values can range from 1 to 32. A "builder" is
+a self-contained environment in which to build software. A beefy system can
+host several builders simultaneously. If the dependency chain allows it,
+ports are built concurrently.  High concurrency can load a system noticeably.
+Some systems continue to work well under high load (e.g. DragonFly) while
+others may experience bottlenecks in mounts or swapping. The use of solid
+state drives makes a huge difference.
+.Pp
+Default value:
+Determined dynamically
+.It [L] Max. jobs per builder
+Most ports support parallel make jobs. This option sets the upper limit on
+the number of make jobs used per builder. Like the previous option, the
+default is dynamically selected on each host system as a function of RAM
+and number of CPUs. If RAM or swap space is an issue, it's better to
+increase jobs-per-builder and reduce the number of builders. While the
+defaults are usually pretty good, users can experiment with higher or lower
+builder and max jobs settings, which also are affected by the types of ports
+being built.
+.Pp
+Default value:
+Determined dynamically
+.It [M] Avoid use of tmpfs
+Ravenadm leverages tmpfs (a type of RAM disk) extensively. This significantly
+raises the RAM requirements for ravenadm. Modern computers generally have
+enough RAM to satisfy these elevated requirements. However, if the machine
+does not support tmpfs, or if the kernel was compiled not to support tmpfs
+(not recommended), or if the memory is at a premium, the build can occur on
+mechanical or solid-state disks instead. If tmpfs is disabled (again, not
+recommended) then it is recommended to have the build-base on a solid-state
+drive. In all cases, it is recommended to have a generous amount of swap
+configured (e.g. 4 times the amount of RAM).
+.Pp
+Default value:
+.Em False
+.It [N] Fetch prebuilt packages
+This is not a recommended option. What it does is cause ravenadm to query
+the host pkg(8) to look for external non-ravenadm repositories that have
+valid versions of the packages requested. When found, those packages are
+downloaded and placed into the packages directory as if ravenadm built
+them. It can save significant built time.
+.Pp
+Default value:
+.Em False
+.It [O] Display using ncurses
+This option controls the use of curses during the run. The curses display
+is dynamic and quite pretty. Generally it is only unwanted when ravenadm
+is run by a cron daemon or if the user terminal does not support curses.
+.Pp
+Default value:
+.Em True
+.It [P] Always record options
+Normally when the user explicitly sets ports options to match the defaults,
+a cookie is set that means "the user already said he wants the defaults".
+If the options of the port changes later, the user is not explicitly informed.
+The system will use the new option defaults silently. However, if this
+configuration item is set to "true", the values of the option settings are
+explicitly stored, which means that if the port changes its options later,
+the option dialog will appear and ask the user to confirm the option settings.
+Most people are happy to let the default values "float" and don't care to be
+bothered by new port options. Those users that want to be aware of every
+port options change should set this value to "true".
+.Pp
+Default value:
+.Em False
+.It [Q] Assume default options
+When set to "True", ravenadm executes in batch mode. In batch mode,
+when ravenadm looks for saved option data during a ports scan, it will just
+assume default option values if these data are not found.  When set to
+"False", ravenadm will stop during the scan phase and ask the user to
+define the option values before continuing.  These options question all
+appear before building starts, so there's no danger of coming back in a few
+hours and finding the build stopped on an option dialog screen.  Users
+that insist on reviewing options at least once will want to set this
+configuration item to "False".
+.Pp
+Default value:
+.Em True
+.El
+.Sh VERSION DEFAULTS MENU
+Pressing the
+.Em V
+key will cause the version submenu to appear, e.g.:
+.Bd -literal -offset indent
+[A] Firebird SQL server        floating
+[B] Lua (language)             5.3
+[C] MySQL-workalike server     oracle-5.5
+[D] Perl (language)            5.24
+[E] PHP (language)             floating
+[F] PostgreSQL server          floating
+[G] Python 3 (language)        floating
+[H] Ruby (language)            floating
+[I] SSL/TLS library            floating
+[J] TCL/TK toolkit             floating
+.Ed
+.Pp
+By default, all versions are "floating" which means that ports are built
+using an internally defined default. For example, the default version of
+PostgreSQL is 9.6. All ports that require PostgreSQL will depend on
+version 9.6 unless overridden here.
+.Pp
+When the associated key is selected, another submenu appears with the
+available versions that can be selected, e.g.:
+.Bd -literal -offset indent
+Options for default version of PostgreSQL:
+
+   [A] floating (Ravenports choses default, may change over time)
+   [B] 9.2
+   [C] 9.3
+   [D] 9.4
+   [E] 9.5
+   [F] 9.6
+
+Current setting: floating
+ Change setting:
+.Ed
+.Pp
+Select the associated key to define a specific version or choose a
+"floating" version which will likely change over time (potentially
+causing disruption, especially in a production environment).
+.Sh SWITCH/CREATE PROFILES MENU
+The
+.Em >
+key will allow ravenadm to switch between already defined profiles,
+or to create a new profile as needed:
+.Bd -literal -offset indent
+ravenadm configuration profile: primary
+==============================================
+   [1] Switch to "primary" profile
+   [2] Switch to "secondary" profile
+   [3] Create new profile
+   [4] Do nothing (return to previous screen)
+
+Select profile number:
+.Ed
+.Pp
+If a new profile is created, it is filled with default values and the
+user has the opportunity to customize those values.
+.Sh DELETE PROFILES MENU
+This option appears when there is more than one profile defined in
+ravenadm. You can never delete the currently selected profile, but
+it is possible to delete all inactive profiles.  The
+.Em <
+key activates the submenu.
+.Bd -literal -offset indent
+ravenadm configuration profile: primary
+==============================================
+   [2] Delete "secondary" profile
+   [3] Do nothing (return to previous screen)
+
+Select profile number (cannot be undone):
+.Ed
+.Sh EXIT WITHOUT SAVING CHANGES
+The
+.Em [ESC]
+(escape) key causes an exit from the menu, discarding all changes made
+since the menu was displayed.
+.Sh SAVE CHANGES (STARRED)
+Pressing the
+.Em [RET]
+(carriage return) key will exit the menu. However if changes have been made,
+an asterisk will appear next to the new values.  Those indicated changes
+will be made permanent when the
+.Em [RET]
+key is used.
+.Sh FILES
+.Bl -tag -width ravenadm.ini
+.It ravenadm.ini
+This is where the configuration settings specified by the menu are stored.
+There is no need to touch this file although it is easily editable.
+The file is normally located at
+.Pa /raven/etc/ravenadm/ravenadm.ini .
+.El
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

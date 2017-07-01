@@ -1,0 +1,111 @@
+.Dd June 30, 2017
+.Dt DEV 8
+.Os
+.Sh NAME
+.Nm "ravenadm dev"
+.Nd Execution of port development subcommands
+.Sh SYNOPSIS
+.Nm
+.Ar subcommand
+.Op arg1
+.Op arg2
+.Sh DESCRIPTION
+The
+.Nm
+command requires a subcommand.  These subcommands are only used by ports
+developers.
+.Bl -tag -width buildsheet
+.It buildsheet
+This subcommand takes up to two arguments.  The first is mandatory and it
+is a path to a Ravensource port directory (relative paths may be used).
+The second is optional, but if it's used, it must be equal to
+.Do
+save
+.Dc .
+.Pp
+The purpose of the
+.Em buildsheet
+subcommand is to compile the buildsheet from the Ravensource port materials.
+Without the second argument, the buildsheet is sent to the terminal.  With
+the valid second argument of
+.Do
+save
+.Dc ,
+the buildsheet is created directly in the Ravenports conspiracy directory.
+.Pp
+Typically
+.Do
+ravenadm dev generate-index
+.Dc
+is executed after this command to enable ravenadm to build the new port.
+.It distinfo
+The purpose of the
+.Em distinfo
+subcommand is create the distinfo file, downloading all distribution files
+and patches as necessary.  It is executed when the current working directory
+contains the Ravensource port that requires the new distinfo file.
+.It dump
+The
+.Em dump
+command is primarily a diagnostic tool for the ravenadm author.  It scans
+the specification file in the current working directory and dumps the
+contents of the structure that stores its contents after parsing.  If
+an argument is provided and it's an existing directory, the command will
+search that directory for a specification file.
+.It generate-index
+The
+.Em generate-index
+command scans all buildsheets located in the Conspiracy directory and uses
+that information to generate
+.Pa Mk/Misc/conspiracy_variants ,
+.Pa Mk/Misc/fpc_equivalents ,
+and
+.Pa Mk/Misc/summary.txt
+in the same Conspiracy directory.
+.It makefile
+The
+.Em makefile
+subcommand parses the local specification file and generates the port
+makefile to the terminal.  If provided, the first argument represents the
+directory containing the specification file (instead of the current working
+directory).  The second argument specifies the variant, which affects the
+makefile generation.  In the absence of the second argument, the value of
+.Do
+standard
+.Dc
+is assumed for the variant.  This functionality is primarily used by the
+Ravenports makefile framework authors to detect breakage.  Regular port
+developers may find it of limited use as it illustrates the makefile
+generated for BSD make during the port build.
+.It template
+The
+.Em template
+subcommand prints a skeleton specification to the terminal.  If there's an
+argument and its value is
+.Do
+save
+.Dc ,
+then the subcommand will write the specification template to the current
+directory as well as create two subdirectories:
+.Pa descriptions
+and
+.Pa manifests .
+It is useful to quickly create a Ravensource port from scratch.
+.El
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8
