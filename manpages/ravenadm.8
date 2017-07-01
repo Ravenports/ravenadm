@@ -1,0 +1,60 @@
+.Dd June 30, 2017
+.Dt RAVENADM 8
+.Os
+.Sh NAME
+.Nm ravenadm
+.Nd administration tool for Ravenports
+.Sh SYNOPSIS
+.Nm
+.Op subcommand
+.Op sub-arguments
+.Sh DESCRIPTION
+The
+.Nm
+program is an advanced, concurrent, cross-platform package building tool
+that uses Ravenports for the software building specifications.  The use of
+.Nm
+is not optional with regard to Ravenports; there is no alternative way to
+configure or build the packages.  The Ravenports tree and the Raven
+administration tool are highly integrated.  Ravenports is not anchored to
+any particular operating system.  It has already been ported to DragonFly
+BSD and Linux with upcoming bootstraps to FreeBSD and Solaris/Illumos
+planned.  The architecture primarily supported is x86_64, but i386 and
+Aarch64 are targetted also.  Obsolete architectures are not and will not be
+supported, nor are fringe platforms with little "market share".
+.Pp
+The main information is contained within the subcommand man pages,
+particularly
+.Xr raven-configure 8
+and
+.Xr raven-build 8 ,
+although most of the pages are important.
+.Sh HISTORY
+Ravenports, Ravensource and
+.Nm
+combine to form the logical evolution of the Synth program, which is an
+advanced concurrent package builder for the FreeBSD Ports Collection, it's
+derivative DPorts, and NetBSD's pkgsrc.  Synth was conceived in 2013 and
+coding started in December 2015.
+.Pp
+The Ravenports project was conceived in late 2016 and coding begin in
+Febrary 2017.  The entire project was designed and written by John Marino
+<draco@marino.st> and released under the Internet Software Consortium
+license.
+.Sh SEE ALSO
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8
