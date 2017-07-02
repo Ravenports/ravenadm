@@ -2335,6 +2335,16 @@ package body Port_Specification.Transform is
                return name_subpackage & "524";
             end if;
          end;
+      elsif HT.trails (dep, ":lua_default") then
+         declare
+            setting : String := HT.USS (Parameters.configuration.def_lua);
+         begin
+            if setting = ports_default or else setting = default_lua then
+               return name_subpackage & "lua53";
+            else
+               return name_subpackage & "lua52";
+            end if;
+         end;
       else
          return dep;
       end if;
