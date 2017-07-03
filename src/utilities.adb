@@ -177,4 +177,110 @@ package body Utilities is
 
    end mask_quoted_string;
 
+
+   --------------------------------------------------------------------------------------------
+   --  json_nvpair_integer
+   --------------------------------------------------------------------------------------------
+   function json_nvpair_integer
+     (name    : String;
+      value   : Integer;
+      index   : Positive;
+      padding : Natural) return String
+   is
+      pad    : String (1 .. padding + 1) := (others => LAT.Space);
+      valstr : constant String := HT.int2str (value);
+   begin
+      if index > 1 then
+         pad (pad'Last) := LAT.Comma;
+      end if;
+      return pad & LAT.Quotation & name & LAT.Quotation & ": " & valstr & LAT.LF;
+   end json_nvpair_integer;
+
+
+   --------------------------------------------------------------------------------------------
+   --  json_nvpair_string
+   --------------------------------------------------------------------------------------------
+   function json_nvpair_string
+     (name    : String;
+      value   : String;
+      index   : Positive;
+      padding : Natural) return String
+   is
+      pad    : String (1 .. padding + 1) := (others => LAT.Space);
+   begin
+      if index > 1 then
+         pad (pad'Last) := LAT.Comma;
+      end if;
+      return pad & LAT.Quotation & name & LAT.Quotation & ": " &
+        LAT.Quotation & value & LAT.Quotation & LAT.LF;
+   end json_nvpair_string;
+
+
+   --------------------------------------------------------------------------------------------
+   --  json_nvpair_complex
+   --------------------------------------------------------------------------------------------
+   function json_nvpair_complex
+     (name    : String;
+      value   : String;
+      index   : Positive;
+      padding : Natural) return String
+   is
+      pad    : String (1 .. padding + 1) := (others => LAT.Space);
+   begin
+      if index > 1 then
+         pad (pad'Last) := LAT.Comma;
+      end if;
+      return pad & LAT.Quotation & name & LAT.Quotation & ": " & value & LAT.LF;
+   end json_nvpair_complex;
+
+
+   --------------------------------------------------------------------------------------------
+   --  json_name_complex
+   --------------------------------------------------------------------------------------------
+   function json_name_complex (name : String; index : Positive; padding : Natural) return String
+   is
+      pad : String (1 .. padding + 1) := (others => LAT.Space);
+   begin
+      if index > 1 then
+         pad (pad'Last) := LAT.Comma;
+      end if;
+      return pad & LAT.Quotation & name & LAT.Quotation & ":" & LAT.LF;
+   end json_name_complex;
+
+
+   --------------------------------------------------------------------------------------------
+   --  json_object
+   --------------------------------------------------------------------------------------------
+   function json_object (initiating : Boolean; padding, index : Natural) return String
+   is
+      pad : String (1 .. padding + 1) := (others => LAT.Space);
+   begin
+      if initiating then
+         pad (pad'Last) := LAT.Left_Curly_Bracket;
+         if padding > 0 and then index > 1 then
+            pad (pad'Last - 1) := LAT.Comma;
+         end if;
+      else
+         pad (pad'Last) := LAT.Right_Curly_Bracket;
+      end if;
+      return pad & LAT.LF;
+   end json_object;
+
+
+   --------------------------------------------------------------------------------------------
+   --  json_array
+   --------------------------------------------------------------------------------------------
+   function json_array (initiating : Boolean; padding : Natural) return String
+   is
+      pad : String (1 .. padding + 1) := (others => LAT.Space);
+   begin
+      if initiating then
+         pad (pad'Last) := LAT.Left_Square_Bracket;
+      else
+         pad (pad'Last) := LAT.Right_Square_Bracket;
+      end if;
+      return pad & LAT.LF;
+   end json_array;
+
+
 end Utilities;

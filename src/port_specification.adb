@@ -2516,29 +2516,8 @@ package body Port_Specification is
          if HT.IsBlank (result) then
             counter := counter + 1;
             if counter = item then
-               declare
-                  fullval : String := HT.USS (string_crate.Element (position));
-                  tarball : String := HT.part_1 (fullval, ":");
-               begin
-                  if tarball = "generated" then
-                     declare
-                        group  : String := HT.part_2 (fullval, ":");
-                        dlsite : String :=
-                          HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
-                     begin
-                        if HT.leads (dlsite, "GITHUB/") or else
-                          HT.leads (dlsite, "GH/")
-                        then
-                           result := HT.SUS (generate_github_distfile (dlsite));
-                        else
-                           --  future generations
-                           result := HT.SUS ("implement me: " & fullval);
-                        end if;
-                     end;
-                  else
-                     result := HT.SUS (tarball);
-                  end if;
-               end;
+               result := HT.SUS (translate_distfile
+                                 (specs, HT.USS (string_crate.Element (position))));
             end if;
          end if;
       end scan_distfile;
@@ -2558,6 +2537,77 @@ package body Port_Specification is
       end case;
       return HT.USS (result);
    end get_list_item;
+
+
+   --------------------------------------------------------------------------------------------
+   --  translate_distfile
+   --------------------------------------------------------------------------------------------
+   function translate_distfile (specs : Portspecs; distfile : String) return String
+   is
+      tarball : String := HT.part_1 (distfile, ":");
+   begin
+      if tarball = "generated" then
+         declare
+            group  : String := HT.part_2 (distfile, ":");
+            dlsite : String :=
+              HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
+         begin
+            if HT.leads (dlsite, "GITHUB/") or else
+              HT.leads (dlsite, "GH/")
+            then
+               return generate_github_distfile (dlsite);
+            else
+               --  future generations
+              return "implement me: " & distfile;
+            end if;
+         end;
+      else
+         return tarball;
+      end if;
+   end translate_distfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  repology_distfile
+   --------------------------------------------------------------------------------------------
+   function repology_distfile (specs : Portspecs; distfile : String) return String
+   is
+      tarball : constant String := translate_distfile (specs, distfile);
+      group   : constant String := HT.part_2 (distfile, ":");
+      dlsite  : String := HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
+   begin
+      if HT.contains (dlsite, "://") then
+         return dlsite & tarball;
+      else
+         return "mirror://" & dlsite & "/" & tarball;
+      end if;
+   end repology_distfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_repology_distfile
+   --------------------------------------------------------------------------------------------
+   function get_repology_distfile (specs : Portspecs; item : Natural) return String
+   is
+      procedure scan_distfile (position : string_crate.Cursor);
+
+      counter : Natural := 0;
+      result  : HT.Text;
+
+      procedure scan_distfile (position : string_crate.Cursor) is
+      begin
+         if HT.IsBlank (result) then
+            counter := counter + 1;
+            if counter = item then
+               result := HT.SUS (repology_distfile
+                                 (specs, HT.USS (string_crate.Element (position))));
+            end if;
+         end if;
+      end scan_distfile;
+   begin
+      specs.distfiles.Iterate (scan_distfile'Access);
+      return HT.USS (result);
+   end get_repology_distfile;
 
 
    --------------------------------------------------------------------------------------------

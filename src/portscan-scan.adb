@@ -7,15 +7,18 @@ with Ada.Exceptions;
 with Ada.Calendar;
 with File_Operations;
 with Port_Specification.Transform;
+with Port_Specification.Json;
 with Specification_Parser;
 with PortScan.Log;
 with PortScan.Operations;
 with Parameters;
+with Utilities;
 with Signals;
 with Unix;
 
 package body PortScan.Scan is
 
+   package UTL renames Utilities;
    package PM  renames Parameters;
    package LOG renames PortScan.Log;
    package OPS renames PortScan.Operations;
@@ -1022,8 +1025,10 @@ package body PortScan.Scan is
       finalcvar  : constant String := misc_dir & "conspiracy_variants";
       finalfpceq : constant String := misc_dir & "fpc_equivalents";
       summary    : constant String := misc_dir & "summary.txt";
+      repology   : constant String := misc_dir & "repology.json";
       indexfile  : TIO.File_Type;
       fpcfile    : TIO.File_Type;
+      repofile   : TIO.File_Type;
       bucket     : bucket_code;
       total_ports    : Natural := 0;
       total_variants : Natural := 0;
@@ -1074,6 +1079,11 @@ package body PortScan.Scan is
                   TIO.Put_Line (fpcfile, customspec.equivalent_fpc_port);
                end if;
             end;
+            Port_Specification.Json.describe_port
+              (specs   => customspec,
+               dossier => repofile,
+               bucket  => bucket,
+               index   => total_ports);
          end;
       end scan_port;
    begin
@@ -1086,6 +1096,16 @@ package body PortScan.Scan is
       TIO.Create (File => fpcfile,
                   Mode => TIO.Out_File,
                   Name => finalfpceq);
+
+      TIO.Create (File => repofile,
+                  Mode => TIO.Out_File,
+                  Name => repology);
+
+      TIO.Put
+        (repofile,
+           UTL.json_object (True, 0, 1) &
+           UTL.json_name_complex ("ravenports", 1, 1) &
+           UTL.json_array (True, 2));
 
       for highdigit in AF'Range loop
          for lowdigit in AF'Range loop
@@ -1128,6 +1148,17 @@ package body PortScan.Scan is
       TIO.Put_Line ("    Total packages : " & HT.int2str (total_subpkgs));
       TIO.Put_Line ("  Linear scan time : " & LOG.scan_duration);
 
+      TIO.Put_Line
+        (repofile,
+           UTL.json_array (False, 2) &
+           UTL.json_name_complex ("summary", 2, 1) &
+           UTL.json_object (True, 2, 1) &
+           UTL.json_nvpair_integer ("ports", total_ports, 1, 3) &
+           UTL.json_nvpair_integer ("variants", total_variants, 2, 3) &
+           UTL.json_nvpair_integer ("packages", total_subpkgs, 3, 3) &
+           UTL.json_object (False, 2, 1) &
+           LAT.Right_Curly_Bracket);
+
       TIO.Create (File => indexfile,
                   Mode => TIO.Out_File,
                   Name => summary);
@@ -1148,6 +1179,9 @@ package body PortScan.Scan is
          end if;
          if TIO.Is_Open (fpcfile) then
             TIO.Close (fpcfile);
+         end if;
+         if TIO.Is_Open (repofile) then
+            TIO.Close (repofile);
          end if;
          TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
    end generate_conspiracy_index;

@@ -271,6 +271,9 @@ package Port_Specification is
    --  Returns True if given dependency is present as run_depends or buildrun_depends
    function run_dependency (specs : Portspecs; dependency : String) return Boolean;
 
+   --  Used for json-repology report only (returns full download URL (1) given distfile number)
+   function get_repology_distfile (specs : Portspecs; item : Natural) return String;
+
 private
 
    package HT  renames HelperText;
@@ -616,5 +619,13 @@ private
 
    --  Given an option enumeration, return the default option description
    function default_description (option : described_option_set) return String;
+
+   --  Split distfile translation to separate function (needed more than once)
+   --  It converts "generated" to a filename mainly
+   function translate_distfile (specs : Portspecs; distfile : String) return String;
+
+   --  Give full download URL (one) for each distfile.
+   --  Represent macros with "mirror://" prefix
+   function repology_distfile (specs : Portspecs; distfile : String) return String;
 
 end Port_Specification;
