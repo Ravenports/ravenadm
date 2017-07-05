@@ -369,7 +369,8 @@ package body PortScan.Log is
               with "failed to create log " & log_path;
       end;
 
-      TIO.Put_Line (log_handle, "=> Building " & get_port_variant (all_ports (seq_id)));
+      TIO.Put_Line (log_handle, "=> Building " & get_port_variant (all_ports (seq_id)) &
+                   " (version " & HT.USS (all_ports (seq_id).pkgversion) & ")");
       TIO.Put_Line (log_handle, "Started : " & timestamp (head_time));
       TIO.Put      (log_handle, "Platform: " & UNAME);
       if BENV = discerr then
