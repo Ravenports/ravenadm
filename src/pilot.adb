@@ -1281,10 +1281,11 @@ package body Pilot is
                  LAT.LF & stars & LAT.LF & LAT.LF &
                  "Either build and install ravenadm, or upgrade the ravenports package" & LAT.LF &
                  "This version of ravenadm will not recognize all directives in some ports.");
-            TIO.Put ("Press any key to acknowledge:");
-
-            Ada.Text_IO.Get_Immediate (Ch);
-            TIO.Put_Line ("");
+            if Unix.env_variable_defined ("TERM") then
+               TIO.Put ("Press any key to acknowledge:");
+               Ada.Text_IO.Get_Immediate (Ch);
+               TIO.Put_Line ("");
+            end if;
          end if;
       end;
    exception
