@@ -137,6 +137,10 @@ package Pilot is
    --  Lists the subpackages of all given ports
    procedure list_subpackages;
 
+   --  Print info message if [conspiracy]/Mk/Misc/raverreq contents is <= ravenadm version
+   --  If file does not exist, do nothing
+   procedure check_that_ravenadm_is_modern_enough;
+
 private
 
    package HT renames HelperText;

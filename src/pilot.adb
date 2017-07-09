@@ -1254,4 +1254,43 @@ package body Pilot is
       end if;
    end generate_repository;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_repository
+   --------------------------------------------------------------------------------------------
+   procedure check_that_ravenadm_is_modern_enough
+   is
+      raverreq : constant String := HT.USS (PM.configuration.dir_conspiracy) & "/Mk/Misc/raverreq";
+   begin
+      if not DIR.Exists (raverreq) then
+         return;
+      end if;
+      declare
+         filecon : constant String := FOP.get_file_contents (raverreq);
+         ravenadm_ver : constant Integer :=
+           Integer'Value (raven_version_major) * 100 +
+           Integer'Value (raven_version_minor);
+         required_ver : constant Integer := Integer'Value (HT.first_line (filecon));
+         stars : constant String (1 .. 51) := (others => '*');
+         Ch : Character;
+      begin
+         if ravenadm_ver < required_ver then
+            TIO.Put_Line
+              (LAT.LF & stars & LAT.LF &
+                 "*** Please upgrade ravenadm as soon as possible ***" &
+                 LAT.LF & stars & LAT.LF & LAT.LF &
+                 "Either build and install ravenadm, or upgrade the ravenports package" & LAT.LF &
+                 "This version of ravenadm will not recognize all directives in some ports.");
+            TIO.Put ("Press any key to acknowledge:");
+
+            Ada.Text_IO.Get_Immediate (Ch);
+            TIO.Put_Line ("");
+         end if;
+      end;
+   exception
+      when others =>
+         TIO.Put_Line ("check_that_ravenadm_is_modern_enough: exception");
+
+   end check_that_ravenadm_is_modern_enough;
+
 end Pilot;

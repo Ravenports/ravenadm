@@ -193,7 +193,10 @@ begin
    end case;
 
    case mandate is
-      when build | build_everything | force | test | status | status_everything =>
+      when build | build_everything | force |
+           test | test_everything |
+           status | status_everything =>
+         Pilot.check_that_ravenadm_is_modern_enough;
          if not Pilot.slave_platform_determined then
             return;
          end if;
