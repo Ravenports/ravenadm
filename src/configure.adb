@@ -262,7 +262,7 @@ package body Configure is
             elsif opt = 5 then
                dupe.dir_unkindness := HT.SUS (PM.no_unkindness);
                continue := True;
-            elsif opt = 8 then
+            elsif opt = 9 then
                dupe.dir_ccache := HT.SUS (PM.no_ccache);
                continue := True;
             end if;
