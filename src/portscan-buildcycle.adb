@@ -599,7 +599,7 @@ package body PortScan.Buildcycle is
          if phases'Pos (phase_trackers (id)) < phases'Pos (stage)
            or else phase_trackers (id) = test
          then
-            return localbase & "/toolchain/gcc6/bin:";
+            return localbase & "/toolchain/" & default_compiler & "/bin:";
          else
             return "";
          end if;
