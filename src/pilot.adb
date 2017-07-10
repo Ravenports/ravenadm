@@ -1114,11 +1114,24 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function install_compiler_packages return Boolean
    is
+      function get_package_name (subpackage : String) return String;
       function package_copy (subpackage : String) return Boolean;
+
+      binutils : constant String := "binutils";
+
+      function get_package_name (subpackage : String) return String is
+      begin
+         if subpackage = binutils then
+            return "binutils-single-ravensys-" & binutils_version & arc_ext;
+         else
+            return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
+                     variant_standard & LAT.Hyphen & compiler_version & arc_ext;
+         end if;
+      end get_package_name;
+
       function package_copy (subpackage : String) return Boolean
       is
-         pkgname   : constant String := default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
-                     variant_standard & LAT.Hyphen & compiler_version & arc_ext;
+         pkgname   : constant String := get_package_name (subpackage);
          src_path  : constant String := HT.USS (PM.configuration.dir_toolchain) &
                      "/share/" & pkgname;
          dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
@@ -1145,7 +1158,9 @@ package body Pilot is
             return False;
       end package_copy;
    begin
-      return package_copy ("ada_run") and then
+      return
+        package_copy (binutils) and then
+        package_copy ("ada_run") and then
         package_copy ("compilers") and then
         package_copy ("complete") and then
         package_copy ("cxx_run") and then

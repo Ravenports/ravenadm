@@ -1341,7 +1341,9 @@ package body PortScan.Operations is
       procedure kill_remote (Element : in out subpackage_record);
 
       compkey       : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      bukey         : HT.Text := HT.SUS ("binutils:ravensys");
       compiler      : constant port_index := ports_keys.Element (compkey);
+      binutils      : constant port_index := ports_keys.Element (bukey);
       already_built : subpackage_queue.Vector;
       fetch_list    : subpackage_queue.Vector;
       prune_list    : subqueue.Vector;
@@ -1387,7 +1389,7 @@ package body PortScan.Operations is
                                         id           => target)
             then
                if not rebuild_compiler or else
-                 target /= compiler
+                 (target /= compiler and then target /= binutils)
                then
                   already_built.Append (New_Item => newrec);
                   if rec.remote_pkg then
