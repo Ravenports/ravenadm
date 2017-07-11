@@ -3039,7 +3039,7 @@ package body Port_Specification is
       end grow;
    begin
       if first_one then
-         if specs.catch_all.Is_Empty then
+         if not specs.catch_all.Contains (HT.SUS (INFO_SUBDIR)) then
             specs.establish_group (sp_catchall, INFO_SUBDIR);
          end if;
          if num_sep = 0 then
