@@ -3028,8 +3028,8 @@ package body Port_Specification is
       --  INFO_SUBDIR is defined in catchall as a result.
 
       num_sep     : Natural := HT.count_char (value, LAT.Solidus);
-      first_one   : Boolean := specs.info.Is_Empty;
       INFO_SUBDIR : constant String := "INFO_SUBDIR";
+      first_one   : Boolean := not specs.catch_all.Contains (HT.SUS (INFO_SUBDIR));
       NO_SUBDIR   : constant String := ".";
       saved_value : HT.Text;
 
@@ -3039,9 +3039,7 @@ package body Port_Specification is
       end grow;
    begin
       if first_one then
-         if not specs.catch_all.Contains (HT.SUS (INFO_SUBDIR)) then
-            specs.establish_group (sp_catchall, INFO_SUBDIR);
-         end if;
+         specs.establish_group (sp_catchall, INFO_SUBDIR);
          if num_sep = 0 then
             saved_value := HT.SUS (NO_SUBDIR);
          else
