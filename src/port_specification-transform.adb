@@ -55,6 +55,7 @@ package body Port_Specification.Transform is
                      when extract_only_on     => specs.extract_only.Append (item);
                      when extra_patches_on    => specs.extra_patches.Append (item);
                      when gnome_comp_on       => specs.gnome_comps.Append (item);
+                     when info_on             => specs.info.Append (item);
                      when install_target_on   => specs.install_tgt.Append (item);
                      when keywords_on         => specs.keywords.Append (item);
                      when ldflags_on          => specs.ldflags.Append (item);
@@ -104,6 +105,7 @@ package body Port_Specification.Transform is
                      when cflags_off           => specs.cflags.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
                      when gnome_comp_off       => specs.gnome_comps.Append (item);
+                     when info_off             => specs.info.Append (item);
                      when qmake_off            => specs.qmake_args.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
                      when sub_list_off         => specs.sub_list.Append (item);
@@ -197,6 +199,7 @@ package body Port_Specification.Transform is
             augment (df_index_on,          rec.DF_INDEX_ON);
             augment (extra_patches_on,     rec.EXTRA_PATCHES_ON);
             augment (gnome_comp_on,        rec.GNOME_COMPONENTS_ON);
+            augment (info_on,              rec.INFO_ON);
             augment (install_target_on,    rec.INSTALL_TARGET_ON);
             augment (keywords_on,          rec.KEYWORDS_ON);
             augment (ldflags_on,           rec.LDFLAGS_ON);
@@ -220,6 +223,7 @@ package body Port_Specification.Transform is
             augment (cmake_args_off,       rec.CMAKE_ARGS_OFF);
             augment (configure_args_off,   rec.CONFIGURE_ARGS_OFF);
             augment (gnome_comp_off,       rec.GNOME_COMPONENTS_OFF);
+            augment (info_off,             rec.INFO_OFF);
             augment (makefile_off,         rec.MAKEFILE_OFF);
             augment (qmake_off,            rec.QMAKE_OFF);
             augment (run_depends_off,      rec.RUN_DEPENDS_OFF);

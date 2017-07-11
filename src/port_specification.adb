@@ -1472,6 +1472,8 @@ package body Port_Specification is
                Element.GNOME_COMPONENTS_ON.Append (value_text);
             when implies_on =>
                Element.IMPLIES_ON.Append (value_text);
+            when info_off =>
+               Element.INFO_OFF.Append (value_text);
             when info_on =>
                Element.INFO_ON.Append (value_text);
             when install_target_on =>
@@ -1534,7 +1536,7 @@ package body Port_Specification is
               implies_on | info_on | install_target_on | keywords_on  | buildrun_depends_on |
               patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
               uses_on | uses_off | buildrun_depends_off | run_depends_off | build_depends_on |
-              gnome_comp_on | xorg_comp_on =>
+              gnome_comp_on | xorg_comp_on | info_off =>
             allow_spaces := False;
          when others =>
             allow_spaces := True;
@@ -1612,7 +1614,7 @@ package body Port_Specification is
             if not valid_uses_module (value) then
                raise wrong_value with "USES '" & value & "' is not recognized";
             end if;
-         when info_on =>
+         when info_on | info_off =>
             if HT.count_char (value, LAT.Colon) /= 1 then
                raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
             end if;
@@ -1681,6 +1683,7 @@ package body Port_Specification is
             when gnome_comp_off        => return rec.GNOME_COMPONENTS_OFF.Is_Empty;
             when gnome_comp_on         => return rec.GNOME_COMPONENTS_ON.Is_Empty;
             when implies_on            => return rec.IMPLIES_ON.Is_Empty;
+            when info_off              => return rec.INFO_OFF.Is_Empty;
             when info_on               => return rec.INFO_ON.Is_Empty;
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
             when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
@@ -4455,6 +4458,7 @@ package body Port_Specification is
          print_opt_vector (rec.GNOME_COMPONENTS_OFF, "GNOME_COMPONENTS_OFF");
          print_opt_vector (rec.GNOME_COMPONENTS_ON, "GNOME_COMPONENTS_ON");
          print_opt_vector (rec.IMPLIES_ON, "IMPLIES_ON");
+         print_opt_vector (rec.INFO_OFF, "INFO_OFF");
          print_opt_vector (rec.INFO_ON, "INFO_ON");
          print_opt_vector (rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          print_opt_vector (rec.KEYWORDS_ON, "KEYWORDS_ON");

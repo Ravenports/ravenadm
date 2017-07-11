@@ -326,6 +326,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.GNOME_COMPONENTS_OFF, "GNOME_COMPONENTS_OFF");
          dump_helper (name, rec.GNOME_COMPONENTS_ON, "GNOME_COMPONENTS_ON");
          dump_helper (name, rec.IMPLIES_ON, "IMPLIES_ON");
+         dump_helper (name, rec.INFO_OFF, "INFO_OFF");
          dump_helper (name, rec.INFO_ON, "INFO_ON");
          dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          dump_helper (name, rec.KEYWORDS_ON, "KEYWORDS_ON");
