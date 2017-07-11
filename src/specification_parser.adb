@@ -566,7 +566,7 @@ package body Specification_Parser is
                                                               option => option_name)
                      then
                         last_parse_error :=
-                          HT.SUS (LN & "option helper previously defined (use quadruple tab)");
+                          HT.SUS (LN & "option helper previously defined (use quintuple tab)");
                         exit;
                      end if;
                      build_list (specification, line_option, option_name, line);
@@ -1969,7 +1969,7 @@ package body Specification_Parser is
       --  if it's 24 then there can be no tabs, and if it's higher, that's a problem.
    begin
       if equals = 0 then
-         --  Support quadruple-tab line too.
+         --  Support quintuple-tab line too.
          if wrkstr'Length > 5 and then
            wrkstr (wrkstr'First .. wrkstr'First + 4) = tabs5
          then

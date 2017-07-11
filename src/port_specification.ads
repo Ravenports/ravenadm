@@ -629,4 +629,7 @@ private
    --  Represent macros with "mirror://" prefix
    function repology_distfile (specs : Portspecs; distfile : String) return String;
 
+   --  split out info entry validation (returns non-black on failed check)
+   function info_page_check_message (specs : Portspecs; value : String) return String;
+
 end Port_Specification;

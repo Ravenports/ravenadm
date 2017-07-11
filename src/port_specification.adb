@@ -695,24 +695,11 @@ package body Port_Specification is
             if specs.info.Contains (text_value) then
                raise dupe_list_value with "Duplicate INFO entry '" & value & "'";
             end if;
-            if HT.count_char (value, LAT.Colon) /= 1 then
-               raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
-            end if;
             declare
-               canspkg : String := HT.part_1 (value, ":");
+               msg : String := specs.info_page_check_message (value);
             begin
-               if not specs.subpackage_exists (canspkg) then
-                  declare
-                     otherside : String := HT.part_2 (value, ":");
-                  begin
-                     if specs.subpackage_exists (otherside) then
-                        raise wrong_value with "INFO entry '" & value & "' is reversed; " &
-                          "the subpackage must be listed first";
-                     else
-                        raise wrong_value with "INFO entry '" & value & "' is not prefixed " &
-                          "by a recognized subpackage";
-                     end if;
-                  end;
+               if not HT.IsBlank (msg) then
+                  raise wrong_type with msg;
                end if;
             end;
             if not specs.valid_info_page (value) then
@@ -1615,9 +1602,13 @@ package body Port_Specification is
                raise wrong_value with "USES '" & value & "' is not recognized";
             end if;
          when info_on | info_off =>
-            if HT.count_char (value, LAT.Colon) /= 1 then
-               raise wrong_type with "INFO entry '" & value & "' is not prefixed by a subpackage";
-            end if;
+            declare
+               msg : String := specs.info_page_check_message (value);
+            begin
+               if not HT.IsBlank (msg) then
+                  raise wrong_type with msg;
+               end if;
+            end;
             if not specs.valid_info_page (value) then
                raise wrong_value with "INFO subdirectories must match on every entry";
             end if;
@@ -3048,7 +3039,9 @@ package body Port_Specification is
       end grow;
    begin
       if first_one then
-         specs.establish_group (sp_catchall, INFO_SUBDIR);
+         if specs.catch_all.Is_Empty then
+            specs.establish_group (sp_catchall, INFO_SUBDIR);
+         end if;
          if num_sep = 0 then
             saved_value := HT.SUS (NO_SUBDIR);
          else
@@ -4257,6 +4250,35 @@ package body Port_Specification is
       specs.ops_avail.Iterate (scan'Access);
       return all_good;
    end post_parse_opt_desc_check_passes;
+
+
+   --------------------------------------------------------------------------------------------
+   --  info_page_check_message
+   --------------------------------------------------------------------------------------------
+   function info_page_check_message (specs : Portspecs; value : String) return String
+   is
+      nfo : constant String := "INFO entry '" & value & "' ";
+   begin
+      if HT.count_char (value, LAT.Colon) /= 1 then
+         return nfo & "is not prefixed by a subpackage";
+      end if;
+      declare
+         canspkg : String := HT.part_1 (value, ":");
+      begin
+         if not specs.subpackage_exists (canspkg) then
+            declare
+               otherside : String := HT.part_2 (value, ":");
+            begin
+               if specs.subpackage_exists (otherside) then
+                  return nfo & "is reversed; the subpackage must be listed first";
+               else
+                  return nfo & "is not prefixed by a recognized subpackage";
+               end if;
+            end;
+         end if;
+      end;
+      return "";
+   end info_page_check_message;
 
 
    --------------------------------------------------------------------------------------------
