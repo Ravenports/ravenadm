@@ -193,7 +193,7 @@ package body Port_Specification.Transform is
             augment (cflags_on,            rec.CFLAGS_ON);
             augment (cmake_args_on,        rec.CMAKE_ARGS_ON);
             augment (configure_args_on,    rec.CONFIGURE_ARGS_ON);
-            augment (configure_args_on,    rec.CONFIGURE_ENV_ON);
+            augment (configure_env_on,     rec.CONFIGURE_ENV_ON);
             augment (cppflags_on,          rec.CPPFLAGS_ON);
             augment (cxxflags_on,          rec.CXXFLAGS_ON);
             augment (df_index_on,          rec.DF_INDEX_ON);
