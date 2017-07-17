@@ -104,6 +104,7 @@ package body Port_Specification.Transform is
                      when cmake_args_off       => specs.cmake_args.Append (item);
                      when cflags_off           => specs.cflags.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
+                     when df_index_off         => specs.df_index.Append (item);
                      when gnome_comp_off       => specs.gnome_comps.Append (item);
                      when info_off             => specs.info.Append (item);
                      when qmake_off            => specs.qmake_args.Append (item);
@@ -222,6 +223,7 @@ package body Port_Specification.Transform is
             augment (cflags_off,           rec.CFLAGS_OFF);
             augment (cmake_args_off,       rec.CMAKE_ARGS_OFF);
             augment (configure_args_off,   rec.CONFIGURE_ARGS_OFF);
+            augment (df_index_off,         rec.DF_INDEX_OFF);
             augment (gnome_comp_off,       rec.GNOME_COMPONENTS_OFF);
             augment (info_off,             rec.INFO_OFF);
             augment (makefile_off,         rec.MAKEFILE_OFF);

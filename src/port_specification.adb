@@ -73,6 +73,7 @@ package body Port_Specification is
       specs.shift_install := False;
       specs.debugging_on  := False;
       specs.generated     := False;
+      specs.opt_df_index  := False;
       specs.build_wrksrc  := HT.blank;
       specs.makefile      := HT.blank;
       specs.destdirname   := HT.blank;
@@ -1447,6 +1448,8 @@ package body Port_Specification is
                Element.CXXFLAGS_ON.Append (value_text);
             when description =>
                Element.option_description := value_text;
+            when df_index_off =>
+               Element.DF_INDEX_OFF.Append (value_text);
             when df_index_on =>
                Element.DF_INDEX_ON.Append (value_text);
             when extra_patches_on =>
@@ -1523,7 +1526,7 @@ package body Port_Specification is
               implies_on | info_on | install_target_on | keywords_on  | buildrun_depends_on |
               patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
               uses_on | uses_off | buildrun_depends_off | run_depends_off | build_depends_on |
-              gnome_comp_on | xorg_comp_on | info_off =>
+              gnome_comp_on | xorg_comp_on | info_off | df_index_off =>
             allow_spaces := False;
          when others =>
             allow_spaces := True;
@@ -1562,13 +1565,26 @@ package body Port_Specification is
             if determine_gnome_component (value) = invalid_component then
                raise wrong_value with "gnome component '" & value & "' is not valid";
             end if;
+         when df_index_off =>
+            if not specs.dist_index_is_valid (value) then
+               raise wrong_value with "distfile index '" & value & "' is not valid";
+            end if;
+            if specs.ops_helpers.Element (option_text).DF_INDEX_OFF.Contains (value_text) or else
+              specs.df_index.Contains (value_text)
+            then
+               raise dupe_list_value with value;
+            end if;
+            specs.opt_df_index := True;
          when df_index_on =>
             if not specs.dist_index_is_valid (value) then
                raise wrong_value with "distfile index '" & value & "' is not valid";
             end if;
-            if specs.ops_helpers.Element (option_text).DF_INDEX_ON.Contains (value_text) then
+            if specs.ops_helpers.Element (option_text).DF_INDEX_ON.Contains (value_text) or else
+              specs.df_index.Contains (value_text)
+            then
                raise dupe_list_value with value;
             end if;
+            specs.opt_df_index := True;
          when extract_only_on =>
             if not specs.dist_index_is_valid (value) then
                raise wrong_value with "distfile index '" & value & "' is not valid";
@@ -1667,6 +1683,7 @@ package body Port_Specification is
             when configure_with_both   => return rec.CONFIGURE_WITH_BOTH.Is_Empty;
             when cppflags_on           => return rec.CPPFLAGS_ON.Is_Empty;
             when cxxflags_on           => return rec.CXXFLAGS_ON.Is_Empty;
+            when df_index_off          => return rec.DF_INDEX_OFF.Is_Empty;
             when df_index_on           => return rec.DF_INDEX_ON.Is_Empty;
             when description           => return HT.IsBlank (rec.option_description);
             when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
@@ -1914,6 +1931,7 @@ package body Port_Specification is
          end;
       end loop;
       if specs.df_index.Is_Empty and then
+        not specs.opt_df_index and then
         not specs.distfiles.Is_Empty
       then
          specs.df_index.Append (HT.SUS ("1"));
@@ -4472,6 +4490,7 @@ package body Port_Specification is
          print_opt_vector (rec.CONFIGURE_WITH_BOTH, "CONFIGURE_WITH_BOTH");
          print_opt_vector (rec.CPPFLAGS_ON, "CPPFLAGS_ON");
          print_opt_vector (rec.CXXFLAGS_ON, "CXXFLAGS_ON");
+         print_opt_vector (rec.DF_INDEX_OFF, "DF_INDEX_OFF");
          print_opt_vector (rec.DF_INDEX_ON, "DF_INDEX_ON");
          print_opt_vector (rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          print_opt_vector (rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
