@@ -2383,6 +2383,40 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_web_contacts
+   --------------------------------------------------------------------------------------------
+   function get_web_contacts (specs : Portspecs; subject : String) return String
+   is
+      procedure scan_contact (position : string_crate.Cursor);
+
+      joined : HT.Text;
+
+      procedure scan_contact (position : string_crate.Cursor)
+      is
+         contact : String := HT.USS (string_crate.Element (position));
+         email   : String := HT.part_1 (HT.part_2 (contact, "["), "]");
+         guy     : String := HT.replace_all (S      => HT.part_1 (contact, "["),
+                                                        reject => LAT.Low_Line,
+                                                        shiny  => LAT.Space);
+      begin
+         if not HT.IsBlank (joined) then
+            HT.SU.Append (joined, ", ");
+         end if;
+         if contact = contact_nobody then
+            HT.SU.Append (joined, contact);
+         else
+            HT.SU.Append (joined, "<a class=" & LAT.Quotation & "contact" & LAT.Quotation &
+                            " href=" & LAT.Quotation & "mailto:" & email & "?subject=" &
+                            subject & LAT.Quotation & ">" & guy & "</a>");
+         end if;
+      end scan_contact;
+   begin
+      specs.contacts.Iterate (scan_contact'Access);
+      return HT.USS (joined);
+   end get_web_contacts;
+
+
+   --------------------------------------------------------------------------------------------
    --  get_tagline
    --------------------------------------------------------------------------------------------
    function get_tagline (specs : Portspecs; variant : String) return String

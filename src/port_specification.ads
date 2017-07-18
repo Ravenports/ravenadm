@@ -274,6 +274,9 @@ package Port_Specification is
    --  Used for json-repology report only (returns full download URL (1) given distfile number)
    function get_repology_distfile (specs : Portspecs; item : Natural) return String;
 
+   --  Format contacts with html (span, mailto)
+   function get_web_contacts (specs : Portspecs; subject : String) return String;
+
 private
 
    package HT  renames HelperText;

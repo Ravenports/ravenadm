@@ -19,6 +19,7 @@ with Unix;
 with Port_Specification.Buildsheet;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
+with Port_Specification.Web;
 with PortScan.Operations;
 with PortScan.Buildcycle;
 with PortScan.Scan;
@@ -38,6 +39,7 @@ package body Pilot is
    package PSB renames Port_Specification.Buildsheet;
    package PSM renames Port_Specification.Makefile;
    package PST renames Port_Specification.Transform;
+   package WEB renames Port_Specification.Web;
    package OPS renames PortScan.Operations;
    package CYC renames PortScan.Buildcycle;
    package SCN renames PortScan.Scan;
@@ -243,6 +245,59 @@ package body Pilot is
          TIO.Put_Line (PAR.get_parse_error);
       end if;
    end generate_makefile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_webpage
+   --------------------------------------------------------------------------------------------
+   procedure generate_webpage  (optional_directory : String;
+                                optional_variant : String)
+   is
+      function get_variant return String;
+
+      directory_specified : constant Boolean := (optional_directory /= "");
+      successful : Boolean;
+
+      specification : Port_Specification.Portspecs;
+      dossier_text  : HT.Text;
+
+      function get_variant return String is
+      begin
+         if optional_variant = "" then
+            return variant_standard;
+         else
+            return optional_variant;
+         end if;
+      end get_variant;
+   begin
+      if directory_specified then
+         dossier_text := HT.SUS (optional_directory & "/" & specfile);
+      else
+         dossier_text := HT.SUS (specfile);
+      end if;
+      if DIR.Exists (HT.USS (dossier_text)) then
+         OPS.parse_and_transform_buildsheet (specification => specification,
+                                             successful    => successful,
+                                             buildsheet    => HT.USS (dossier_text),
+                                             variant       => get_variant,
+                                             portloc       => "",
+                                             excl_targets  => False,
+                                             avoid_dialog  => True,
+                                             sysrootver    => sysrootver);
+      else
+         DNE (HT.USS (dossier_text));
+         return;
+      end if;
+
+      if successful then
+         WEB.produce_page (specs   => specification,
+                           variant => get_variant,
+                           dossier => TIO.Standard_Output);
+      else
+         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line (PAR.get_parse_error);
+      end if;
+   end generate_webpage;
 
 
    --------------------------------------------------------------------------------------------
