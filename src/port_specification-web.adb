@@ -87,7 +87,7 @@ package body Port_Specification.Web is
    is
       bing : constant String := LAT.Greater_Than_Sign & LAT.LF;
       content : constant String := "Ravenports individual port description";
-      csslink : constant String := "../style/ravenports.css";
+      csslink : constant String := "../../style/ravenports.css";
    begin
       return
         "<!doctype html" & bing &
@@ -179,11 +179,25 @@ package body Port_Specification.Web is
         " " & ediv &
         " <div id='pkgdesc'>" & LAT.LF &
         "  <table id='pdt2'>" & LAT.LF &
-        "   <thead><td colspan='2' id='pdtitle'>Subpackage Descriptions</td></thead>" & LAT.LF &
+        "   <thead>" & LAT.LF &
+        "    <tr>" & LAT.LF &
+        "     <td colspan='2' id='pdtitle'>Subpackage Descriptions" & etd &
+        "    " & etr &
+        "   </thead>" & LAT.LF &
         "   <tbody>" & LAT.LF &
         "@DESCBODY@" &
         "   </tbody>" & LAT.LF &
         "  </table>" & LAT.LF &
+        " " & ediv &
+        " <div id='options'>" & LAT.LF &
+        "  <div id='optiontitle'>Port Configuration Options" & ediv &
+        "  <div id='optionblock'>" & LAT.LF &
+        "@OPTIONBLOCK@" & ediv &
+        " " & ediv &
+        " <div id='distinfo'>" & LAT.LF &
+        "  <div id='disttitle'>Distribution File Information" & ediv &
+        "  <div id='distblock'>" & LAT.LF &
+        "@DISTINFO@" & ediv &
         " " & ediv;
    begin
       return HT.replace_all (S => raw, reject => LAT.Apostrophe, shiny  => LAT.Quotation);
@@ -325,6 +339,21 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  retrieve_distinfo
+   --------------------------------------------------------------------------------------------
+   function retrieve_distinfo (specs : Portspecs; portdir : String) return String
+   is
+      distinfo : String := portdir & "/distinfo";
+   begin
+      if DIR.Exists (distinfo) then
+         return FOP.get_file_contents (distinfo);
+      else
+         return "This port does not contain distinfo information.";
+      end if;
+   end retrieve_distinfo;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body
@@ -367,6 +396,8 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@LNK_PORT@", lnk_port);
       result := HT.replace_substring (result, "@LNK_HISTORY_PORT@", lnk_pthy);
       result := HT.replace_substring (result, "@OTHERVAR@", other_variants (specs, variant));
+      result := HT.replace_substring (result, "@OPTIONBLOCK@", specs.options_summary (variant));
+      result := HT.replace_substring (result, "@DISTINFO@", retrieve_distinfo (specs, portdir));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);

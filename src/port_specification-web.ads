@@ -65,4 +65,7 @@ private
       variant  : String;
       portdir  : String) return String;
 
+   --  Return contents of distinfo file
+   function retrieve_distinfo (specs : Portspecs; portdir : String) return String;
+
 end Port_Specification.Web;
