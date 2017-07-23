@@ -18,7 +18,7 @@ package Pilot is
 
    procedure generate_makefile (optional_directory : String;
                                 optional_variant : String);
-   procedure generate_webpage  (optional_directory : String;
+   procedure generate_webpage  (required_namebase : String;
                                 optional_variant : String);
    procedure generate_buildsheet (sourcedir    : String;
                                   save_command : String);

@@ -47,6 +47,14 @@ package Replicant is
    --  returns "SLXX" where XX is a zero-padded integer (01 .. 32)
    function slave_name (id : builders) return String;
 
+   --  Generate and destroy a workarea (normally tmpfs).  Initial purpose is place
+   --  To explode all buildsheets in rapid succession to generate web pages
+   procedure launch_workzone;
+   procedure destroy_workzone;
+
+   --  Return path to the workzone
+   function get_workzone_path return String;
+
 private
 
    package HT  renames HelperText;
@@ -95,6 +103,8 @@ private
    toolchain_dir    : constant String := "/toolchain";
 
    chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
+
+   workzone_id      : constant builders := 7;
 
    --  Query configuration to determine the master and slave mounts
    function get_master_mount return String;

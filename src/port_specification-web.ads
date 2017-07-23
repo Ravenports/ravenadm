@@ -45,4 +45,10 @@ private
    --  return "(dual)" or "(multi)" if appropriate
    function list_scheme (licenses, scheme : String) return String;
 
+   --  Make hyperlink
+   function link (href, link_class, value : String) return String;
+
+   --  Dynamic "other variants" contents
+   function other_variants (specs : Portspecs; variant : String) return String;
+
 end Port_Specification.Web;

@@ -841,6 +841,44 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_workzone_path
+   --------------------------------------------------------------------------------------------
+   function get_workzone_path return String is
+   begin
+      return get_slave_mount (workzone_id);
+   end get_workzone_path;
+
+
+   --------------------------------------------------------------------------------------------
+   --  launch_workzone
+   --------------------------------------------------------------------------------------------
+   procedure launch_workzone
+   is
+      zone_base : constant String := get_workzone_path;
+   begin
+      forge_directory (zone_base);
+      if not PM.configuration.avoid_tmpfs then
+         --  Limit slave to 32Mb
+         mount_tmpfs (zone_base, 32);
+      end if;
+   end launch_workzone;
+
+
+   --------------------------------------------------------------------------------------------
+   --  destroy_workzone
+   --------------------------------------------------------------------------------------------
+   procedure destroy_workzone
+   is
+      zone_base : constant String := get_workzone_path;
+   begin
+      if not PM.configuration.avoid_tmpfs then
+         unmount (zone_base, 50);
+      end if;
+      annihilate_directory_tree (zone_base);
+   end destroy_workzone;
+
+
+   --------------------------------------------------------------------------------------------
    --  launch_slave
    --------------------------------------------------------------------------------------------
    procedure launch_slave  (id : builders; need_procfs : Boolean := False)

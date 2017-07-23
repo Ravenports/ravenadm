@@ -2,10 +2,12 @@
 --  Reference: ../License.txt
 
 with Ada.Characters.Latin_1;
+with Utilities;
 
 package body Port_Specification.Web is
 
    package LAT renames Ada.Characters.Latin_1;
+   package UTL renames Utilities;
 
 
    --------------------------------------------------------------------------------------------
@@ -127,7 +129,7 @@ package body Port_Specification.Web is
         "  <table id='sbt1'>" & LAT.LF &
         "   <tbody>" & LAT.LF &
         "    " & btr &
-        "     <td>Port Variant" & etd &
+        "     <td>Port variant" & etd &
         "     <td id='variant'>@VARIANT@" & etd &
         "    " & etr &
         "    " & btr &
@@ -154,6 +156,18 @@ package body Port_Specification.Web is
         "     <td>License" & etd &
         "     <td id='license'>@LICENSE@" & etd &
         "    " & etr &
+        "    " & btr &
+        "     <td>Other variants" & etd &
+        "     <td id='othervar'>@OTHERVAR@" & etd &
+        "    " & etr &
+        "    " & btr &
+        "     <td>Ravenports" & etd &
+        "     <td id='ravenports'>@LNK_BUILDSHEET@ | @LNK_HISTORY_BS@" & etd &
+        "    " & etr &
+        "    " & btr &
+        "     <td>Ravensource" & etd &
+        "     <td id='ravensource'>@LNK_PORT@ | @LNK_HISTORY_PORT@" & etd &
+        "    " & etr &
         "   </tbody>" & LAT.LF &
         "  </table>" & LAT.LF &
         " " & ediv &
@@ -164,6 +178,15 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  link
+   --------------------------------------------------------------------------------------------
+   function link (href, link_class, value : String) return String is
+   begin
+      return "<a" & nvpair ("href", href) & nvpair ("class", link_class) & ">" & value & "</a>";
+   end link;
+
+
+   --------------------------------------------------------------------------------------------
    --  format_homepage
    --------------------------------------------------------------------------------------------
    function format_homepage (homepage : String) return String is
@@ -171,8 +194,7 @@ package body Port_Specification.Web is
       if homepage = homepage_none then
          return "No known homepage";
       end if;
-      return "<a" & nvpair ("href", homepage) & nvpair ("class", "hplink") & ">" &
-        homepage & "</a>";
+      return link (homepage, "hplink", homepage);
    end format_homepage;
 
 
@@ -194,18 +216,62 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  other_variants
+   --------------------------------------------------------------------------------------------
+   function other_variants (specs : Portspecs; variant : String) return String
+   is
+      nvar    : Natural := specs.get_number_of_variants;
+      counter : Natural := 0;
+      result  : HT.Text;
+   begin
+      if nvar = 1 then
+         return "There are no other variants.";
+      end if;
+      for x in 1 .. nvar loop
+         declare
+            nextvar : constant String := specs.get_list_item (sp_variants, x);
+         begin
+            if nextvar /= variant then
+               counter := counter + 1;
+               if counter > 1 then
+                  HT.SU.Append (result, " | ");
+               end if;
+               HT.SU.Append (result, link ("../" & nextvar & "/", "ovlink", nextvar));
+            end if;
+         end;
+      end loop;
+      return HT.USS (result);
+   end other_variants;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body (specs : Portspecs; variant : String) return String
    is
       result   : HT.Text := HT.SUS (body_template);
+      namebase : constant String := specs.get_namebase;
+      bucket   : constant String := UTL.bucket (namebase);
+      catport  : constant String := "bucket_" & bucket & "/" & namebase;
       subject  : constant String := "Ravenports:%20" & specs.get_namebase & "%20port";
       homepage : constant String := format_homepage (specs.get_field_value (sp_homepage));
       tagline  : constant String := escape_value (specs.get_tagline (variant));
       licenses : constant String := list_scheme (specs.get_field_value (sp_licenses),
                                                  specs.get_license_scheme);
+      lnk_bs   : constant String :=
+        link ("https://raw.githubusercontent.com/jrmarino/Ravenports/master/" & catport,
+              "ghlink", "Buildsheet");
+      lnk_bshy : constant String :=
+        link ("https://github.com/jrmarino/Ravenports/commits/master/" & catport,
+              "histlink", "History");
+      lnk_port : constant String :=
+        link ("https://github.com/jrmarino/ravensource/tree/master/" & catport,
+              "ghlink", "Port Directory");
+      lnk_pthy : constant String :=
+        link ("https://github.com/jrmarino/ravensource/commits/master/" & catport,
+              "histlink", "History");
    begin
-      result := HT.replace_substring (result, "@NAMEBASE@", specs.get_namebase);
+      result := HT.replace_substring (result, "@NAMEBASE@", namebase);
       result := HT.replace_substring (result, "@VARIANT@", variant);
       result := HT.replace_substring (result, "@HOMEPAGE@", homepage);
       result := HT.replace_substring (result, "@TAGLINE@", tagline);
@@ -213,6 +279,11 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@MAINTAINER@", specs.get_web_contacts (subject));
       result := HT.replace_substring (result, "@KEYWORDS@", specs.get_field_value (sp_keywords));
       result := HT.replace_substring (result, "@LICENSE@", licenses);
+      result := HT.replace_substring (result, "@LNK_BUILDSHEET@", lnk_bs);
+      result := HT.replace_substring (result, "@LNK_HISTORY_BS@", lnk_bshy);
+      result := HT.replace_substring (result, "@LNK_PORT@", lnk_port);
+      result := HT.replace_substring (result, "@LNK_HISTORY_PORT@", lnk_pthy);
+      result := HT.replace_substring (result, "@OTHERVAR@", other_variants (specs, variant));
       return HT.USS (result);
    end generate_body;
 

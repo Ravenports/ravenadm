@@ -95,7 +95,10 @@ It is useful to quickly create a Ravensource port from scratch.
 The
 .Em web
 subcommand displays the html summary of the port.  This is primarily used
-to help design the standard web page format of the port description.
+to help design the standard web page format of the port description.  The
+first argument is required; it is the namebase of port.  This requires the
+buildsheet to be generated first.  The second argument is optional and
+represents the variant.  If unspecified, the "standard" variant is assumed.
 .El
 .Sh SEE ALSO
 .Xr ravenadm 8 ,
