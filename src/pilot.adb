@@ -288,7 +288,8 @@ package body Pilot is
       if successful then
          WEB.produce_page (specs   => specification,
                            variant => get_variant,
-                           dossier => TIO.Standard_Output);
+                           dossier => TIO.Standard_Output,
+                           portdir => REP.get_workzone_path);
       else
          TIO.Put_Line (errprefix & "Failed to parse " & dossier);
          TIO.Put_Line (PAR.get_parse_error);

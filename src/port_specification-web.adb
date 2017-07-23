@@ -2,11 +2,15 @@
 --  Reference: ../License.txt
 
 with Ada.Characters.Latin_1;
+with Ada.Directories;
+with File_Operations;
 with Utilities;
 
 package body Port_Specification.Web is
 
    package LAT renames Ada.Characters.Latin_1;
+   package DIR renames Ada.Directories;
+   package FOP renames File_Operations;
    package UTL renames Utilities;
 
 
@@ -16,12 +20,14 @@ package body Port_Specification.Web is
    procedure produce_page
      (specs   : Portspecs;
       variant : String;
-      dossier : TIO.File_Type) is
+      dossier : TIO.File_Type;
+      portdir : String) is
    begin
       TIO.Put_Line (dossier, page_header ("Ravenport: " & specs.get_namebase));
-      TIO.Put_Line (dossier, generate_body (specs, variant));
+      TIO.Put_Line (dossier, generate_body (specs, variant, portdir));
       TIO.Put_Line (dossier, page_footer);
    end produce_page;
+
 
    --------------------------------------------------------------------------------------------
    --  escape_value
@@ -171,10 +177,30 @@ package body Port_Specification.Web is
         "   </tbody>" & LAT.LF &
         "  </table>" & LAT.LF &
         " " & ediv &
-        " <div id='pkgdesc'>@PKGDESC@" & ediv;
+        " <div id='pkgdesc'>" & LAT.LF &
+        "  <table id='pdt2'>" & LAT.LF &
+        "   <thead><td colspan='2' id='pdtitle'>Subpackage Descriptions</td></thead>" & LAT.LF &
+        "   <tbody>" & LAT.LF &
+        "@DESCBODY@" &
+        "   </tbody>" & LAT.LF &
+        "  </table>" & LAT.LF &
+        " " & ediv;
    begin
       return HT.replace_all (S => raw, reject => LAT.Apostrophe, shiny  => LAT.Quotation);
    end body_template;
+
+
+   --------------------------------------------------------------------------------------------
+   --  two_cell_row_template
+   --------------------------------------------------------------------------------------------
+   function two_cell_row_template return String is
+   begin
+      return
+        "    <tr>" & LAT.LF &
+        "     <td>@CELL1@</td>" & LAT.LF &
+        "     <td>@CELL2@</td>" & LAT.LF &
+        "    </tr>" & LAT.LF;
+   end two_cell_row_template;
 
 
    --------------------------------------------------------------------------------------------
@@ -245,9 +271,66 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  subpackage_description_block
+   --------------------------------------------------------------------------------------------
+   function subpackage_description_block
+     (specs    : Portspecs;
+      namebase : String;
+      variant  : String;
+      portdir  : String) return String
+   is
+      function description (variant, subpackage : String) return String;
+
+      num_pkgs : Natural := specs.get_subpackage_length (variant);
+      result   : HT.Text;
+      id2      : constant String := namebase & LAT.Hyphen & variant;
+
+      function description (variant, subpackage : String) return String
+      is
+         trunk : constant String := portdir & "/descriptions/desc.";
+         desc1 : constant String := trunk & subpackage & "." & variant;
+         desc2 : constant String := trunk & subpackage;
+      begin
+         if DIR.Exists (desc1) then
+            return FOP.get_file_contents (desc1);
+         elsif DIR.Exists (desc2) then
+            return FOP.get_file_contents (desc2);
+         end if;
+         if subpackage = "docs" then
+            return "This is the documents subpackage of the " & id2 & " port.";
+         elsif subpackage = "examples" then
+            return "This is the examples subpackage of the " & id2 & " port.";
+         elsif subpackage = "complete" then
+            return
+              "This is the " & id2 & " metapackage." & LAT.LF &
+              "It pulls in all subpackages of " & id2 & ".";
+         else
+            return "Subpackage description undefined (port maintainer error).";
+         end if;
+      end description;
+   begin
+      for x in 1 .. num_pkgs loop
+         declare
+            row  : HT.Text := HT.SUS (two_cell_row_template);
+            spkg : constant String  := specs.get_subpackage_item (variant, x);
+         begin
+            row := HT.replace_substring (row, "@CELL1@", spkg);
+            row := HT.replace_substring (row, "@CELL2@",
+                                         escape_value (description (variant, spkg)));
+            HT.SU.Append (result, row);
+         end;
+      end loop;
+      return HT.USS (result);
+   end subpackage_description_block;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
-   function generate_body (specs : Portspecs; variant : String) return String
+   function generate_body
+     (specs   : Portspecs;
+      variant : String;
+      portdir : String) return String
    is
       result   : HT.Text := HT.SUS (body_template);
       namebase : constant String := specs.get_namebase;
@@ -284,6 +367,8 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@LNK_PORT@", lnk_port);
       result := HT.replace_substring (result, "@LNK_HISTORY_PORT@", lnk_pthy);
       result := HT.replace_substring (result, "@OTHERVAR@", other_variants (specs, variant));
+      result := HT.replace_substring
+        (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);
    end generate_body;
 

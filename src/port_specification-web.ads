@@ -13,7 +13,8 @@ package Port_Specification.Web is
    procedure produce_page
      (specs   : Portspecs;
       variant : String;
-      dossier : TIO.File_Type);
+      dossier : TIO.File_Type;
+      portdir : String);
 
 private
 
@@ -36,8 +37,14 @@ private
    --  returns the pre-populated web page template for the entire body
    function body_template return String;
 
+   --  returns a row template for the subpackage descriptions
+   function two_cell_row_template return String;
+
    --  populate body template
-   function generate_body (specs : Portspecs; variant : String) return String;
+   function generate_body
+     (specs   : Portspecs;
+      variant : String;
+      portdir : String) return String;
 
    --  html format WWW reference
    function format_homepage (homepage : String) return String;
@@ -50,5 +57,12 @@ private
 
    --  Dynamic "other variants" contents
    function other_variants (specs : Portspecs; variant : String) return String;
+
+   --  Constructs the rows of the subpackage description body
+   function subpackage_description_block
+     (specs    : Portspecs;
+      namebase : String;
+      variant  : String;
+      portdir  : String) return String;
 
 end Port_Specification.Web;
