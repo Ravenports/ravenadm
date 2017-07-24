@@ -71,4 +71,7 @@ private
    --  Constructs the rows of the dependencies-by-type table body
    function dependency_block (specs : Portspecs) return String;
 
+   --  Constructs the rows of the master site groups and the sites it contains
+   function master_sites_block (specs : Portspecs) return String;
+
 end Port_Specification.Web;

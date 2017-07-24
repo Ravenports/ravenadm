@@ -190,11 +190,6 @@ package body Port_Specification.Web is
         "  <div id='optionblock'>" & LAT.LF &
         "@OPTIONBLOCK@" & ediv &
         " " & ediv &
-        " <div id='distinfo'>" & LAT.LF &
-        "  <div id='disttitle'>Distribution File Information" & ediv &
-        "  <div id='distblock'>" & LAT.LF &
-        "@DISTINFO@" & ediv &
-        " " & ediv &
         " <div id='dependencies'>" & LAT.LF &
         "  <div id='deptitle'>Package Dependencies by Type" & ediv &
         "  <table id='dpt3'>" & LAT.LF &
@@ -202,6 +197,19 @@ package body Port_Specification.Web is
         "@DEPBODY@" &
         "   </tbody>" & LAT.LF &
         "  </table>" & LAT.LF &
+        " " & ediv &
+        " <div id='master_sites'>" & LAT.LF &
+        "  <div id='mstitle'>Download groups" & ediv &
+        "  <table id='dlt4'>" & LAT.LF &
+        "   <tbody>" & LAT.LF &
+        "@SITES@" &
+        "   </tbody>" & LAT.LF &
+        "  </table>" & LAT.LF &
+        " " & ediv &
+        " <div id='distinfo'>" & LAT.LF &
+        "  <div id='disttitle'>Distribution File Information" & ediv &
+        "  <div id='distblock'>" & LAT.LF &
+        "@DISTINFO@" & ediv &
         " </div>";
    begin
       return HT.replace_all (S => raw, reject => LAT.Apostrophe, shiny  => LAT.Quotation);
@@ -332,9 +340,9 @@ package body Port_Specification.Web is
             row  : HT.Text := HT.SUS (two_cell_row_template);
             spkg : constant String  := specs.get_subpackage_item (variant, x);
          begin
+            --  Don't escape CELL2, it's preformatted
             row := HT.replace_substring (row, "@CELL1@", spkg);
-            row := HT.replace_substring (row, "@CELL2@",
-                                         escape_value (description (variant, spkg)));
+            row := HT.replace_substring (row, "@CELL2@", description (variant, spkg));
             HT.SU.Append (result, row);
          end;
       end loop;
@@ -350,7 +358,7 @@ package body Port_Specification.Web is
       function link_block (field : spec_field; listlen : Natural) return String;
       procedure add_row (field : spec_field; listlen : Natural);
 
-      result   : HT.Text;
+      result : HT.Text;
 
       nb  : constant Natural := specs.get_list_length (sp_build_deps);
       nbr : constant Natural := specs.get_list_length (sp_buildrun_deps);
@@ -425,6 +433,70 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  master_sites_block
+   --------------------------------------------------------------------------------------------
+   function master_sites_block (specs : Portspecs) return String
+   is
+      procedure group_scan (position : list_crate.Cursor);
+      procedure dump_sites (position : string_crate.Cursor);
+      function make_link (site : String) return String;
+      num_groups  : constant Natural := Natural (specs.dl_sites.Length);
+      first_group : constant String  := HT.USS (list_crate.Element (specs.dl_sites.First).group);
+
+      cell2  : HT.Text;
+      result : HT.Text;
+
+      function make_link (site : String) return String
+      is
+         lnk : constant String := link (site, "sitelink", site);
+      begin
+         if HT.contains (site, ":") and then
+           not HT.leads (site, "GITHUB/") and then
+           not HT.leads (site, "GH/")
+         then
+            return lnk;
+         else
+            return "mirror://" & site;
+         end if;
+      end make_link;
+
+      procedure dump_sites (position : string_crate.Cursor)
+      is
+         site_string : HT.Text renames string_crate.Element (position);
+         lnk : constant String := make_link (HT.USS (site_string));
+      begin
+         if HT.IsBlank (cell2) then
+            HT.SU.Append (cell2, LAT.LF & lnk);
+         else
+            HT.SU.Append (cell2, "<br/>" & LAT.LF & lnk);
+         end if;
+      end dump_sites;
+
+      procedure group_scan (position : list_crate.Cursor)
+      is
+         rec   : group_list renames list_crate.Element (position);
+         cell1 : constant String := HT.USS (rec.group);
+         row   : HT.Text := HT.SUS (two_cell_row_template);
+      begin
+         cell2 := HT.SU.Null_Unbounded_String;
+         rec.list.Iterate (dump_sites'Access);
+         row := HT.replace_substring (row, "@CELL1@", cell1);
+         row := HT.replace_substring (row, "@CELL2@", HT.USS (cell2));
+         HT.SU.Append (result, row);
+      end group_scan;
+
+   begin
+      if num_groups = 1 and then
+        first_group = dlgroup_none
+      then
+         return "    <tr><td>This port does not download anything.</td></tr>";
+      end if;
+      specs.dl_sites.Iterate (group_scan'Access);
+      return HT.USS (result);
+   end master_sites_block;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body
@@ -470,6 +542,7 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@OPTIONBLOCK@", specs.options_summary (variant));
       result := HT.replace_substring (result, "@DISTINFO@", retrieve_distinfo (specs, portdir));
       result := HT.replace_substring (result, "@DEPBODY@", dependency_block (specs));
+      result := HT.replace_substring (result, "@SITES@", master_sites_block (specs));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);
