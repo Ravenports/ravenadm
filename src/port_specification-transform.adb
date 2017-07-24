@@ -1928,6 +1928,9 @@ package body Port_Specification.Transform is
          end case;
       end scan_dep;
    begin
+      if specs.skip_opsys_dep then
+         return;
+      end if;
       if specs.opsys_b_deps.Contains (key_opsys) then
          dt := os_build;
          specs.opsys_b_deps.Element (key_opsys).list.Iterate (scan_dep'Access);

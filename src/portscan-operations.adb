@@ -2572,6 +2572,7 @@ package body PortScan.Operations is
       portloc       : String;
       excl_targets  : Boolean;
       avoid_dialog  : Boolean;
+      for_webpage   : Boolean;
       sysrootver    : sysroot_characteristics)
    is
       function read_option_file return Boolean;
@@ -2727,6 +2728,10 @@ package body PortScan.Operations is
          end if;
       end;
 
+      if for_webpage then
+         specification.do_not_apply_opsys_dependencies;
+      end if;
+
       PST.apply_directives
         (specs         => specification,
          variant       => variant,
@@ -2794,6 +2799,7 @@ package body PortScan.Operations is
                                       portloc       => portloc,
                                       excl_targets  => False,
                                       avoid_dialog  => True,
+                                      for_webpage   => False,
                                       sysrootver    => sysrootver);
       if not successful then
          return False;

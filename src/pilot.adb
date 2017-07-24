@@ -224,6 +224,7 @@ package body Pilot is
                                              portloc       => "",
                                              excl_targets  => False,
                                              avoid_dialog  => True,
+                                             for_webpage   => False,
                                              sysrootver    => sysrootver);
       else
          DNE (HT.USS (dossier_text));
@@ -279,6 +280,7 @@ package body Pilot is
                                              portloc       => REP.get_workzone_path,
                                              excl_targets  => False,
                                              avoid_dialog  => True,
+                                             for_webpage   => True,
                                              sysrootver    => sysrootver);
       else
          DNE (dossier);
@@ -1279,6 +1281,7 @@ package body Pilot is
                                                 portloc       => "",
                                                 excl_targets  => True,
                                                 avoid_dialog  => True,
+                                                for_webpage   => False,
                                                 sysrootver    => sysrootver);
             if not specification.standard_options_present then
                HT.SU.Append (issues, "User error: The " & specification.get_namebase &

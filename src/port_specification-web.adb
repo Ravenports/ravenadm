@@ -364,6 +364,9 @@ package body Port_Specification.Web is
       nbr : constant Natural := specs.get_list_length (sp_buildrun_deps);
       nr  : constant Natural := specs.get_list_length (sp_run_deps);
       xr  : constant Natural := Natural (specs.extra_rundeps.Length);
+      sb  : constant Natural := Natural (specs.opsys_b_deps.Length);
+      sbr : constant Natural := Natural (specs.opsys_br_deps.Length);
+      sr  : constant Natural := Natural (specs.opsys_r_deps.Length);
 
       procedure add_row (field : spec_field; listlen : Natural) is
       begin
@@ -386,12 +389,17 @@ package body Port_Specification.Web is
 
       function link_block (field : spec_field) return String
       is
-         procedure spkg_scan (position : list_crate.Cursor);
-         procedure dump_dep (position : string_crate.Cursor);
+         procedure spkg_scan         (position : list_crate.Cursor);
+         procedure opsys_scan        (position : list_crate.Cursor);
+         procedure dump_dep          (position : string_crate.Cursor);
+         procedure process_opsys_dep (position : string_crate.Cursor);
+         procedure dump_opsys_dep    (position : def_crate.Cursor);
 
          listlen : constant Natural := specs.get_list_length (field);
          cell : HT.Text;
          spkg : HT.Text;
+         ostr : HT.Text;
+         tempstore : def_crate.Map;
 
          procedure spkg_scan (position : list_crate.Cursor)
          is
@@ -400,6 +408,14 @@ package body Port_Specification.Web is
             spkg := rec.group;
             rec.list.Iterate (dump_dep'Access);
          end spkg_scan;
+
+         procedure opsys_scan (position : list_crate.Cursor)
+         is
+            rec : group_list renames list_crate.Element (position);
+         begin
+            ostr := rec.group;
+            rec.list.Iterate (process_opsys_dep'Access);
+         end opsys_scan;
 
          procedure dump_dep (position : string_crate.Cursor)
          is
@@ -417,6 +433,39 @@ package body Port_Specification.Web is
                HT.SU.Append (cell, "<br/>" & LAT.LF & lnk);
             end if;
          end dump_dep;
+
+         procedure dump_opsys_dep (position : def_crate.Cursor)
+         is
+            dep      : String := HT.USS (def_crate.Key (position));
+            namebase : String := HT.specific_field (dep, 1, ":");
+            bucket   : String := UTL.bucket (namebase);
+            variant  : String := HT.specific_field (dep, 3, ":");
+            href     : String := "../../bucket_" & bucket & "/" & namebase & "/" & variant;
+            value    : String := dep & " (" & HT.USS (def_crate.Element (position)) & ")";
+            lnk      : String := link (href, "deplink", value);
+         begin
+            if HT.IsBlank (cell) then
+               HT.SU.Append (cell, LAT.LF & lnk);
+            else
+               HT.SU.Append (cell, "<br/>" & LAT.LF & lnk);
+            end if;
+         end dump_opsys_dep;
+
+         procedure process_opsys_dep (position : string_crate.Cursor)
+         is
+            new_index : HT.Text renames string_crate.Element (position);
+            new_value : HT.Text;
+         begin
+            if tempstore.Contains (new_index) then
+               new_value := tempstore.Element (new_index);
+               HT.SU.Append (new_value, ", " & HT.USS (ostr));
+               tempstore.Delete (new_index);
+               tempstore.Insert (new_index, new_value);
+            else
+               tempstore.Insert (new_index, ostr);
+            end if;
+         end process_opsys_dep;
+
       begin
          for x in 1 .. listlen loop
             declare
@@ -434,9 +483,17 @@ package body Port_Specification.Web is
                end if;
             end;
          end loop;
+         if field = sp_build_deps then
+            specs.opsys_b_deps.Iterate (opsys_scan'Access);
+         end if;
+         if field = sp_buildrun_deps then
+            specs.opsys_br_deps.Iterate (opsys_scan'Access);
+         end if;
          if field = sp_run_deps then
+            specs.opsys_r_deps.Iterate (opsys_scan'Access);
             specs.extra_rundeps.Iterate (spkg_scan'Access);
          end if;
+         tempstore.Iterate (dump_opsys_dep'Access);
          return HT.USS (cell);
       end link_block;
 
@@ -444,9 +501,9 @@ package body Port_Specification.Web is
       if nb + nr + nbr + xr = 0 then
          return "    <tr><td>This package has no dependency requirements of any kind.</td></tr>";
       end if;
-      add_row (sp_build_deps, nb);
-      add_row (sp_buildrun_deps, nbr);
-      add_row (sp_run_deps, nr + xr);
+      add_row (sp_build_deps, nb + sb);
+      add_row (sp_buildrun_deps, nbr + sbr);
+      add_row (sp_run_deps, nr + sr + xr);
       return HT.USS (result);
    end dependency_block;
 

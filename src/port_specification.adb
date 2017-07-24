@@ -65,18 +65,19 @@ package body Port_Specification is
       specs.config_args.Clear;
       specs.config_env.Clear;
 
-      specs.skip_build    := False;
-      specs.skip_install  := False;
-      specs.skip_ccache   := False;
-      specs.destdir_env   := False;
-      specs.single_job    := False;
-      specs.shift_install := False;
-      specs.debugging_on  := False;
-      specs.generated     := False;
-      specs.opt_df_index  := False;
-      specs.build_wrksrc  := HT.blank;
-      specs.makefile      := HT.blank;
-      specs.destdirname   := HT.blank;
+      specs.skip_build     := False;
+      specs.skip_install   := False;
+      specs.skip_ccache    := False;
+      specs.destdir_env    := False;
+      specs.single_job     := False;
+      specs.shift_install  := False;
+      specs.debugging_on   := False;
+      specs.generated      := False;
+      specs.opt_df_index   := False;
+      specs.skip_opsys_dep := False;
+      specs.build_wrksrc   := HT.blank;
+      specs.makefile       := HT.blank;
+      specs.destdirname    := HT.blank;
       specs.make_env.Clear;
       specs.make_args.Clear;
       specs.build_target.Clear;
@@ -142,6 +143,15 @@ package body Port_Specification is
 
       specs.last_set := so_initialized;
    end initialize;
+
+
+   --------------------------------------------------------------------------------------------
+   --  do_not_apply_opsys_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure do_not_apply_opsys_dependencies (specs : in out Portspecs) is
+   begin
+      specs.skip_opsys_dep := True;
+   end do_not_apply_opsys_dependencies;
 
 
    --------------------------------------------------------------------------------------------

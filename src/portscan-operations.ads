@@ -104,6 +104,7 @@ package PortScan.Operations is
       portloc       : String;
       excl_targets  : Boolean;
       avoid_dialog  : Boolean;
+      for_webpage   : Boolean;
       sysrootver    : sysroot_characteristics);
 
    --  Using a populated package_list, cross off all package names that are found in the current

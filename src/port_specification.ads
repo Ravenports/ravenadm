@@ -277,6 +277,9 @@ package Port_Specification is
    --  Format contacts with html (span, mailto)
    function get_web_contacts (specs : Portspecs; subject : String) return String;
 
+   --  Ensure opsys dependencies are not applied (only for web page generation)
+   procedure do_not_apply_opsys_dependencies (specs : in out Portspecs);
+
 private
 
    package HT  renames HelperText;
@@ -485,6 +488,7 @@ private
          debugging_on   : Boolean;
          generated      : Boolean;
          opt_df_index   : Boolean;
+         skip_opsys_dep : Boolean;
          prefix         : HT.Text;
          build_wrksrc   : HT.Text;
          makefile       : HT.Text;

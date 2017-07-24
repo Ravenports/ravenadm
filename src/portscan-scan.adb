@@ -437,6 +437,7 @@ package body PortScan.Scan is
                                           portloc       => "",
                                           excl_targets  => True,
                                           avoid_dialog  => True,
+                                          for_webpage   => False,
                                           sysrootver    => sysrootver);
       if not successful then
          raise bsheet_parsing
@@ -501,6 +502,7 @@ package body PortScan.Scan is
                                           portloc       => "",
                                           excl_targets  => True,
                                           avoid_dialog  => False,
+                                          for_webpage   => False,
                                           sysrootver    => sysrootver);
 
       if not successful then
