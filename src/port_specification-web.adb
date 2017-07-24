@@ -21,10 +21,11 @@ package body Port_Specification.Web is
      (specs   : Portspecs;
       variant : String;
       dossier : TIO.File_Type;
-      portdir : String) is
+      portdir : String;
+      devscan : Boolean) is
    begin
       TIO.Put_Line (dossier, page_header ("Ravenport: " & specs.get_namebase));
-      TIO.Put_Line (dossier, generate_body (specs, variant, portdir));
+      TIO.Put_Line (dossier, generate_body (specs, variant, portdir, devscan));
       TIO.Put_Line (dossier, page_footer);
    end produce_page;
 
@@ -753,7 +754,8 @@ package body Port_Specification.Web is
    function generate_body
      (specs   : Portspecs;
       variant : String;
-      portdir : String) return String
+      portdir : String;
+      devscan : Boolean) return String
    is
       result   : HT.Text := HT.SUS (body_template);
       namebase : constant String := specs.get_namebase;

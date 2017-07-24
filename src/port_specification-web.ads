@@ -14,7 +14,8 @@ package Port_Specification.Web is
      (specs   : Portspecs;
       variant : String;
       dossier : TIO.File_Type;
-      portdir : String);
+      portdir : String;
+      devscan : Boolean);
 
 private
 
@@ -44,7 +45,8 @@ private
    function generate_body
      (specs   : Portspecs;
       variant : String;
-      portdir : String) return String;
+      portdir : String;
+      devscan : Boolean) return String;
 
    --  html format WWW reference
    function format_homepage (homepage : String) return String;
