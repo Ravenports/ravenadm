@@ -68,4 +68,7 @@ private
    --  Return contents of distinfo file
    function retrieve_distinfo (specs : Portspecs; portdir : String) return String;
 
+   --  Constructs the rows of the dependencies-by-type table body
+   function dependency_block (specs : Portspecs) return String;
+
 end Port_Specification.Web;

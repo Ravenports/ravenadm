@@ -178,12 +178,8 @@ package body Port_Specification.Web is
         "  </table>" & LAT.LF &
         " " & ediv &
         " <div id='pkgdesc'>" & LAT.LF &
+        "  <div id='pdtitle'>Subpackage Descriptions" & ediv &
         "  <table id='pdt2'>" & LAT.LF &
-        "   <thead>" & LAT.LF &
-        "    <tr>" & LAT.LF &
-        "     <td colspan='2' id='pdtitle'>Subpackage Descriptions" & etd &
-        "    " & etr &
-        "   </thead>" & LAT.LF &
         "   <tbody>" & LAT.LF &
         "@DESCBODY@" &
         "   </tbody>" & LAT.LF &
@@ -198,7 +194,15 @@ package body Port_Specification.Web is
         "  <div id='disttitle'>Distribution File Information" & ediv &
         "  <div id='distblock'>" & LAT.LF &
         "@DISTINFO@" & ediv &
-        " " & ediv;
+        " " & ediv &
+        " <div id='dependencies'>" & LAT.LF &
+        "  <div id='deptitle'>Package Dependencies by Type" & ediv &
+        "  <table id='dpt3'>" & LAT.LF &
+        "   <tbody>" & LAT.LF &
+        "@DEPBODY@" &
+        "   </tbody>" & LAT.LF &
+        "  </table>" & LAT.LF &
+        " </div>";
    begin
       return HT.replace_all (S => raw, reject => LAT.Apostrophe, shiny  => LAT.Quotation);
    end body_template;
@@ -339,6 +343,73 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  dependency_block
+   --------------------------------------------------------------------------------------------
+   function dependency_block (specs : Portspecs) return String
+   is
+      function link_block (field : spec_field; listlen : Natural) return String;
+      procedure add_row (field : spec_field; listlen : Natural);
+
+      result   : HT.Text;
+
+      nb  : constant Natural := specs.get_list_length (sp_build_deps);
+      nbr : constant Natural := specs.get_list_length (sp_buildrun_deps);
+      nr  : constant Natural := specs.get_list_length (sp_run_deps);
+
+      procedure add_row (field : spec_field; listlen : Natural) is
+      begin
+         if listlen > 0 then
+            declare
+               row  : HT.Text := HT.SUS (two_cell_row_template);
+            begin
+               if field = sp_build_deps then
+                  row := HT.replace_substring (row, "@CELL1@", "Build (only)");
+               elsif field = sp_buildrun_deps then
+                  row := HT.replace_substring (row, "@CELL1@", "Build and Runtime");
+               else
+                  row := HT.replace_substring (row, "@CELL1@", "Runtime (only)");
+               end if;
+               row := HT.replace_substring (row, "@CELL2@", link_block (field, listlen));
+               HT.SU.Append (result, row);
+            end;
+         end if;
+      end add_row;
+
+      function link_block (field : spec_field; listlen : Natural) return String
+      is
+         cell : HT.Text;
+      begin
+         for x in 1 .. listlen loop
+            declare
+               dep      : String := specs.get_list_item (field, x);
+               namebase : String := HT.specific_field (dep, 1, ":");
+               bucket   : String := UTL.bucket (namebase);
+               variant  : String := HT.specific_field (dep, 3, ":");
+               href     : String := "../../bucket_" & bucket & "/" & namebase & "/" & variant;
+               lnk      : String := link (href, "deplink", dep);
+            begin
+               if x = 1 then
+                  HT.SU.Append (cell, LAT.LF & lnk);
+               else
+                  HT.SU.Append (cell, "<br/>" & LAT.LF & lnk);
+               end if;
+            end;
+         end loop;
+         return HT.USS (cell);
+      end link_block;
+
+   begin
+      if nb + nr + nbr = 0 then
+         return "    <tr><td>This package has no dependency requirements of any kind.</td></tr>";
+      end if;
+      add_row (sp_build_deps, nb);
+      add_row (sp_buildrun_deps, nbr);
+      add_row (sp_run_deps, nr);
+      return HT.USS (result);
+   end dependency_block;
+
+
+   --------------------------------------------------------------------------------------------
    --  retrieve_distinfo
    --------------------------------------------------------------------------------------------
    function retrieve_distinfo (specs : Portspecs; portdir : String) return String
@@ -398,6 +469,7 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@OTHERVAR@", other_variants (specs, variant));
       result := HT.replace_substring (result, "@OPTIONBLOCK@", specs.options_summary (variant));
       result := HT.replace_substring (result, "@DISTINFO@", retrieve_distinfo (specs, portdir));
+      result := HT.replace_substring (result, "@DEPBODY@", dependency_block (specs));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);
