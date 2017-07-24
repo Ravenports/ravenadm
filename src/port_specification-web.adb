@@ -142,6 +142,7 @@ package body Port_Specification.Web is
         "     <td>Summary" & etd &
         "     <td id='summary'>@TAGLINE@" & etd &
         "    " & etr &
+        "@BROKEN@" &
         "@DEPRECATED@" &
         "    " & btr &
         "     <td>Package version" & etd &
@@ -608,6 +609,48 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  broken_attributes
+   --------------------------------------------------------------------------------------------
+   function broken_attributes (specs : Portspecs) return String
+   is
+      procedure group_scan (position : list_crate.Cursor);
+      procedure dump_messages (position : string_crate.Cursor);
+
+      row1    : HT.Text := HT.SUS (two_cell_row_template);
+      content : HT.Text;
+      index   : HT.Text;
+
+      procedure group_scan (position : list_crate.Cursor)
+      is
+         rec : group_list renames list_crate.Element (position);
+      begin
+         index := rec.group;
+         rec.list.Iterate (dump_messages'Access);
+      end group_scan;
+
+      procedure dump_messages (position : string_crate.Cursor)
+      is
+         message : HT.Text renames string_crate.Element (position);
+         esc_msg : String := "[" & HT.USS (index) & "] " & escape_value (HT.USS (message));
+      begin
+         if HT.IsBlank (content) then
+            HT.SU.Append (content, LAT.LF & esc_msg);
+         else
+            HT.SU.Append (content, "<br/>" & LAT.LF & esc_msg);
+         end if;
+      end dump_messages;
+   begin
+      if specs.broken.Is_Empty then
+         return "";
+      end if;
+      specs.broken.Iterate (group_scan'Access);
+      row1 := HT.replace_substring (row1, "@CELL1@", "BROKEN");
+      row1 := HT.replace_substring (row1, "@CELL2@", HT.USS (content));
+      return HT.USS (row1);
+   end broken_attributes;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body
@@ -655,6 +698,7 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@DEPBODY@", dependency_block (specs));
       result := HT.replace_substring (result, "@SITES@", master_sites_block (specs));
       result := HT.replace_substring (result, "@DEPRECATED@", deprecated_message (specs));
+      result := HT.replace_substring (result, "@BROKEN@", broken_attributes (specs));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);

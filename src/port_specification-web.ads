@@ -77,4 +77,7 @@ private
    --  Constructs optional deprecated message
    function deprecated_message (specs : Portspecs) return String;
 
+   --  Construct "broken message" blocks (does not transform opsys/arch)
+   function broken_attributes (specs : Portspecs) return String;
+
 end Port_Specification.Web;

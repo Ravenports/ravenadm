@@ -620,7 +620,9 @@ package body Port_Specification.Transform is
          end check_list;
 
       begin
-         list_crate.Element (position).list.Iterate (Process => check_list'Access);
+         if not specs.skip_opsys_dep then
+            list_crate.Element (position).list.Iterate (Process => check_list'Access);
+         end if;
       end check;
 
       procedure check_ignore
@@ -649,17 +651,19 @@ package body Port_Specification.Transform is
          LIST_MYSQL_FAILURE : constant String := "Does not build with MySQL default '";
          LIST_PGSQL_FAILURE : constant String := "Does not build with PGSQL default '";
       begin
-         if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
-           (not specs.inc_opsys.Is_Empty and then
-              not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
-         then
-            reason := HT.SUS ("Specification excludes " & UTL.mixed_opsys (opsys) & " OS");
-            append_ignore;
-         end if;
-         if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
-            reason := HT.SUS ("Specification excludes " & UTL.cpu_arch (arch_standard) &
-                                " architecture");
-            append_ignore;
+         if not specs.skip_opsys_dep then
+            if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
+              (not specs.inc_opsys.Is_Empty and then
+                 not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
+            then
+               reason := HT.SUS ("Specification excludes " & UTL.mixed_opsys (opsys) & " OS");
+               append_ignore;
+            end if;
+            if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
+               reason := HT.SUS ("Specification excludes " & UTL.cpu_arch (arch_standard) &
+                                   " architecture");
+               append_ignore;
+            end if;
          end if;
 
          --  Handle BROKEN_SSL directive
