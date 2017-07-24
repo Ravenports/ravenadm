@@ -191,7 +191,8 @@ package body Port_Specification.Web is
         "  </table>" & LAT.LF &
         " " & ediv &
         " <div id='options'>" & LAT.LF &
-        "  <div id='optiontitle'>Port Configuration Options" & ediv &
+        "  <div id='optiontitle'>" &
+        "Configuration Switches (platform- and arch-specific settings discarded)" & ediv &
         "  <div id='optionblock'>" & LAT.LF &
         "@OPTIONBLOCK@" & ediv &
         " " & ediv &
