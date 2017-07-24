@@ -144,6 +144,9 @@ package body Port_Specification.Web is
         "    " & etr &
         "@BROKEN@" &
         "@DEPRECATED@" &
+        "@ONLY_PLATFORM@" &
+        "@EXC_PLATFORM@" &
+        "@EXC_ARCH@" &
         "    " & btr &
         "     <td>Package version" & etd &
         "     <td id='pkgversion'>@PKGVERSION@" & etd &
@@ -651,6 +654,99 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  inclusive_platform
+   --------------------------------------------------------------------------------------------
+   function inclusive_platform (specs : Portspecs) return String
+   is
+      procedure dump (position : string_crate.Cursor);
+
+      row1    : HT.Text := HT.SUS (two_cell_row_template);
+      content : HT.Text;
+
+      procedure dump (position : string_crate.Cursor)
+      is
+         message : HT.Text renames string_crate.Element (position);
+      begin
+         if HT.IsBlank (content) then
+            HT.SU.Append (content, message);
+         else
+            HT.SU.Append (content, " | " & HT.USS (message));
+         end if;
+      end dump;
+   begin
+      if specs.inc_opsys.Is_Empty then
+         return "";
+      end if;
+      specs.inc_opsys.Iterate (dump'Access);
+      row1 := HT.replace_substring (row1, "@CELL1@", "Only for platform");
+      row1 := HT.replace_substring (row1, "@CELL2@", HT.USS (content));
+      return HT.USS (row1);
+   end inclusive_platform;
+
+
+   --------------------------------------------------------------------------------------------
+   --  exclusive_platform
+   --------------------------------------------------------------------------------------------
+   function exclusive_platform (specs : Portspecs) return String
+   is
+      procedure dump (position : string_crate.Cursor);
+
+      row1    : HT.Text := HT.SUS (two_cell_row_template);
+      content : HT.Text;
+
+      procedure dump (position : string_crate.Cursor)
+      is
+         message : HT.Text renames string_crate.Element (position);
+      begin
+         if HT.IsBlank (content) then
+            HT.SU.Append (content, message);
+         else
+            HT.SU.Append (content, " | " & HT.USS (message));
+         end if;
+      end dump;
+   begin
+      if specs.exc_opsys.Is_Empty then
+         return "";
+      end if;
+      specs.exc_opsys.Iterate (dump'Access);
+      row1 := HT.replace_substring (row1, "@CELL1@", "Exclude platform");
+      row1 := HT.replace_substring (row1, "@CELL2@", HT.USS (content));
+      return HT.USS (row1);
+   end exclusive_platform;
+
+
+   --------------------------------------------------------------------------------------------
+   --  exclusive_arch
+   --------------------------------------------------------------------------------------------
+   function exclusive_arch (specs : Portspecs) return String
+   is
+      procedure dump (position : string_crate.Cursor);
+
+      row1    : HT.Text := HT.SUS (two_cell_row_template);
+      content : HT.Text;
+
+      procedure dump (position : string_crate.Cursor)
+      is
+         message : HT.Text renames string_crate.Element (position);
+      begin
+         if HT.IsBlank (content) then
+            HT.SU.Append (content, message);
+         else
+            HT.SU.Append (content, " | " & HT.USS (message));
+         end if;
+      end dump;
+   begin
+      if specs.exc_arch.Is_Empty then
+         return "";
+      end if;
+      specs.exc_arch.Iterate (dump'Access);
+      row1 := HT.replace_substring (row1, "@CELL1@", "Exclude architecture");
+      row1 := HT.replace_substring (row1, "@CELL2@", HT.USS (content));
+      return HT.USS (row1);
+   end exclusive_arch;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body
@@ -699,6 +795,9 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@SITES@", master_sites_block (specs));
       result := HT.replace_substring (result, "@DEPRECATED@", deprecated_message (specs));
       result := HT.replace_substring (result, "@BROKEN@", broken_attributes (specs));
+      result := HT.replace_substring (result, "@ONLY_PLATFORM@", inclusive_platform (specs));
+      result := HT.replace_substring (result, "@EXC_PLATFORM@", exclusive_platform (specs));
+      result := HT.replace_substring (result, "@EXC_ARCH@", exclusive_arch (specs));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);

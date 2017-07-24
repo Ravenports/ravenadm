@@ -80,4 +80,13 @@ private
    --  Construct "broken message" blocks (does not transform opsys/arch)
    function broken_attributes (specs : Portspecs) return String;
 
+   --  Construct "Only for platform" block
+   function inclusive_platform (specs : Portspecs) return String;
+
+   --  Construct "Exclude platform" block
+   function exclusive_platform (specs : Portspecs) return String;
+
+   --  Construct "exclude architecture" block
+   function exclusive_arch (specs : Portspecs) return String;
+
 end Port_Specification.Web;
