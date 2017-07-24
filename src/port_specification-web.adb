@@ -355,7 +355,7 @@ package body Port_Specification.Web is
    --------------------------------------------------------------------------------------------
    function dependency_block (specs : Portspecs) return String
    is
-      function link_block (field : spec_field; listlen : Natural) return String;
+      function link_block (field : spec_field) return String;
       procedure add_row (field : spec_field; listlen : Natural);
 
       result : HT.Text;
@@ -363,6 +363,7 @@ package body Port_Specification.Web is
       nb  : constant Natural := specs.get_list_length (sp_build_deps);
       nbr : constant Natural := specs.get_list_length (sp_buildrun_deps);
       nr  : constant Natural := specs.get_list_length (sp_run_deps);
+      xr  : constant Natural := Natural (specs.extra_rundeps.Length);
 
       procedure add_row (field : spec_field; listlen : Natural) is
       begin
@@ -377,15 +378,45 @@ package body Port_Specification.Web is
                else
                   row := HT.replace_substring (row, "@CELL1@", "Runtime (only)");
                end if;
-               row := HT.replace_substring (row, "@CELL2@", link_block (field, listlen));
+               row := HT.replace_substring (row, "@CELL2@", link_block (field));
                HT.SU.Append (result, row);
             end;
          end if;
       end add_row;
 
-      function link_block (field : spec_field; listlen : Natural) return String
+      function link_block (field : spec_field) return String
       is
+         procedure spkg_scan (position : list_crate.Cursor);
+         procedure dump_dep (position : string_crate.Cursor);
+
+         listlen : constant Natural := specs.get_list_length (field);
          cell : HT.Text;
+         spkg : HT.Text;
+
+         procedure spkg_scan (position : list_crate.Cursor)
+         is
+            rec : group_list renames list_crate.Element (position);
+         begin
+            spkg := rec.group;
+            rec.list.Iterate (dump_dep'Access);
+         end spkg_scan;
+
+         procedure dump_dep (position : string_crate.Cursor)
+         is
+            dep      : String := HT.USS (string_crate.Element (position));
+            namebase : String := HT.specific_field (dep, 1, ":");
+            bucket   : String := UTL.bucket (namebase);
+            variant  : String := HT.specific_field (dep, 3, ":");
+            href     : String := "../../bucket_" & bucket & "/" & namebase & "/" & variant;
+            value    : String := dep & " (" & HT.USS (spkg) & " subpackage)";
+            lnk      : String := link (href, "deplink", value);
+         begin
+            if HT.IsBlank (cell) then
+               HT.SU.Append (cell, LAT.LF & lnk);
+            else
+               HT.SU.Append (cell, "<br/>" & LAT.LF & lnk);
+            end if;
+         end dump_dep;
       begin
          for x in 1 .. listlen loop
             declare
@@ -403,16 +434,19 @@ package body Port_Specification.Web is
                end if;
             end;
          end loop;
+         if field = sp_run_deps then
+            specs.extra_rundeps.Iterate (spkg_scan'Access);
+         end if;
          return HT.USS (cell);
       end link_block;
 
    begin
-      if nb + nr + nbr = 0 then
+      if nb + nr + nbr + xr = 0 then
          return "    <tr><td>This package has no dependency requirements of any kind.</td></tr>";
       end if;
       add_row (sp_build_deps, nb);
       add_row (sp_buildrun_deps, nbr);
-      add_row (sp_run_deps, nr);
+      add_row (sp_run_deps, nr + xr);
       return HT.USS (result);
    end dependency_block;
 
