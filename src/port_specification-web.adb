@@ -142,6 +142,7 @@ package body Port_Specification.Web is
         "     <td>Summary" & etd &
         "     <td id='summary'>@TAGLINE@" & etd &
         "    " & etr &
+        "@DEPRECATED@" &
         "    " & btr &
         "     <td>Package version" & etd &
         "     <td id='pkgversion'>@PKGVERSION@" & etd &
@@ -588,6 +589,25 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  deprecated_message
+   --------------------------------------------------------------------------------------------
+   function deprecated_message (specs : Portspecs) return String
+   is
+      row1 : HT.Text := HT.SUS (two_cell_row_template);
+      row2 : HT.Text := HT.SUS (two_cell_row_template);
+   begin
+      if HT.IsBlank (specs.deprecated) then
+         return "";
+      end if;
+      row1 := HT.replace_substring (row1, "@CELL1@", "DEPRECATED");
+      row1 := HT.replace_substring (row1, "@CELL2@", HT.USS (specs.deprecated));
+      row2 := HT.replace_substring (row2, "@CELL1@", "Expiration Date");
+      row2 := HT.replace_substring (row2, "@CELL2@", HT.USS (specs.expire_date));
+      return HT.USS (row1) & HT.USS (row2);
+   end deprecated_message;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body
@@ -634,6 +654,7 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@DISTINFO@", retrieve_distinfo (specs, portdir));
       result := HT.replace_substring (result, "@DEPBODY@", dependency_block (specs));
       result := HT.replace_substring (result, "@SITES@", master_sites_block (specs));
+      result := HT.replace_substring (result, "@DEPRECATED@", deprecated_message (specs));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);

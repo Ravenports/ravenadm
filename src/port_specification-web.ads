@@ -74,4 +74,7 @@ private
    --  Constructs the rows of the master site groups and the sites it contains
    function master_sites_block (specs : Portspecs) return String;
 
+   --  Constructs optional deprecated message
+   function deprecated_message (specs : Portspecs) return String;
+
 end Port_Specification.Web;
