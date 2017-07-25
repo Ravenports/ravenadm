@@ -194,8 +194,7 @@ package body Port_Specification.Web is
         " <div id='options'>" & LAT.LF &
         "  <div id='optiontitle'>" &
         "Configuration Switches (platform- and arch-specific settings discarded)" & ediv &
-        "  <div id='optionblock'>" & LAT.LF &
-        "@OPTIONBLOCK@" & ediv &
+        "  <div id='optionblock'>@OPTIONBLOCK@" & ediv &
         " " & ediv &
         " <div id='dependencies'>" & LAT.LF &
         "  <div id='deptitle'>Package Dependencies by Type" & ediv &
@@ -215,8 +214,7 @@ package body Port_Specification.Web is
         " " & ediv &
         " <div id='distinfo'>" & LAT.LF &
         "  <div id='disttitle'>Distribution File Information" & ediv &
-        "  <div id='distblock'>" & LAT.LF &
-        "@DISTINFO@" & ediv &
+        "  <div id='distblock'>@DISTINFO@" & ediv &
         " </div>";
    begin
       return HT.replace_all (S => raw, reject => LAT.Apostrophe, shiny  => LAT.Quotation);
