@@ -1,0 +1,80 @@
+body {
+  font-family: Helvetica, sans-serif;
+  line-height: normal;
+  font-weight: normal;
+  font-stretch: normal;
+  font-variant: normal;
+  font-size: 14px;
+  padding: 20px;
+  background: #D6DBDF;
+}
+
+#sbt1,
+#pdt2,
+#dpt3,
+#dlt4 {
+    table-layout: fixed;
+    width: 800px;
+}
+
+#sbt1 td,
+#pdt2 td,
+#dpt3 td,
+#dlt4 td {
+    text-align: left;
+    vertical-align: text-top;
+    padding: 1px 3px;
+}
+
+#sbt1 td:nth-child(1),
+#pdt2 td:nth-child(1),
+#dpt3 td:nth-child(1),
+#dlt4 td:nth-child(1) {
+    width: 150px;
+}
+
+#distblock,
+#optionblock,
+#pdt2 tbody td:nth-child(2) {
+    font-family: monospace;
+    white-space: pre;
+}
+tr:nth-child(even) {background: #F6F6F8}
+tr:nth-child(odd) {background: #FEFEFE}
+
+table {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+#optionblock {
+    border: 1px solid black;
+    width: 782px;
+    padding: 8px;
+    background: #FEFEFE;
+}
+
+#distblock {
+    border-top: 1px solid black;
+    padding: 8px;
+}
+
+#pkgdesc,
+#options,
+#dependencies,
+#master_sites,
+#distinfo {
+    margin-top: 20px;
+}
+
+#pdtitle,
+#namebase,
+#optiontitle,
+#mstitle,
+#deptitle,
+#disttitle {
+    font-weight: bold;
+    font-size: 120%;
+    padding-bottom: 2px;
+}
+

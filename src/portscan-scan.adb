@@ -8,23 +8,27 @@ with Ada.Calendar;
 with File_Operations;
 with Port_Specification.Transform;
 with Port_Specification.Json;
+with Port_Specification.Web;
 with Specification_Parser;
 with PortScan.Log;
 with PortScan.Operations;
 with Parameters;
 with Utilities;
+with Replicant;
 with Signals;
 with Unix;
 
 package body PortScan.Scan is
 
    package UTL renames Utilities;
+   package REP renames Replicant;
    package PM  renames Parameters;
    package LOG renames PortScan.Log;
    package OPS renames PortScan.Operations;
    package FOP renames File_Operations;
    package PAR renames Specification_Parser;
    package PST renames Port_Specification.Transform;
+   package WEB renames Port_Specification.Web;
    package PSP renames Port_Specification;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
@@ -61,6 +65,39 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_entire_website
+   --------------------------------------------------------------------------------------------
+   function generate_entire_website
+     (www_site   : String;
+      sysrootver : sysroot_characteristics) return Boolean
+   is
+      good_operation : Boolean;
+      conspiracy     : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      unkindness     : constant String := HT.USS (PM.configuration.dir_unkindness);
+      sharedir       : constant String := host_localbase & "/share/ravenadm";
+      ravencss       : constant String := "/ravenports.css";
+      styledir       : constant String := www_site & "/style";
+   begin
+      --  Override BATCH_MODE setting when we build everything
+      PM.configuration.batch_mode := True;
+
+      --  All scanning done on host system (no need to mount in a slave)
+      prescan_ports_tree (conspiracy, unkindness, sysrootver);
+      prescan_unkindness (unkindness);
+
+      --  pre-place css file
+      DIR.Create_Path (styledir);
+      DIR.Copy_File (sharedir & ravencss, styledir & ravencss);
+
+      --  subcontract web site generation
+      serially_generate_web_pages (www_site   => www_site,
+                                   sysrootver => sysrootver,
+                                   success    => good_operation);
+      return good_operation;
+   end generate_entire_website;
+
+
+   --------------------------------------------------------------------------------------------
    --  prescan_ports_tree
    --------------------------------------------------------------------------------------------
    procedure prescan_ports_tree
@@ -69,8 +106,10 @@ package body PortScan.Scan is
       sysrootver : sysroot_characteristics)
    is
       conspindex_path : constant String := conspiracy & conspindex;
-      max_lots        : constant scanners := get_max_lots;
       custom_avail    : constant Boolean := unkindness /= PM.no_unkindness;
+      --  Disable parallel scanning (not reliable; make one scanner do everything
+      --  max_lots    : constant scanners := get_max_lots;
+      max_lots        : constant scanners := 1;
    begin
       if not DIR.Exists (conspindex_path) then
          raise missing_index with conspindex;
@@ -231,7 +270,9 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure prescan_unkindness (unkindness : String)
    is
-      max_lots : constant scanners := get_max_lots;
+      --  Disable parallel scanning (not reliable; make one scanner do everything
+      --  max_lots : constant scanners := get_max_lots;
+      max_lots : constant scanners := 1;
       bucket   : bucket_code;
    begin
       if unkindness = PM.no_unkindness or else
@@ -332,7 +373,11 @@ package body PortScan.Scan is
             target_port : port_index := subqueue.Element (cursor);
          begin
             if not aborted then
-               populate_port_data (conspiracy, unkindness, target_port, False, sysrootver);
+               populate_port_data (conspiracy   => conspiracy,
+                                   unkindness   => unkindness,
+                                   target       => target_port,
+                                   always_build => False,
+                                   sysrootver   => sysrootver);
                mq_progress (lot) := mq_progress (lot) + 1;
             end if;
          exception
@@ -754,7 +799,11 @@ package body PortScan.Scan is
                raise circular_logic;
             end if;
             if not all_ports (new_target).scanned then
-               populate_port_data (conspiracy, unkindness, new_target, False, sysrootver);
+               populate_port_data (conspiracy   => conspiracy,
+                                   unkindness   => unkindness,
+                                   target       => new_target,
+                                   always_build => False,
+                                   sysrootver   => sysrootver);
                all_ports (new_target).scan_locked := True;
                all_ports (new_target).blocked_by.Iterate (dig'Access);
                all_ports (new_target).scan_locked := False;
@@ -795,7 +844,11 @@ package body PortScan.Scan is
             --  This can happen when a dpendency is also on the build list.
             return True;
          else
-            populate_port_data (conspiracy, unkindness, target, always_build, sysrootver);
+            populate_port_data (conspiracy   => conspiracy,
+                                unkindness   => unkindness,
+                                target       => target,
+                                always_build => always_build,
+                                sysrootver   => sysrootver);
          end if;
       exception
          when issue : others =>
@@ -1798,4 +1851,111 @@ package body PortScan.Scan is
       DIR.End_Search (pkg_search);
       return result;
    end scan_repository;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_single_page
+   --------------------------------------------------------------------------------------------
+   function generate_single_page
+     (port       : port_index;
+      workzone   : String;
+      www_site   : String;
+      conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics)
+     return Boolean
+   is
+      function calc_dossier return String;
+
+      rec   : port_record renames all_ports (port);
+      nbase : constant String := HT.USS (rec.port_namebase);
+
+      function calc_dossier return String
+      is
+         buildsheet : String := "/bucket_" & rec.bucket & "/" & nbase;
+      begin
+         if rec.unkind_custom then
+            return unkindness & buildsheet;
+         else
+            return conspiracy & buildsheet;
+         end if;
+      end calc_dossier;
+
+      thespec    : PSP.Portspecs;
+      successful : Boolean;
+      html_page  : TIO.File_Type;
+      variant    : constant String := HT.USS (rec.port_variant);
+      page       : constant String := www_site & "/bucket_" & rec.bucket & "/" & nbase & "/" &
+                                      variant & "/index.html";
+      work_dir   : constant String := workzone & "/" & nbase;
+      dossier    : constant String := calc_dossier;
+   begin
+      OPS.parse_and_transform_buildsheet (specification => thespec,
+                                          successful    => successful,
+                                          buildsheet    => dossier,
+                                          variant       => variant,
+                                          portloc       => work_dir,
+                                          excl_targets  => False,
+                                          avoid_dialog  => True,
+                                          for_webpage   => True,
+                                          sysrootver    => sysrootver);
+      if successful then
+         begin
+            FOP.mkdirp_from_filename (page);
+            TIO.Create (File => html_page,
+                        Mode => TIO.Out_File,
+                        Name => page);
+
+            WEB.produce_page (specs   => thespec,
+                              variant => variant,
+                              dossier => html_page,
+                              portdir => work_dir,
+                              devscan => True);
+
+            REP.clear_workzone_directory (nbase);
+            TIO.Close (html_page);
+            return True;
+         exception
+            when issue : others =>
+               if TIO.Is_Open (html_page) then
+                  TIO.Close (html_page);
+               end if;
+               TIO.Put_Line ("WWW: Failed to create " & page);
+         end;
+      else
+         TIO.Put_Line ("WWW: Failed to parse " & dossier);
+      end if;
+      return False;
+   end generate_single_page;
+
+
+   --------------------------------------------------------------------------------------------
+   --  serially_generate_web_pages
+   --------------------------------------------------------------------------------------------
+   procedure serially_generate_web_pages
+     (www_site   : String;
+      sysrootver : sysroot_characteristics;
+      success    : out Boolean)
+   is
+      all_good   : Boolean := True;
+      workzone   : constant String := REP.get_workzone_path;
+      conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
+   begin
+      REP.launch_workzone;
+      for x in 0 .. last_port loop
+         if not generate_single_page (port       => x,
+                                      workzone   => workzone,
+                                      www_site   => www_site,
+                                      conspiracy => conspiracy,
+                                      unkindness => unkindness,
+                                      sysrootver => sysrootver)
+         then
+            all_good := False;
+         end if;
+      end loop;
+      REP.destroy_workzone;
+      success := all_good;
+   end serially_generate_web_pages;
+
 end PortScan.Scan;

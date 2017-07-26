@@ -53,6 +53,13 @@ package PortScan.Scan is
    --  file names in the container.  Returns False if no packages are found.
    function scan_repository (repository : String) return Boolean;
 
+   --  Scans conspiracy + unkindness and generates a website at the given directory
+   --  Generate a web page for every single active port
+   --  Obsolete web pages are not removed, but no links will reference them
+   function generate_entire_website
+     (www_site   : String;
+      sysrootver : sysroot_characteristics) return Boolean;
+
 private
 
    type dependency_type is (build, buildrun, runtime, extra_runtime);
@@ -142,5 +149,22 @@ private
 
    --  Set the portlist as if the user provided a list of every port via command line
    procedure set_portlist_to_everything;
+
+   --  Loop to generate all webpages (includes custom ports)
+   procedure serially_generate_web_pages
+     (www_site   : String;
+      sysrootver : sysroot_characteristics;
+      success    : out Boolean);
+
+   --  Single web page generator (called by parent loop)
+   --  Returns true if web page generation was successful
+   function generate_single_page
+     (port       : port_index;
+      workzone   : String;
+      www_site   : String;
+      conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics)
+     return Boolean;
 
 end PortScan.Scan;

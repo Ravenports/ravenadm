@@ -14,7 +14,7 @@ procedure Ravenadm is
 
    type mandate_type is (unset, help, dev, build, build_everything, force, test, test_everything,
                          status, status_everything, configure, locate, purge, changeopts,
-                         checkports, portsnap, repository, list_subpackages);
+                         checkports, portsnap, repository, list_subpackages, website);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web);
 
    procedure scan_first_command_word;
@@ -62,6 +62,8 @@ procedure Ravenadm is
          mandate := repository;
       elsif first = "subpackages" then
          mandate := list_subpackages;
+      elsif first = "generate-website" then
+         mandate := website;
       end if;
    end scan_first_command_word;
 
@@ -278,6 +280,12 @@ begin
          then
             Pilot.perform_bulk_run (testmode => True);
          end if;
+
+      when website =>
+         --------------------------------
+         --  generate-website command
+         --------------------------------
+         Pilot.generate_website;
 
       when force =>
          --------------------------------

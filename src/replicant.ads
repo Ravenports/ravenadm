@@ -55,6 +55,9 @@ package Replicant is
    --  Return path to the workzone
    function get_workzone_path return String;
 
+   --  Destroy subdirectory of workzone
+   procedure clear_workzone_directory (subpath : String);
+
 private
 
    package HT  renames HelperText;

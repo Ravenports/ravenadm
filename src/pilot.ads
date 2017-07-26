@@ -22,6 +22,7 @@ package Pilot is
                                 optional_variant : String);
    procedure generate_buildsheet (sourcedir    : String;
                                   save_command : String);
+   procedure generate_website;
 
    --  Return True when TERM is defined in environment (required)
    function TERM_defined_in_environment return Boolean;

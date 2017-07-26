@@ -879,6 +879,17 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  clear_workzone_directory
+   --------------------------------------------------------------------------------------------
+   procedure clear_workzone_directory (subpath : String)
+   is
+      zone_base : constant String := get_workzone_path;
+   begin
+      annihilate_directory_tree (zone_base & "/" & subpath);
+   end clear_workzone_directory;
+
+
+   --------------------------------------------------------------------------------------------
    --  launch_slave
    --------------------------------------------------------------------------------------------
    procedure launch_slave  (id : builders; need_procfs : Boolean := False)

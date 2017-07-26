@@ -88,7 +88,7 @@ package body Port_Specification.Web is
    is
       bing : constant String := LAT.Greater_Than_Sign & LAT.LF;
       content : constant String := "Ravenports individual port description";
-      csslink : constant String := "../../style/ravenports.css";
+      csslink : constant String := "../../../style/ravenports.css";
    begin
       return
         "<!doctype html" & bing &
@@ -546,10 +546,7 @@ package body Port_Specification.Web is
       is
          lnk : constant String := link (site, "sitelink", site);
       begin
-         if HT.contains (site, ":") and then
-           not HT.leads (site, "GITHUB/") and then
-           not HT.leads (site, "GH/")
-         then
+         if HT.contains (site, "://") then
             return lnk;
          else
             return "mirror://" & site;

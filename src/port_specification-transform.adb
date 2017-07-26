@@ -401,10 +401,10 @@ package body Port_Specification.Transform is
          if specs.options_on.Contains (all_text) then
             specs.options_on.Element (all_text).list.Iterate (Process => varstd_set'Access);
          end if;
+         if specs.options_on.Contains (arch_text) then
+            specs.options_on.Element (arch_text).list.Iterate (Process => varstd_set'Access);
+         end if;
          if not specs.skip_opsys_dep then
-            if specs.options_on.Contains (arch_text) then
-               specs.options_on.Element (arch_text).list.Iterate (Process => varstd_set'Access);
-            end if;
             if specs.options_on.Contains (opsys_text) then
                specs.options_on.Element (opsys_text).list.Iterate (Process => opsys_set'Access);
             end if;

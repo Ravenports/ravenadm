@@ -1366,4 +1366,22 @@ package body Pilot is
 
    end check_that_ravenadm_is_modern_enough;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_website
+   --------------------------------------------------------------------------------------------
+   procedure generate_website
+   is
+      www_site : constant String := HT.USS (PM.configuration.dir_profile) & "/www";
+   begin
+      if not DIR.Exists (www_site) then
+         DIR.Create_Path (www_site);
+      end if;
+      if SCN.generate_entire_website (www_site, sysrootver) then
+         TIO.Put_Line ("The web site generation is complete.");
+      else
+         TIO.Put_Line ("The web site generation was not entirely successful.");
+      end if;
+   end generate_website;
+
 end Pilot;
