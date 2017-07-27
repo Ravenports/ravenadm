@@ -76,6 +76,8 @@ package body PortScan.Scan is
       unkindness     : constant String := HT.USS (PM.configuration.dir_unkindness);
       sharedir       : constant String := host_localbase & "/share/ravenadm";
       ravencss       : constant String := "/ravenports.css";
+      ravenpng       : constant String := "/raven-project.png";
+      ravenboxpng    : constant String := "/ravenports-200.png";
       styledir       : constant String := www_site & "/style";
    begin
       --  Override BATCH_MODE setting when we build everything
@@ -88,6 +90,8 @@ package body PortScan.Scan is
       --  pre-place css file
       DIR.Create_Path (styledir);
       DIR.Copy_File (sharedir & ravencss, styledir & ravencss);
+      DIR.Copy_File (sharedir & ravenpng, styledir & ravenpng);
+      DIR.Copy_File (sharedir & ravenboxpng, styledir & ravenboxpng);
 
       --  subcontract web site generation
       serially_generate_web_pages (www_site   => www_site,

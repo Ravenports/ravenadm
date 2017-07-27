@@ -5,7 +5,7 @@ body {
   font-stretch: normal;
   font-variant: normal;
   font-size: 14px;
-  padding: 10px 20px 20px;
+  padding: 10px 20px 0px;
   background: #D6DBDF;
 }
 
@@ -59,6 +59,12 @@ table {
     padding: 8px;
 }
 
+#footer {
+    margin-top: 20px;
+    border-top: 1px solid black;
+    line-height: 30px;
+}
+
 #pkgdesc,
 #options,
 #dependencies,
@@ -91,7 +97,7 @@ table {
 }
 
 #namebase {
-   background-image: url(raven.png);
+   background-image: url(raven-project.png);
    background-repeat: no-repeat;
    height: 90px;
    font-size: 200%;
@@ -101,4 +107,8 @@ table {
    padding: 0 0 0 60px;
    text-align: center;
    line-height: 70px;
+}
+
+.footlink {
+   text-decoration: none;
 }
