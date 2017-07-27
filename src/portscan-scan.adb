@@ -1858,6 +1858,107 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
+   --  store_port_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure store_port_dependencies
+     (port       : port_index;
+      conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics)
+   is
+      function calc_dossier return String;
+
+      rec   : port_record renames all_ports (port);
+      nbase : constant String := HT.USS (rec.port_namebase);
+
+      function calc_dossier return String
+      is
+         buildsheet : String := "/bucket_" & rec.bucket & "/" & nbase;
+      begin
+         if rec.unkind_custom then
+            return unkindness & buildsheet;
+         else
+            return conspiracy & buildsheet;
+         end if;
+      end calc_dossier;
+
+      thespec    : PSP.Portspecs;
+      successful : Boolean;
+      dossier    : constant String := calc_dossier;
+      variant    : constant String := HT.USS (rec.port_variant);
+   begin
+      OPS.parse_and_transform_buildsheet (specification => thespec,
+                                          successful    => successful,
+                                          buildsheet    => dossier,
+                                          variant       => variant,
+                                          portloc       => "",
+                                          excl_targets  => True,
+                                          avoid_dialog  => True,
+                                          for_webpage   => False,
+                                          sysrootver    => sysrootver);
+      if not successful then
+         --  fail silently.  The issue is caught in pass #2
+         return;
+      end if;
+
+      all_ports (port).ignore_reason := HT.SUS (thespec.get_tagline (variant));
+      all_ports (port).port_namebase := HT.SUS (nbase);
+      all_ports (port).port_variant  := HT.SUS (variant);
+      all_ports (port).scanned       := True;
+
+      for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
+         populate_set_depends (port, thespec.get_list_item (PSP.sp_build_deps, item), build);
+      end loop;
+      for item in Positive range 1 .. thespec.get_list_length (PSP.sp_buildrun_deps) loop
+         populate_set_depends (port, thespec.get_list_item (PSP.sp_buildrun_deps, item), buildrun);
+      end loop;
+      for item in Positive range 1 .. thespec.get_list_length (PSP.sp_run_deps) loop
+         populate_set_depends (port, thespec.get_list_item (PSP.sp_run_deps, item), runtime);
+      end loop;
+
+      for item in Positive range 1 .. thespec.get_subpackage_length (variant) loop
+         declare
+            subpackage : String := thespec.get_subpackage_item (variant, item);
+         begin
+            for subitem in Positive range 1 .. thespec.get_number_extra_run (subpackage) loop
+               declare
+                  dep : String := thespec.get_extra_runtime (subpackage, subitem);
+               begin
+                  populate_set_depends (port, dep, extra_runtime);
+               end;
+            end loop;
+         end;
+      end loop;
+   end store_port_dependencies;
+
+
+   --------------------------------------------------------------------------------------------
+   --  blocked_text_block
+   --------------------------------------------------------------------------------------------
+   function blocked_text_block (port : port_index) return String
+   is
+      procedure scan (position : block_crate.Cursor);
+
+      result : HT.Text;
+
+      procedure scan (position : block_crate.Cursor)
+      is
+         blocked : port_index renames block_crate.Element (position);
+         namebase : constant String := HT.USS (all_ports (blocked).port_namebase);
+         variant  : constant String := HT.USS (all_ports (blocked).port_variant);
+         bucket   : constant String := "bucket_" & UTL.bucket (namebase);
+      begin
+         HT.SU.Append (result, get_port_variant (all_ports (blocked)) & ";" &
+                         "../../../" & bucket & "/" & namebase & "/" & variant & ";" &
+                         HT.USS (all_ports (blocked).ignore_reason) & LAT.LF);
+      end scan;
+   begin
+      all_ports (port).blocks.Iterate (scan'Access);
+      return HT.USS (result);
+   end blocked_text_block;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_single_page
    --------------------------------------------------------------------------------------------
    function generate_single_page
@@ -1914,6 +2015,7 @@ package body PortScan.Scan is
                               variant => variant,
                               dossier => html_page,
                               portdir => work_dir,
+                              blocked => blocked_text_block (port),
                               devscan => True);
 
             REP.clear_workzone_directory (nbase);
@@ -1946,6 +2048,13 @@ package body PortScan.Scan is
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
    begin
+      for x in 0 .. last_port loop
+         store_port_dependencies (port       => x,
+                                  conspiracy => conspiracy,
+                                  unkindness => unkindness,
+                                  sysrootver => sysrootver);
+      end loop;
+      iterate_reverse_deps;
       REP.launch_workzone;
       for x in 0 .. last_port loop
          if not generate_single_page (port       => x,

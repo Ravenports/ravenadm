@@ -12,7 +12,8 @@ body {
 #sbt1,
 #pdt2,
 #dpt3,
-#dlt4 {
+#dlt4,
+#ust5 {
     table-layout: fixed;
     width: 800px;
 }
@@ -20,7 +21,8 @@ body {
 #sbt1 td,
 #pdt2 td,
 #dpt3 td,
-#dlt4 td {
+#dlt4 td,
+#ust5 td {
     text-align: left;
     vertical-align: text-top;
     padding: 1px 3px;
@@ -32,6 +34,7 @@ body {
 #dlt4 td:nth-child(1) {
     width: 150px;
 }
+#ust5 td { width: 50% }
 
 #distblock,
 #optionblock,
@@ -45,6 +48,10 @@ tr:nth-child(odd) {background: #FEFEFE}
 table {
     border: 1px solid black;
     border-collapse: collapse;
+}
+
+table a {
+   text-decoration: none;
 }
 
 #optionblock {
@@ -69,7 +76,8 @@ table {
 #options,
 #dependencies,
 #master_sites,
-#distinfo {
+#distinfo,
+#upstream {
     margin-top: 20px;
 }
 
@@ -77,10 +85,17 @@ table {
 #optiontitle,
 #mstitle,
 #deptitle,
-#disttitle {
+#disttitle,
+#ustitle {
     font-weight: bold;
     font-size: 120%;
     padding-bottom: 2px;
+}
+
+#upstream_inner {
+   width: 820px;
+   height: 300px;
+   overflow: auto;
 }
 
 #namebase1 {

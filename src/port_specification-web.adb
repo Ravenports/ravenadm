@@ -3,6 +3,7 @@
 
 with Ada.Characters.Latin_1;
 with Ada.Directories;
+with Ada.Exceptions;
 with File_Operations;
 with Utilities;
 
@@ -22,10 +23,11 @@ package body Port_Specification.Web is
       variant : String;
       dossier : TIO.File_Type;
       portdir : String;
+      blocked : String;
       devscan : Boolean) is
    begin
       TIO.Put_Line (dossier, page_header ("Ravenport: " & specs.get_namebase));
-      TIO.Put_Line (dossier, generate_body (specs, variant, portdir, devscan));
+      TIO.Put_Line (dossier, generate_body (specs, variant, portdir, blocked, devscan));
       TIO.Put_Line (dossier, page_footer);
    end produce_page;
 
@@ -223,6 +225,16 @@ package body Port_Specification.Web is
         " <div id='distinfo'>" & LAT.LF &
         "  <div id='disttitle'>Distribution File Information" & ediv &
         "  <div id='distblock'>@DISTINFO@" & ediv &
+        " " & ediv &
+        " <div id='upstream'>" & LAT.LF &
+        "  <div id='ustitle'>Ports that require @NAMEBASE@:@VARIANT@" & ediv &
+        "  <div id='upstream_inner'>" & LAT.LF &
+        "  <table id='ust5'>" & LAT.LF &
+        "   <tbody>" & LAT.LF &
+        "@UPSTREAM@" &
+        "   </tbody>" & LAT.LF &
+        "  </table>" & LAT.LF &
+        " " & ediv &
         " </div>";
    begin
       return HT.replace_all (S => raw, reject => LAT.Apostrophe, shiny  => LAT.Quotation);
@@ -752,12 +764,47 @@ package body Port_Specification.Web is
 
 
    --------------------------------------------------------------------------------------------
+   --  upstream
+   --------------------------------------------------------------------------------------------
+   function upstream (blocked : String) return String
+   is
+      markers : HT.Line_Markers;
+      result  : HT.Text;
+   begin
+      if HT.IsBlank (blocked) then
+         return "<tr><td>No other ports depend on this one.</td></tr>" & LAT.LF;
+      end if;
+      HT.initialize_markers (blocked, markers);
+      loop
+         exit when not HT.next_line_present (blocked, markers);
+         declare
+            line : constant String := HT.extract_line (blocked, markers);
+            cell : constant String := HT.specific_field (line, 1, ";");
+            href : constant String := HT.specific_field (line, 2, ";");
+            lnk  : constant String := link (href, "upslink", cell);
+            row1 : HT.Text := HT.SUS (two_cell_row_template);
+         begin
+            row1 := HT.replace_substring (row1, "@CELL1@", lnk);
+            row1 := HT.replace_substring (row1, "@CELL2@", HT.specific_field (line, 3, ";"));
+            HT.SU.Append (result, row1);
+         end;
+      end loop;
+      return HT.USS (result);
+   exception
+      when issue : others =>
+         return "<tr><td>" & Ada.Exceptions.Exception_Message (issue) & "</td></tr>" & LAT.LF &
+           "<tr><td>" & blocked & "</td></tr>" & LAT.LF;
+   end upstream;
+
+
+   --------------------------------------------------------------------------------------------
    --  generate_body
    --------------------------------------------------------------------------------------------
    function generate_body
      (specs   : Portspecs;
       variant : String;
       portdir : String;
+      blocked : String;
       devscan : Boolean) return String
    is
       result   : HT.Text := HT.SUS (body_template);
@@ -783,6 +830,8 @@ package body Port_Specification.Web is
               "histlink", "History");
    begin
       result := HT.replace_substring (result, "@NAMEBASE@", namebase);
+      result := HT.replace_substring (result, "@NAMEBASE@", namebase);
+      result := HT.replace_substring (result, "@VARIANT@", variant);
       result := HT.replace_substring (result, "@VARIANT@", variant);
       result := HT.replace_substring (result, "@HOMEPAGE@", homepage);
       result := HT.replace_substring (result, "@TAGLINE@", tagline);
@@ -804,6 +853,7 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@ONLY_PLATFORM@", inclusive_platform (specs));
       result := HT.replace_substring (result, "@EXC_PLATFORM@", exclusive_platform (specs));
       result := HT.replace_substring (result, "@EXC_ARCH@", exclusive_arch (specs));
+      result := HT.replace_substring (result, "@UPSTREAM@", upstream (blocked));
       result := HT.replace_substring
         (result, "@DESCBODY@", subpackage_description_block (specs, namebase, variant, portdir));
       return HT.USS (result);

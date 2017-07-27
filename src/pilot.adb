@@ -292,6 +292,7 @@ package body Pilot is
                            variant => get_variant,
                            dossier => TIO.Standard_Output,
                            portdir => REP.get_workzone_path,
+                           blocked => "",
                            devscan => True);
       else
          TIO.Put_Line (errprefix & "Failed to parse " & dossier);

@@ -15,6 +15,7 @@ package Port_Specification.Web is
       variant : String;
       dossier : TIO.File_Type;
       portdir : String;
+      blocked : String;
       devscan : Boolean);
 
 private
@@ -46,6 +47,7 @@ private
      (specs   : Portspecs;
       variant : String;
       portdir : String;
+      blocked : String;
       devscan : Boolean) return String;
 
    --  html format WWW reference
@@ -90,5 +92,8 @@ private
 
    --  Construct "exclude architecture" block
    function exclusive_arch (specs : Portspecs) return String;
+
+   --  Construct "these ports depend on this" block
+   function upstream (blocked : String) return String;
 
 end Port_Specification.Web;

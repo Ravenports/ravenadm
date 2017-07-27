@@ -150,6 +150,12 @@ private
    --  Set the portlist as if the user provided a list of every port via command line
    procedure set_portlist_to_everything;
 
+   --  create a block of upstream ports.  Each line is semi-colon delimited.
+   --  The first field is namebase-variant
+   --  The second field is the relative link
+   --  The third field is the tagline
+   function blocked_text_block (port : port_index) return String;
+
    --  Loop to generate all webpages (includes custom ports)
    procedure serially_generate_web_pages
      (www_site   : String;
@@ -165,6 +171,14 @@ private
       conspiracy : String;
       unkindness : String;
       sysrootver : sysroot_characteristics)
-     return Boolean;
+      return Boolean;
+
+   --  Extract dependencies, store them
+   --  Web site generation requires two complete passes
+   procedure store_port_dependencies
+     (port       : port_index;
+      conspiracy : String;
+      unkindness : String;
+      sysrootver : sysroot_characteristics);
 
 end PortScan.Scan;
