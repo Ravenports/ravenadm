@@ -161,8 +161,8 @@ package body Port_Specification.Web is
         "     <td id='keywords'>@KEYWORDS@" & etd &
         "    " & etr &
         "    " & btr &
-        "     <td>Maintainers" & etd &
-        "     <td id='maintainers'>@MAINTAINER@" & etd &
+        "     <td>Maintainer" & etd &
+        "     <td id='maintainer'>@MAINTAINER@" & etd &
         "    " & etr &
         "    " & btr &
         "     <td>License" & etd &
@@ -193,7 +193,7 @@ package body Port_Specification.Web is
         " " & ediv &
         " <div id='options'>" & LAT.LF &
         "  <div id='optiontitle'>" &
-        "Configuration Switches (platform- and arch-specific settings discarded)" & ediv &
+        "Configuration Switches (platform-specific settings discarded)" & ediv &
         "  <div id='optionblock'>@OPTIONBLOCK@" & ediv &
         " " & ediv &
         " <div id='dependencies'>" & LAT.LF &
@@ -428,7 +428,7 @@ package body Port_Specification.Web is
             namebase : String := HT.specific_field (dep, 1, ":");
             bucket   : String := UTL.bucket (namebase);
             variant  : String := HT.specific_field (dep, 3, ":");
-            href     : String := "../../bucket_" & bucket & "/" & namebase & "/" & variant;
+            href     : String := "../../../bucket_" & bucket & "/" & namebase & "/" & variant;
             value    : String := dep & " (" & HT.USS (spkg) & " subpackage)";
             lnk      : String := link (href, "deplink", value);
          begin
@@ -445,7 +445,7 @@ package body Port_Specification.Web is
             namebase : String := HT.specific_field (dep, 1, ":");
             bucket   : String := UTL.bucket (namebase);
             variant  : String := HT.specific_field (dep, 3, ":");
-            href     : String := "../../bucket_" & bucket & "/" & namebase & "/" & variant;
+            href     : String := "../../../bucket_" & bucket & "/" & namebase & "/" & variant;
             value    : String := dep & " (" & HT.USS (def_crate.Element (position)) & ")";
             lnk      : String := link (href, "deplink", value);
          begin
@@ -478,7 +478,7 @@ package body Port_Specification.Web is
                namebase : String := HT.specific_field (dep, 1, ":");
                bucket   : String := UTL.bucket (namebase);
                variant  : String := HT.specific_field (dep, 3, ":");
-               href     : String := "../../bucket_" & bucket & "/" & namebase & "/" & variant;
+               href     : String := "../../../bucket_" & bucket & "/" & namebase & "/" & variant;
                lnk      : String := link (href, "deplink", dep);
             begin
                if x = 1 then

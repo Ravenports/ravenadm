@@ -5,7 +5,7 @@ body {
   font-stretch: normal;
   font-variant: normal;
   font-size: 14px;
-  padding: 20px;
+  padding: 10px 20px 20px;
   background: #D6DBDF;
 }
 
@@ -68,7 +68,6 @@ table {
 }
 
 #pdtitle,
-#namebase,
 #optiontitle,
 #mstitle,
 #deptitle,
@@ -78,3 +77,28 @@ table {
     padding-bottom: 2px;
 }
 
+#namebase1 {
+   background-image: url(ravenports-200.png);
+   background-repeat: no-repeat;
+   height: 160px;
+   font-size: 200%;
+   font-weight: bold;
+   color: #148F77;
+   width: 800px;
+   padding: 0 0 0 100px;
+   text-align: center;
+   line-height: 140px;
+}
+
+#namebase {
+   background-image: url(raven.png);
+   background-repeat: no-repeat;
+   height: 90px;
+   font-size: 200%;
+   font-weight: bold;
+   color: #148F77;
+   width: 800px;
+   padding: 0 0 0 60px;
+   text-align: center;
+   line-height: 70px;
+}
