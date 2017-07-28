@@ -3,8 +3,11 @@
 
 with Definitions; use Definitions;
 with HelperText;
+with Ada.Calendar;
 
 package Utilities is
+
+   package CAL renames Ada.Calendar;
 
    bad_input : exception;
 
@@ -67,5 +70,8 @@ package Utilities is
 
    --  Quickly formats open square or closed square brack for json array definition
    function json_array (initiating : Boolean; padding : Natural) return String;
+
+   --  Convert a string of digits representing unix epoch into Ada Time type
+   function convert_unixtime (unix_string : String) return CAL.Time;
 
 end Utilities;

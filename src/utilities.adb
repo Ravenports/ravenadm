@@ -3,6 +3,8 @@
 
 with GNAT.SHA1;
 with Ada.Characters.Latin_1;
+with Ada.Calendar.Conversions;
+with Interfaces.C;
 
 package body Utilities is
 
@@ -281,6 +283,22 @@ package body Utilities is
       end if;
       return pad & LAT.LF;
    end json_array;
+
+
+   --------------------------------------------------------------------------------------------
+   --  convert_unixtime
+   --------------------------------------------------------------------------------------------
+   function convert_unixtime (unix_string : String) return CAL.Time
+   is
+      clong : Interfaces.C.long;
+   begin
+      clong := Interfaces.C.long'Value (unix_string);
+      return CAL.Conversions.To_Ada_Time (Unix_Time => clong);
+   exception
+      when others => return CAL.Time_Of (Year    => 1980,
+                                         Month   => 1,
+                                         Day     => 1);
+   end convert_unixtime;
 
 
 end Utilities;

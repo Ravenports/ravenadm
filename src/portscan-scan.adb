@@ -33,7 +33,6 @@ package body PortScan.Scan is
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package EX  renames Ada.Exceptions;
-   package CAL renames Ada.Calendar;
 
    --------------------------------------------------------------------------------------------
    --  scan_entire_ports_tree
@@ -2058,6 +2057,7 @@ package body PortScan.Scan is
       workzone   : constant String := REP.get_workzone_path;
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
+      crate      : dates_crate.Map;
    begin
       for x in 0 .. last_port loop
          store_port_dependencies (port       => x,
@@ -2066,6 +2066,7 @@ package body PortScan.Scan is
                                   sysrootver => sysrootver);
       end loop;
       iterate_reverse_deps;
+      scan_port_dates (conspiracy, crate);
       REP.launch_workzone;
       for x in 0 .. last_port loop
          if not generate_single_page (port       => x,
@@ -2081,5 +2082,42 @@ package body PortScan.Scan is
       REP.destroy_workzone;
       success := all_good;
    end serially_generate_web_pages;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scan_port_dates
+   --------------------------------------------------------------------------------------------
+   procedure scan_port_dates
+     (conspiracy : String;
+      crate      : in out dates_crate.Map) is
+   begin
+      crate.Clear;
+      declare
+         filename : constant String := conspiracy & "/" & port_dates;
+         contents : constant String := FOP.get_file_contents (filename);
+         markers  : HT.Line_Markers;
+      begin
+         HT.initialize_markers (contents, markers);
+         loop
+            exit when not HT.next_line_present (contents, markers);
+            declare
+               line   : constant String := HT.extract_line (contents, markers);
+               key    : constant String := HT.specific_field (line, 1);
+               date1  : constant String := HT.specific_field (line, 2);
+               date2  : constant String := HT.specific_field (line, 3);
+               newrec : port_dates_record;
+            begin
+               newrec.creation := UTL.convert_unixtime (date1);
+               newrec.lastmod  := UTL.convert_unixtime (date2);
+               crate.Insert (HT.SUS (key), newrec);
+            exception
+               when others => null;
+            end;
+         end loop;
+      exception
+         when issue : others =>
+            TIO.Put_Line ("WARNING: Failed to ingest " & port_dates & " file");
+      end;
+   end scan_port_dates;
 
 end PortScan.Scan;

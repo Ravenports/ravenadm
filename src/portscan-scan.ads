@@ -1,6 +1,8 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+private with Ada.Calendar;
+
 package PortScan.Scan is
 
    missing_index  : exception;
@@ -62,13 +64,28 @@ package PortScan.Scan is
 
 private
 
+   package CAL renames Ada.Calendar;
+
    type dependency_type is (build, buildrun, runtime, extra_runtime);
    subtype LR_set is dependency_type range buildrun .. extra_runtime;
    type verdiff is (newbuild, rebuild, change);
    subtype AF is Integer range 0 .. 15;
    type disktype is mod 2**64;
 
-   conspindex    : constant String := "/Mk/Misc/conspiracy_variants";
+   conspindex : constant String := "/Mk/Misc/conspiracy_variants";
+   port_dates : constant String := "/Mk/Misc/port_dates";
+
+   type port_dates_record is
+      record
+         creation : CAL.Time;
+         lastmod  : CAL.Time;
+      end record;
+
+   package dates_crate is new CON.Hashed_Maps
+     (Key_Type        => HT.Text,
+      Element_Type    => port_dates_record,
+      Hash            => port_hash,
+      Equivalent_Keys => HT.equivalent);
 
    --  subroutines for populate_port_data
    procedure prescan_ports_tree
@@ -180,5 +197,10 @@ private
       conspiracy : String;
       unkindness : String;
       sysrootver : sysroot_characteristics);
+
+   --  Slurp creation and last-modification timestamp of each port
+   procedure scan_port_dates
+     (conspiracy : String;
+      crate      : in out dates_crate.Map);
 
 end PortScan.Scan;
