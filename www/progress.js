@@ -155,8 +155,8 @@ function skip_info (result, info) {
 }
 
 function originlink (bucket, origin) {
-	var parts = origin.split('/');
-	var ravenlink = '<a title="portsmon for "' + origin +
+	var parts = origin.split(':');
+	var ravenlink = '<a title="Port description of "' + origin +
 	'" href="http://ravenports.ironwolf.systems/bucket_' +
 	bucket + '/' + parts[0] + '/' + parts[1] + '">' + origin + '</a>';
 	return ravenlink;
