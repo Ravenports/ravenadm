@@ -2262,12 +2262,16 @@ package body PortScan.Operations is
       idle_slaves  : constant dim_builder_state := (others => idle);
       reportdir    : constant String := HT.USS (PM.configuration.dir_logs);
       sharedir     : constant String := host_localbase & "/share/ravenadm";
+      ravenlogo    : constant String := "/raven-project.png";
+      favicon      : constant String := "/favicon.png";
+      webjs        : constant String := "/progress.js";
+      webcss       : constant String := "/progress.css";
    begin
       DIR.Create_Path (reportdir);
-      DIR.Copy_File (sharedir & "/raven.png",     reportdir & "/raven.png");
-      DIR.Copy_File (sharedir & "/favicon.png",   reportdir & "/favicon.png");
-      DIR.Copy_File (sharedir & "/progress.js",   reportdir & "/progress.js");
-      DIR.Copy_File (sharedir & "/progress.css",  reportdir & "/progress.css");
+      DIR.Copy_File (sharedir & ravenlogo,        reportdir & ravenlogo);
+      DIR.Copy_File (sharedir & favicon,          reportdir & favicon);
+      DIR.Copy_File (sharedir & webjs,            reportdir & webjs);
+      DIR.Copy_File (sharedir & webcss,           reportdir & webcss);
       DIR.Copy_File (sharedir & "/progress.html", reportdir & "/index.html");
       write_summary_json (active            => True,
                           states            => idle_slaves,
