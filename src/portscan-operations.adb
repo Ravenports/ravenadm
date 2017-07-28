@@ -668,7 +668,9 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function nv (name, value : String) return String is
    begin
-      return name & LAT.Colon & LAT.Quotation & value & LAT.Quotation;
+      return
+        LAT.Quotation & name & LAT.Quotation & LAT.Colon &
+        LAT.Quotation & value & LAT.Quotation;
    end nv;
 
 
@@ -677,7 +679,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function nv (name : String; value : Integer) return String is
    begin
-      return name & LAT.Colon & HT.int2str (value);
+      return LAT.Quotation & name & LAT.Quotation & LAT.Colon & HT.int2str (value);
    end nv;
 
 
