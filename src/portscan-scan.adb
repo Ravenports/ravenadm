@@ -1937,23 +1937,36 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    function blocked_text_block (port : port_index) return String
    is
-      procedure scan (position : block_crate.Cursor);
+      procedure scan  (position : block_crate.Cursor);
+      procedure print (position : string_crate.Cursor);
 
       result : HT.Text;
+      tempstore : string_crate.Vector;
 
       procedure scan (position : block_crate.Cursor)
       is
          blocked : port_index renames block_crate.Element (position);
-         namebase : constant String := HT.USS (all_ports (blocked).port_namebase);
-         variant  : constant String := HT.USS (all_ports (blocked).port_variant);
+         pv      : constant String := get_port_variant (all_ports (blocked));
+      begin
+         tempstore.Append (HT.SUS (pv));
+      end scan;
+
+      procedure print (position : string_crate.Cursor)
+      is
+         pvkey  : HT.Text renames string_crate.Element (position);
+         pndx   : constant port_index := ports_keys.Element (pvkey);
+         namebase : constant String := HT.USS (all_ports (pndx).port_namebase);
+         variant  : constant String := HT.USS (all_ports (pndx).port_variant);
          bucket   : constant String := "bucket_" & UTL.bucket (namebase);
       begin
-         HT.SU.Append (result, get_port_variant (all_ports (blocked)) & ";" &
+         HT.SU.Append (result, get_port_variant (all_ports (pndx)) & ";" &
                          "../../../" & bucket & "/" & namebase & "/" & variant & ";" &
-                         HT.USS (all_ports (blocked).ignore_reason) & LAT.LF);
-      end scan;
+                         HT.USS (all_ports (pndx).ignore_reason) & LAT.LF);
+      end print;
    begin
       all_ports (port).blocks.Iterate (scan'Access);
+      sorter.Sort (tempstore);
+      tempstore.Iterate (print'Access);
       return HT.USS (result);
    end blocked_text_block;
 
