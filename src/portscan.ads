@@ -56,6 +56,9 @@ package PortScan is
    --  Returns true if the given ID is valid (e.g. not port_match_failed)
    function valid_port_id (id : port_id) return Boolean;
 
+   --  Given a port ID, attempt to return 2-character bucket
+   function get_bucket (id : port_id) return String;
+
    --  Given an ID and specifying a subpackage, this function returns the package file name.
    function calculate_package_name (id : port_id; subpackage : String) return String;
 

@@ -43,7 +43,8 @@ package body PortScan.Operations is
       procedure text_display (builder : builders; info : String);
       procedure common_display (flavor : count_type; info : String);
       procedure slave_display (flavor : count_type; builder : builders; info : String);
-      function slave_name (slave : builders) return String;
+      function slave_name   (slave : builders) return String;
+      function slave_bucket (slave : builders) return String;
 
       instructions   : dim_instruction   := (others => port_match_failed);
       builder_states : dim_builder_state := (others => idle);
@@ -81,6 +82,11 @@ package body PortScan.Operations is
       begin
          return get_port_variant (instructions (slave));
       end slave_name;
+
+      function slave_bucket (slave : builders) return String is
+      begin
+         return get_bucket (instructions (slave));
+      end slave_bucket;
 
       task type build (builder : builders);
       task body build
@@ -247,6 +253,7 @@ package body PortScan.Operations is
                      end if;
                      record_history_built (elapsed   => LOG.elapsed_now,
                                            slave_id  => slave,
+                                           bucket    => slave_bucket (slave),
                                            origin    => slave_name (slave),
                                            duration  => CYC.elapsed_build (slave));
                      run_package_hook (pkg_success, instructions (slave));
@@ -273,6 +280,7 @@ package body PortScan.Operations is
                      record_history_failed
                        (elapsed   => LOG.elapsed_now,
                         slave_id  => slave,
+                        bucket    => slave_bucket (slave),
                         origin    => slave_name (slave),
                         duration  => CYC.elapsed_build (slave),
                         die_phase => CYC.last_build_phase (slave),
@@ -660,9 +668,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function nv (name, value : String) return String is
    begin
-      return
-        LAT.Quotation & name & LAT.Quotation & LAT.Colon &
-        LAT.Quotation & value & LAT.Quotation;
+      return name & LAT.Colon & LAT.Quotation & value & LAT.Quotation;
    end nv;
 
 
@@ -671,7 +677,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function nv (name : String; value : Integer) return String is
    begin
-      return LAT.Quotation & name & LAT.Quotation & LAT.Colon & HT.int2str (value);
+      return name & LAT.Colon & HT.int2str (value);
    end nv;
 
 
@@ -743,6 +749,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure record_history_ignored
      (elapsed   : String;
+      bucket    : String;
       origin    : String;
       reason    : String;
       skips     : Natural)
@@ -761,6 +768,7 @@ package body PortScan.Operations is
       assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("ID", "--") & LAT.LF);
       assimulate_substring (history, "  ," & nv ("result", "ignored") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("bucket", bucket) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("info", info) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("duration", "--:--:--") & LAT.LF);
@@ -775,6 +783,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure record_history_skipped
      (elapsed   : String;
+      bucket    : String;
       origin    : String;
       reason    : String)
    is
@@ -787,6 +796,7 @@ package body PortScan.Operations is
       assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("ID", "--") & LAT.LF);
       assimulate_substring (history, "  ," & nv ("result", "skipped") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("bucket", bucket) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("info", reason) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("duration", "--:--:--") & LAT.LF);
@@ -802,6 +812,7 @@ package body PortScan.Operations is
    procedure record_history_built
      (elapsed   : String;
       slave_id  : builders;
+      bucket    : String;
       origin    : String;
       duration  : String)
    is
@@ -815,6 +826,7 @@ package body PortScan.Operations is
       assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("ID", ID) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("result", "built") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("bucket", bucket) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("info", "") & LAT.LF);
       assimulate_substring (history, "  ," & nv ("duration", duration) & LAT.LF);
@@ -830,6 +842,7 @@ package body PortScan.Operations is
    procedure record_history_failed
      (elapsed   : String;
       slave_id  : builders;
+      bucket    : String;
       origin    : String;
       duration  : String;
       die_phase : String;
@@ -846,6 +859,7 @@ package body PortScan.Operations is
       assimulate_substring (history, "  ," & nv ("elapsed", elapsed) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("ID", ID)  & LAT.LF);
       assimulate_substring (history, "  ," & nv ("result", "failed") & LAT.LF);
+      assimulate_substring (history, "  ," & nv ("bucket", bucket) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("origin", origin) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("info", info) & LAT.LF);
       assimulate_substring (history, "  ," & nv ("duration", duration) & LAT.LF);
@@ -985,6 +999,7 @@ package body PortScan.Operations is
             LOG.scribe (PortScan.skipped, get_port_variant (purged) & " by " & culprit, False);
             DPY.insert_history (CYC.assemble_history_record (1, purged, DPY.action_skipped));
             record_history_skipped (elapsed => LOG.elapsed_now,
+                                    bucket  => get_bucket (purged),
                                     origin  => get_port_variant (purged),
                                     reason  => culprit);
             run_package_hook (pkg_skipped, purged);

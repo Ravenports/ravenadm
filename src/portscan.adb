@@ -56,6 +56,18 @@ package body PortScan is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_bucket
+   --------------------------------------------------------------------------------------------
+   function get_bucket (id : port_id) return String is
+   begin
+      if id = port_match_failed or else id > last_port then
+         return "XX";
+      end if;
+      return all_ports (id).bucket;
+   end get_bucket;
+
+
+   --------------------------------------------------------------------------------------------
    --  get_port_variant #1
    --------------------------------------------------------------------------------------------
    function get_port_variant (PR : port_record) return String

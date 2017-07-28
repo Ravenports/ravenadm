@@ -777,6 +777,7 @@ package body Pilot is
          OPS.cascade_failed_build (id         => ptid,
                                    numskipped => num_skipped);
          OPS.record_history_ignored (elapsed   => LOG.elapsed_now,
+                                     bucket    => PortScan.get_bucket (ptid),
                                      origin    => PortScan.get_port_variant (ptid),
                                      reason    => PortScan.ignore_reason (ptid),
                                      skips     => num_skipped);

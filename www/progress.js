@@ -154,11 +154,12 @@ function skip_info (result, info) {
 	}
 }
 
-function portsmon (origin) {
+function originlink (bucket, origin) {
 	var parts = origin.split('/');
-	var FPClink = '<a title="portsmon for "' + origin + '" href="http://portsmon.freebsd.org/portoverview.py?category=' + parts[0] + '&portname=' + parts[1] + '">' + origin + '</a>';
-	var NPSlink = '<a title="pkgsrc.se overview" href="http://pkgsrc.se/' + origin + '">' + origin + '</a>';
-	return FPClink;
+	var ravenlink = '<a title="portsmon for "' + origin +
+	'" href="http://ravenports.ironwolf.systems/bucket_' +
+	bucket + '/' + parts[0] + '/' + parts[1] + '">' + origin + '</a>';
+	return ravenlink;
 }
 
 function process_history_file(data, k) {
@@ -169,7 +170,7 @@ function process_history_file(data, k) {
 		trow.push(data[n].elapsed);
 		trow.push('[' + data[n].ID + ']');
 		trow.push(format_result (data[n].result));
-		trow.push(portsmon (data[n].origin));
+		trow.push(originlink (data[n].bucket, data[n].origin));
 		trow.push(information (data[n].result, data[n].origin, data[n].info));
 		trow.push(skip_info (data[n].result, data[n].info));
 		trow.push(data[n].duration);

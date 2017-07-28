@@ -41,6 +41,7 @@ package PortScan.Operations is
    --  Exposed for pilot which eliminated ignored ports during the sanity check
    procedure record_history_ignored
      (elapsed   : String;
+      bucket    : String;
       origin    : String;
       reason    : String;
       skips     : Natural);
@@ -214,18 +215,21 @@ private
 
    procedure record_history_skipped
      (elapsed   : String;
+      bucket    : String;
       origin    : String;
       reason    : String);
 
    procedure record_history_built
      (elapsed   : String;
       slave_id  : builders;
+      bucket    : String;
       origin    : String;
       duration  : String);
 
    procedure record_history_failed
      (elapsed   : String;
       slave_id  : builders;
+      bucket    : String;
       origin    : String;
       duration  : String;
       die_phase : String;
