@@ -83,6 +83,7 @@ package body Information is
            "ravenadm dev                 <subcommand> Ravenports developers' commands" & R &
            "ravenadm force               <origins> (Re)build specified packages" & R &
            "ravenadm generate-repository Generate pkg(8) repository with current packages" & R &
+           "ravenadm generate-website    Generate static website describing ravenports" & R &
            "ravenadm locate              <namebase> List directory location of single port" & R &
            "ravenadm purge-distfiles     Delete obsolete tarballs to reclaim disk space" & R &
            "ravenadm set-options         <namebase> Change port's options via dialog" & R &

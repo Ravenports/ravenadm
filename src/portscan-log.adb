@@ -88,10 +88,13 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    function timestamp (hack : CAL.Time; www_format : Boolean := False) return String
    is
-      function MON   (num : CAL.Month_Number) return String;
-      function WKDAY (day : CFM.Day_Name) return String;
+      function MON (T : CAL.Time) return String;
+      function WKDAY (T : CAL.Time) return String;
+      function daystring (T : CAL.Time) return String;
 
-      function MON (num : CAL.Month_Number) return String is
+      function MON (T : CAL.Time) return String
+      is
+         num : CAL.Month_Number := CAL.Month (T);
       begin
          case num is
             when 1 => return "JAN";
@@ -108,7 +111,10 @@ package body PortScan.Log is
             when 12 => return "DEC";
          end case;
       end MON;
-      function WKDAY (day : CFM.Day_Name) return String is
+
+      function WKDAY (T : CAL.Time) return String
+      is
+         day : CFM.Day_Name := CFM.Day_Of_Week (T);
       begin
          case day is
             when CFM.Monday    => return "Monday";
@@ -120,15 +126,22 @@ package body PortScan.Log is
             when CFM.Sunday    => return "Sunday";
          end case;
       end WKDAY;
+
+      function daystring (T : CAL.Time) return String
+      is
+         daynum : Natural := Natural (CAL.Day (T));
+      begin
+         return HT.zeropad (daynum, 2);
+      end daystring;
+
    begin
       if www_format then
-         return CAL.Day (hack)'Img & " " & MON (CAL.Month (hack)) & CAL.Year (hack)'Img & ", " &
-           CFM.Image (hack)(11 .. 19) & " UTC";
+         return daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
+           "," & CFM.Image (hack)(11 .. 19) & " UTC";
       end if;
 
-      return WKDAY (CFM.Day_Of_Week (hack)) & "," & CAL.Day (hack)'Img & " " &
-        MON (CAL.Month (hack)) & CAL.Year (hack)'Img & " at" &
-        CFM.Image (hack)(11 .. 19) & " UTC";
+      return WKDAY (hack) & "," & daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
+        " at" & CFM.Image (hack)(11 .. 19) & " UTC";
    end timestamp;
 
 

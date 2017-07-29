@@ -6,12 +6,14 @@ with Ada.Directories;
 with Ada.Exceptions;
 with File_Operations;
 with Utilities;
+with PortScan.Log;
 
 package body Port_Specification.Web is
 
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package FOP renames File_Operations;
+   package LOG renames PortScan.Log;
    package UTL renames Utilities;
 
 
@@ -24,10 +26,18 @@ package body Port_Specification.Web is
       dossier : TIO.File_Type;
       portdir : String;
       blocked : String;
+      created : CAL.Time;
+      changed : CAL.Time;
       devscan : Boolean) is
    begin
       TIO.Put_Line (dossier, page_header ("Ravenport: " & specs.get_namebase));
-      TIO.Put_Line (dossier, generate_body (specs, variant, portdir, blocked, devscan));
+      TIO.Put_Line (dossier, generate_body (specs   => specs,
+                                            variant => variant,
+                                            portdir => portdir,
+                                            blocked => blocked,
+                                            created => created,
+                                            changed => changed,
+                                            devscan => devscan));
       TIO.Put_Line (dossier, page_footer);
    end produce_page;
 
@@ -189,6 +199,14 @@ package body Port_Specification.Web is
         "    " & btr &
         "     <td>Ravensource" & etd &
         "     <td id='ravensource'>@LNK_PORT@ | @LNK_HISTORY_PORT@" & etd &
+        "    " & etr &
+        "    " & btr &
+        "     <td>Last modified" & etd &
+        "     <td id='mdate'>@MDATETIME@" & etd &
+        "    " & etr &
+        "    " & btr &
+        "     <td>Port created" & etd &
+        "     <td id='cdate'>@CDATETIME@" & etd &
         "    " & etr &
         "   </tbody>" & LAT.LF &
         "  </table>" & LAT.LF &
@@ -805,6 +823,8 @@ package body Port_Specification.Web is
       variant : String;
       portdir : String;
       blocked : String;
+      created : CAL.Time;
+      changed : CAL.Time;
       devscan : Boolean) return String
    is
       result   : HT.Text := HT.SUS (body_template);
@@ -814,6 +834,8 @@ package body Port_Specification.Web is
       subject  : constant String := "Ravenports:%20" & specs.get_namebase & "%20port";
       homepage : constant String := format_homepage (specs.get_field_value (sp_homepage));
       tagline  : constant String := escape_value (specs.get_tagline (variant));
+      isocdate : constant String := LOG.timestamp (created, True);
+      isomdate : constant String := LOG.timestamp (changed, True);
       licenses : constant String := list_scheme (specs.get_field_value (sp_licenses),
                                                  specs.get_license_scheme);
       lnk_bs   : constant String :=
@@ -839,6 +861,8 @@ package body Port_Specification.Web is
       result := HT.replace_substring (result, "@MAINTAINER@", specs.get_web_contacts (subject));
       result := HT.replace_substring (result, "@KEYWORDS@", specs.get_field_value (sp_keywords));
       result := HT.replace_substring (result, "@LICENSE@", licenses);
+      result := HT.replace_substring (result, "@CDATETIME@", isocdate);
+      result := HT.replace_substring (result, "@MDATETIME@", isomdate);
       result := HT.replace_substring (result, "@LNK_BUILDSHEET@", lnk_bs);
       result := HT.replace_substring (result, "@LNK_HISTORY_BS@", lnk_bshy);
       result := HT.replace_substring (result, "@LNK_PORT@", lnk_port);

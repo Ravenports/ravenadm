@@ -2,12 +2,13 @@
 --  Reference: ../License.txt
 
 with Definitions; use Definitions;
+with Ada.Calendar;
 with Ada.Text_IO;
 
 package Port_Specification.Web is
 
    package TIO renames Ada.Text_IO;
-
+   package CAL renames Ada.Calendar;
 
    --  Convert specification to a static web page written to dossier
    procedure produce_page
@@ -16,6 +17,8 @@ package Port_Specification.Web is
       dossier : TIO.File_Type;
       portdir : String;
       blocked : String;
+      created : CAL.Time;
+      changed : CAL.Time;
       devscan : Boolean);
 
 private
@@ -48,6 +51,8 @@ private
       variant : String;
       portdir : String;
       blocked : String;
+      created : CAL.Time;
+      changed : CAL.Time;
       devscan : Boolean) return String;
 
    --  html format WWW reference

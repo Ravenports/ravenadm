@@ -1977,6 +1977,8 @@ package body PortScan.Scan is
       www_site   : String;
       conspiracy : String;
       unkindness : String;
+      cdatetime  : CAL.Time;
+      mdatetime  : CAL.Time;
       sysrootver : sysroot_characteristics)
      return Boolean
    is
@@ -2026,6 +2028,8 @@ package body PortScan.Scan is
                               dossier => html_page,
                               portdir => work_dir,
                               blocked => blocked_text_block (port),
+                              created => cdatetime,
+                              changed => mdatetime,
                               devscan => True);
 
             REP.clear_workzone_directory (nbase);
@@ -2053,11 +2057,28 @@ package body PortScan.Scan is
       sysrootver : sysroot_characteristics;
       success    : out Boolean)
    is
+      procedure set_timestamps (index : port_index);
+
       all_good   : Boolean := True;
       workzone   : constant String := REP.get_workzone_path;
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
       crate      : dates_crate.Map;
+      cdatetime  : CAL.Time;
+      mdatetime  : CAL.Time;
+
+      procedure set_timestamps (index : port_index)
+      is
+         key : HT.Text := all_ports (index).port_namebase;
+      begin
+         if crate.Contains (key) then
+            cdatetime := crate.Element (key).creation;
+            mdatetime := crate.Element (key).lastmod;
+         else
+            cdatetime := CAL.Time_Of (1970, 1, 1);
+            mdatetime := cdatetime;
+         end if;
+      end set_timestamps;
    begin
       for x in 0 .. last_port loop
          store_port_dependencies (port       => x,
@@ -2069,11 +2090,14 @@ package body PortScan.Scan is
       scan_port_dates (conspiracy, crate);
       REP.launch_workzone;
       for x in 0 .. last_port loop
+         set_timestamps (x);
          if not generate_single_page (port       => x,
                                       workzone   => workzone,
                                       www_site   => www_site,
                                       conspiracy => conspiracy,
                                       unkindness => unkindness,
+                                      cdatetime  => cdatetime,
+                                      mdatetime  => mdatetime,
                                       sysrootver => sysrootver)
          then
             all_good := False;

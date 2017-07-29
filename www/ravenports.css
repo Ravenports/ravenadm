@@ -127,3 +127,8 @@ table a {
 .footlink {
    text-decoration: none;
 }
+
+#cdate, #mdate {
+    font-family: monospace;
+    font-size: 90%;
+}

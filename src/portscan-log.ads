@@ -92,6 +92,9 @@ package PortScan.Log is
    --  Return formatted duration of scan
    function scan_duration return String;
 
+   --  Former private function exposed for web page generator
+   function timestamp (hack : CAL.Time; www_format : Boolean := False) return String;
+
 private
 
    type impulse_rec is
@@ -109,7 +112,6 @@ private
    type dim_impulse  is array (impulse_range) of impulse_rec;
 
    function log_duration (start, stop : CAL.Time) return String;
-   function timestamp (hack : CAL.Time; www_format : Boolean := False) return String;
    function split_collection (line : String; title : String) return String;
 
    procedure dump_port_variables (log_handle : TIO.File_Type; contents : String);

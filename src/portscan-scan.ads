@@ -187,6 +187,8 @@ private
       www_site   : String;
       conspiracy : String;
       unkindness : String;
+      cdatetime  : CAL.Time;
+      mdatetime  : CAL.Time;
       sysrootver : sysroot_characteristics)
       return Boolean;
 

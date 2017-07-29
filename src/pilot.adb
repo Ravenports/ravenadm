@@ -259,6 +259,7 @@ package body Pilot is
       successful : Boolean;
 
       specification : Port_Specification.Portspecs;
+      bogustime     : constant CAL.Time := CAL.Clock;
       dossier       : constant String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
                       UTL.bucket (required_namebase) & "/" & required_namebase;
 
@@ -293,6 +294,8 @@ package body Pilot is
                            dossier => TIO.Standard_Output,
                            portdir => REP.get_workzone_path,
                            blocked => "",
+                           created => bogustime,
+                           changed => bogustime,
                            devscan => True);
       else
          TIO.Put_Line (errprefix & "Failed to parse " & dossier);
