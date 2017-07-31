@@ -1901,6 +1901,7 @@ package body PortScan.Scan is
       all_ports (port).ignore_reason := HT.SUS (thespec.get_tagline (variant));
       all_ports (port).port_namebase := HT.SUS (nbase);
       all_ports (port).port_variant  := HT.SUS (variant);
+      all_ports (port).pkgversion    := HT.SUS (thespec.calculate_pkgversion);
       all_ports (port).scanned       := True;
 
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
@@ -2147,7 +2148,32 @@ package body PortScan.Scan is
    procedure scan_port_dates
      (conspiracy : String;
       crate      : in out dates_crate.Map;
-      catcrate   : in out catalog_crate.Set) is
+      catcrate   : in out catalog_crate.Set)
+   is
+      package lastmod_crate is new CON.Hashed_Maps
+        (Key_Type        => HT.Text,
+         Element_Type    => disktype,
+         Hash            => port_hash,
+         Equivalent_Keys => HT.equivalent);
+
+      procedure build_up_catcrate (index : port_index);
+
+      tempstore : lastmod_crate.Map;
+
+      procedure build_up_catcrate (index : port_index)
+      is
+         tempkey : HT.Text := all_ports (index).port_namebase;
+         newrec  : catalog_record;
+      begin
+         newrec.origin := HT.SUS (get_port_variant (index));
+         if tempstore.Contains (tempkey) then
+            newrec.lastmod64 := tempstore.Element (tempkey);
+         else
+            newrec.lastmod64 := 205329600;  --  dummy: USA bicentennial
+         end if;
+         catcrate.Insert (newrec);
+      end build_up_catcrate;
+
    begin
       crate.Clear;
       declare
@@ -2165,17 +2191,17 @@ package body PortScan.Scan is
                date2  : constant String := HT.specific_field (line, 3);
                keytxt : HT.Text := HT.SUS (key);
                newrec : port_dates_record;
-               nrec2  : catalog_record;
             begin
                newrec.creation  := UTL.convert_unixtime (date1);
                newrec.lastmod   := UTL.convert_unixtime (date2);
-               nrec2.lastmod64  := disktype'Value (date2);
-               nrec2.origin     := keytxt;
                crate.Insert (keytxt, newrec);
-               catcrate.Insert (nrec2);
+               tempstore.Insert (keytxt, disktype'Value (date2));
             exception
                when others => null;
             end;
+         end loop;
+         for x in 0 .. last_port loop
+            build_up_catcrate (x);
          end loop;
       exception
          when issue : others =>
@@ -2239,12 +2265,13 @@ package body PortScan.Scan is
          origin  : constant String := get_port_variant (target);
          pkgver  : constant String := HT.USS (all_ports (target).pkgversion);
          bucket  : constant String := all_ports (target).bucket;
-         tagline : constant String := HT.USS (all_ports (target).ignore_reason);
          tstamp  : constant String := get_lastmod (target);
          sindex  : constant String := HT.int2str (counter);
+         tagline : constant String := HT.replace_all (HT.USS (all_ports (target).ignore_reason),
+                                                      LAT.Quotation, LAT.Apostrophe);
       begin
          HT.SU.Append (result, LAT.HT & "row_assy(" & Q (sindex, True) & Q (bucket) &
-                         Q (origin) & Q (tagline) & Q (tstamp) & ");" & LAT.LF);
+                         Q (origin) & Q (pkgver) & Q (tagline) & Q (tstamp) & ");" & LAT.LF);
          counter := counter + 1;
       end scan;
 
