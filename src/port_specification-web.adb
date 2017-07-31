@@ -120,13 +120,16 @@ package body Port_Specification.Web is
    --------------------------------------------------------------------------------------------
    function page_footer return String
    is
-      bing    : constant String := LAT.Greater_Than_Sign & LAT.LF;
-      linkval : constant String := "Return to Ravenports catalog";
+      bing     : constant String := LAT.Greater_Than_Sign & LAT.LF;
+      link1val : constant String := "Ravenports catalog";
+      link2val : constant String := "Ravenports official site";
    begin
       return
         " <div" & nvpair ("id", "footer") & bing &
         "  <div" & nvpair ("id", "catlink") & ">" &
-        link ("../../../index.html", "footlink", linkval) & "</div" & bing &
+        link ("../../../index.html", "footlink", link1val) & " | " &
+        link ("http://ravenports.ironwolf.systems/", "footlink", link2val) &
+        "</div" & bing &
         " </div" & bing &
         "</body>" & LAT.LF & "</html>";
    end page_footer;

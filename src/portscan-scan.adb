@@ -2136,6 +2136,7 @@ package body PortScan.Scan is
       if all_good then
          if generate_catalog_index (www_site, crate, catcrate) then
             success := True;
+            return;
          end if;
       end if;
       success := False;
