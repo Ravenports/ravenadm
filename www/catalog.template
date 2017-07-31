@@ -31,8 +31,7 @@ function row_assy(entry, bucket, origin, pkgversion, tagline, timestamp) {
 }
 
 function populate_catalog() {
-	row_assy ("1","05","ravenports:dragonfly","20170512_1","Install turnkey Ravenports on DragonFly","25 MAY 2017, 19:14:58");
-	row_assy ("2","95","nss:standard","3.31","Application security development libraries","16 JUN 2017, 02:59:55");
+@ROW_ASSY@
 	$('#catalog_table').dataTable().fnClearTable();
 	$('#catalog_table').dataTable().fnAddData(rowdata);
 }

@@ -21,6 +21,11 @@ package Port_Specification.Web is
       changed : CAL.Time;
       devscan : Boolean);
 
+   --  Create the searchable catalog index
+   function generate_catalog_index
+     (dossier : TIO.File_Type;
+      row_assembly_block : String) return Boolean;
+
 private
 
    --  standard page header used on all pages

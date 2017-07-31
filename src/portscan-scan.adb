@@ -2050,6 +2050,33 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_catalog_index
+   --------------------------------------------------------------------------------------------
+   function generate_catalog_index
+     (www_site : String;
+      crate    : dates_crate.Map;
+      catcrate : catalog_crate.Set) return Boolean
+   is
+      page       : constant String := www_site & "/index.html";
+      successful : Boolean;
+      html_page  : TIO.File_Type;
+   begin
+      TIO.Create (File => html_page,
+                  Mode => TIO.Out_File,
+                  Name => page);
+      successful := WEB.generate_catalog_index (html_page, catalog_row_block (crate, catcrate));
+      TIO.Close (html_page);
+      return successful;
+   exception
+      when issue : others =>
+         if TIO.Is_Open (html_page) then
+            TIO.Close (html_page);
+         end if;
+         return False;
+   end generate_catalog_index;
+
+
+   --------------------------------------------------------------------------------------------
    --  serially_generate_web_pages
    --------------------------------------------------------------------------------------------
    procedure serially_generate_web_pages
@@ -2064,6 +2091,7 @@ package body PortScan.Scan is
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
       crate      : dates_crate.Map;
+      catcrate   : catalog_crate.Set;
       cdatetime  : CAL.Time;
       mdatetime  : CAL.Time;
 
@@ -2087,7 +2115,7 @@ package body PortScan.Scan is
                                   sysrootver => sysrootver);
       end loop;
       iterate_reverse_deps;
-      scan_port_dates (conspiracy, crate);
+      scan_port_dates (conspiracy, crate, catcrate);
       REP.launch_workzone;
       for x in 0 .. last_port loop
          set_timestamps (x);
@@ -2104,7 +2132,12 @@ package body PortScan.Scan is
          end if;
       end loop;
       REP.destroy_workzone;
-      success := all_good;
+      if all_good then
+         if generate_catalog_index (www_site, crate, catcrate) then
+            success := True;
+         end if;
+      end if;
+      success := False;
    end serially_generate_web_pages;
 
 
@@ -2113,7 +2146,8 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure scan_port_dates
      (conspiracy : String;
-      crate      : in out dates_crate.Map) is
+      crate      : in out dates_crate.Map;
+      catcrate   : in out catalog_crate.Set) is
    begin
       crate.Clear;
       declare
@@ -2129,11 +2163,16 @@ package body PortScan.Scan is
                key    : constant String := HT.specific_field (line, 1);
                date1  : constant String := HT.specific_field (line, 2);
                date2  : constant String := HT.specific_field (line, 3);
+               keytxt : HT.Text := HT.SUS (key);
                newrec : port_dates_record;
+               nrec2  : catalog_record;
             begin
-               newrec.creation := UTL.convert_unixtime (date1);
-               newrec.lastmod  := UTL.convert_unixtime (date2);
-               crate.Insert (HT.SUS (key), newrec);
+               newrec.creation  := UTL.convert_unixtime (date1);
+               newrec.lastmod   := UTL.convert_unixtime (date2);
+               nrec2.lastmod64  := disktype'Value (date2);
+               nrec2.origin     := keytxt;
+               crate.Insert (keytxt, newrec);
+               catcrate.Insert (nrec2);
             exception
                when others => null;
             end;
@@ -2143,5 +2182,79 @@ package body PortScan.Scan is
             TIO.Put_Line ("WARNING: Failed to ingest " & port_dates & " file");
       end;
    end scan_port_dates;
+
+
+   --------------------------------------------------------------------------------------------
+   --  "<" for catalog crate ordered sets
+   --------------------------------------------------------------------------------------------
+   function "<" (L, R : catalog_record) return Boolean is
+   begin
+      if L.lastmod64 = R.lastmod64 then
+         return HT.SU.">" (R.origin, L.origin);
+      end if;
+      return L.lastmod64 > R.lastmod64;
+   end "<";
+
+
+   --------------------------------------------------------------------------------------------
+   --  catalog_row_block
+   --------------------------------------------------------------------------------------------
+   function catalog_row_block
+     (crate    : dates_crate.Map;
+      catcrate : catalog_crate.Set) return String
+   is
+      procedure scan (position : catalog_crate.Cursor);
+      function get_lastmod (index : port_index) return String;
+      function Q (value : String; first : Boolean := False) return String;
+
+      result : HT.Text;
+      counter : Positive := 1;
+
+      function get_lastmod (index : port_index) return String
+      is
+         key       : HT.Text := all_ports (index).port_namebase;
+         mdatetime : CAL.Time;
+      begin
+         if crate.Contains (key) then
+            mdatetime := crate.Element (key).lastmod;
+         else
+            mdatetime := CAL.Time_Of (1970, 1, 1);
+         end if;
+         return HT.substring (LOG.timestamp (mdatetime, True), 0, 4);
+      end get_lastmod;
+
+      function Q (value : String; first : Boolean := False) return String is
+      begin
+         if first then
+            return LAT.Quotation & value & LAT.Quotation;
+         else
+            return LAT.Comma & LAT.Quotation & value & LAT.Quotation;
+         end if;
+      end Q;
+
+      procedure scan (position : catalog_crate.Cursor)
+      is
+         keytext : HT.Text renames catalog_crate.Element (position).origin;
+         target  : port_index := ports_keys.Element (keytext);
+         origin  : constant String := get_port_variant (target);
+         pkgver  : constant String := HT.USS (all_ports (target).pkgversion);
+         bucket  : constant String := all_ports (target).bucket;
+         tagline : constant String := HT.USS (all_ports (target).ignore_reason);
+         tstamp  : constant String := get_lastmod (target);
+         sindex  : constant String := HT.int2str (counter);
+      begin
+         HT.SU.Append (result, LAT.HT & "row_assy(" & Q (sindex, True) & Q (bucket) &
+                         Q (origin) & Q (tagline) & Q (tstamp) & ");" & LAT.LF);
+         counter := counter + 1;
+      end scan;
+
+   begin
+      catcrate.Iterate (scan'Access);
+      return (HT.USS (result));
+   exception
+      when issue : others =>
+         TIO.Put_Line ("catalog_row_block: " & Ada.Exceptions.Exception_Message (issue));
+         return (HT.USS (result));
+   end catalog_row_block;
 
 end PortScan.Scan;

@@ -77,8 +77,8 @@ private
 
    type port_dates_record is
       record
-         creation : CAL.Time;
-         lastmod  : CAL.Time;
+         creation  : CAL.Time;
+         lastmod   : CAL.Time;
       end record;
 
    package dates_crate is new CON.Hashed_Maps
@@ -86,6 +86,17 @@ private
       Element_Type    => port_dates_record,
       Hash            => port_hash,
       Equivalent_Keys => HT.equivalent);
+
+   type catalog_record is
+      record
+         lastmod64 : disktype;
+         origin    : HT.Text;
+      end record;
+
+   function "<" (L, R : catalog_record) return Boolean;
+
+   package catalog_crate is new CON.Ordered_Sets
+     (Element_Type => catalog_record);
 
    --  subroutines for populate_port_data
    procedure prescan_ports_tree
@@ -173,6 +184,11 @@ private
    --  The third field is the tagline
    function blocked_text_block (port : port_index) return String;
 
+   --  create an index block of all ravenports, sorted by last-modified order
+   function catalog_row_block
+     (crate    : dates_crate.Map;
+      catcrate : catalog_crate.Set) return String;
+
    --  Loop to generate all webpages (includes custom ports)
    procedure serially_generate_web_pages
      (www_site   : String;
@@ -192,6 +208,13 @@ private
       sysrootver : sysroot_characteristics)
       return Boolean;
 
+   --  Generates searchable catalog index
+   --  Returns true if web page generation was successful
+   function generate_catalog_index
+     (www_site : String;
+      crate    : dates_crate.Map;
+      catcrate : catalog_crate.Set) return Boolean;
+
    --  Extract dependencies, store them
    --  Web site generation requires two complete passes
    procedure store_port_dependencies
@@ -203,6 +226,7 @@ private
    --  Slurp creation and last-modification timestamp of each port
    procedure scan_port_dates
      (conspiracy : String;
-      crate      : in out dates_crate.Map);
+      crate      : in out dates_crate.Map;
+      catcrate   : in out catalog_crate.Set);
 
 end PortScan.Scan;

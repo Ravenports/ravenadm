@@ -883,4 +883,27 @@ package body Port_Specification.Web is
       return HT.USS (result);
    end generate_body;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_catalog_index
+   --------------------------------------------------------------------------------------------
+   function generate_catalog_index
+     (dossier : TIO.File_Type;
+      row_assembly_block : String) return Boolean is
+   begin
+      declare
+         template_file : String := host_localbase & "/share/ravenadm/catalog.template";
+         template      : constant String := FOP.get_file_contents (template_file);
+         fullpage      : HT.Text := HT.SUS (template);
+      begin
+         fullpage := HT.replace_substring (fullpage, "@ROW_ASSY@", row_assembly_block);
+         TIO.Put_Line (dossier, HT.USS (fullpage));
+         return True;
+      end;
+   exception
+      when others =>
+         TIO.Put_Line ("Failed to create the web site index");
+         return False;
+   end generate_catalog_index;
+
 end Port_Specification.Web;
