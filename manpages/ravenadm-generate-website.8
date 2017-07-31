@@ -1,0 +1,53 @@
+.Dd July 31, 2017
+.Dt GENERATE-WEBSITE 8
+.Os
+.Sh NAME
+.Nm "ravenadm generate-website"
+.Nd create detailed descriptions of each port variant
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+The
+.Nm
+command will generate a unique webpage for each port variant listed in the
+conspiracy directory, overridden by the custom unkindness directory if
+one is defined.  The web page lists standard information for each port
+along with subpackage definitions and descriptions, dependencies,
+distribution files, and a listing of ports that require the variant.
+.Pp
+It is recommended that a dedicated profile be used to generate the website
+because configuration settings and saved port options will affect the
+html output.  For example, if the ccache directory is configured, nearly
+every page will show a dependency on ccache (normally undesired).
+.Pp
+A search index page will also be created at the root.  This page contains
+a listing for each port/variant combination configured and is ordered by
+newest to oldest by default.  The listing can be dynamically searched or
+reordered as desired.  The web pages are grouped by buckets, then
+namebase, and are finally placed in variant subdirectories.  All web pages
+have the name "index.html".  Thus, every directory contains at most one
+file.  The bucket and namebase directories contain no files, only
+directories, so web servers configured for virtual directory listings
+will expose the directory hierarchy.
+.Pp
+The website is generated at the profile directory, "www" subdirectory.
+.Sh SEE ALSO
+.Xr pkg 8 ,
+.Xr pkg-repo 8 ,
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

@@ -113,6 +113,7 @@ package body Pilot is
         level2 = "check-ports" or else
         level2 = "update-ports" or else
         level2 = "generate-repository" or else
+        level2 = "generate-website" or else
         level2 = "subpackages"
       then
          if DIR.Exists (man_page) then
