@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <title>Ravenports Catalog</title>
+ <meta charset="utf-8">
+ <meta name="description" content="Searchable index of Ravenports">
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+ <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>
+ <link href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
+ <link href="style/ravenports.css" rel="stylesheet">
+ <link href="favicon.png" rel="icon" type="image/png">
+ <script type="text/javascript">
+var rowdata = [];
+
+function originlink (bucket, origin) {
+	var parts = origin.split(':');
+	var ravenlink = '<a title="Description of the ' + parts[1] +
+	' variant of the ' + parts[0] + ' port." href="bucket_' +
+	bucket + '/' + parts[0] + '/' + parts[1] + '">' + origin + '</a>';
+	return ravenlink;
+}
+
+function row_assy(entry, bucket, origin, pkgversion, tagline, timestamp) {
+	var trow = [];
+	trow.push(entry);
+	trow.push(originlink (bucket, origin));
+	trow.push(pkgversion);
+	trow.push(tagline);
+	trow.push(timestamp);
+	rowdata.push (trow);
+}
+
+function populate_catalog() {
+	row_assy ("1","05","ravenports:dragonfly","20170512_1","Install turnkey Ravenports on DragonFly","25 MAY 2017, 19:14:58");
+	row_assy ("2","95","nss:standard","3.31","Application security development libraries","16 JUN 2017, 02:59:55");
+	$('#catalog_table').dataTable().fnClearTable();
+	$('#catalog_table').dataTable().fnAddData(rowdata);
+}
+
+$(document).ready(function() {
+	$('#catalog_table').dataTable({
+		"aaSorting": [[ 0, 'asc' ]],
+		"bProcessing": true, // Show processing icon
+		"bDeferRender": true, // Defer creating TR/TD until needed
+		"aoColumnDefs": [
+			{"bSortable": false, "aTargets": [2,3,4]},
+			{"bSearchable": false, "aTargets": [0,4]},
+		],
+		"bStateSave": true, // Enable cookie for keeping state
+		"aLengthMenu":[10, 20, 50, 100, 200],
+		"iDisplayLength": 20,
+		"autoWidth": false,
+		});
+
+	populate_catalog();
+})
+ </script>
+</head>
+  <body>
+    <div id="namebase1">Ravenports Universal Package System</div>
+    <div id="subtitle">Searchable Catalog</div>
+    <div id="catalog">
+      <table id="catalog_table">
+        <thead>
+          <tr>
+            <th title="Ordered newest to oldest with respect to modification time">No.</th>
+            <th title="Port origin is defined as namebase:variant">Port Origin</th>
+            <th>Version</th>
+            <th>Description</th>
+            <th title="Latest modification to port">Modified (UTC)</th>
+          </tr>
+        </thead>
+        <tbody id="catalog_body"></tbody>
+      </table>
+    </div>
+    <div id="catfooter">
+      <a href="http://ravenports.ironwolf.systems/" class="footlink">Ravenports official site</a>
+    </div>
+  </body>
+</html>

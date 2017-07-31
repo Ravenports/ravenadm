@@ -98,17 +98,27 @@ table a {
    overflow: auto;
 }
 
+#namebase1, #subtitle {
+  font-family: Georgia, Helvetica, sans-serif;
+  font-weight: bold;
+  text-align: center;
+  width: 1000px;
+  padding: 0 0 0 100px;
+}
 #namebase1 {
    background-image: url(ravenports-200.png);
    background-repeat: no-repeat;
-   height: 160px;
+   height: 170px;
    font-size: 200%;
-   font-weight: bold;
    color: #148F77;
-   width: 800px;
-   padding: 0 0 0 100px;
-   text-align: center;
    line-height: 140px;
+}
+
+#subtitle {
+  font-size: 120%;
+  color: #666;
+  position: relative;
+  top: -75px;
 }
 
 #namebase {
@@ -131,4 +141,77 @@ table a {
 #cdate, #mdate {
     font-family: monospace;
     font-size: 90%;
+}
+
+#catalog {
+	width: 1000px;
+	margin: 0 0 12px;
+	padding: 0 0 800px;
+	font-size: 13px;
+}
+
+#catalog_table {
+	border-collapse: separate;
+	border-spacing: 0;
+	border: 0;
+	margin: 0;
+}
+
+#catalog_table td {
+	padding: 2px;
+	border-color: #D0D0D0;
+}
+#catalog_table td:nth-child(1) {
+	text-align: center;
+}
+#catalog_table td:nth-child(4) {
+	color: #148F77;
+}
+#catalog_table td:nth-child(5) {
+	text-align: center;
+	font-family: monospace;
+	font-size: 90%;
+}
+
+#catalog_table th {
+	text-align: left;
+	padding: 4px 10px 3px 4px;
+	background-color: #CCC;
+	color: #404066;
+	border: 0;
+}
+
+#catalog_table th:nth-child(1) {
+	width: 6%;
+}
+#catalog_table th:nth-child(2) {
+	width: 34%;
+}
+#catalog_table th:nth-child(3) {
+	width: 10%;
+}
+#catalog_table th:nth-child(4) {
+	width: 34%;
+}
+#catalog_table th:nth-child(5) {
+	width: 16%;
+}
+#catalog_table th:nth-child(2),
+#catalog_table th:nth-child(3),
+#catalog_table th:nth-child(4) {
+	text-align: left;
+	padding-left: 4px;
+}
+#catalog_table th:nth-child(1),
+#catalog_table th:nth-child(5) {
+	text-align: center;
+}
+#catalog_table .odd {
+	background-color: #F6F6F8;
+}
+#catfooter {
+	margin: 20px 12px 0;
+	border-top: 1px solid black;
+	line-height: 30px;
+	width: 1000px;
 }
