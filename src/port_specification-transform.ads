@@ -104,6 +104,7 @@ private
    procedure apply_sqlite_module    (specs : in out Portspecs);
    procedure apply_display_module   (specs : in out Portspecs);
    procedure apply_schemas_module   (specs : in out Portspecs);
+   procedure apply_firebird_module  (specs : in out Portspecs);
    procedure apply_autoconf_module  (specs : in out Portspecs);
    procedure apply_execinfo_module  (specs : in out Portspecs);
    procedure apply_zlib_module      (specs : in out Portspecs);

@@ -283,6 +283,7 @@ package body Port_Specification.Transform is
       apply_png_module (specs);
       apply_ccache (specs);
       apply_schemas_module (specs);
+      apply_firebird_module (specs);
       apply_gnome_components_dependencies (specs);
       apply_sdl_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
@@ -975,6 +976,41 @@ package body Port_Specification.Transform is
          specs.subpackages.Element (HT.SUS (variant)).list.Iterate (scan'Access);
       end if;
    end apply_gcc_run_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_firebird_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_firebird_module (specs : in out Portspecs)
+   is
+      function determine_dependency return String;
+
+      module : String := "firebird";
+
+      function determine_dependency return String
+      is
+         suffix  : String := ":client:standard";
+         setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
+      begin
+         if argument_present (specs, module, "server") then
+            suffix := ":server:standard";
+         end if;
+         if setting = "3.0" then
+            return "firebird30" & suffix;
+         else
+            --  case: setting = ports_default
+            --  case: setting = default_firebird
+            --  case: setting = invalid value
+            return "firebird25" & suffix;
+         end if;
+      end determine_dependency;
+
+      dependency : String := determine_dependency;
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_firebird_module;
 
 
    --------------------------------------------------------------------------------------------

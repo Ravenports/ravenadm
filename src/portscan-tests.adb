@@ -147,10 +147,14 @@ package body PortScan.Tests is
                  HT.leads (line, "@rmtry ") or else
                  HT.leads (line, "@glib-schemas") or else
                  HT.leads (line, "@shared-mime-info") or else
+                 HT.leads (line, "@group") or else
+                 HT.leads (line, "@owner") or else
                  HT.leads (line, "@exec ") or else
                  HT.leads (line, "@unexec ") or else
                  HT.leads (line, "@postunexec ") or else
-                 HT.leads (line, "@postexec ")
+                 HT.leads (line, "@postexec ") or else
+                 HT.leads (line, "@preexec ") or else
+                 HT.leads (line, "@preunexec ")
                then
                   null;
                elsif HT.leads (line, "@dir") then
