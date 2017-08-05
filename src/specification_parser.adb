@@ -1048,7 +1048,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 158;
+      total_singlets : constant Positive := 159;
 
       type singlet_pair is
          record
@@ -1166,6 +1166,7 @@ package body Specification_Parser is
          ("PATCHFILES_STRIP      ", 16, patchfiles_strip),
          ("PATCH_STRIP           ", 11, patch_strip),
          ("PATCH_WRKSRC          ", 12, patch_wrksrc),
+         ("PHP_MOD_PRIORITY      ", 16, catchall),
          ("PLIST_SUB             ",  9, plist_sub),
          ("PREFIX                ",  6, prefix),
          ("PYD_BUILDARGS         ", 13, catchall),

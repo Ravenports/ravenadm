@@ -111,6 +111,7 @@ private
    procedure apply_mesa_module      (specs : in out Portspecs);
    procedure apply_jpeg_module      (specs : in out Portspecs);
    procedure apply_ruby_module      (specs : in out Portspecs);
+   procedure apply_php_module       (specs : in out Portspecs);
    procedure apply_png_module       (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
                                      variant : String;

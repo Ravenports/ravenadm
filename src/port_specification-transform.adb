@@ -280,6 +280,7 @@ package body Port_Specification.Transform is
       apply_jpeg_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
+      apply_php_module (specs);
       apply_png_module (specs);
       apply_ccache (specs);
       apply_schemas_module (specs);
@@ -1641,7 +1642,52 @@ package body Port_Specification.Transform is
       else
          add_run_depends (specs, dependency);
       end if;
+      hit_build := argument_present (specs, module, BUILD);
    end apply_png_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_php_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_php_module (specs : in out Portspecs)
+   is
+      module      : constant String := "php";
+      std_suffix  : constant String := ":single:standard";
+      --  This defver works until PHP 10 is released
+      defver : String (1 .. 2) := default_php (default_php'First) & default_php (default_php'Last);
+      flavor : String := "php" & defver;
+      hit_build   : Boolean := False;
+      hit_phpsize : Boolean := False;
+      hit_ext     : Boolean := False;
+      hit_zend    : Boolean := False;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+
+      if not no_arguments_present (specs, module) then
+         if argument_present (specs, module, "72") then
+            flavor := "php72";
+         elsif argument_present (specs, module, "71") then
+            flavor := "php71";
+         elsif argument_present (specs, module, "56") then
+            flavor := "php56";
+         end if;
+         hit_build   := argument_present (specs, module, BUILD);
+         hit_phpsize := argument_present (specs, module, "phpsize");
+         hit_ext     := argument_present (specs, module, "ext");
+         hit_zend    := argument_present (specs, module, "zend");
+      end if;
+      if hit_build or else hit_phpsize or else hit_ext or else hit_zend then
+         add_buildrun_depends (specs, flavor & std_suffix);
+      else
+         add_build_depends (specs, flavor & std_suffix);
+      end if;
+      if hit_phpsize or else hit_ext or else hit_zend then
+         add_build_depends (specs, "autoconf" & std_suffix);
+      end if;
+
+   end apply_php_module;
 
 
    --------------------------------------------------------------------------------------------
