@@ -493,6 +493,7 @@ package body Specification_Parser is
                      when gnome_comp       => build_list (spec, PSP.sp_gnome, line);
                      when xorg_comp        => build_list (spec, PSP.sp_xorg, line);
                      when sdl_comp         => build_list (spec, PSP.sp_sdl, line);
+                     when phpext           => build_list (spec, PSP.sp_phpext, line);
                      when rc_scripts       => build_list (spec, PSP.sp_rcscript, line);
                      when og_radio         => build_list (spec, PSP.sp_og_radio, line);
                      when og_restrict      => build_list (spec, PSP.sp_og_restrict, line);
@@ -1048,7 +1049,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 159;
+      total_singlets : constant Positive := 160;
 
       type singlet_pair is
          record
@@ -1166,6 +1167,7 @@ package body Specification_Parser is
          ("PATCHFILES_STRIP      ", 16, patchfiles_strip),
          ("PATCH_STRIP           ", 11, patch_strip),
          ("PATCH_WRKSRC          ", 12, patch_wrksrc),
+         ("PHP_EXTENSIONS        ", 14, phpext),
          ("PHP_MOD_PRIORITY      ", 16, catchall),
          ("PLIST_SUB             ",  9, plist_sub),
          ("PREFIX                ",  6, prefix),

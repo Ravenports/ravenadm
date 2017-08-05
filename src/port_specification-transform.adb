@@ -288,6 +288,7 @@ package body Port_Specification.Transform is
       apply_gnome_components_dependencies (specs);
       apply_sdl_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
+      apply_php_extension_dependencies (specs);
       apply_gcc_run_module (specs, variant, "ada", "ada_run");
       apply_gcc_run_module (specs, variant, "c++", "cxx_run");
       apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
@@ -2623,7 +2624,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  apply_xorg_components_dependencies
    --------------------------------------------------------------------------------------------
-   procedure apply_xorg_components_dependencies  (specs : in out Portspecs)
+   procedure apply_xorg_components_dependencies (specs : in out Portspecs)
    is
       procedure import (position : string_crate.Cursor);
 
@@ -2655,5 +2656,46 @@ package body Port_Specification.Transform is
          add_build_depends (specs, "pkgconfig" & ss);
       end if;
    end apply_xorg_components_dependencies;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_xorg_components_dependencies
+   --------------------------------------------------------------------------------------------
+   procedure apply_php_extension_dependencies (specs : in out Portspecs)
+   is
+      procedure import (position : string_crate.Cursor);
+
+      php_module  : constant String := "php";
+      std_suffix  : constant String := ":single:standard";
+      hit_build   : Boolean := False;
+      --  This defver works until PHP 10 is released
+      defver : String (1 .. 2) := default_php (default_php'First) & default_php (default_php'Last);
+      flavor : String := "php" & defver;
+
+      procedure import (position : string_crate.Cursor)
+      is
+         extension_text : HT.Text renames string_crate.Element (position);
+         extension      : constant String := HT.USS (extension_text);
+         dependency     : constant String := flavor & "-" & extension & std_suffix;
+      begin
+         if hit_build then
+            add_buildrun_depends (specs, dependency);
+         else
+            add_run_depends (specs, dependency);
+         end if;
+      end import;
+   begin
+      if not no_arguments_present (specs, php_module) then
+         if argument_present (specs, php_module, "72") then
+            flavor := "php72";
+         elsif argument_present (specs, php_module, "71") then
+            flavor := "php71";
+         elsif argument_present (specs, php_module, "56") then
+            flavor := "php56";
+         end if;
+      end if;
+      hit_build   := argument_present (specs, php_module, BUILD);
+      specs.php_extensions.Iterate (import'Access);
+   end apply_php_extension_dependencies;
 
 end Port_Specification.Transform;

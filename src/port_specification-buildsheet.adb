@@ -657,6 +657,7 @@ package body Port_Specification.Buildsheet is
       send ("GNOME_COMPONENTS",     specs.gnome_comps, 2);
       send ("SDL_COMPONENTS",       specs.sdl_comps, 2);
       send ("XORG_COMPONENTS",      specs.xorg_comps, 2);
+      send ("PHP_EXTENSIONS",       specs.php_extensions, 2);
       blank_line;
       send ("DISTNAME",             specs.distname);
       send ("EXTRACT_DIRTY",        specs.extract_dirty, 2);

@@ -771,6 +771,7 @@ package body Port_Specification.Makefile is
       send ("TEST_ARGS",        specs.test_args, 1);
       send ("TEST_ENV",         specs.test_env, 1);
       send ("GENERATED",        specs.generated, True);
+      send ("PHP_EXTENSIONS",   specs.php_extensions, 1);
       dump_subr;
 
       specs.mk_verbatim.Iterate (print_verbation'Access);
