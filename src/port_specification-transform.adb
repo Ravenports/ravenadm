@@ -2694,7 +2694,7 @@ package body Port_Specification.Transform is
             flavor := "php56";
          end if;
       end if;
-      hit_build   := argument_present (specs, php_module, BUILD);
+      hit_build := argument_present (specs, php_module, BUILD);
       specs.php_extensions.Iterate (import'Access);
    end apply_php_extension_dependencies;
 

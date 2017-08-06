@@ -3569,7 +3569,6 @@ package body Port_Specification is
          ("opcache     ", opcache),
          ("openssl     ", openssl),
          ("pcntl       ", pcntl),
-         ("pcre        ", pcre),
          ("pdf         ", pdf),
          ("pdo         ", pdo),
          ("pdo_dblib   ", pdo_dblib),
