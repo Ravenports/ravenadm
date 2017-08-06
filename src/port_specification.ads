@@ -334,7 +334,7 @@ private
       mcrypt, memcache, memcached, mysqli, odbc, opcache, openssl, pcntl, pdf, pdo,
       pdo_dblib, pdo_firebird, pdo_mysql, pdo_odbc, pdo_pgsql, pdo_sqlite, pgsql, phar, posix,
       pspell, radius, readline, recode, redis, session, shmop, simplexml, snmp, soap, sockets,
-      spl, sqlite3, sysvmsg, sysvsem, sysvshm, tidy, tokenizer, wddx, xml, xmlreader, xmlrpc,
+      sqlite3, sysvmsg, sysvsem, sysvshm, tidy, tokenizer, wddx, xml, xmlreader, xmlrpc,
       xmlwriter, xsl, zip, zlib, invalid_extension);
 
    package string_crate is new CON.Vectors

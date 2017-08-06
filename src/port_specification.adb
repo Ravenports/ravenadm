@@ -3591,7 +3591,6 @@ package body Port_Specification is
          ("snmp        ", snmp),
          ("soap        ", soap),
          ("sockets     ", sockets),
-         ("spl         ", spl),
          ("sqlite3     ", sqlite3),
          ("sysvmsg     ", sysvmsg),
          ("sysvsem     ", sysvsem),
