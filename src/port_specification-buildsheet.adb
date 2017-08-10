@@ -825,12 +825,18 @@ package body Port_Specification.Buildsheet is
         "FPC_EQUIVALENT=" & tab & tab & "...";
 
       template : TIO.File_Type;
+      filename : constant String := "specification";
 
    begin
       if dump_to_file then
+         if DIR.Exists (filename) then
+            TIO.Put_Line ("The " & filename &
+                            " file already exists.  I wouldn't want to overwrite it!");
+            return;
+         end if;
          TIO.Create (File => template,
                      Mode => TIO.Out_File,
-                     Name => "specification");
+                     Name => filename);
          TIO.Put_Line (template, part1);
          TIO.Put_Line (template, part2);
          TIO.Close (template);
