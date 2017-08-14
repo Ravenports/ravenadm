@@ -1176,26 +1176,35 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function install_compiler_packages return Boolean
    is
-      function get_package_name (subpackage : String) return String;
+      function get_package_name (subpackage : String; use_prev : Boolean) return String;
       function package_copy (subpackage : String) return Boolean;
 
       binutils : constant String := "binutils";
 
-      function get_package_name (subpackage : String) return String is
+      function get_package_name (subpackage : String; use_prev : Boolean) return String is
       begin
-         if subpackage = binutils then
-            return "binutils-single-ravensys-" & binutils_version & arc_ext;
+         if use_prev then
+            if subpackage = binutils then
+               return "binutils-single-ravensys-" & previous_binutils & arc_ext;
+            else
+               return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
+                 variant_standard & LAT.Hyphen & previous_compiler & arc_ext;
+            end if;
          else
-            return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
-                     variant_standard & LAT.Hyphen & compiler_version & arc_ext;
+            if subpackage = binutils then
+               return "binutils-single-ravensys-" & binutils_version & arc_ext;
+            else
+               return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
+                 variant_standard & LAT.Hyphen & compiler_version & arc_ext;
+            end if;
          end if;
       end get_package_name;
 
       function package_copy (subpackage : String) return Boolean
       is
-         pkgname   : constant String := get_package_name (subpackage);
-         src_path  : constant String := HT.USS (PM.configuration.dir_toolchain) &
-                     "/share/" & pkgname;
+         pkgname   : constant String := get_package_name (subpackage, False);
+         tool_path : constant String := HT.USS (PM.configuration.dir_toolchain) & "/share/";
+         src_path  : constant String := tool_path & pkgname;
          dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
          dest_path : constant String := dest_dir & LAT.Solidus & pkgname;
       begin
@@ -1206,8 +1215,26 @@ package body Pilot is
                end if;
                DIR.Copy_File (Source_Name => src_path, Target_Name => dest_path);
             else
-               TIO.Put_Line ("Compiler package " & src_path & " does not exist");
-               return False;
+               --  We didn't find the current binutils or compiler in the system root storage.
+               --  It's likely that we're in a transition with a new version of binutils or
+               --  gcc available, and a new system root needs to be generated.  Assuming this,
+               --  try to copy the previously known compiler/binutils under the new name so
+               --  that package building doesn't break.
+               declare
+                  old_pkg  : constant String := get_package_name (subpackage, True);
+                  old_path : constant String := tool_path & old_pkg;
+               begin
+                  if DIR.Exists (old_path) then
+                     if not DIR.Exists (dest_dir) then
+                        DIR.Create_Directory (dest_dir);
+                     end if;
+                     DIR.Copy_File (Source_Name => old_path, Target_Name => dest_path);
+                  else
+                     TIO.Put_Line ("Compiler package " & src_path & " does not exist, nor does");
+                     TIO.Put_Line ("Compiler package " & old_path & " exist.");
+                     return False;
+                  end if;
+               end;
             end if;
          end if;
          return True;

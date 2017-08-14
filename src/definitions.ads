@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "0";
-   raven_version_minor : constant String := "66";
+   raven_version_minor : constant String := "67";
    copyright_years     : constant String := "2015-2017";
 
    raven_tool        : constant String := "ravenadm";
@@ -35,8 +35,10 @@ package Definitions is
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
    default_compiler  : constant String := "gcc7";
-   compiler_version  : constant String := "7.1.0";
-   binutils_version  : constant String := "2.28";
+   compiler_version  : constant String := "7.2.0";
+   previous_compiler : constant String := "7.1.0";
+   binutils_version  : constant String := "2.29";
+   previous_binutils : constant String := "2.28";
    arc_ext           : constant String := ".txz";
    jobs_per_cpu      : constant := 2;
 

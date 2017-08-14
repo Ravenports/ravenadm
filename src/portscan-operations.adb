@@ -1790,12 +1790,20 @@ package body PortScan.Operations is
                if deppkg /= target_pkg then
                   --  The version that the package requires differs from the
                   --  version that Ravenports will now produce
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_dep_check,
-                     message         =>  "Current " & headport & " package depends on " &
-                       deppkg & ", but this is a different version than requirement of " &
-                       target_pkg & " (from " & origin & ")");
-                  return False;
+                  declare
+                     --  If the target package is GCC7, let version mismatches slide.  We are
+                     --  probably bootstrapping a new sysroot compiler
+                     nbase : constant String := HT.USS (all_ports (target_id).port_namebase);
+                  begin
+                     if nbase /= default_compiler and then nbase /= "binutils" then
+                        LOG.obsolete_notice
+                          (write_to_screen => debug_dep_check,
+                           message         =>  "Current " & headport & " package depends on " &
+                             deppkg & ", but this is a different version than requirement of " &
+                             target_pkg & " (from " & origin & ")");
+                        return False;
+                     end if;
+                  end;
                end if;
 
                if not available then
