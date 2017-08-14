@@ -282,6 +282,17 @@ package body PortScan is
 
 
    --------------------------------------------------------------------------------------------
+   --  jail_env_port_specified
+   --------------------------------------------------------------------------------------------
+   function jail_env_port_specified return Boolean is
+   begin
+      return
+        portlist.Contains (HT.SUS (default_compiler & ":standard")) or else
+        portlist.Contains (HT.SUS ("binutils:ravensys"));
+   end jail_env_port_specified;
+
+
+   --------------------------------------------------------------------------------------------
    --  requires_procfs
    --------------------------------------------------------------------------------------------
    function requires_procfs (id : port_id) return Boolean is

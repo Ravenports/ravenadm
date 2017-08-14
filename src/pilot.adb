@@ -712,9 +712,10 @@ package body Pilot is
      (delete_first : Boolean := False;
       dry_run      : Boolean := False) return Boolean
    is
-      ptid : PortScan.port_id;
-      num_skipped : Natural;
-      block_remote : Boolean := True;
+      ptid              : PortScan.port_id;
+      num_skipped       : Natural;
+      block_remote      : Boolean := True;
+      explicit_ravensys : Boolean := False;
       update_external_repo : constant String := host_pkg8 & " update --quiet --repository ";
       no_packages : constant String := "No prebuilt packages will be used as a result.";
 
@@ -746,10 +747,14 @@ package body Pilot is
          end if;
       end if;
 
+      if delete_first then
+         explicit_ravensys := PortScan.jail_env_port_specified;
+      end if;
+
       OPS.run_start_hook;
       OPS.limited_sanity_check (repository       => HT.USS (PM.configuration.dir_repository),
                                 dry_run          => dry_run,
-                                rebuild_compiler => delete_first,
+                                rebuild_compiler => explicit_ravensys,
                                 suppress_remote  => block_remote);
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
       if dry_run then

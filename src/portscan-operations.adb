@@ -1793,15 +1793,25 @@ package body PortScan.Operations is
                   declare
                      --  If the target package is GCC7, let version mismatches slide.  We are
                      --  probably bootstrapping a new sysroot compiler
-                     nbase : constant String := HT.USS (all_ports (target_id).port_namebase);
+                     nbase   : constant String := HT.USS (all_ports (target_id).port_namebase);
+                     variant : constant String := HT.USS (all_ports (target_id).port_variant);
                   begin
-                     if nbase /= default_compiler and then nbase /= "binutils" then
+                     if nbase /= default_compiler and then
+                       not (nbase = "binutils" and then variant = "ravensys")
+                     then
                         LOG.obsolete_notice
                           (write_to_screen => debug_dep_check,
                            message         =>  "Current " & headport & " package depends on " &
                              deppkg & ", but this is a different version than requirement of " &
                              target_pkg & " (from " & origin & ")");
                         return False;
+                     else
+                        LOG.obsolete_notice
+                          (write_to_screen => debug_dep_check,
+                           message         => "Ignored dependency check failure: " &
+                             "Current " & headport & " package depends on " &
+                             deppkg & ", but this is a different version than requirement of " &
+                             target_pkg & " (from " & origin & ")");
                      end if;
                   end;
                end if;

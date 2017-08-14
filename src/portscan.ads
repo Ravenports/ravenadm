@@ -77,6 +77,9 @@ package PortScan is
    --  Given an index, returns a buildsheet location wrt unkindness
    function get_buildsheet_from_origin_list (index : Positive) return String;
 
+   --  Returns true if gcc7:standard or binutils:ravensys is present in stored origins
+   function jail_env_port_specified return Boolean;
+
 private
 
    package CON renames Ada.Containers;
