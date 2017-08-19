@@ -1941,20 +1941,36 @@ package body PortScan.Operations is
       comres   : HT.Text;
       counter  : Natural := 0;
       required : constant Natural := Natural (all_ports (id).options.Length);
+      extquery : constant Boolean := (repository = "");
    begin
       if id = port_match_failed or else
         not all_ports (id).scanned or else
         (not skip_exist_check and then not DIR.Exists (fullpath))
       then
+         LOG.obsolete_notice
+           (write_to_screen => debug_opt_check,
+            message => pkg_base & " => passed_option_check() failed sanity check.");
          return False;
       end if;
 
-      if repository = "" then
+      if extquery then
          comres := Unix.piped_command (remocmd, status);
       else
          comres := Unix.piped_command (command, status);
       end if;
       if status /= 0 then
+         if extquery then
+            LOG.obsolete_notice
+              (write_to_screen => debug_opt_check,
+               message => pkg_base & " => failed to execute: " & remocmd);
+         else
+            LOG.obsolete_notice
+              (write_to_screen => debug_opt_check,
+               message => pkg_base & " => failed to execute: " & command);
+         end if;
+         LOG.obsolete_notice
+           (write_to_screen => debug_opt_check,
+            message => "output => " & HT.USS (comres));
          return False;
       end if;
 
