@@ -162,8 +162,8 @@ package body PortScan.Buildcycle is
          when extract          => base := 20;
          when patch            => base := 3;
          when configure        => base := 15;
-         when build            => base := 25;   --  for gcc linking, tex
-         when stage            => base := 20;   --  desire 15 but too many rogue builders-in-stage
+         when build            => base := 40;   --  for gcc linking, tex, *llvm linking*
+         when stage            => base := 15;   --  compiling impossible; toolchain removed
          when test             => base := 25;
          when check_plist      => base := 10;   --  For packages with thousands of files
          when pkg_package      => base := 80;
