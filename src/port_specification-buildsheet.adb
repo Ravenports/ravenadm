@@ -192,7 +192,9 @@ package body Port_Specification.Buildsheet is
          item  : String  := HT.USS (string_crate.Element (position));
          len   : Natural := item'Length;
       begin
-         if current_len + len + 1 > 76 then
+         --  Try to hit 75 chars
+         --  76 - 24 = 52
+         if current_len + len + 1 > 52 then
             current_len := 0;
             send ("");
             send (LAT.HT & LAT.HT & LAT.HT, True);
