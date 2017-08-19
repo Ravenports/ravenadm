@@ -2459,6 +2459,7 @@ package body PortScan.Operations is
       --     Net/Free/Dragon start with "Device"
       --     Linux starts with "NAME"
       --     Solaris starts with "swapfile"
+      --  On FreeBSD (DragonFly too?), when multiple swap used, ignore line starting "Total"
       --  MacOS has no limit, it will keep generating swapfiles as needed, so return 0.0
       declare
          command_result : String := HT.USS (comres);
@@ -2490,10 +2491,12 @@ package body PortScan.Operations is
                   begin
                      case platform_type is
                         when freebsd | dragonfly | netbsd | openbsd =>
-                           blocks_total := blocks_total +
-                                           memtype'Value (HT.specific_field (line, 4));
-                           blocks_used  := blocks_used +
-                                           memtype'Value (HT.specific_field (line, 3));
+                           if HT.specific_field (line, 1) /= "Total" then
+                              blocks_total := blocks_total +
+                                              memtype'Value (HT.specific_field (line, 4));
+                              blocks_used  := blocks_used +
+                                              memtype'Value (HT.specific_field (line, 3));
+                           end if;
                         when sunos =>
                            oneline_total := memtype'Value (HT.specific_field (line, 4));
                            oneline_other := memtype'Value (HT.specific_field (line, 5));
