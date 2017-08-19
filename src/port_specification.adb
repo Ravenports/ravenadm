@@ -3012,7 +3012,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 50;
+      total_modules : constant Positive := 51;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3033,6 +3033,7 @@ package body Port_Specification is
          "display        ",
          "dos2unix       ",
          "execinfo       ",
+         "fbsd10fix      ",
          "firebird       ",
          "fonts          ",
          "fortran        ",
