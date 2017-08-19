@@ -79,10 +79,11 @@ package body Replicant is
               sunos     => null;  --  rc.conf not used
       end case;
       case platform_type is
-         when dragonfly |
-              freebsd   =>
+         when dragonfly =>
             DIR.Copy_File (sretc & hints, mm & hints);
             DIR.Copy_File (sretc & trmcap, mm & trmcap);
+         when freebsd   =>
+            DIR.Copy_File (sretc & hints, mm & hints);
          when netbsd    |
               openbsd   =>
             DIR.Copy_File (sretc & nhints, mm & nhints);
