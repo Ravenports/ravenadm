@@ -2493,7 +2493,7 @@ package body PortScan.Operations is
                         when freebsd | dragonfly | netbsd | openbsd =>
                            if HT.specific_field (line, 1) /= "Total" then
                               blocks_total := blocks_total +
-                                              memtype'Value (HT.specific_field (line, 4));
+                                              memtype'Value (HT.specific_field (line, 2));
                               blocks_used  := blocks_used +
                                               memtype'Value (HT.specific_field (line, 3));
                            end if;
