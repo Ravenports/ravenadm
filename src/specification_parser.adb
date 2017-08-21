@@ -1048,7 +1048,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 161;
+      total_singlets : constant Positive := 162;
 
       type singlet_pair is
          record
@@ -1145,6 +1145,7 @@ package body Specification_Parser is
          ("LICENSE_SCHEME        ", 14, lic_scheme),
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
+         ("MAKE_JOBS_NUMBER_LIMIT", 22, catchall),
          ("MAKE_ENV              ",  8, make_env),
          ("MANDIRS               ",  7, mandirs),
          ("MESON_ARGS            ", 10, catchall),
