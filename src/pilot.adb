@@ -211,6 +211,8 @@ package body Pilot is
          end if;
       end get_variant;
 
+      selected_variant : constant String := get_variant;
+
    begin
       if directory_specified then
          dossier_text := HT.SUS (optional_directory & "/" & specfile);
@@ -221,7 +223,7 @@ package body Pilot is
          OPS.parse_and_transform_buildsheet (specification => specification,
                                              successful    => successful,
                                              buildsheet    => HT.USS (dossier_text),
-                                             variant       => get_variant,
+                                             variant       => selected_variant,
                                              portloc       => "",
                                              excl_targets  => False,
                                              avoid_dialog  => True,
@@ -233,12 +235,18 @@ package body Pilot is
       end if;
 
       if successful then
+         if not specification.variant_exists (selected_variant) then
+            TIO.Put_Line ("The specified variant '" & selected_variant & "' is invalid.");
+            TIO.Put_Line ("Try again with a valid variant");
+            return;
+         end if;
+
          if not specification.post_transform_option_group_defaults_passes then
             return;
          end if;
 
          PSM.generator (specs         => specification,
-                        variant       => get_variant,
+                        variant       => selected_variant,
                         opsys         => platform_type,
                         arch          => sysrootver.arch,
                         output_file   => "");
