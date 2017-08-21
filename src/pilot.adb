@@ -235,11 +235,6 @@ package body Pilot is
       end if;
 
       if successful then
-         if not specification.variant_exists (selected_variant) then
-            TIO.Put_Line ("The specified variant '" & selected_variant & "' is invalid.");
-            TIO.Put_Line ("Try again with a valid variant");
-            return;
-         end if;
 
          if not specification.post_transform_option_group_defaults_passes then
             return;

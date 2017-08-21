@@ -2723,6 +2723,13 @@ package body PortScan.Operations is
          return;
       end if;
 
+      if not specification.variant_exists (variant) then
+         TIO.Put_Line ("The specified variant '" & variant & "' is invalid.");
+         TIO.Put_Line ("Try again with a valid variant");
+         successful := False;
+         return;
+      end if;
+
       PST.set_option_defaults
         (specs         => specification,
          variant       => variant,
