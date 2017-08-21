@@ -50,7 +50,7 @@ private
                          build_deps, buildrun_deps, run_deps, cmake_args, qmake_args, info,
                          install_tgt, patch_wrksrc, patch_strip, patchfiles_strip, extra_patches,
                          must_configure, configure_wrksrc, configure_script, gnu_cfg_prefix,
-                         configure_target, config_outsource, apply_10_fix, deprecated,
+                         configure_target, config_outsource, deprecated,
                          expiration, install_wrksrc, plist_sub, prefix, licenses, users, groups,
                          catchall, shift_install, diode, lic_scheme, lic_file, lic_name,
                          skip_ccache, test_target, mandirs, invalid_rpath, debugging, broken_ssl,

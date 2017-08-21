@@ -104,7 +104,6 @@ package body Port_Specification is
       specs.pfiles_strip.Clear;
 
       specs.config_outsrc  := False;
-      specs.apply_f10_fix  := False;
       specs.patch_wrksrc   := HT.blank;
       specs.install_wrksrc := HT.blank;
       specs.config_prefix  := HT.blank;
@@ -1392,8 +1391,6 @@ package body Port_Specification is
             specs.skip_install := value;
          when sp_cfg_outsrc =>
             specs.config_outsrc := value;
-         when sp_apply_f10_fix =>
-            specs.apply_f10_fix := value;
          when sp_inst_tchain =>
             specs.shift_install := value;
          when sp_skip_ccache =>
@@ -4866,7 +4863,6 @@ package body Port_Specification is
             when sp_skip_install   => TIO.Put_Line (specs.skip_install'Img);
             when sp_destdir_env    => TIO.Put_Line (specs.destdir_env'Img);
             when sp_single_job     => TIO.Put_Line (specs.single_job'Img);
-            when sp_apply_f10_fix  => TIO.Put_Line (specs.apply_f10_fix'Img);
             when sp_cfg_outsrc     => TIO.Put_Line (specs.config_outsrc'Img);
             when sp_inst_tchain    => TIO.Put_Line (specs.shift_install'Img);
             when sp_skip_ccache    => TIO.Put_Line (specs.skip_ccache'Img);
@@ -4960,7 +4956,6 @@ package body Port_Specification is
       print_vector_list ("CONFIGURE_ENV", sp_config_env);
       print_single      ("GNU_CONFIGURE_PREFIX", sp_gnu_cfg_prefix);
       print_boolean     ("RPATH_CHECK_FATAL", sp_rpath_warning);
-      print_boolean     ("APPLY_F10_FIX", sp_apply_f10_fix);
 
       print_boolean     ("SKIP_BUILD", sp_skip_build);
       print_boolean     ("SKIP_INSTALL", sp_skip_install);

@@ -477,7 +477,6 @@ package body Specification_Parser is
                      when test_target      => build_list (spec, PSP.sp_test_tgt, line);
                      when test_args        => build_list (spec, PSP.sp_test_args, line);
                      when test_env         => build_list (spec, PSP.sp_test_env, line);
-                     when apply_10_fix     => build_list (spec, PSP.sp_apply_f10_fix, line);
                      when patch_strip      => build_list (spec, PSP.sp_patch_strip, line);
                      when patchfiles_strip => build_list (spec, PSP.sp_pfiles_strip, line);
                      when plist_sub        => build_list (spec, PSP.sp_plist_sub, line);
@@ -1049,7 +1048,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 162;
+      total_singlets : constant Positive := 161;
 
       type singlet_pair is
          record
@@ -1061,7 +1060,6 @@ package body Specification_Parser is
       --  It is critical that this list be alphabetized correctly.
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
-         ("APPLY_F10_FIX         ", 13, apply_10_fix),
          ("BROKEN_MYSQL          ", 12, broken_mysql),
          ("BROKEN_PGSQL          ", 12, broken_pgsql),
          ("BROKEN_SSL            ", 10, broken_ssl),

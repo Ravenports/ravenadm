@@ -740,7 +740,6 @@ package body Port_Specification.Makefile is
       send ("CONFIGURE_TARGET",     specs.config_target);
       send ("CONFIGURE_ARGS",       specs.config_args, 1);
       send ("CONFIGURE_ENV",        specs.config_env, 1);
-      send ("APPLY_F10_FIX",        specs.apply_f10_fix, True);
 
       send ("NO_BUILD",         specs.skip_build, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);

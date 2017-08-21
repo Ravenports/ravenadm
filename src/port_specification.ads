@@ -34,7 +34,7 @@ package Port_Specification is
                        sp_uses, sp_sub_list, sp_sub_files, sp_config_args, sp_config_env,
                        sp_build_deps, sp_buildrun_deps, sp_run_deps, sp_cmake_args, sp_qmake_args,
                        sp_info, sp_install_tgt, sp_patch_strip, sp_pfiles_strip,
-                       sp_patch_wrksrc, sp_extra_patches, sp_apply_f10_fix, sp_must_config,
+                       sp_patch_wrksrc, sp_extra_patches, sp_must_config,
                        sp_config_wrksrc, sp_config_script, sp_gnu_cfg_prefix, sp_cfg_outsrc,
                        sp_config_target, sp_deprecated, sp_expiration, sp_install_wrksrc,
                        sp_plist_sub, sp_prefix, sp_licenses, sp_users, sp_groups, sp_catchall,
@@ -485,8 +485,6 @@ private
          config_target  : HT.Text;
          config_wrksrc  : HT.Text;
          config_outsrc  : Boolean;
-         apply_f10_fix  : Boolean;
-
          skip_build     : Boolean;
          skip_install   : Boolean;
          skip_ccache    : Boolean;
