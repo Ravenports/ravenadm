@@ -429,6 +429,7 @@ package body Specification_Parser is
                      when revision         => set_natural (spec, PSP.sp_revision, line);
                      when epoch            => set_natural (spec, PSP.sp_epoch, line);
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
+                     when job_limit        => set_natural (spec, PSP.sp_job_limit, line);
                      when skip_build       => set_boolean (spec, PSP.sp_skip_build, line);
                      when skip_install     => set_boolean (spec, PSP.sp_skip_install, line);
                      when skip_ccache      => set_boolean (spec, PSP.sp_skip_ccache, line);
@@ -1146,7 +1147,7 @@ package body Specification_Parser is
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),
-         ("MAKE_JOBS_NUMBER_LIMIT", 22, catchall),
+         ("MAKE_JOBS_NUMBER_LIMIT", 22, job_limit),
          ("MANDIRS               ",  7, mandirs),
          ("MESON_ARGS            ", 10, catchall),
          ("MESON_BUILD_DIR       ", 15, catchall),

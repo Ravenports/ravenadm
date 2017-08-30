@@ -291,6 +291,7 @@ package body PortScan.Log is
       HT.initialize_markers (contents, markers);
       loop
          exit when not HT.next_line_present (contents, markers);
+         exit when linenum = result_range'Last;
          linenum := linenum + 1;
          declare
             line : constant String := HT.extract_line (contents, markers);

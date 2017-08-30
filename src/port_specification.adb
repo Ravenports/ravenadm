@@ -23,6 +23,7 @@ package body Port_Specification is
       specs.version      := HT.blank;
       specs.revision     := 0;
       specs.epoch        := 0;
+      specs.job_limit    := 0;
       specs.keywords.Clear;
       specs.variants.Clear;
       specs.taglines.Clear;
@@ -1366,6 +1367,15 @@ package body Port_Specification is
                raise wrong_value with "OPTIMIZER_LEVEL is limited to 3";
             end if;
             specs.optimizer_lvl := value;
+         when sp_job_limit =>
+            verify_entry_is_post_options;
+            if value < 1 then
+               raise wrong_value with "MAKE_JOBS_NUMBER_LIMIT must be at least 1";
+            end if;
+            if value > Natural (cpu_range'Last) then
+               raise wrong_value with "MAKE_JOBS_NUMBER_LIMIT is limited to " & cpu_range'Last'Img;
+            end if;
+            specs.job_limit := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -4827,6 +4837,7 @@ package body Port_Specification is
             when sp_revision       => TIO.Put_Line (HT.int2str (specs.revision));
             when sp_epoch          => TIO.Put_Line (HT.int2str (specs.epoch));
             when sp_opt_level      => TIO.Put_Line (HT.int2str (specs.optimizer_lvl));
+            when sp_job_limit      => TIO.Put_Line (HT.int2str (specs.job_limit));
             when sp_distsubdir     => TIO.Put_Line (HT.USS (specs.dist_subdir));
             when sp_distname       => TIO.Put_Line (HT.USS (specs.distname));
             when sp_build_wrksrc   => TIO.Put_Line (HT.USS (specs.build_wrksrc));
@@ -4994,6 +5005,7 @@ package body Port_Specification is
       print_vector_list ("TEST_ENV", sp_test_env);
       print_vector_list ("RC_SUBR", sp_rcscript);
       print_boolean     ("GENERATED", sp_generated);
+      print_single      ("MAKE_JOBS_NUMBER_LIMIT", sp_job_limit);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
 

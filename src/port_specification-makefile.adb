@@ -2,11 +2,13 @@
 --  Reference: ../License.txt
 
 with Utilities;
+with Parameters;
 with Ada.Characters.Latin_1;
 
 package body Port_Specification.Makefile is
 
    package UTL renames Utilities;
+   package PM  renames Parameters;
    package LAT renames Ada.Characters.Latin_1;
 
    --------------------------------------------------------------------------------------------
@@ -771,6 +773,12 @@ package body Port_Specification.Makefile is
       send ("TEST_ENV",         specs.test_env, 1);
       send ("GENERATED",        specs.generated, True);
       send ("PHP_EXTENSIONS",   specs.php_extensions, 1);
+      if specs.job_limit > 0 and then
+         specs.job_limit < Natural (PM.configuration.jobs_limit)
+      then
+         send ("MAKE_JOBS_NUMBER_LIMIT", specs.job_limit, 0);
+      end if;
+
       dump_subr;
 
       specs.mk_verbatim.Iterate (print_verbation'Access);

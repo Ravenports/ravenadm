@@ -56,7 +56,7 @@ private
                          skip_ccache, test_target, mandirs, invalid_rpath, debugging, broken_ssl,
                          test_args, gnome_comp, rc_scripts, ug_subpackage, broken_mysql,
                          broken_pgsql, og_radio, og_restrict, og_unlimited, ext_deb, test_env,
-                         generated, xorg_comp, sdl_comp, phpext);
+                         generated, xorg_comp, sdl_comp, phpext, job_limit);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
