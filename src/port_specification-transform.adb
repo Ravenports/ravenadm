@@ -1682,7 +1682,7 @@ package body Port_Specification.Transform is
       if hit_build or else hit_phpsize or else hit_ext or else hit_zend then
          add_buildrun_depends (specs, flavor & std_suffix);
       else
-         add_build_depends (specs, flavor & std_suffix);
+         add_run_depends (specs, flavor & std_suffix);
       end if;
       if hit_phpsize or else hit_ext or else hit_zend then
          add_build_depends (specs, "autoconf" & std_suffix);
@@ -2668,6 +2668,7 @@ package body Port_Specification.Transform is
       php_module  : constant String := "php";
       std_suffix  : constant String := ":single:standard";
       hit_build   : Boolean := False;
+      hit_ext     : Boolean := False;
       --  This defver works until PHP 10 is released
       defver : String (1 .. 2) := default_php (default_php'First) & default_php (default_php'Last);
       flavor : String := "php" & defver;
@@ -2678,7 +2679,7 @@ package body Port_Specification.Transform is
          extension      : constant String := HT.USS (extension_text);
          dependency     : constant String := flavor & "-" & extension & std_suffix;
       begin
-         if hit_build then
+         if hit_build or else hit_ext then
             add_buildrun_depends (specs, dependency);
          else
             add_run_depends (specs, dependency);
@@ -2695,6 +2696,7 @@ package body Port_Specification.Transform is
          end if;
       end if;
       hit_build := argument_present (specs, php_module, BUILD);
+      hit_ext   := argument_present (specs, php_module, "ext");
       specs.php_extensions.Iterate (import'Access);
    end apply_php_extension_dependencies;
 
