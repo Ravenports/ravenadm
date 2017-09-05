@@ -2110,6 +2110,8 @@ package body Port_Specification.Transform is
       apply_cbc_string_crate (specs.plist_sub);
       apply_cbc_string_crate (specs.mk_verbatim);
       apply_cbc_string_crate (specs.sub_list);
+      apply_cbc_string_crate (specs.users);
+      apply_cbc_string_crate (specs.groups);
 
       specs.catch_all.Iterate (apply_to_list1'Access);
       specs.extract_head.Iterate (apply_to_list2'Access);
