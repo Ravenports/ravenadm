@@ -1528,6 +1528,8 @@ package body Port_Specification is
                Element.RUN_DEPENDS_ON.Append (value_text);
             when sub_list_off =>
                Element.SUB_LIST_OFF.Append (value_text);
+            when sub_files_off =>
+               Element.SUB_FILES_OFF.Append (value_text);
             when sub_files_on =>
                Element.SUB_FILES_ON.Append (value_text);
             when sub_list_on =>
@@ -1556,7 +1558,7 @@ package body Port_Specification is
               implies_on | info_on | install_target_on | keywords_on  | buildrun_depends_on |
               patchfiles_on | prevents_on | run_depends_on | sub_files_on | test_target_on |
               uses_on | uses_off | buildrun_depends_off | run_depends_off | build_depends_on |
-              gnome_comp_on | xorg_comp_on | info_off | df_index_off =>
+              gnome_comp_on | xorg_comp_on | info_off | df_index_off | sub_files_off =>
             allow_spaces := False;
          when others =>
             allow_spaces := True;
@@ -1578,8 +1580,8 @@ package body Port_Specification is
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_off | make_args_on | make_env_on | patchfiles_on |
-              plist_sub_on | qmake_on | qmake_off | sub_files_on | sub_list_off | sub_list_on |
-              test_target_on | makefile_on | makefile_off =>
+              plist_sub_on | qmake_on | qmake_off | sub_files_off | sub_files_on |
+              sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on |
@@ -1739,6 +1741,7 @@ package body Port_Specification is
             when qmake_on              => return rec.QMAKE_ON.Is_Empty;
             when run_depends_off       => return rec.RUN_DEPENDS_OFF.Is_Empty;
             when run_depends_on        => return rec.RUN_DEPENDS_ON.Is_Empty;
+            when sub_files_off         => return rec.SUB_FILES_OFF.Is_Empty;
             when sub_files_on          => return rec.SUB_FILES_ON.Is_Empty;
             when sub_list_off          => return rec.SUB_LIST_OFF.Is_Empty;
             when sub_list_on           => return rec.SUB_LIST_ON.Is_Empty;
@@ -4704,6 +4707,7 @@ package body Port_Specification is
          print_opt_vector (rec.QMAKE_ON, "QMAKE_ON");
          print_opt_vector (rec.RUN_DEPENDS_OFF, "RUN_DEPENDS_OFF");
          print_opt_vector (rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
+         print_opt_vector (rec.SUB_FILES_OFF, "SUB_FILES_OFF");
          print_opt_vector (rec.SUB_FILES_ON, "SUB_FILES_ON");
          print_opt_vector (rec.SUB_LIST_ON, "SUB_LIST_ON");
          print_opt_vector (rec.TEST_TARGET_ON, "TEST_TARGET_ON");

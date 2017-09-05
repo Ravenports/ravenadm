@@ -1278,7 +1278,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 53;
+      total_helpers : constant Positive := 54;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1336,6 +1336,7 @@ package body Specification_Parser is
          ("QMAKE_ON             ", PSP.qmake_on),
          ("RUN_DEPENDS_OFF      ", PSP.run_depends_off),
          ("RUN_DEPENDS_ON       ", PSP.run_depends_on),
+         ("SUB_FILES_OFF        ", PSP.sub_files_off),
          ("SUB_FILES_ON         ", PSP.sub_files_on),
          ("SUB_LIST_OFF         ", PSP.sub_list_off),
          ("SUB_LIST_ON          ", PSP.sub_list_on),
