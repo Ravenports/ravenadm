@@ -1278,7 +1278,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 52;
+      total_helpers : constant Positive := 53;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1325,6 +1325,7 @@ package body Specification_Parser is
          ("LDFLAGS_ON           ", PSP.ldflags_on),
          ("MAKEFILE_OFF         ", PSP.makefile_off),
          ("MAKEFILE_ON          ", PSP.makefile_on),
+         ("MAKE_ARGS_OFF        ", PSP.make_args_off),
          ("MAKE_ARGS_ON         ", PSP.make_args_on),
          ("MAKE_ENV_ON          ", PSP.make_env_on),
          ("ONLY_FOR_OPSYS_ON    ", PSP.only_for_opsys_on),

@@ -1504,6 +1504,8 @@ package body Port_Specification is
                Element.MAKEFILE_OFF.Append (value_text);
             when makefile_on =>
                Element.MAKEFILE_ON.Append (value_text);
+            when make_args_off =>
+               Element.MAKE_ARGS_OFF.Append (value_text);
             when make_args_on =>
                Element.MAKE_ARGS_ON.Append (value_text);
             when make_env_on =>
@@ -1575,8 +1577,8 @@ package body Port_Specification is
               cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
-              ldflags_on | make_args_on | make_env_on | patchfiles_on | plist_sub_on |
-              qmake_on | qmake_off | sub_files_on | sub_list_off | sub_list_on |
+              ldflags_on | make_args_off | make_args_on | make_env_on | patchfiles_on |
+              plist_sub_on | qmake_on | qmake_off | sub_files_on | sub_list_off | sub_list_on |
               test_target_on | makefile_on | makefile_off =>
             --  No validation required
             null;
@@ -1726,6 +1728,7 @@ package body Port_Specification is
             when ldflags_on            => return rec.LDFLAGS_ON.Is_Empty;
             when makefile_off          => return rec.MAKEFILE_OFF.Is_Empty;
             when makefile_on           => return rec.MAKEFILE_ON.Is_Empty;
+            when make_args_off         => return rec.MAKE_ARGS_OFF.Is_Empty;
             when make_args_on          => return rec.MAKE_ARGS_ON.Is_Empty;
             when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
             when only_for_opsys_on     => return rec.ONLY_FOR_OPSYS_ON.Is_Empty;
@@ -4690,6 +4693,7 @@ package body Port_Specification is
          print_opt_vector (rec.LDFLAGS_ON, "LDFLAGS_ON");
          print_opt_vector (rec.MAKEFILE_OFF, "MAKEFILE_OFF");
          print_opt_vector (rec.MAKEFILE_ON, "MAKEFILE_ON");
+         print_opt_vector (rec.MAKE_ARGS_OFF, "MAKE_ARGS_OFF");
          print_opt_vector (rec.MAKE_ARGS_ON, "MAKE_ARGS_ON");
          print_opt_vector (rec.MAKE_ENV_ON, "MAKE_ENV_ON");
          print_opt_vector (rec.ONLY_FOR_OPSYS_ON, "ONLY_FOR_OPSYS_ON");
