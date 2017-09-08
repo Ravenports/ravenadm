@@ -76,7 +76,7 @@ package body PortScan.Packager is
             case stage is
                when 1 => return "install";
                when 2 => return "upgrade";
-               when 3 => return "desinstall";
+               when 3 => return "deinstall";
             end case;
          end convert_stage;
       begin
