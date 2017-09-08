@@ -289,6 +289,7 @@ package body Port_Specification.Transform is
       apply_ccache (specs);
       apply_schemas_module (specs);
       apply_firebird_module (specs);
+      apply_desktop_utils_module (specs);
       apply_gnome_components_dependencies (specs);
       apply_sdl_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
@@ -1341,6 +1342,19 @@ package body Port_Specification.Transform is
          add_run_depends (specs, GNOMELIB);
       end if;
    end apply_schemas_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_desktop_utils_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_desktop_utils_module (specs : in out Portspecs)
+   is
+      module : String := "desktop-utils";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, "desktop-file-utils:single:standard");
+      end if;
+   end apply_desktop_utils_module;
 
 
    --------------------------------------------------------------------------------------------

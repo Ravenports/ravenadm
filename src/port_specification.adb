@@ -3025,7 +3025,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 51;
+      total_modules : constant Positive := 52;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3042,6 +3042,7 @@ package body Port_Specification is
          "cmake          ",
          "compiler       ",
          "cpe            ",
+         "desktop-utils  ",
          "destdirfix     ",
          "display        ",
          "dos2unix       ",
