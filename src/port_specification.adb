@@ -3243,12 +3243,15 @@ package body Port_Specification is
          ("intltool          ", intltool),
          ("introspection     ", introspection),
          ("libcroco          ", libcroco),
+         ("libglade          ", libglade),
          ("libgsf            ", libgsf),
          ("librsvg           ", librsvg),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
          ("pango             ", pango),
-         ("pygobject         ", pygobject)
+         ("pygobj2           ", pygobj2),
+         ("pygobject         ", pygobject),
+         ("pygtk2            ", pygtk2)
         );
 
 --  atkmm
@@ -3286,7 +3289,6 @@ package body Port_Specification is
 --  libbonoboui
 --  libgda-ui
 --  libgdamm
---  libglade2
 --  libgnome
 --  libgnomecanvas
 --  libgnomekbd
@@ -3306,7 +3308,6 @@ package body Port_Specification is
 --  pangomm
 --  pangox-compat
 --  pygnome2
---  pygtk2
 --  pygtksourceview
 --  referencehack
 --  vte

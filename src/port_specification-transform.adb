@@ -2544,6 +2544,9 @@ package body Port_Specification.Transform is
       port_pango    : constant String := "pango";
       port_gobspec  : constant String := "gobject-introspection";
       port_intltool : constant String := "intltool";
+      port_libglade : constant String := "libglade:single:py27";
+      port_pygtk2   : constant String := "python-gtk2:py27";
+      port_pygobj2  : constant String := "python-pygobject2:single:py27";
       port_pygobj   : constant String := "python-pygobject:primary:py" &
         HT.replace_char (default_python3, '.', "");
 
@@ -2556,6 +2559,7 @@ package body Port_Specification.Transform is
          case comp is
             when invalid_component => null;  --  should be impossible
             when glib      => null;
+            when libglade  => null;
             when libxml2   => add_buildrun_depends (specs, port_libxml2 & ss);
             when libxslt   => add_buildrun_depends (specs, port_libxslt & ss);
                               add_buildrun_depends (specs, port_libxml2 & ss);
@@ -2568,23 +2572,36 @@ package body Port_Specification.Transform is
             when libcroco  => add_buildrun_depends (specs, "libcroco" & ps);
             when librsvg   => add_buildrun_depends (specs, "librsvg" & ps);
             when pygobject => add_buildrun_depends (specs, port_pygobj);
+            when pygobj2   => add_buildrun_depends (specs, port_pygobj2);
+            when pygtk2    => add_buildrun_depends (specs, port_pygtk2);
+                              add_buildrun_depends (specs, port_pygobj2);
             when introspection =>
-                            add_build_depends (specs, port_gobspec & ss);
-                            add_build_depends (specs, PYTHON27);
-                            specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
-                            specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
-            when gtk2    => add_buildrun_depends (specs, port_gtk2 & ss);
-                            add_buildrun_depends (specs, port_atk & ss);
-                            add_buildrun_depends (specs, port_pango & ps);
-            when gtk3    => add_buildrun_depends (specs, port_gtk3 & ss);
-                            add_buildrun_depends (specs, port_atk & ss);
-                            add_buildrun_depends (specs, port_pango & ps);
+                              add_build_depends (specs, port_gobspec & ss);
+                              add_build_depends (specs, PYTHON27);
+                              specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
+                              specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
+            when gtk2      => add_buildrun_depends (specs, port_gtk2 & ss);
+                              add_buildrun_depends (specs, port_atk & ss);
+                              add_buildrun_depends (specs, port_pango & ps);
+            when gtk3      => add_buildrun_depends (specs, port_gtk3 & ss);
+                              add_buildrun_depends (specs, port_atk & ss);
+                              add_buildrun_depends (specs, port_pango & ps);
          end case;
          --  These components imply glib
          case comp is
-            when introspection | glib | atk | pango | gdkpixbuf | pygobject =>
+            when introspection | glib | atk | pango | gdkpixbuf | pygobject | pygobj2 | pygtk2 =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, port_gettext);
+            when others => null;
+         end case;
+         --  These components imply libglade (which implies libxml2 and gtk2)
+         case comp is
+            when libglade | pygtk2 =>
+               add_buildrun_depends (specs, port_libglade);
+               add_buildrun_depends (specs, port_libxml2 & ss);
+               add_buildrun_depends (specs, port_gtk2 & ss);
+               add_buildrun_depends (specs, port_atk & ss);
+               add_buildrun_depends (specs, port_pango & ps);
             when others => null;
          end case;
       end import;

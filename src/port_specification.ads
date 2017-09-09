@@ -309,8 +309,9 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (atk, cairo, glib, gtk2, gtk3, gdkpixbuf, intltool, introspection, pango, pygobject,
-      libcroco, libgsf, librsvg, libxml2, libxslt, invalid_component);
+     (atk, cairo, glib, gtk2, gtk3, gdkpixbuf, intltool, introspection, pango,
+      pygobject, pygobj2, libcroco, libglade, libgsf, librsvg, libxml2, libxslt, pygtk2,
+      invalid_component);
 
    type xorg_type is
      (bigreqsproto, compositeproto, damageproto, dmxproto, dri2proto, dri3proto, evieproto,

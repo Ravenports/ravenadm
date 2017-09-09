@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "0";
-   raven_version_minor : constant String := "72";
+   raven_version_minor : constant String := "73";
    copyright_years     : constant String := "2015-2017";
 
    raven_tool        : constant String := "ravenadm";
