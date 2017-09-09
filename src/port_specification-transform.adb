@@ -2696,7 +2696,7 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_xorg_components_dependencies
+   --  apply_php_extension_dependencies
    --------------------------------------------------------------------------------------------
    procedure apply_php_extension_dependencies (specs : in out Portspecs)
    is

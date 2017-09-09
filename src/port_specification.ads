@@ -321,9 +321,9 @@ private
       xf86miscproto, xf86rushproto, xf86vidmodeproto, xineramaproto, xproto, xproxymngproto,
       xtransproto, dmx, fontenc, fontutil, ice, pciaccess, pixman, sm, x11, xau, xaw, xcb,
       xcb_util, xcb_util_image, xcb_util_keysyms, xcb_util_wm, xcb_render_util, xcomposite,
-      xcursor, xdamage, xdmcp, xext, xfixes, xfont, xfont2, xft, xi, xinerama, xkbfile, xmu,
-      xp, xpm, xrandr, xrender, xres, xscrnsaver, xshmfence, xt, xtst, xv, xvmc, xxf86vm,
-      invalid_component);
+      xcursor, xdamage, xdmcp, xext, xfixes, xfont, xfont2, xfontcache, xft, xi, xinerama,
+      xkbfile, xmu, xp, xpm, xprop, xrandr, xrender, xres, xscrnsaver, xset, xshmfence, xt,
+      xtst, xv, xvmc, xxf86vm, invalid_component);
 
    type sdl_type is
      (sdl1, sdl2, gfx1, gfx2, image1, image2, mixer1, mixer2, net1, net2, ttf1, ttf2,
