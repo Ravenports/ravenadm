@@ -2545,7 +2545,7 @@ package body Port_Specification.Transform is
       port_gobspec  : constant String := "gobject-introspection";
       port_intltool : constant String := "intltool";
       port_libglade : constant String := "libglade:single:py27";
-      port_pygtk2   : constant String := "python-gtk2:py27";
+      port_pygtk2   : constant String := "python-gtk2:single:py27";
       port_pygobj2  : constant String := "python-pygobject2:single:py27";
       port_pygobj   : constant String := "python-pygobject:primary:py" &
         HT.replace_char (default_python3, '.', "");
