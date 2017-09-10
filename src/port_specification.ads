@@ -309,7 +309,7 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (atk, cairo, glib, gtk2, gtk3, gdkpixbuf, intltool, introspection, pango,
+     (atk, cairo, glib, gtk2, gtk3, gtksourceview3, gdkpixbuf, intltool, introspection, pango,
       pygobject, pygobj2, libcroco, libglade, libgsf, librsvg, libxml2, libxslt, pygtk2,
       invalid_component);
 

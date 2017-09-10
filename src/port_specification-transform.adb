@@ -2544,6 +2544,7 @@ package body Port_Specification.Transform is
       port_pango    : constant String := "pango";
       port_gobspec  : constant String := "gobject-introspection";
       port_intltool : constant String := "intltool";
+      port_gsview3  : constant String := "gtksourceview3";
       port_libglade : constant String := "libglade:single:py27";
       port_pygtk2   : constant String := "python-gtk2:primary:py27";
       port_pygobj2  : constant String := "python-pygobject2:single:py27";
@@ -2560,6 +2561,7 @@ package body Port_Specification.Transform is
             when invalid_component => null;  --  should be impossible
             when glib      => null;
             when libglade  => null;
+            when gtk3      => null;
             when libxml2   => add_buildrun_depends (specs, port_libxml2 & ss);
             when libxslt   => add_buildrun_depends (specs, port_libxslt & ss);
                               add_buildrun_depends (specs, port_libxml2 & ss);
@@ -2575,6 +2577,9 @@ package body Port_Specification.Transform is
             when pygobj2   => add_buildrun_depends (specs, port_pygobj2);
             when pygtk2    => add_buildrun_depends (specs, port_pygtk2);
                               add_buildrun_depends (specs, port_pygobj2);
+            when gtksourceview3 =>
+                              add_buildrun_depends (specs, port_libxml2 & ss);
+                              add_buildrun_depends (specs, port_gsview3 & ps);
             when introspection =>
                               add_build_depends (specs, port_gobspec & ss);
                               add_build_depends (specs, PYTHON27);
@@ -2583,9 +2588,14 @@ package body Port_Specification.Transform is
             when gtk2      => add_buildrun_depends (specs, port_gtk2 & ss);
                               add_buildrun_depends (specs, port_atk & ss);
                               add_buildrun_depends (specs, port_pango & ps);
-            when gtk3      => add_buildrun_depends (specs, port_gtk3 & ss);
-                              add_buildrun_depends (specs, port_atk & ss);
-                              add_buildrun_depends (specs, port_pango & ps);
+         end case;
+         --  These components imply gtk3
+         case comp is
+            when gtk3 | gtksourceview3 =>
+               add_buildrun_depends (specs, port_gtk3 & ss);
+               add_buildrun_depends (specs, port_atk & ss);
+               add_buildrun_depends (specs, port_pango & ps);
+            when others => null;
          end case;
          --  These components imply glib
          case comp is
