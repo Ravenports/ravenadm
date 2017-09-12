@@ -2548,6 +2548,7 @@ package body Port_Specification.Transform is
       port_libglade : constant String := "libglade:single:py27";
       port_pygtk2   : constant String := "python-gtk2:primary:py27";
       port_pygobj2  : constant String := "python-pygobject2:single:py27";
+      port_pygobjcm : constant String := "python-pygobject:common:py35";
       port_pygobj   : constant String := "python-pygobject:primary:py" &
         HT.replace_char (default_python3, '.', "");
 
@@ -2574,6 +2575,7 @@ package body Port_Specification.Transform is
             when libcroco  => add_buildrun_depends (specs, "libcroco" & ps);
             when librsvg   => add_buildrun_depends (specs, "librsvg" & ps);
             when pygobject => add_buildrun_depends (specs, port_pygobj);
+                              add_buildrun_depends (specs, port_pygobjcm);
             when pygobj2   => add_buildrun_depends (specs, port_pygobj2);
             when pygtk2    => add_buildrun_depends (specs, port_pygtk2);
                               add_buildrun_depends (specs, port_pygobj2);
