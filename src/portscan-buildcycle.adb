@@ -1690,8 +1690,9 @@ package body PortScan.Buildcycle is
       begin
          declare
             raw     : constant String := HT.first_line (result);
-            snumber : constant Integer := Integer'Value (raw);
+            snumber : Integer;
          begin
+            snumber := Integer'Value (raw);
             return HT.int2str (snumber);
          exception
             when others =>
