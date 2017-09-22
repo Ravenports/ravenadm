@@ -1637,16 +1637,24 @@ package body PortScan.Buildcycle is
    procedure run_makesum (id : builders)
    is
       root     : constant String := get_root (id);
-      command  : constant String := chroot & root & environment_override (id) &
-                 chroot_make_program & " -C /port makesum";
       distinfo : constant String := root & "/port/distinfo";
-      result   : constant String := generic_system_command (command);
    begin
-      TIO.Put_Line (result);
-      if DIR.Exists (distinfo) then
-         TIO.Put_Line ("Copying " & distinfo & " to current directory");
-         DIR.Copy_File (distinfo, "distinfo");
-      end if;
+      DIR.Delete_File (distinfo);
+      declare
+         command  : constant String := chroot & root & environment_override (id) &
+                    chroot_make_program & " -C /port makesum";
+         result   : constant String := generic_system_command (command);
+      begin
+         if DIR.Exists (distinfo) then
+            TIO.Put_Line (result);
+            TIO.Put_Line ("Copying " & distinfo & " to current directory");
+            DIR.Copy_File (distinfo, "distinfo");
+         else
+            TIO.Put_Line ("####### MAKESUM COMMAND FAILED #######");
+            TIO.Put_Line ("hint 1: Check SITES array contents are valid and accessible");
+            TIO.Put_Line ("hint 2: Check that all distfile names are correct.");
+         end if;
+      end;
    end run_makesum;
 
 
