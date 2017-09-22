@@ -1640,12 +1640,18 @@ package body PortScan.Buildcycle is
       distinfo : constant String := root & "/port/distinfo";
       command  : constant String := chroot & root & environment_override (id) &
                  chroot_make_program & " -C /port makesum";
-      result   : constant String := generic_system_command (command);
+      content : HT.Text;
+      status  : Integer;
    begin
-      if DIR.Exists (distinfo) then
-         TIO.Put_Line (result);
-         TIO.Put_Line ("Copying " & distinfo & " to current directory");
-         DIR.Copy_File (distinfo, "distinfo");
+      content := Unix.piped_command (command, status);
+      if status = 0 then
+         if DIR.Exists (distinfo) then
+            TIO.Put_Line (HT.USS (content));
+            TIO.Put_Line ("Copying " & distinfo & " to current directory");
+            DIR.Copy_File (distinfo, "distinfo");
+         else
+            TIO.Put_Line ("####### failure, distinfo not found #######");
+         end if;
       else
          TIO.Put_Line ("####### MAKESUM COMMAND FAILED #######");
          TIO.Put_Line ("hint 1: Check SITES array contents are valid and accessible");
