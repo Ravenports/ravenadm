@@ -1651,6 +1651,82 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
+   --  run_patch_regen
+   --------------------------------------------------------------------------------------------
+   procedure run_patch_regen (id : builders; sourceloc : String)
+   is
+      function get_wrksrc return String;
+      function get_strip_component return String;
+      procedure copy_files (subdir : String; pattern : String);
+
+      root     : constant String := get_root (id);
+      premake  : constant String := chroot & root & environment_override (id) &
+                 chroot_make_program & " -C /port ";
+      cextract : constant String := premake & "extract";
+      cpatch   : constant String := premake & "do-patch";
+
+      function get_wrksrc return String
+      is
+         command  : constant String := premake & " -V WRKSRC";
+         result   : constant String := generic_system_command (command);
+      begin
+         return HT.first_line (result);
+      end get_wrksrc;
+
+      function get_strip_component return String
+      is
+         command  : constant String := premake & " -V PATCH_STRIP:S/-p//";
+         result   : constant String := generic_system_command (command);
+      begin
+         declare
+            raw     : constant String := HT.first_line (result);
+            snumber : constant Integer := Integer'Value (raw);
+         begin
+            return HT.int2str (snumber);
+         exception
+            when others =>
+               TIO.Put_Line ("Failed to convert '" & raw & "' to an integer; going with '0'");
+               return "0";
+         end;
+      end get_strip_component;
+
+      procedure copy_files (subdir : String; pattern : String)
+      is
+         shinydir : constant String := "/tmp/shiny";
+      begin
+         if sourceloc = "" then
+            FOP.replace_directory_contents (shinydir, subdir, pattern);
+         else
+            FOP.replace_directory_contents (shinydir, sourceloc & "/" & subdir, pattern);
+         end if;
+      end copy_files;
+
+      cregen : constant String := chroot & root & " /xports/Mk/Scripts/repatch.sh " &
+                 get_wrksrc & " " & get_strip_component;
+   begin
+      if DIR.Exists (root & "/port/patches") then
+         if Unix.external_command (cextract) then
+            if Unix.external_command (cpatch) then
+               if Unix.external_command (cregen) then
+                  --  copy contents of /tmp/shiny to sourceloc/patches and sourceloc/files
+                  copy_files ("patches", "patch-");
+                  copy_files ("files", "extra-patch-");
+               else
+                  TIO.Put_Line ("patch regen: failed to regenerate patches");
+               end if;
+            else
+               TIO.Put_Line ("patch regen: failed to apply patches");
+            end if;
+         else
+            TIO.Put_Line ("patch regen: failed to extract distfile");
+         end if;
+      else
+         TIO.Put_Line ("This port has no patches to regenerated.");
+      end if;
+   end run_patch_regen;
+
+
+   --------------------------------------------------------------------------------------------
    --  get_port_prefix
    --------------------------------------------------------------------------------------------
    function get_port_prefix (id : builders) return String

@@ -46,6 +46,9 @@ package PortScan.Buildcycle is
    --  Exposed for Pilot to determine validity of test build request
    function valid_test_phase (afterphase : String) return Boolean;
 
+   --  Exposed for Pilot to regenerate patches (Names and content are maintained)
+   procedure run_patch_regen (id : builders; sourceloc : String);
+
 private
 
    package CAL renames Ada.Calendar;

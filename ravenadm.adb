@@ -15,7 +15,8 @@ procedure Ravenadm is
    type mandate_type is (unset, help, dev, build, build_everything, force, test, test_everything,
                          status, status_everything, configure, locate, purge, changeopts,
                          checkports, portsnap, repository, list_subpackages, website);
-   type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web);
+   type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
+                         repatch);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -86,6 +87,8 @@ procedure Ravenadm is
          return genindex;
       elsif second = "web" then
          return web;
+      elsif second = "repatch" then
+         return repatch;
       else
          return unset;
       end if;
@@ -321,6 +324,8 @@ begin
                      Pilot.generate_makefile (get_arg (3), get_arg (4));
                   when web =>
                      Pilot.generate_webpage (get_arg (3), get_arg (4));
+                  when repatch =>
+                     Pilot.regenerate_patches (get_arg (3), get_arg (4));
                   when template =>
                      Pilot.print_spec_template (get_arg (3));
                   when genindex =>

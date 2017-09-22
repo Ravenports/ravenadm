@@ -1075,7 +1075,6 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    procedure generate_distinfo
    is
-      specfile : constant String := "specification";
       portloc  : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
       makefile : String := portloc & "/Makefile";
       successful    : Boolean;
@@ -1424,5 +1423,58 @@ package body Pilot is
          TIO.Put_Line ("The web site generation was not entirely successful.");
       end if;
    end generate_website;
+
+
+   --------------------------------------------------------------------------------------------
+   --  regenerate_patches
+   --------------------------------------------------------------------------------------------
+   procedure regenerate_patches (optional_directory : String;
+                                 optional_variant : String)
+   is
+      function get_variant return String;
+
+      directory_specified : constant Boolean := (optional_directory /= "");
+      successful : Boolean;
+
+      portloc       : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
+      specification : Port_Specification.Portspecs;
+      dossier_text  : HT.Text;
+
+      function get_variant return String is
+      begin
+         if optional_variant = "" then
+            return variant_standard;
+         else
+            return optional_variant;
+         end if;
+      end get_variant;
+
+      selected_variant : constant String := get_variant;
+
+   begin
+      if directory_specified then
+         dossier_text := HT.SUS (optional_directory & "/" & specfile);
+      else
+         dossier_text := HT.SUS (specfile);
+      end if;
+      if DIR.Exists (HT.USS (dossier_text)) then
+         REP.initialize (testmode  => False);
+         REP.launch_slave (scan_slave);
+         PAR.parse_specification_file (dossier         => HT.USS (dossier_text),
+                                       specification   => specification,
+                                       opsys_focus     => platform_type,
+                                       arch_focus      => sysrootver.arch,
+                                       success         => successful,
+                                       stop_at_targets => False,
+                                       extraction_dir  => portloc);
+         CYC.run_patch_regen (id => scan_slave, sourceloc => optional_directory);
+         REP.destroy_slave (scan_slave);
+         REP.finalize;
+      else
+         DNE (HT.USS (dossier_text));
+         return;
+      end if;
+
+   end regenerate_patches;
 
 end Pilot;

@@ -39,6 +39,12 @@ package File_Operations is
    --  Creates a zero-length file
    procedure create_cookie (fullpath : String);
 
+   --  Replace pattern-matching files in target directory from the source directory
+   procedure replace_directory_contents
+     (source_directory : String;
+      target_directory : String;
+      pattern          : String);
+
 private
 
    --  helper for create_pidfile

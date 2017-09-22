@@ -220,4 +220,39 @@ package body File_Operations is
          raise file_handling;
    end create_cookie;
 
+
+   --------------------------------------------------------------------------------------------
+   --  replace_directory_contents
+   --------------------------------------------------------------------------------------------
+   procedure replace_directory_contents
+     (source_directory : String;
+      target_directory : String;
+      pattern          : String)
+   is
+      search : DIR.Search_Type;
+      dirent : DIR.Directory_Entry_Type;
+      filter : constant DIR.Filter_Type := (DIR.Ordinary_File => True, others => False);
+   begin
+      DIR.Start_Search (Search    => search,
+                        Directory => target_directory,
+                        Pattern   => pattern,
+                        Filter    => filter);
+      while DIR.More_Entries (search) loop
+         DIR.Get_Next_Entry (search, dirent);
+         declare
+            SN      : constant String := DIR.Simple_Name (dirent);
+            oldfile : constant String := target_directory & "/" & SN;
+            newfile : constant String := source_directory & "/" & SN;
+         begin
+            if DIR.Exists (newfile) then
+               DIR.Copy_File (Source_Name => newfile, Target_Name => oldfile);
+            end if;
+         exception
+            when others =>
+               TIO.Put_Line ("Failed to copy " & newfile & " over to " & oldfile);
+         end;
+      end loop;
+      DIR.End_Search (search);
+   end replace_directory_contents;
+
 end File_Operations;

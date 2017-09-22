@@ -536,13 +536,14 @@ package body PortScan.Operations is
          return;
       end if;
       DIR.Start_Search (Search    => search,
-                       Directory => reportdir,
-                       Pattern   => pattern,
-                       Filter    => filter);
+                        Directory => reportdir,
+                        Pattern   => pattern,
+                        Filter    => filter);
       while DIR.More_Entries (search) loop
          DIR.Get_Next_Entry (search, dirent);
          DIR.Delete_File (reportdir & "/" & DIR.Simple_Name (dirent));
       end loop;
+      DIR.End_Search (search);
    exception
       when DIR.Name_Error => null;
    end delete_existing_web_history_files;

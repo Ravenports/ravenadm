@@ -22,6 +22,8 @@ package Pilot is
                                 optional_variant : String);
    procedure generate_buildsheet (sourcedir    : String;
                                   save_command : String);
+   procedure regenerate_patches (optional_directory : String;
+                                 optional_variant : String);
    procedure generate_website;
 
    --  Return True when TERM is defined in environment (required)
