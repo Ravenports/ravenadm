@@ -1460,13 +1460,15 @@ package body Pilot is
       if DIR.Exists (HT.USS (dossier_text)) then
          REP.initialize (testmode  => False);
          REP.launch_slave (scan_slave);
-         PAR.parse_specification_file (dossier         => HT.USS (dossier_text),
-                                       specification   => specification,
-                                       opsys_focus     => platform_type,
-                                       arch_focus      => sysrootver.arch,
-                                       success         => successful,
-                                       stop_at_targets => False,
-                                       extraction_dir  => portloc);
+         OPS.parse_and_transform_buildsheet (specification => specification,
+                                             successful    => successful,
+                                             buildsheet    => HT.USS (dossier_text),
+                                             variant       => selected_variant,
+                                             portloc       => portloc,
+                                             excl_targets  => False,
+                                             avoid_dialog  => True,
+                                             for_webpage   => False,
+                                             sysrootver    => sysrootver);
          CYC.run_patch_regen (id => scan_slave, sourceloc => optional_directory);
          REP.destroy_slave (scan_slave);
          REP.finalize;
