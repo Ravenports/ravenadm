@@ -1721,6 +1721,9 @@ package body PortScan.Buildcycle is
                if Unix.external_command (cregen) then
                   --  copy contents of /tmp/shiny to sourceloc/patches and sourceloc/files
                   copy_files ("patches", "patch-*");
+                  copy_files ("dragonfly", "patch-*");
+                  copy_files ("freebsd", "patch-*");
+                  copy_files ("linux", "patch-*");
                   copy_files ("files", "extra-patch-*");
                else
                   TIO.Put_Line ("patch regen: failed to regenerate patches");
