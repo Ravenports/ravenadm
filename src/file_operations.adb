@@ -233,6 +233,9 @@ package body File_Operations is
       dirent : DIR.Directory_Entry_Type;
       filter : constant DIR.Filter_Type := (DIR.Ordinary_File => True, others => False);
    begin
+      if not DIR.Exists (target_directory) then
+         return;
+      end if;
       DIR.Start_Search (Search    => search,
                         Directory => target_directory,
                         Pattern   => pattern,
