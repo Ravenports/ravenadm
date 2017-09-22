@@ -77,6 +77,17 @@ is assumed for the variant.  This functionality is primarily used by the
 Ravenports makefile framework authors to detect breakage.  Regular port
 developers may find it of limited use as it illustrates the makefile
 generated for BSD make during the port build.
+.It repatch
+The
+.Em repatch
+subcommand is used to regenerate patches to eliminate fuzzy application
+and hunk offsets.  It should only be used when the existing patches
+successfully apply, otherwise the skipped hunks will be omitted on the
+new patches.  The patch file names are maintained, and aggregate patches
+are maintained (meaning if a patch file contains 4 individually patches, the
+regenerated file will also contain the same set of patches).  Finally,
+the first comment will be be retained (lines between the top of the patch
+file and the first line starting with "---").
 .It template
 The
 .Em template
