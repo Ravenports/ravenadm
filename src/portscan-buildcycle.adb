@@ -1703,7 +1703,7 @@ package body PortScan.Buildcycle is
 
       procedure copy_files (subdir : String; pattern : String)
       is
-         shinydir : constant String := "/tmp/shiny";
+         shinydir : constant String := root & "/tmp/shiny";
       begin
          if sourceloc = "" then
             FOP.replace_directory_contents (shinydir, subdir, pattern);
@@ -1712,7 +1712,7 @@ package body PortScan.Buildcycle is
          end if;
       end copy_files;
 
-      cregen : constant String := chroot & root & " /xports/Mk/Scripts/repatch.sh " &
+      cregen : constant String := chroot & root & " /bin/sh /xports/Mk/Scripts/repatch.sh " &
                  get_wrksrc & " " & get_strip_component;
    begin
       if DIR.Exists (root & "/port/patches") then
@@ -1720,8 +1720,8 @@ package body PortScan.Buildcycle is
             if Unix.external_command (cpatch) then
                if Unix.external_command (cregen) then
                   --  copy contents of /tmp/shiny to sourceloc/patches and sourceloc/files
-                  copy_files ("patches", "patch-");
-                  copy_files ("files", "extra-patch-");
+                  copy_files ("patches", "patch-*");
+                  copy_files ("files", "extra-patch-*");
                else
                   TIO.Put_Line ("patch regen: failed to regenerate patches");
                end if;
