@@ -1432,13 +1432,14 @@ package body Pilot is
                                  optional_variant : String)
    is
       function get_variant return String;
+      function get_buildsheet return String;
 
       directory_specified : constant Boolean := (optional_directory /= "");
       successful : Boolean;
 
       portloc       : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
       specification : Port_Specification.Portspecs;
-      dossier_text  : HT.Text;
+      spec_found    : Boolean := False;
 
       function get_variant return String is
       begin
@@ -1449,20 +1450,52 @@ package body Pilot is
          end if;
       end get_variant;
 
+      function get_buildsheet return String
+      is
+         dossier_text : HT.Text;
+         presuccess   : Boolean;
+         prespec      : Port_Specification.Portspecs;
+      begin
+         if directory_specified then
+            dossier_text := HT.SUS (optional_directory & "/" & specfile);
+         else
+            dossier_text := HT.SUS (specfile);
+         end if;
+         if DIR.Exists (HT.USS (dossier_text)) then
+            PAR.parse_specification_file (dossier         => HT.USS (dossier_text),
+                                          specification   => prespec,
+                                          opsys_focus     => platform_type,
+                                          arch_focus      => x86_64,
+                                          success         => presuccess,
+                                          stop_at_targets => True);
+            if presuccess then
+               declare
+                  namebase  : constant String := prespec.get_namebase;
+                  savedspec : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
+                    UTL.bucket (namebase) & "/" & namebase;
+               begin
+                  if DIR.Exists (savedspec) then
+                     spec_found := True;
+                     return savedspec;
+                  else
+                     DNE (savedspec);
+                  end if;
+               end;
+            end if;
+         end if;
+         return "unused";
+      end get_buildsheet;
+
       selected_variant : constant String := get_variant;
+      dossier          : constant String := get_buildsheet;
 
    begin
-      if directory_specified then
-         dossier_text := HT.SUS (optional_directory & "/" & specfile);
-      else
-         dossier_text := HT.SUS (specfile);
-      end if;
-      if DIR.Exists (HT.USS (dossier_text)) then
+      if spec_found then
          REP.initialize (testmode  => False);
          REP.launch_slave (scan_slave);
          OPS.parse_and_transform_buildsheet (specification => specification,
                                              successful    => successful,
-                                             buildsheet    => HT.USS (dossier_text),
+                                             buildsheet    => dossier,
                                              variant       => selected_variant,
                                              portloc       => portloc,
                                              excl_targets  => False,
@@ -1472,11 +1505,7 @@ package body Pilot is
          CYC.run_patch_regen (id => scan_slave, sourceloc => optional_directory);
          REP.destroy_slave (scan_slave);
          REP.finalize;
-      else
-         DNE (HT.USS (dossier_text));
-         return;
       end if;
-
    end regenerate_patches;
 
 end Pilot;
