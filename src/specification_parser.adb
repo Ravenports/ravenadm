@@ -1049,7 +1049,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 164;
+      total_singlets : constant Positive := 167;
 
       type singlet_pair is
          record
@@ -1183,6 +1183,9 @@ package body Specification_Parser is
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("RC_SUBR               ",  7, rc_scripts),
          ("REVISION              ",  8, revision),
+         ("RUBY_EXTCONF          ", 12, catchall),
+         ("RUBY_FLAGS            ", 10, catchall),
+         ("RUBY_SETUP            ", 10, catchall),
          ("RUN_DEPENDS           ", 11, run_deps),
          ("SDL_COMPONENTS        ", 14, sdl_comp),
          ("SET_DEBUGGING_ON      ", 16, debugging),
