@@ -3025,7 +3025,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 52;
+      total_modules : constant Positive := 53;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3051,6 +3051,7 @@ package body Port_Specification is
          "firebird       ",
          "fonts          ",
          "fortran        ",
+         "gem            ",
          "gettext-runtime",
          "gettext-tools  ",
          "gmake          ",

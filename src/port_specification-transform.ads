@@ -113,6 +113,7 @@ private
    procedure apply_ruby_module      (specs : in out Portspecs);
    procedure apply_php_module       (specs : in out Portspecs);
    procedure apply_png_module       (specs : in out Portspecs);
+   procedure apply_gem_module       (specs : in out Portspecs);
    procedure apply_gcc_run_module   (specs : in out Portspecs;
                                      variant : String;
                                      module  : String;

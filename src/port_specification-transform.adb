@@ -286,6 +286,7 @@ package body Port_Specification.Transform is
       apply_tcl_module (specs);
       apply_php_module (specs);
       apply_png_module (specs);
+      apply_gem_module (specs);
       apply_ccache (specs);
       apply_schemas_module (specs);
       apply_firebird_module (specs);
@@ -1663,6 +1664,27 @@ package body Port_Specification.Transform is
       end if;
       hit_build := argument_present (specs, module, BUILD);
    end apply_png_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gem_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gem_module (specs : in out Portspecs)
+   is
+      module : String := "gem";
+      defver : String (1 .. 2) :=
+               default_ruby (default_ruby'First) & default_php (default_ruby'Last);
+      flavor : String := "v" & defver;
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         if not no_arguments_present (specs, module) then
+            if argument_present (specs, module, "v23") then
+               flavor := "v23";
+            end if;
+         end if;
+      end if;
+      add_buildrun_depends (specs, "ruby-rubygems:single:" & flavor);
+   end apply_gem_module;
 
 
    --------------------------------------------------------------------------------------------
