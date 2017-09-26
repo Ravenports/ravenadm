@@ -1673,7 +1673,7 @@ package body Port_Specification.Transform is
    is
       module : String := "gem";
       defver : String (1 .. 2) :=
-               default_ruby (default_ruby'First) & default_php (default_ruby'Last);
+               default_ruby (default_ruby'First) & default_ruby (default_ruby'Last);
       flavor : String := "v" & defver;
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
