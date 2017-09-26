@@ -1682,8 +1682,8 @@ package body Port_Specification.Transform is
                flavor := "v23";
             end if;
          end if;
+         add_buildrun_depends (specs, "ruby-rubygems:single:" & flavor);
       end if;
-      add_buildrun_depends (specs, "ruby-rubygems:single:" & flavor);
    end apply_gem_module;
 
 
