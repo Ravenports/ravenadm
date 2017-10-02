@@ -1715,7 +1715,9 @@ package body PortScan.Buildcycle is
       cregen : constant String := chroot & root & " /bin/sh /xports/Mk/Scripts/repatch.sh " &
                  get_wrksrc & " " & get_strip_component;
    begin
-      if DIR.Exists (root & "/port/patches") then
+      if DIR.Exists (root & "/port/patches") or else
+        DIR.Exists (root & "/port/opsys")
+      then
          if Unix.external_command (cextract) then
             if Unix.external_command (cpatch) then
                if Unix.external_command (cregen) then
