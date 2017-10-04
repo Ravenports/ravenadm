@@ -1646,7 +1646,9 @@ package body PortScan.Buildcycle is
       content := Unix.piped_command (command, status);
       if status = 0 then
          if DIR.Exists (distinfo) then
-            TIO.Put_Line (HT.USS (content));
+            if not HT.IsBlank (content) then
+               TIO.Put_Line (HT.USS (content));
+            end if;
             TIO.Put_Line ("Copying " & distinfo & " to current directory");
             DIR.Copy_File (distinfo, "distinfo");
          else
