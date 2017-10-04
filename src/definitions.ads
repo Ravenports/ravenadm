@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "0";
-   raven_version_minor : constant String := "77";
+   raven_version_minor : constant String := "78";
    copyright_years     : constant String := "2015-2017";
 
    raven_tool        : constant String := "ravenadm";
@@ -39,7 +39,7 @@ package Definitions is
    previous_compiler : constant String := "7.1.0";
    binutils_version  : constant String := "2.29.1";
    previous_binutils : constant String := "2.29";
-   arc_ext           : constant String := ".txz";
+   arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
 
    type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);

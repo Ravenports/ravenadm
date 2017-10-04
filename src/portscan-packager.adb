@@ -139,7 +139,7 @@ package body PortScan.Packager is
            " --root-dir " & stagedir &
            " --metadata " & chspkgdir & subpackage &
            " --plist " & package_list &
-           " --format txz" &
+           " --format tzst" &
            " --out-dir " & newpkgdir &
            " --verbose ";
          namebase : constant String := specification.get_namebase;
@@ -149,9 +149,9 @@ package body PortScan.Packager is
            LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
            PKG_CREATE & PKG_CREATE_ARGS & pkgname;
          move_cmd : constant String := chroot & rootdir & " /bin/mv " & newpkgdir & "/" &
-           pkgname & ".txz /packages/All/";
+           pkgname & ".tzst /packages/All/";
          link_cmd : constant String := chroot & rootdir & " /bin/ln -sf /packages/All/" &
-           pkgname & ".txz /packages/Latest/" & pkgname & ".txz";
+           pkgname & ".tzst /packages/Latest/" & pkgname & ".tzst";
       begin
          if still_good then
             if DIR.Exists (spkgdir & subpackage & display) then

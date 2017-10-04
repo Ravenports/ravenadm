@@ -238,7 +238,7 @@ package body PortScan is
    --------------------------------------------------------------------------------------------
    function subpackage_from_pkgname (pkgname : String) return String
    is
-      --  expected format: namebase-subpackage-variant-version.txz
+      --  expected format: namebase-subpackage-variant-version.tzst
       --  support namebase-subpackage-variant too
       numcolons : Natural := HT.count_char (pkgname, LAT.Hyphen);
    begin

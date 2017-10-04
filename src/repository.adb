@@ -292,9 +292,9 @@ package body Repository is
       ------------------------------------------------------------
       repo       : constant String := HT.USS (PM.configuration.dir_repository);
       main       : constant String := HT.USS (PM.configuration.dir_packages);
-      xz_meta    : constant String := main & "/meta.txz";
-      xz_digest  : constant String := main & "/digests.txz";
-      xz_pkgsite : constant String := main & "/packagesite.txz";
+      xz_meta    : constant String := main & "/meta.tzst";
+      xz_digest  : constant String := main & "/digests.tzst";
+      xz_pkgsite : constant String := main & "/packagesite.tzst";
       bs_error   : constant String := "Rebuild Repository: Failed to bootstrap builder";
       build_res  : Boolean;
    begin
