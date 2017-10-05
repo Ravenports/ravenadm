@@ -7,6 +7,7 @@ with Ada.Command_Line;
 with Ada.Directories;
 with Ada.Calendar;
 with Ada.Text_IO;
+with Ada.Exceptions;
 with Specification_Parser;
 with File_Operations;
 with Information;
@@ -51,6 +52,7 @@ package body Pilot is
    package CAL renames Ada.Calendar;
    package TIO renames Ada.Text_IO;
    package AS  renames Ada.Strings;
+   package EX  renames Ada.Exceptions;
 
    --------------------------------------------------------------------------------------------
    --  display_usage
@@ -1185,6 +1187,7 @@ package body Pilot is
    is
       function get_package_name (subpackage : String; use_prev, xz_pkg : Boolean) return String;
       function package_copy (subpackage : String) return Boolean;
+      function dupe_archive (origin, destino : String) return Boolean;
 
       binutils : constant String := "binutils";
 
@@ -1219,6 +1222,16 @@ package body Pilot is
          end if;
       end get_package_name;
 
+      function dupe_archive (origin, destino : String) return Boolean is
+      begin
+         DIR.Copy_File (Source_Name => origin, Target_Name => destino);
+         return True;
+      exception
+         when others =>
+            TIO.Put_Line ("Failed to copy " & origin & " to " & destino);
+            return False;
+      end dupe_archive;
+
       function package_copy (subpackage : String) return Boolean
       is
          pkgname   : constant String := get_package_name (subpackage, False, False);
@@ -1227,12 +1240,22 @@ package body Pilot is
          dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
          dest_path : constant String := dest_dir & LAT.Solidus & pkgname;
       begin
-         if not DIR.Exists (dest_dir) then
-            DIR.Create_Directory (dest_dir);
-         end if;
+         begin
+            if not DIR.Exists (dest_dir) then
+               DIR.Create_Directory (dest_dir);
+            end if;
+         exception
+            when DIR.Use_Error =>
+               TIO.Put_Line ("Failed to create " & dest_dir & " (repository directory)");
+               return False;
+            when issue : others =>
+               TIO.Put_Line ("install_compiler_packages error: " &
+                               EX.Exception_Information (issue));
+               return False;
+         end;
          if not DIR.Exists (dest_path) then
             if DIR.Exists (src_path) then
-               DIR.Copy_File (Source_Name => src_path, Target_Name => dest_path);
+               return dupe_archive (origin => src_path, destino => dest_path);
             else
                --  We didn't find the current binutils or compiler in the system root storage.
                --  It's likely that we're in a transition with a new version of binutils or
@@ -1245,14 +1268,14 @@ package body Pilot is
                   old_path : constant String := tool_path & old_pkg;
                begin
                   if DIR.Exists (old_path) then
-                     DIR.Copy_File (Source_Name => old_path, Target_Name => dest_path);
+                     return dupe_archive (origin => old_path, destino => dest_path);
                   else
                      declare
                         txz_pkg  : constant String := get_package_name (subpackage, False, True);
                         txz_path : constant String := tool_path & txz_pkg;
                      begin
                         if DIR.Exists (txz_path) then
-                           DIR.Copy_File (Source_Name => txz_path, Target_Name => dest_dir);
+                           return dupe_archive (origin => txz_path, destino => dest_path);
                         else
                            TIO.Put_Line ("None of the following compiler packages were found:");
                            TIO.Put_Line (src_path);
@@ -1265,13 +1288,10 @@ package body Pilot is
                end;
             end if;
          end if;
-         return True;
+         return False;
    exception
-         when DIR.Use_Error =>
-            TIO.Put_Line ("Failed to create " & dest_dir & " (repository directory)");
-            return False;
-         when others =>
-            TIO.Put_Line ("Failed to copy " & src_path & " to " & dest_path);
+         when issue : others =>
+            TIO.Put_Line ("install_compiler_packages error: " & EX.Exception_Information (issue));
             return False;
       end package_copy;
    begin
