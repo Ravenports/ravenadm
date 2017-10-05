@@ -1183,43 +1183,55 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function install_compiler_packages return Boolean
    is
-      function get_package_name (subpackage : String; use_prev : Boolean) return String;
+      function get_package_name (subpackage : String; use_prev, xz_pkg : Boolean) return String;
       function package_copy (subpackage : String) return Boolean;
 
       binutils : constant String := "binutils";
 
-      function get_package_name (subpackage : String; use_prev : Boolean) return String is
+      function get_package_name (subpackage : String; use_prev, xz_pkg : Boolean) return String
+      is
+         function pkg_format return String;
+         function pkg_name (vsn_binutils, vsn_compiler : String) return String;
+
+         function pkg_format return String is
+         begin
+            if xz_pkg then
+               return ".txz";
+            else
+               return ".tzst";
+            end if;
+         end pkg_format;
+
+         function pkg_name (vsn_binutils, vsn_compiler : String) return String is
+         begin
+            if subpackage = binutils then
+               return "binutils-single-ravensys-" & vsn_binutils & pkg_format;
+            else
+               return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
+                 variant_standard & LAT.Hyphen & vsn_compiler & pkg_format;
+            end if;
+         end pkg_name;
       begin
          if use_prev then
-            if subpackage = binutils then
-               return "binutils-single-ravensys-" & previous_binutils & arc_ext;
-            else
-               return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
-                 variant_standard & LAT.Hyphen & previous_compiler & arc_ext;
-            end if;
+            return pkg_name (previous_binutils, previous_compiler);
          else
-            if subpackage = binutils then
-               return "binutils-single-ravensys-" & binutils_version & arc_ext;
-            else
-               return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
-                 variant_standard & LAT.Hyphen & compiler_version & arc_ext;
-            end if;
+            return pkg_name (binutils_version, compiler_version);
          end if;
       end get_package_name;
 
       function package_copy (subpackage : String) return Boolean
       is
-         pkgname   : constant String := get_package_name (subpackage, False);
+         pkgname   : constant String := get_package_name (subpackage, False, False);
          tool_path : constant String := HT.USS (PM.configuration.dir_toolchain) & "/share/";
          src_path  : constant String := tool_path & pkgname;
          dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
          dest_path : constant String := dest_dir & LAT.Solidus & pkgname;
       begin
+         if not DIR.Exists (dest_dir) then
+            DIR.Create_Directory (dest_dir);
+         end if;
          if not DIR.Exists (dest_path) then
             if DIR.Exists (src_path) then
-               if not DIR.Exists (dest_dir) then
-                  DIR.Create_Directory (dest_dir);
-               end if;
                DIR.Copy_File (Source_Name => src_path, Target_Name => dest_path);
             else
                --  We didn't find the current binutils or compiler in the system root storage.
@@ -1227,19 +1239,28 @@ package body Pilot is
                --  gcc available, and a new system root needs to be generated.  Assuming this,
                --  try to copy the previously known compiler/binutils under the new name so
                --  that package building doesn't break.
+               --  Also try the "current" binutils but with the old ".txz" format.
                declare
-                  old_pkg  : constant String := get_package_name (subpackage, True);
+                  old_pkg  : constant String := get_package_name (subpackage, True, False);
                   old_path : constant String := tool_path & old_pkg;
                begin
                   if DIR.Exists (old_path) then
-                     if not DIR.Exists (dest_dir) then
-                        DIR.Create_Directory (dest_dir);
-                     end if;
                      DIR.Copy_File (Source_Name => old_path, Target_Name => dest_path);
                   else
-                     TIO.Put_Line ("Compiler package " & src_path & " does not exist, nor does");
-                     TIO.Put_Line ("Compiler package " & old_path & " exist.");
-                     return False;
+                     declare
+                        txz_pkg  : constant String := get_package_name (subpackage, False, True);
+                        txz_path : constant String := tool_path & txz_pkg;
+                     begin
+                        if DIR.Exists (txz_pkg) then
+                           DIR.Copy_File (Source_Name => txz_pkg, Target_Name => dest_path);
+                        else
+                           TIO.Put_Line ("None of the following compiler packages were found:");
+                           TIO.Put_Line (src_path);
+                           TIO.Put_Line (old_path);
+                           TIO.Put_Line (txz_path);
+                           return False;
+                        end if;
+                     end;
                   end if;
                end;
             end if;
