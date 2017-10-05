@@ -1251,8 +1251,8 @@ package body Pilot is
                         txz_pkg  : constant String := get_package_name (subpackage, False, True);
                         txz_path : constant String := tool_path & txz_pkg;
                      begin
-                        if DIR.Exists (txz_pkg) then
-                           DIR.Copy_File (Source_Name => txz_pkg, Target_Name => dest_path);
+                        if DIR.Exists (txz_path) then
+                           DIR.Copy_File (Source_Name => txz_path, Target_Name => dest_dir);
                         else
                            TIO.Put_Line ("None of the following compiler packages were found:");
                            TIO.Put_Line (src_path);
