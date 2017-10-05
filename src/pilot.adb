@@ -1253,7 +1253,9 @@ package body Pilot is
                                EX.Exception_Information (issue));
                return False;
          end;
-         if not DIR.Exists (dest_path) then
+         if DIR.Exists (dest_path) then
+            return True;
+         else
             if DIR.Exists (src_path) then
                return dupe_archive (origin => src_path, destino => dest_path);
             else
@@ -1288,7 +1290,6 @@ package body Pilot is
                end;
             end if;
          end if;
-         return False;
    exception
          when issue : others =>
             TIO.Put_Line ("install_compiler_packages error: " & EX.Exception_Information (issue));
