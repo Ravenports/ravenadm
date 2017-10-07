@@ -128,7 +128,7 @@ package body Port_Specification.Web is
         " <div" & nvpair ("id", "footer") & bing &
         "  <div" & nvpair ("id", "catlink") & ">" &
         link ("../../../index.html", "footlink", link1val) & " | " &
-        link ("http://ravenports.ironwolf.systems/", "footlink", link2val) &
+        link ("http://www.ravenports.com/", "footlink", link2val) &
         "</div" & bing &
         " </div" & bing &
         "</body>" & LAT.LF & "</html>";

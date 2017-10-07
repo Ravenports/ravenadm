@@ -1290,7 +1290,7 @@ package body Pilot is
                end;
             end if;
          end if;
-   exception
+      exception
          when issue : others =>
             TIO.Put_Line ("install_compiler_packages error: " & EX.Exception_Information (issue));
             return False;
