@@ -526,8 +526,14 @@ package body Port_Specification.Makefile is
          procedure dump_nv (position : string_crate.Cursor)
          is
             text_value : HT.Text renames string_crate.Element (position);
+            nvkey      : constant String := HT.USS (key_text);
          begin
-            send (HT.USS (key_text) & "+=" & HT.USS (text_value));
+            if nvkey = "CC" or else
+              nvkey = "CXX" then
+               send (nvkey & "=" & HT.USS (text_value));
+            else
+               send (nvkey & "+=" & HT.USS (text_value));
+            end if;
          end dump_nv;
       begin
          specs.catch_all.Iterate (dump_group'Access);
