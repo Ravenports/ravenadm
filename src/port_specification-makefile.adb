@@ -529,7 +529,9 @@ package body Port_Specification.Makefile is
             nvkey      : constant String := HT.USS (key_text);
          begin
             if nvkey = "CC" or else
-              nvkey = "CXX" then
+              nvkey = "CXX" or else
+              nvkey = "CPP"
+            then
                send (nvkey & "=" & HT.USS (text_value));
             else
                send (nvkey & "+=" & HT.USS (text_value));
