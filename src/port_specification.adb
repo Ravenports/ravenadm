@@ -3,6 +3,7 @@
 
 with Definitions; use Definitions;
 with Utilities;
+with Unix;
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with Ada.Calendar.Formatting;
@@ -1969,6 +1970,9 @@ package body Port_Specification is
         not specs.distfiles.Is_Empty
       then
          specs.df_index.Append (HT.SUS ("1"));
+      end if;
+      if Unix.env_variable_defined ("SKIPCCRUN") then
+         specs.fatal_rpath := False;
       end if;
    end adjust_defaults_port_parse;
 
