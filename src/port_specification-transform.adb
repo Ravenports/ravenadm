@@ -5,6 +5,7 @@ with Utilities;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Parameters;
+with Unix;
 
 package body Port_Specification.Transform is
 
@@ -245,6 +246,8 @@ package body Port_Specification.Transform is
          grow_plist_sub (HT.USS (rec.option_name), rec.currently_set_ON);
 
       end copy_option_over;
+
+      skip_compiler_packages : constant Boolean := Unix.env_variable_defined ("SKIPCCRUN");
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_extraction_deps (specs);
@@ -295,11 +298,13 @@ package body Port_Specification.Transform is
       apply_sdl_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
       apply_php_extension_dependencies (specs);
-      apply_gcc_run_module (specs, variant, "ada", "ada_run");
-      apply_gcc_run_module (specs, variant, "c++", "cxx_run");
-      apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
-      apply_gcc_run_module (specs, variant, "cclibs", "libs");
-      apply_gcc_run_module (specs, variant, "compiler", "complete");
+      if not skip_compiler_packages then
+         apply_gcc_run_module (specs, variant, "ada", "ada_run");
+         apply_gcc_run_module (specs, variant, "c++", "cxx_run");
+         apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
+         apply_gcc_run_module (specs, variant, "cclibs", "libs");
+         apply_gcc_run_module (specs, variant, "compiler", "complete");
+      end if;
       apply_curly_bracket_conversions (specs);
       apply_default_version_transformations (specs);
       convert_exrun_versions (specs);

@@ -1,4 +1,4 @@
-.Dd July 31, 2017
+.Dd October 16, 2017
 .Dt BUILD 8
 .Os
 .Sh NAME
@@ -38,6 +38,13 @@ When this environment variable is set to name of an existing ravenadm
 profile, that profile will be loaded when ravenadm
 is launch rather than the active profile.  It is a temporary override;
 removing the variable will allow the default profile to load again.
+.It Ev SKIPCCRUN
+This environment variable blocks the effect of the cclib module.  This
+effectively removes runtime dependencies on the toolchain packages. 
+Normally this is done for the creation of new system roots, compiler package
+version upgrades, and system root ABI changes.  Once these items are
+upgraded, packages should be rebuilt without this setting to re-establish
+proper runtime dependencies on toolchain packages.
 .El
 .Sh FILES
 The following files may be used or created:
