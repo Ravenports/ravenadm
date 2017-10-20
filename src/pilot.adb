@@ -908,7 +908,11 @@ package body Pilot is
                elsif bad_namebase then
                   TIO.Put_Line (badname & "'" & Argk & "'");
                else
-                  TIO.Put_Line (badvariant & "'" & Argk & "'");
+                  if HT.contains (Argk, ":") then
+                     TIO.Put_Line (badvariant & "'" & Argk & "'");
+                  else
+                     TIO.Put_Line (badvariant & "(:standard)'" & Argk & "'");
+                  end if;
                end if;
                return False;
             end if;
