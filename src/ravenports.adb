@@ -101,7 +101,7 @@ package body Ravenports is
       version_loc : constant String := consdir & conspiracy_version;
    begin
       available := True;
-      --  We know consdir exists because we couldn't get if if it didn't.
+      --  We know consdir exists because we couldn't get here if it didn't.
       if fetch_latest_version_info (temporary_ver_loc) then
          declare
             latestver  : constant String := FOP.head_n1 (temporary_ver_loc);

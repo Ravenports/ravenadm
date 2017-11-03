@@ -681,7 +681,7 @@ package body Port_Specification.Makefile is
             filename : String := HT.part_1 (value, ":");
             subpkg   : String := HT.part_2 (value, ":");
          begin
-            send ("RC_SUBR_" & subpkg & " = " & filename);
+            send ("RC_SUBR_" & subpkg & " += " & filename);
          end dump_script;
       begin
          specs.subr_scripts.Iterate (dump_script'Access);
