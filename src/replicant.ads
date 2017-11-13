@@ -76,7 +76,8 @@ private
    type folder is (bin, libexec, usr, lib, lib64,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
-                   proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain);
+                   proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain,
+                   devices);
    subtype safefolders is folder range bin .. ccache;
 
    --  home and root need to be set readonly
@@ -104,6 +105,7 @@ private
    root_ccache      : constant String := "/ccache";
    bsd_localbase    : constant String := "/usr/local";
    toolchain_dir    : constant String := "/toolchain";
+   root_devices     : constant String := "/devices";
 
    chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
 

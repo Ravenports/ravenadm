@@ -27,6 +27,10 @@
 #include <unistd.h>
 #include <signal.h>
 
+#ifdef __sun__
+#define u_int8_t	uint8_t
+#endif
+
 u_int8_t
 __nohang_waitpid (pid_t process_pid)
 {
@@ -111,11 +115,9 @@ int __shut_it_down (pid_t dead_pid_walking)
 u_int8_t
 __ignore_background_tty_writes ()
 {
-   sig_t prev_val;
-   prev_val = signal(SIGTTOU, SIG_IGN);
-
    /* return 1 on failure, 0 on success */
-   return (prev_val == SIG_ERR);
+   if (signal(SIGTTOU, SIG_IGN) == SIG_ERR) { return 1; }
+   return 0;
 }
 
 /*
@@ -124,11 +126,9 @@ __ignore_background_tty_writes ()
 u_int8_t
 __ignore_background_tty_reads ()
 {
-   sig_t prev_val;
-   prev_val = signal(SIGTTIN, SIG_IGN);
-
    /* return 1 on failure, 0 on success */
-   return (prev_val == SIG_ERR);
+   if (signal(SIGTTIN, SIG_IGN) == SIG_ERR) { return 1; }
+   return 0;
 }
 
 #endif /* Supported opsys */

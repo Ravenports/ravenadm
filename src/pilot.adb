@@ -447,8 +447,17 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function insufficient_privileges return Boolean
    is
+      function id_command return String;
+      function id_command return String is
+      begin
+         case platform_type is
+            when sunos  => return "/usr/xpg4/bin/id -u";
+            when others => return "/usr/bin/id -u";
+         end case;
+      end id_command;
+
       status  : Integer;
-      command : constant String := "/usr/bin/id -u";
+      command : constant String := id_command;
       result  : String := HT.USS (Unix.piped_command (command, status));
    begin
       if status /= 0 then

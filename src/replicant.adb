@@ -478,6 +478,7 @@ package body Replicant is
          & "./ccache" & LAT.LF
          & "./construction" & LAT.LF
          & "./dev" & LAT.LF
+         & "./devices" & LAT.LF
          & "./distfiles" & LAT.LF
          & "./home" & LAT.LF
          & "./libexec" & LAT.LF
@@ -748,6 +749,7 @@ package body Replicant is
          when distfiles   => return mount_base & root_distfiles;
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
+         when devices     => return mount_base & root_devices;
          when localbase   => return mount_base & HT.USS (PM.configuration.dir_localbase);
          when toolchain   => return mount_base & HT.USS (PM.configuration.dir_localbase) &
                                     toolchain_dir;
@@ -793,7 +795,7 @@ package body Replicant is
       cmd_freebsd   : constant String := "/bin/chflags";
       cmd_dragonfly : constant String := "/usr/bin/chflags";
       cmd_linux     : constant String := "/usr/bin/chattr";
-      cmd_solaris   : constant String := "/usr/bin/chmod";
+      cmd_solaris   : constant String := "/bin/chmod";
       flag_lock     : constant String := " schg ";
       flag_unlock   : constant String := " noschg ";
       chattr_lock   : constant String := " +i ";
@@ -809,6 +811,11 @@ package body Replicant is
       if platform_type = linux then
          --  chattr does not work on tmpfs partitions
          --  It appears immutable locking can't be supported on Linux
+         return;
+      end if;
+      if platform_type = sunos then
+         --  chmod S+ci only works for ZFS
+         --  Just disable immutable locking until understood better
          return;
       end if;
       case platform_type is
@@ -923,15 +930,19 @@ package body Replicant is
          forge_directory (location (slave_base, mnt));
       end loop;
 
-      mount_nullfs (location (dir_system, bin),  location (slave_base, bin));
-      mount_nullfs (location (dir_system, usr),  location (slave_base, usr));
+      mount_nullfs (location (dir_system, bin), location (slave_base, bin));
+      mount_nullfs (location (dir_system, usr), location (slave_base, usr));
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd =>
-            mount_nullfs (location (dir_system, libexec),  location (slave_base, libexec));
+            mount_nullfs (location (dir_system, libexec), location (slave_base, libexec));
          when linux =>
-            mount_nullfs (location (dir_system, lib),  location (slave_base, lib));
-            mount_nullfs (location (dir_system, lib64),  location (slave_base, lib64));
-         when macos | sunos =>
+            mount_nullfs (location (dir_system, lib),   location (slave_base, lib));
+            mount_nullfs (location (dir_system, lib64), location (slave_base, lib64));
+         when sunos =>
+            forge_directory (location (slave_base, devices));
+            mount_nullfs (location (dir_system, lib),   location (slave_base, lib));
+            mount_nullfs (root_devices,                 location (slave_base, devices));
+         when macos =>
             null;  --  for now
       end case;
 
@@ -942,7 +953,10 @@ package body Replicant is
       mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
-      if need_procfs or else platform_type = linux then
+      if need_procfs or else
+        platform_type = linux or else
+        platform_type = sunos
+      then
          mount_procfs (path_to_proc => location (slave_base, proc));
       end if;
 
@@ -989,7 +1003,10 @@ package body Replicant is
          unmount (location (slave_base, ccache));
       end if;
 
-      if need_procfs or else platform_type = linux then
+      if need_procfs or else
+        platform_type = linux or else
+        platform_type = sunos
+      then
          unmount_procfs (location (slave_base, proc));
       end if;
 
@@ -1013,7 +1030,10 @@ package body Replicant is
          when linux =>
             unmount (location (slave_base, lib));
             unmount (location (slave_base, lib64));
-         when macos | sunos =>
+         when sunos =>
+            unmount (location (slave_base, lib));
+            unmount (location (slave_base, devices));
+         when macos =>
             null;
       end case;
 
@@ -1134,12 +1154,27 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure copy_resolv_conf (path_to_etc : String)
    is
-      original : constant String := "/etc/resolv.conf";
+      procedure install (filename : String);
+
+      resolv    : constant String := "/resolv.conf";
+      netconfig : constant String := "/netconfig";
+      nssconf   : constant String := "/nsswitch.conf";
+      nssfiles  : constant String := "/nsswitch.files";
+      nssdns    : constant String := "/nsswitch.dns";
+
+      procedure install (filename : String) is
+      begin
+         if DIR.Exists ("/etc" & filename) then
+            DIR.Copy_File (Source_Name => "/etc" & filename,
+                           Target_Name => path_to_etc & filename);
+         end if;
+      end install;
    begin
-      if DIR.Exists (original) then
-         DIR.Copy_File (Source_Name => original,
-                        Target_Name => path_to_etc & "/resolv.conf");
-      end if;
+      install (resolv);
+      install (netconfig);
+      install (nssconf);
+      install (nssfiles);
+      install (nssdns);
    end copy_resolv_conf;
 
 

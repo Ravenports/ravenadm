@@ -20,6 +20,9 @@
 #ifndef __unused
 #define __unused __attribute__((__unused__))
 #endif
+#ifndef W_EXITCODE
+#define W_EXITCODE(ret, sig)	((ret) << 8 | (sig))
+#endif
 
 /*
  * reap_process kills per given pid and waits for it to return
