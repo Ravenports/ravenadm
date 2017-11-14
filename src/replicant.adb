@@ -52,10 +52,10 @@ package body Replicant is
             DIR.Copy_File (sretc & passwd, mm & passwd);
             DIR.Copy_File (sretc & maspas, mm & maspas);
             DIR.Copy_File (sretc & group,  mm & group);
-         when linux     =>
+         when linux     |
+              sunos     =>
             DIR.Copy_File (sretc & passwd, mm & passwd);
             DIR.Copy_File (sretc & group,  mm & group);
-         when sunos     => null;  -- passwd not used
       end case;
       case platform_type is
          when dragonfly |
