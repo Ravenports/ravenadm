@@ -1159,11 +1159,22 @@ package body PortScan.Operations is
       function get_major   (fileinfo : String; OS : String) return String;
       function even        (fileinfo : String) return String;
       function get_version (fileinfo : String; OS : String) return String;
+      function abi_file    return String;
       procedure craft_common_endings (release : String);
+
+      function abi_file return String is
+      begin
+         case platform_type is
+            when sunos =>
+               return "/lib/64/libc.so.1";
+            when others =>
+               return "/bin/sh";
+         end case;
+      end abi_file;
 
       sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
       command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
-                                   "/usr/share/file/magic.mgc -b " & sysroot & "/bin/sh";
+                                   "/usr/share/file/magic.mgc -b " & sysroot & abi_file;
       status  : Integer;
       arch    : filearch;
       UN      : HT.Text;
@@ -1332,7 +1343,16 @@ package body PortScan.Operations is
                abi_formats.calculated_alt_abi := HT.SUS (gnu2);
                craft_common_endings (release);
             end;
-         when sunos   => null;  --  TBD (check ABI first)
+         when sunos   =>
+            declare
+               sol1    : constant String := "Solaris:";
+               sol2    : constant String := "solaris:";
+               release : constant String := "10";  --  hardcoded in pkg(8)
+            begin
+               abi_formats.calculated_abi     := HT.SUS (sol1);
+               abi_formats.calculated_alt_abi := HT.SUS (sol2);
+               craft_common_endings (release);
+            end;
          when macos   => null;
          when openbsd => null;
       end case;
