@@ -758,6 +758,7 @@ package body Port_Specification.Makefile is
       send ("INSTALL_REQ_TOOLCHAIN", specs.shift_install, True);
       send ("INSTALL_WRKSRC",   specs.install_wrksrc);
       send ("INSTALL_TARGET",   specs.install_tgt, 1);
+      send ("SOVERSION",        specs.soversion);
       send ("PLIST_SUB",        specs.plist_sub, 1);
       send ("SUB_FILES",        specs.sub_files, 1);
       send ("SUB_LIST",         specs.sub_list, 1);

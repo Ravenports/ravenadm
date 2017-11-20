@@ -426,6 +426,7 @@ package body Specification_Parser is
                      when lic_scheme       => build_string (spec, PSP.sp_lic_scheme, line);
                      when configure_target => build_string (spec, PSP.sp_config_target, line);
                      when ug_subpackage    => build_string (spec, PSP.sp_ug_pkg, line);
+                     when so_version       => build_string (spec, PSP.sp_soversion, line);
                      when revision         => set_natural (spec, PSP.sp_revision, line);
                      when epoch            => set_natural (spec, PSP.sp_epoch, line);
                      when opt_level        => set_natural (spec, PSP.sp_opt_level, line);
@@ -1049,7 +1050,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 167;
+      total_singlets : constant Positive := 168;
 
       type singlet_pair is
          record
@@ -1217,6 +1218,7 @@ package body Specification_Parser is
          ("SKIP_BUILD            ", 10, skip_build),
          ("SKIP_CCACHE           ", 11, skip_ccache),
          ("SKIP_INSTALL          ", 12, skip_install),
+         ("SOVERSION             ",  9, so_version),
          ("SUB_FILES             ",  9, sub_files),
          ("SUB_LIST              ",  8, sub_list),
          ("TEST_ARGS             ",  9, test_args),

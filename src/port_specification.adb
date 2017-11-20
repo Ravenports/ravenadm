@@ -118,6 +118,7 @@ package body Port_Specification is
       specs.prefix         := HT.blank;
       specs.last_catchkey  := HT.blank;
       specs.usergroup_pkg  := HT.blank;
+      specs.soversion      := HT.blank;
 
       specs.licenses.Clear;
       specs.users.Clear;
@@ -4878,6 +4879,7 @@ package body Port_Specification is
             when sp_install_wrksrc => TIO.Put_Line (HT.USS (specs.install_wrksrc));
             when sp_prefix         => TIO.Put_Line (HT.USS (specs.prefix));
             when sp_ug_pkg         => TIO.Put_Line (HT.USS (specs.usergroup_pkg));
+            when sp_soversion      => TIO.Put_Line (HT.USS (specs.soversion));
             when others => null;
          end case;
       end print_single;
@@ -5004,6 +5006,7 @@ package body Port_Specification is
       print_vector_list ("MAKE_ARGS", sp_make_args);
       print_vector_list ("MAKE_ENV", sp_make_env);
       print_vector_list ("BUILD_TARGET", sp_build_target);
+      print_single      ("SOVERSION", sp_soversion);
       print_single      ("OPTIMIZER_LEVEL", sp_opt_level);
       print_vector_list ("CFLAGS", sp_cflags);
       print_vector_list ("CXXFLAGS", sp_cxxflags);

@@ -997,7 +997,7 @@ package body Replicant is
       counter     : Natural := 0;
    begin
 
-       unmount_devices (location (slave_base, dev));
+      unmount_devices (location (slave_base, dev));
 
       if DIR.Exists (mount_target (ccache)) then
          unmount (location (slave_base, ccache));

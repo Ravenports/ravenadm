@@ -44,7 +44,7 @@ package Port_Specification is
                        sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
                        sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
-                       sp_xorg, sp_sdl, sp_phpext, sp_job_limit);
+                       sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -552,6 +552,7 @@ private
          var_arch       : list_crate.Map;
          extra_rundeps  : list_crate.Map;
          last_catchkey  : HT.Text;
+         soversion      : HT.Text;
 
          opt_radio      : string_crate.Vector;
          opt_restrict   : string_crate.Vector;
