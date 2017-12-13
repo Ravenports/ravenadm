@@ -683,7 +683,7 @@ package body Parameters is
    is
       bsd_cmd : constant String := "/sbin/sysctl hw.ncpu";
       lin_cmd : constant String := "/usr/bin/nproc";
-      sol_cmd : constant String := "/usr/sbin/psrinfo -p";
+      sol_cmd : constant String := "/usr/sbin/psrinfo -pv";
       comres  : HT.Text;
       status  : Integer;
       start   : Positive;
@@ -692,7 +692,11 @@ package body Parameters is
       --  NetBSD:  expected output: "hw.ncpu = C"
       --  OpenBSD: expected output: "hw.ncpu=C"
       --  Linux:   expected output: "C"
-      --  Solaris: expected output: "C"
+      --  Solaris: expected output:
+      --    The physical processor has 64 virtual processors (0-63)
+      --      UltraSPARC-T2+ (cpuid 0 clock 1165 MHz)
+      --    The physical processor has 64 virtual processors (64-127)
+      --      UltraSPARC-T2+ (cpuid 64 clock 1165 MHz)
 
       case platform_type is
          when dragonfly | freebsd | macos | netbsd | openbsd =>
@@ -702,17 +706,46 @@ package body Parameters is
          when sunos =>
             comres := Unix.piped_command (sol_cmd, status);
       end case;
-
-      case platform_type is
-         when dragonfly | freebsd | macos => start := 10;
-         when sunos | linux               => start := 1;
-         when netbsd                      => start := 11;
-         when openbsd                     => start := 9;
-      end case;
-
       if status /= 0 then
          return 1;
       end if;
+
+      case platform_type is
+         when dragonfly | freebsd | macos => start := 10;
+         when linux                       => start := 1;
+         when netbsd                      => start := 11;
+         when openbsd                     => start := 9;
+         when sunos =>
+            declare
+               markers : HT.Line_Markers;
+               resstr  : constant String := HT.USS (comres);
+               pattern : constant String := "physical processor has ";
+               numcore : Natural := 0;
+            begin
+               HT.initialize_markers (resstr, markers);
+               loop
+                  exit when not HT.next_line_with_content_present (resstr, pattern, markers);
+                  declare
+                     line : constant String := HT.extract_line (resstr, markers);
+                     nvp  : constant String := HT.part_1 (HT.part_2 (line, pattern), " ");
+                  begin
+                     numcore := numcore + Natural'Value (nvp);
+                  exception
+                     when others =>
+                        numcore := numcore + 1;
+                  end;
+               end loop;
+               if numcore < 1 then
+                  --  Should never happen
+                  return 1;
+               else
+                  return numcore;
+               end if;
+            exception
+               when others => return 1;
+            end;
+      end case;
+
       declare
          resstr : String := HT.USS (comres);
          ncpu   : String := resstr (start .. resstr'Last - 1);
