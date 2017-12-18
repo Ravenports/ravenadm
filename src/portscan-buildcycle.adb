@@ -1243,7 +1243,7 @@ package body PortScan.Buildcycle is
       function shell return String is
       begin
          case platform_type is
-            when linux =>
+            when linux | sunos =>
                return "/bin/bash";
             when others =>
                return "/bin/sh";

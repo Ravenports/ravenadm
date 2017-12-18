@@ -592,7 +592,7 @@ package body Replicant is
    is
       cmd_freebsd   : constant String := "/sbin/mount_nullfs";
       cmd_dragonfly : constant String := "/sbin/mount_null";
-      cmd_solaris   : constant String := "/usr/sbin/mount -F lofs";
+      cmd_solaris   : constant String := "/sbin/mount -F lofs";
       cmd_linux     : constant String := "/bin/mount --bind";
       command       : HT.Text;
    begin
