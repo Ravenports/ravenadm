@@ -2068,7 +2068,7 @@ package body Port_Specification.Transform is
       procedure scan_use (position : string_crate.Cursor)
       is
          text_value : HT.Text renames string_crate.Element (position);
-         text_stripped : HT.Text := HT.SUS (HT.part_1 (HT.USS (text_value)));
+         text_stripped : HT.Text := HT.SUS (HT.part_1 (HT.USS (text_value), ":"));
       begin
          specs.uses.Append (text_value);
          if not specs.uses_base.Contains (text_stripped) then
