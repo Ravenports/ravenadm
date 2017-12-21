@@ -395,6 +395,12 @@ package body Specification_Parser is
                                              key   => tkey,
                                              value => tvalue);
 
+                        when c_uses =>
+                           build_group_list (spec  => specification,
+                                             field => PSP.sp_os_uses,
+                                             key   => tkey,
+                                             value => tvalue);
+
                         when not_array => null;
                      end case;
                   end;
@@ -970,7 +976,7 @@ package body Specification_Parser is
    is
       subtype array_string is String (1 .. 12);
 
-      total_arrays : constant Positive := 18;
+      total_arrays : constant Positive := 19;
 
       type array_pair is
          record
@@ -984,6 +990,7 @@ package body Specification_Parser is
          ("BROKEN      ", broken),
          ("BR_DEPS     ", br_deps),
          ("B_DEPS      ", b_deps),
+         ("C_USES      ", c_uses),
          ("DEF         ", def),
          ("DISTFILE    ", distfile),
          ("EXRUN       ", extra_rundep),

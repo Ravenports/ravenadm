@@ -658,6 +658,7 @@ package body Port_Specification.Buildsheet is
       send ("USERGROUP_SPKG",       specs.usergroup_pkg);
       blank_line;
       send ("USES",                 specs.uses, 2);
+      send ("C_USES",               specs.opsys_c_uses, 5);
       send ("GNOME_COMPONENTS",     specs.gnome_comps, 2);
       send ("SDL_COMPONENTS",       specs.sdl_comps, 2);
       send ("XORG_COMPONENTS",      specs.xorg_comps, 2);

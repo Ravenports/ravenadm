@@ -2047,6 +2047,7 @@ package body Port_Specification.Transform is
    procedure apply_opsys_dependencies (specs : in out Portspecs)
    is
       procedure scan_dep (position : string_crate.Cursor);
+      procedure scan_use (position : string_crate.Cursor);
 
       type deptype is (os_build, os_run, os_buildrun);
 
@@ -2063,6 +2064,17 @@ package body Port_Specification.Transform is
             when os_buildrun => add_buildrun_depends (specs, dependency);
          end case;
       end scan_dep;
+
+      procedure scan_use (position : string_crate.Cursor)
+      is
+         text_value : HT.Text renames string_crate.Element (position);
+         text_stripped : HT.Text := HT.SUS (HT.part_1 (HT.USS (text_value)));
+      begin
+         specs.uses.Append (text_value);
+         if not specs.uses_base.Contains (text_stripped) then
+            specs.uses_base.Append (text_stripped);
+         end if;
+      end scan_use;
    begin
       if specs.skip_opsys_dep then
          return;
@@ -2078,6 +2090,9 @@ package body Port_Specification.Transform is
       if specs.opsys_br_deps.Contains (key_opsys) then
          dt := os_buildrun;
          specs.opsys_br_deps.Element (key_opsys).list.Iterate (scan_dep'Access);
+      end if;
+      if specs.opsys_c_uses.Contains (key_opsys) then
+         specs.opsys_c_uses.Element (key_opsys).list.Iterate (scan_use'Access);
       end if;
    end apply_opsys_dependencies;
 

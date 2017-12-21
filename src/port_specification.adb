@@ -89,6 +89,7 @@ package body Port_Specification is
       specs.opsys_b_deps.Clear;
       specs.opsys_r_deps.Clear;
       specs.opsys_br_deps.Clear;
+      specs.opsys_c_uses.Clear;
       specs.cflags.Clear;
       specs.cxxflags.Clear;
       specs.cppflags.Clear;
@@ -1007,6 +1008,8 @@ package body Port_Specification is
             specs.opsys_r_deps.Insert (text_group, initial_rec);
          when sp_os_brdep =>
             specs.opsys_br_deps.Insert (text_group, initial_rec);
+         when sp_os_uses =>
+            specs.opsys_c_uses.Insert (text_group, initial_rec);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1333,6 +1336,28 @@ package body Port_Specification is
                      Process  => grow'Access);
                when others => null;
             end case;
+         when sp_os_uses =>
+            verify_entry_is_post_options;
+            if not valid_uses_module (value) then
+               raise wrong_value with "invalid USES module '" & value & "'";
+            end if;
+            if specs.uses.Contains (text_value) or else
+              (specs.opsys_c_uses.Contains (text_key) and then
+               specs.opsys_c_uses.Element (text_key).list.Contains (text_value))
+            then
+               raise dupe_list_value with "Duplicate USES module '" & value & "'";
+            end if;
+            if HT.leads (value, "terminfo") and then
+              specs.terminfo_failed (value)
+            then
+               raise wrong_value with "Terminfo USES module doesn't have a subpackage argument";
+            end if;
+            if not specs.opsys_c_uses.Contains (text_key) then
+               specs.establish_group (sp_os_uses, key);
+            end if;
+            specs.opsys_c_uses.Update_Element
+              (Position => specs.opsys_c_uses.Find (text_key),
+               Process  => grow'Access);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -4847,6 +4872,7 @@ package body Port_Specification is
             when sp_os_bdep          => specs.opsys_b_deps.Iterate (dump'Access);
             when sp_os_rdep          => specs.opsys_r_deps.Iterate (dump'Access);
             when sp_os_brdep         => specs.opsys_br_deps.Iterate (dump'Access);
+            when sp_os_uses          => specs.opsys_c_uses.Iterate (dump'Access);
             when others => null;
          end case;
       end print_group_list;
@@ -4964,6 +4990,7 @@ package body Port_Specification is
       print_group_list  ("B_DEPS", sp_os_bdep);
       print_group_list  ("BR_DEPS", sp_os_brdep);
       print_group_list  ("R_DEPS", sp_os_rdep);
+      print_group_list  ("C_USES", sp_os_uses);
       print_vector_list ("USES", sp_uses);
       print_vector_list ("GNOME_COMPONENTS", sp_gnome);
       print_vector_list ("XORG_COMPONENTS", sp_xorg);
