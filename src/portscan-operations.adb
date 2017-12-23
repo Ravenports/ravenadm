@@ -2939,7 +2939,7 @@ package body PortScan.Operations is
       end loop;
       TIO.Put ("Removing obsolete packages ... ");
       package_list.Iterate (kill'Access);
-      TIO.Put_Line ("done!  (packaged deleted: " & HT.int2str (counter) & ")");
+      TIO.Put_Line ("done!  (packages deleted: " & HT.int2str (counter) & ")");
    end eliminate_obsolete_packages;
 
 end PortScan.Operations;
