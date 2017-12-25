@@ -3438,6 +3438,7 @@ package body Port_Specification is
          ("xcb-util-image    ", xcb_util_image),
          ("xcb-util-keysyms  ", xcb_util_keysyms),
          ("xcb-util-wm       ", xcb_util_wm),
+         ("xcb-util-xrm      ", xcb_util_xrm),
          ("xcmiscproto       ", xcmiscproto),
          ("xcomposite        ", xcomposite),
          ("xcursor           ", xcursor),
