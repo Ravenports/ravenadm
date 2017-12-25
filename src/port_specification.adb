@@ -3434,6 +3434,7 @@ package body Port_Specification is
          ("xcb               ", xcb),
          ("xcb-render-util   ", xcb_render_util),
          ("xcb-util          ", xcb_util),
+         ("xcb-util-cursor   ", xcb_util_cursor),
          ("xcb-util-image    ", xcb_util_image),
          ("xcb-util-keysyms  ", xcb_util_keysyms),
          ("xcb-util-wm       ", xcb_util_wm),
