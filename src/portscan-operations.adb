@@ -1427,7 +1427,9 @@ package body PortScan.Operations is
                                         id           => target)
             then
                if not rebuild_compiler or else
-                 (target /= compiler and then target /= binutils)
+                 (target /= compiler and then target /= binutils) or else
+                 (target = compiler and then not portlist.Contains (compkey)) or else
+                 (target = binutils and then not portlist.Contains (bukey))
                then
                   already_built.Append (New_Item => newrec);
                   if rec.remote_pkg then
