@@ -253,8 +253,8 @@ package body Port_Specification is
             specs.config_wrksrc := text_value;
          when sp_soversion =>
             verify_entry_is_post_options;
-            if HT.count_char (value, '.') < 2 then
-               raise wrong_value with "SOVERSION must contain two period characters";
+            if HT.count_char (value, '.') > 2 then
+               raise wrong_value with "SOVERSION has a two period character limit";
             end if;
             specs.soversion := text_value;
          when sp_must_config =>
