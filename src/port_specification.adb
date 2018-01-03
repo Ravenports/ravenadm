@@ -3701,7 +3701,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 69;
+      total_keywords : constant Positive := 70;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -3755,6 +3755,7 @@ package body Port_Specification is
          "php          ",
          "print        ",
          "python       ",
+         "qt5          ",
          "raven        ",
          "ruby         ",
          "russian      ",
