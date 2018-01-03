@@ -3061,7 +3061,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 54;
+      total_modules : constant Positive := 55;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3111,6 +3111,7 @@ package body Port_Specification is
          "pkgconfig      ",
          "png            ",
          "python         ",
+         "qt5            ",
          "readline       ",
          "ruby           ",
          "shebangfix     ",
@@ -3701,7 +3702,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 70;
+      total_keywords : constant Positive := 69;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -3755,7 +3756,6 @@ package body Port_Specification is
          "php          ",
          "print        ",
          "python       ",
-         "qt5          ",
          "raven        ",
          "ruby         ",
          "russian      ",
