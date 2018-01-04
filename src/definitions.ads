@@ -7,7 +7,7 @@ package Definitions is
 
    raven_version_major : constant String := "0";
    raven_version_minor : constant String := "85";
-   copyright_years     : constant String := "2015-2017";
+   copyright_years     : constant String := "2015-2018";
 
    raven_tool        : constant String := "ravenadm";
    variant_standard  : constant String := "standard";
