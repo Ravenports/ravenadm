@@ -730,6 +730,7 @@ package body Port_Specification.Buildsheet is
       send ("LDFLAGS",              specs.ldflags, 1);
       send ("OPTIMIZER_LEVEL",      specs.optimizer_lvl, 2);
       send ("CMAKE_ARGS",           specs.cmake_args, 1);
+      send ("QMAKE_ARGS",           specs.qmake_args, 1);
       send ("TEST_TARGET",          specs.test_tgt, 2);
       send ("TEST_ARGS",            specs.test_args, 1);
       send ("TEST_ENV",             specs.test_env, 1);
