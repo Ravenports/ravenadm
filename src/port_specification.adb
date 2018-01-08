@@ -704,6 +704,7 @@ package body Port_Specification is
                stripped      : String  := HT.part_1 (value, ":");
                module_args   : String  := HT.specific_field (value, 2, ":");
                text_stripped : HT.Text := HT.SUS (stripped);
+               comma_cnt     : Natural;
             begin
                specs.uses.Append (text_value);
                if not specs.uses_base.Contains (text_stripped) then
@@ -717,9 +718,19 @@ package body Port_Specification is
                then
                   if HT.IsBlank (module_args) then
                      raise wrong_value with "subpackage not provided for " & stripped & " module";
-                  elsif not specs.subpackage_exists (module_args) then
-                     raise wrong_value with stripped & " module subpackage unrecognized: " &
-                       module_args;
+                  else
+                     --  check every provided submodule
+                     comma_cnt := HT.count_char (module_args, ',') + 1;
+                     for X in Natural range 1 .. comma_cnt loop
+                        declare
+                           spkg : constant String := HT.specific_field (module_args, X, ",");
+                        begin
+                           if not specs.subpackage_exists (spkg) then
+                              raise wrong_value with
+                              stripped & " module subpackage unrecognized: " & spkg;
+                           end if;
+                        end;
+                     end loop;
                   end if;
                end if;
             end;
