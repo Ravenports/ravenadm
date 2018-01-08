@@ -702,6 +702,7 @@ package body Port_Specification is
             end if;
             declare
                stripped      : String  := HT.part_1 (value, ":");
+               module_args   : String  := HT.part_2 (value, ":");
                text_stripped : HT.Text := HT.SUS (stripped);
             begin
                specs.uses.Append (text_value);
@@ -714,11 +715,11 @@ package body Port_Specification is
                  stripped = "fortan" or else
                  stripped = "cclibs"
                then
-                  if HT.IsBlank (text_stripped) then
-                     raise wrong_type with "subpackage not provided for " & stripped & " module";
-                  elsif not specs.subpackage_exists (HT.USS (text_stripped)) then
-                     raise wrong_type with stripped & " module subpackage unrecognized: " &
-                       HT.USS (text_stripped);
+                  if HT.IsBlank (module_args) then
+                     raise wrong_value with "subpackage not provided for " & stripped & " module";
+                  elsif not specs.subpackage_exists (module_args) then
+                     raise wrong_value with stripped & " module subpackage unrecognized: " &
+                       module_args;
                   end if;
                end if;
             end;
@@ -811,7 +812,7 @@ package body Port_Specification is
                   raise wrong_value with "LICENSE not recognized: " & testlic;
                end if;
                if not specs.subpackage_exists (testpkg) then
-                  raise wrong_type with "LICENSE subpackage unrecognized: " & testpkg;
+                  raise wrong_value with "LICENSE subpackage unrecognized: " & testpkg;
                end if;
             end;
             specs.licenses.Append (text_value);
