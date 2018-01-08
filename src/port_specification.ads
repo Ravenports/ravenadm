@@ -54,11 +54,12 @@ package Port_Specification is
                          configure_with_both, cppflags_on, cxxflags_on, df_index_off, df_index_on,
                          extra_patches_on, extract_only_on, implies_on, info_off, info_on,
                          install_target_on, keywords_on, ldflags_on, make_args_off, make_args_on,
-                         make_env_on, patchfiles_on, plist_sub_on, prevents_on, qmake_off,
-                         qmake_on, run_depends_off, run_depends_on, sub_files_off, sub_files_on,
-                         sub_list_off, sub_list_on, test_target_on, uses_off, uses_on,
-                         makefile_off, makefile_on, description, only_for_opsys_on,
-                         xorg_comp_off, xorg_comp_on, gnome_comp_off, gnome_comp_on);
+                         make_env_on, patchfiles_on, plist_sub_on, prevents_on, qmake_args_off,
+                         qmake_args_on, run_depends_off, run_depends_on, sub_files_off,
+                         sub_files_on, sub_list_off, sub_list_on, test_target_on,
+                         uses_off, uses_on, makefile_off, makefile_on, description,
+                         only_for_opsys_on, xorg_comp_off, xorg_comp_on,
+                         gnome_comp_off, gnome_comp_on);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -409,8 +410,8 @@ private
          PATCHFILES_ON         : string_crate.Vector;
          PLIST_SUB_ON          : string_crate.Vector;
          PREVENTS_ON           : string_crate.Vector;
-         QMAKE_OFF             : string_crate.Vector;
-         QMAKE_ON              : string_crate.Vector;
+         QMAKE_ARGS_OFF        : string_crate.Vector;
+         QMAKE_ARGS_ON         : string_crate.Vector;
          RUN_DEPENDS_OFF       : string_crate.Vector;
          RUN_DEPENDS_ON        : string_crate.Vector;
          SUB_FILES_OFF         : string_crate.Vector;

@@ -343,8 +343,8 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.PATCHFILES_ON, "PATCHFILES_ON");
          dump_helper (name, rec.PLIST_SUB_ON, "PLIST_SUB_ON");
          dump_helper (name, rec.PREVENTS_ON, "PREVENTS_ON");
-         dump_helper (name, rec.QMAKE_OFF, "QMAKE_OFF");
-         dump_helper (name, rec.QMAKE_ON, "QMAKE_ON");
+         dump_helper (name, rec.QMAKE_ARGS_OFF, "QMAKE_ARGS_OFF");
+         dump_helper (name, rec.QMAKE_ARGS_ON, "QMAKE_ARGS_ON");
          dump_helper (name, rec.RUN_DEPENDS_OFF, "RUN_DEPENDS_OFF");
          dump_helper (name, rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
          dump_helper (name, rec.SUB_FILES_OFF, "SUB_FILES_OFF");

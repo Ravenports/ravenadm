@@ -672,6 +672,9 @@ package body Port_Specification is
          when sp_cmake_args =>
             verify_entry_is_post_options;
             specs.cmake_args.Append (text_value);
+         when sp_qmake_args =>
+            verify_entry_is_post_options;
+            specs.qmake_args.Append (text_value);
          when sp_build_deps | sp_buildrun_deps | sp_run_deps =>
             verify_entry_is_post_options;
             if not valid_dependency_format (value) then
@@ -1551,10 +1554,10 @@ package body Port_Specification is
                Element.PLIST_SUB_ON.Append (value_text);
             when prevents_on =>
                Element.PREVENTS_ON.Append (value_text);
-            when qmake_off =>
-               Element.QMAKE_OFF.Append (value_text);
-            when qmake_on =>
-               Element.QMAKE_ON.Append (value_text);
+            when qmake_args_off =>
+               Element.QMAKE_ARGS_OFF.Append (value_text);
+            when qmake_args_on =>
+               Element.QMAKE_ARGS_ON.Append (value_text);
             when run_depends_off =>
                Element.RUN_DEPENDS_OFF.Append (value_text);
             when run_depends_on =>
@@ -1613,7 +1616,7 @@ package body Port_Specification is
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_on | make_args_off | make_args_on | make_env_on | patchfiles_on |
-              plist_sub_on | qmake_on | qmake_off | sub_files_off | sub_files_on |
+              plist_sub_on | qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
               sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
             --  No validation required
             null;
@@ -1770,8 +1773,8 @@ package body Port_Specification is
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
             when plist_sub_on          => return rec.PLIST_SUB_ON.Is_Empty;
             when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
-            when qmake_off             => return rec.QMAKE_OFF.Is_Empty;
-            when qmake_on              => return rec.QMAKE_ON.Is_Empty;
+            when qmake_args_off        => return rec.QMAKE_ARGS_OFF.Is_Empty;
+            when qmake_args_on         => return rec.QMAKE_ARGS_ON.Is_Empty;
             when run_depends_off       => return rec.RUN_DEPENDS_OFF.Is_Empty;
             when run_depends_on        => return rec.RUN_DEPENDS_ON.Is_Empty;
             when sub_files_off         => return rec.SUB_FILES_OFF.Is_Empty;
@@ -4754,8 +4757,8 @@ package body Port_Specification is
          print_opt_vector (rec.PATCHFILES_ON, "PATCHFILES_ON");
          print_opt_vector (rec.PLIST_SUB_ON, "PLIST_SUB_ON");
          print_opt_vector (rec.PREVENTS_ON, "PREVENTS_ON");
-         print_opt_vector (rec.QMAKE_OFF, "QMAKE_OFF");
-         print_opt_vector (rec.QMAKE_ON, "QMAKE_ON");
+         print_opt_vector (rec.QMAKE_ARGS_OFF, "QMAKE_ARGS_OFF");
+         print_opt_vector (rec.QMAKE_ARGS_ON, "QMAKE_ARGS_ON");
          print_opt_vector (rec.RUN_DEPENDS_OFF, "RUN_DEPENDS_OFF");
          print_opt_vector (rec.RUN_DEPENDS_ON, "RUN_DEPENDS_ON");
          print_opt_vector (rec.SUB_FILES_OFF, "SUB_FILES_OFF");
