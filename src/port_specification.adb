@@ -702,7 +702,7 @@ package body Port_Specification is
             end if;
             declare
                stripped      : String  := HT.part_1 (value, ":");
-               module_args   : String  := HT.part_2 (value, ":");
+               module_args   : String  := HT.specific_field (value, 2, ":");
                text_stripped : HT.Text := HT.SUS (stripped);
             begin
                specs.uses.Append (text_value);
