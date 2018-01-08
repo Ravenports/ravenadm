@@ -708,6 +708,19 @@ package body Port_Specification is
                if not specs.uses_base.Contains (text_stripped) then
                   specs.uses_base.Append (text_stripped);
                end if;
+               --  Sanity check for compiler modules
+               if stripped = "ada" or else
+                 stripped = "c++" or else
+                 stripped = "fortan" or else
+                 stripped = "cclibs"
+               then
+                  if HT.IsBlank (text_stripped) then
+                     raise wrong_type with "subpackage not provided for " & stripped & " module";
+                  elsif not specs.subpackage_exists (HT.USS (text_stripped)) then
+                     raise wrong_type with stripped & " module subpackage unrecognized: " &
+                       HT.USS (text_stripped);
+                  end if;
+               end if;
             end;
             if HT.leads (value, "terminfo") and then
               specs.terminfo_failed (value)
