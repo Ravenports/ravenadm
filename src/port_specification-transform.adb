@@ -976,7 +976,7 @@ package body Port_Specification.Transform is
       if specs.uses_base.Contains (HT.SUS (module)) then
            add_build_depends (specs, dependency);
       end if;
-   end apply_cmake_module;
+   end apply_imake_module;
 
 
    --------------------------------------------------------------------------------------------
