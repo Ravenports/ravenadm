@@ -271,6 +271,7 @@ package body Port_Specification.Transform is
       apply_display_module (specs);
       apply_sqlite_module (specs);
       apply_cmake_module (specs);
+      apply_imake_module (specs);
       apply_perl_module (specs);
       apply_bdb_module (specs);
       apply_ssl_module (specs);
@@ -960,6 +961,20 @@ package body Port_Specification.Transform is
          else
             add_build_depends (specs, dependency);
          end if;
+      end if;
+   end apply_cmake_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_imake_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_imake_module (specs : in out Portspecs)
+   is
+      module     : String := "imake";
+      dependency : String := "imake:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+           add_build_depends (specs, dependency);
       end if;
    end apply_cmake_module;
 
