@@ -1537,7 +1537,7 @@ package body Port_Specification.Transform is
       else
          if argument_present (specs, module, v23) then
             add_buildrun_depends (specs, RUBY23);
-         elsif argument_present (specs, v25) then
+         elsif argument_present (specs, module, v25) then
             add_buildrun_depends (specs, RUBY25);
          else -- default to ruby24 (current default)
             add_buildrun_depends (specs, RUBY24);
