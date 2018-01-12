@@ -59,6 +59,7 @@ private
    TCL86    : constant String := "tcl86:complete:standard";
    RUBY23   : constant String := "ruby23:primary:standard";
    RUBY24   : constant String := "ruby24:primary:standard";
+   RUBY25   : constant String := "ruby25:primary:standard";
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:single:standard";
 

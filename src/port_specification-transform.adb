@@ -1518,6 +1518,7 @@ package body Port_Specification.Transform is
       module     : constant String := "ruby";
       v23        : constant String := "v23";
       v24        : constant String := "v24";
+      v25        : constant String := "v25";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) or else
         argument_present (specs, module, "interp")
@@ -1528,13 +1529,17 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, v23) then
             add_build_depends (specs, RUBY23);
-         else -- default to ruby24
+         elsif argument_present (specs, module, v25) then
+            add_build_depends (specs, RUBY25);
+         else -- default to ruby24 (current default)
             add_build_depends (specs, RUBY24);
          end if;
       else
          if argument_present (specs, module, v23) then
             add_buildrun_depends (specs, RUBY23);
-         else -- default to ruby24
+         elsif argument_present (specs, v25) then
+            add_buildrun_depends (specs, RUBY25);
+         else -- default to ruby24 (current default)
             add_buildrun_depends (specs, RUBY24);
          end if;
       end if;

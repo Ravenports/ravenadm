@@ -77,10 +77,10 @@ private
                                   "percona-5.5:percona-5.6:percona-5.7:" &
                                   "galera-5.5:galera-5.6:galera-5.7";
    version_D : constant String := "5.24:" & default_perl;
-   version_E : constant String := "7.0:7.1:7.2";  --  php
+   version_E : constant String := "7.0:" & default_php & ":7.2";  --  php
    version_F : constant String := "9.2:9.3:9.4:9.5:" & default_pgsql & ":10";
    version_G : constant String := "3.5:" & default_python3;
-   version_H : constant String := "2.3:" & default_ruby;
+   version_H : constant String := "2.3:" & default_ruby & ":2.5";
    version_I : constant String := "openssl:openssl-devel:" & default_ssl & ":libressl-devel";
    version_J : constant String := "8.5:" & default_tcltk;
 
