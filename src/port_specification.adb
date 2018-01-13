@@ -3982,6 +3982,7 @@ package body Port_Specification is
          ("READLINE      ", READLINE),
          ("RUBY23        ", RUBY23),
          ("RUBY24        ", RUBY24),
+         ("RUBY25        ", RUBY25),
          ("SNDIO         ", SNDIO),
          ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
@@ -4065,6 +4066,7 @@ package body Port_Specification is
          when READLINE     => return "Command line editing via libreadline";
          when RUBY23       => return "Build using Ruby version 2.3";
          when RUBY24       => return "Build using Ruby version 2.4";
+         when RUBY25       => return "Build using Ruby version 2.5";
          when SNDIO        => return "Sndio audio support";
          when SOUND        => return "Sound (audio) support";
          when SQLITE       => return "SQLite database support";
