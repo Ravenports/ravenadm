@@ -719,7 +719,7 @@ package body Parameters is
             declare
                markers : HT.Line_Markers;
                resstr  : constant String := HT.USS (comres);
-               pattern : constant String := "physical processor has ";
+               pattern : constant String := "The physical processor has ";
                numcore : Natural := 0;
             begin
                HT.initialize_markers (resstr, markers);
