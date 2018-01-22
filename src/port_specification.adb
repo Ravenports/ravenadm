@@ -700,45 +700,22 @@ package body Port_Specification is
             if specs.uses.Contains (text_value) then
                raise dupe_list_value with "Duplicate USES module '" & value & "'";
             end if;
-            declare
-               stripped      : String  := HT.part_1 (value, ":");
-               module_args   : String  := HT.specific_field (value, 2, ":");
-               text_stripped : HT.Text := HT.SUS (stripped);
-               comma_cnt     : Natural;
-            begin
-               specs.uses.Append (text_value);
-               if not specs.uses_base.Contains (text_stripped) then
-                  specs.uses_base.Append (text_stripped);
-               end if;
-               --  Sanity check for compiler modules
-               if stripped = "ada" or else
-                 stripped = "c++" or else
-                 stripped = "fortan" or else
-                 stripped = "cclibs"
-               then
-                  if HT.IsBlank (module_args) then
-                     raise wrong_value with "subpackage not provided for " & stripped & " module";
-                  else
-                     --  check every provided submodule
-                     comma_cnt := HT.count_char (module_args, ',') + 1;
-                     for X in Natural range 1 .. comma_cnt loop
-                        declare
-                           spkg : constant String := HT.specific_field (module_args, X, ",");
-                        begin
-                           if not specs.subpackage_exists (spkg) then
-                              raise wrong_value with
-                              stripped & " module subpackage unrecognized: " & spkg;
-                           end if;
-                        end;
-                     end loop;
-                  end if;
-               end if;
-            end;
-            if HT.leads (value, "terminfo") and then
-              specs.terminfo_failed (value)
-            then
+            if HT.leads (value, "terminfo") and then specs.terminfo_failed (value) then
                raise wrong_value with "Terminfo USES module doesn't have a subpackage argument";
             end if;
+            declare
+               errmsg        : HT.Text;
+               text_stripped : HT.Text := HT.SUS (HT.part_1 (value, ":"));
+            begin
+               if specs.extra_uses_modules_sanity_check_passes (value, errmsg) then
+                  specs.uses.Append (text_value);
+                  if not specs.uses_base.Contains (text_stripped) then
+                     specs.uses_base.Append (text_stripped);
+                  end if;
+               else
+                  raise wrong_value with HT.USS (errmsg);
+               end if;
+            end;
          when sp_info =>
             verify_entry_is_post_options;
             if specs.info.Contains (text_value) then
@@ -1380,6 +1357,13 @@ package body Port_Specification is
             then
                raise wrong_value with "Terminfo USES module doesn't have a subpackage argument";
             end if;
+            declare
+               errmsg : HT.Text;
+            begin
+               if not specs.extra_uses_modules_sanity_check_passes (value, errmsg) then
+                  raise wrong_value with HT.USS (errmsg);
+               end if;
+            end;
             if not specs.opsys_c_uses.Contains (text_key) then
                specs.establish_group (sp_os_uses, key);
             end if;
@@ -1710,6 +1694,13 @@ package body Port_Specification is
             if not valid_uses_module (value) then
                raise wrong_value with "USES '" & value & "' is not recognized";
             end if;
+            declare
+               errmsg : HT.Text;
+            begin
+               if not specs.extra_uses_modules_sanity_check_passes (value, errmsg) then
+                  raise wrong_value with HT.USS (errmsg);
+               end if;
+            end;
          when info_on | info_off =>
             declare
                msg : String := specs.info_page_check_message (value);
@@ -4569,6 +4560,47 @@ package body Port_Specification is
       end;
       return "";
    end info_page_check_message;
+
+
+   --------------------------------------------------------------------------------------------
+   --  extra_uses_modules_sanity_check
+   --------------------------------------------------------------------------------------------
+   function extra_uses_modules_sanity_check_passes
+     (specs  : Portspecs;
+      module : String;
+      errmsg : out HT.Text) return Boolean
+   is
+      stripped      : String  := HT.part_1 (module, ":");
+      module_args   : String  := HT.specific_field (module, 2, ":");
+      text_stripped : HT.Text := HT.SUS (stripped);
+      comma_cnt     : Natural;
+   begin
+      --  Sanity check for compiler modules
+      if stripped = "ada" or else
+        stripped = "c++" or else
+        stripped = "fortan" or else
+        stripped = "cclibs"
+      then
+         if HT.IsBlank (module_args) then
+            errmsg := HT.SUS ("subpackage not provided for " & stripped & " module");
+            return False;
+         else
+            --  check every provided submodule
+            comma_cnt := HT.count_char (module_args, ',') + 1;
+            for X in Natural range 1 .. comma_cnt loop
+               declare
+                  spkg : constant String := HT.specific_field (module_args, X, ",");
+               begin
+                  if not specs.subpackage_exists (spkg) then
+                     errmsg := HT.SUS (stripped & " module subpackage unrecognized: " & spkg);
+                     return False;
+                  end if;
+               end;
+            end loop;
+         end if;
+      end if;
+      return True;
+   end extra_uses_modules_sanity_check_passes;
 
 
    --------------------------------------------------------------------------------------------

@@ -659,4 +659,10 @@ private
    --  split out info entry validation (returns non-black on failed check)
    function info_page_check_message (specs : Portspecs; value : String) return String;
 
+   --  Return True if uses module is fully specified (mainly for compiler modules)
+   function extra_uses_modules_sanity_check_passes
+     (specs  : Portspecs;
+      module : String;
+      errmsg : out HT.Text) return Boolean;
+
 end Port_Specification;
