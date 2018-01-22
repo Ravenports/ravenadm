@@ -719,8 +719,10 @@ package body PortScan.Scan is
          if dtype = extra_runtime then
             return;
          else
-            raise populate_error with tuple & " belongs to the default compiler which is a " &
-              "special case that can only be specified via EXRUN";
+            if platform_type <> sunos then
+               raise populate_error with tuple & " belongs to the default compiler which is a " &
+                 "special case that can only be specified via EXRUN";
+            end if;
          end if;
       end if;
       if not all_ports (target).blocked_by.Contains (depindex) then
