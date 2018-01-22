@@ -719,7 +719,7 @@ package body PortScan.Scan is
          if dtype = extra_runtime then
             return;
          else
-            if platform_type <> sunos then
+            if platform_type /= sunos then
                raise populate_error with tuple & " belongs to the default compiler which is a " &
                  "special case that can only be specified via EXRUN";
             end if;
