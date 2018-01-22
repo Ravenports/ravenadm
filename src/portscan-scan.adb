@@ -712,7 +712,8 @@ package body PortScan.Scan is
          if dtype = extra_runtime then
             return;
          else
-            raise populate_error with tuple & " can't depend on itself";
+            raise populate_error with tuple & " can't depend on itself (" &
+              get_port_variant (all_ports (depindex)) & ")";
          end if;
       end if;
       if HT.USS (all_ports (depindex).port_namebase) = default_compiler then

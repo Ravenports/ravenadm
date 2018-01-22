@@ -309,8 +309,10 @@ package body Port_Specification.Transform is
             --  Solaris 10 doesn't use dl_iterate_phdr, so many packages have executables that
             --  requires libgcc_s.so.  Rather than specify potentially hundreds of C_USES
             --  keywords, just make gcc7:libs:standard a run depends of every package (including
-            --  gcc6, gcc7, and later)
-            add_run_depends (specs, default_compiler & ":libs:" & variant_standard);
+            --  gcc6, gcc8 and later).  Avoid gcc7 to avoid "depends on itself" error
+            if specs.get_namebase <> default_compiler then
+               add_run_depends (specs, default_compiler & ":libs:" & variant_standard);
+            end if;
          end if;
       end if;
       apply_curly_bracket_conversions (specs);
