@@ -120,6 +120,7 @@ private
                                      variant : String;
                                      module  : String;
                                      gccsubpackage : String);
+   procedure add_exrun_cclibs       (specs : in out Portspecs; variant : String);
 
    procedure apply_desktop_utils_module   (specs : in out Portspecs);
    procedure apply_gnome_icons_module     (specs : in out Portspecs);

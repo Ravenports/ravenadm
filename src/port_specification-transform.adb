@@ -309,10 +309,8 @@ package body Port_Specification.Transform is
             --  Solaris 10 doesn't use dl_iterate_phdr, so many packages have executables that
             --  requires libgcc_s.so.  Rather than specify potentially hundreds of C_USES
             --  keywords, just make gcc7:libs:standard a run depends of every package (including
-            --  gcc6, gcc8 and later).  Avoid gcc7 to avoid "depends on itself" error
-            if specs.get_namebase /= default_compiler then
-               add_run_depends (specs, default_compiler & ":libs:" & variant_standard);
-            end if;
+            --  gcc6, gcc7, gcc8 and later).
+            add_exrun_cclibs (specs, variant);
          end if;
       end if;
       apply_curly_bracket_conversions (specs);
@@ -1013,6 +1011,52 @@ package body Port_Specification.Transform is
          specs.subpackages.Element (HT.SUS (variant)).list.Iterate (scan'Access);
       end if;
    end apply_gcc_run_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  add_exrun_cclibs
+   --------------------------------------------------------------------------------------------
+   procedure add_exrun_cclibs (specs : in out Portspecs; variant : String)
+   is
+      prime_pkg     : HT.Text;
+      primary_found : Boolean := False;
+   begin
+      --  Calculate "primary" package
+      for item in Positive range 1 .. specs.get_subpackage_length (variant) loop
+         declare
+            subpackage : String := specs.get_subpackage_item (variant, item);
+         begin
+            if not primary_found and then
+              subpackage /= spkg_complete and then
+              subpackage /= spkg_examples and then
+              subpackage /= spkg_docs
+            then
+               prime_pkg := HT.SUS (subpackage);
+               primary_found := True;
+            end if;
+         end;
+      end loop;
+
+      --  Abort if primary package was never determined.  Spec file is wrong?
+      if not primary_found then
+         return;
+      end if;
+
+      declare
+         dependency : String := default_compiler & ":libs:" & variant_standard;
+      begin
+         --  Check if cclibs:<subpackage> has already been set, and abort if so
+         if specs.extra_rundeps.Contains (prime_pkg) and then
+           specs.extra_rundeps.Element (prime_pkg).list.Contains (HT.SUS (dependency))
+         then
+            return;
+         end if;
+
+         --  set cclibs:<primary subpackage>
+         add_exrun_depends (specs, dependency, HT.USS (prime_pkg));
+      end;
+
+   end add_exrun_cclibs;
 
 
    --------------------------------------------------------------------------------------------
