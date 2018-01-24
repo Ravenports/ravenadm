@@ -2116,12 +2116,13 @@ package body Specification_Parser is
    function valid_conditional_variable (candidate : String) return Boolean
    is
       is_namepair : constant Boolean := HT.contains (candidate, "=");
+      part_name   : constant String := HT.part_1 (candidate, "=");
    begin
       if not is_namepair then
          return False;
       end if;
       declare
-         possible_singlet : String := HT.part_1 (candidate, "=") & LAT.Equals_Sign & LAT.HT & 'x';
+         possible_singlet : String := part_name & LAT.Equals_Sign & LAT.HT & 'x';
          this_singlet     : spec_singlet := determine_singlet (possible_singlet);
       begin
          case this_singlet is
@@ -2129,6 +2130,14 @@ package body Specification_Parser is
                  config_args | config_env | make_args | make_env |
                  cmake_args | qmake_args =>
                null;
+            when not_singlet =>
+               if not (part_name = "VAR1" or else
+                       part_name = "VAR2" or else
+                       part_name = "VAR3" or else
+                       part_name = "VAR4")
+               then
+                  return False;
+               end if;
             when others =>
                return False;
          end case;
