@@ -972,6 +972,7 @@ package body Replicant is
       install_passwd_and_group (etc_path);
       create_etc_services      (etc_path);
       create_etc_shells        (etc_path);
+      create_sun_crypt_conf    (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
 
    exception
@@ -1354,5 +1355,39 @@ package body Replicant is
    exception
       when others => null;
    end concatenate_makeconf;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_sun_crypt_conf
+   --------------------------------------------------------------------------------------------
+   procedure create_sun_crypt_conf (path_to_etc : String)
+   is
+      cryptfile : TIO.File_Type;
+      security  : constant String := path_to_etc & "/security";
+   begin
+      --  version found in Solaris 10u8
+      --  #
+      --  # Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
+      --  # Use is subject to license terms.
+      --  #
+      --  #ident  "@(#)crypt.conf 1.2     08/05/14 SMI"
+      --  #
+      --  # The algorithm name __unix__ is reserved.
+      --
+      --  1       crypt_bsdmd5.so.1
+      --  2a      crypt_bsdbf.so.1
+      --  md5     crypt_sunmd5.so.1
+      --  5       crypt_sha256.so.1
+      --  6       crypt_sha512.so.1
+
+      if platform_type = sunos then
+         DIR.Create_Path (security);
+         TIO.Create (File => cryptfile,
+                     Mode => TIO.Out_File,
+                     Name => security & "/crypt.conf");
+         TIO.Put_Line (cryptfile, "# dummy (for now)");
+         TIO.Close (cryptfile);
+      end if;
+   end create_sun_crypt_conf;
 
 end Replicant;

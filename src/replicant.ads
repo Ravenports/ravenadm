@@ -186,6 +186,9 @@ private
    --  create /etc/shells, required by install scripts of some packages
    procedure create_etc_shells (path_to_etc : String);
 
+   --  create /etc/security/crypt.conf, required to be present(?) by solaris
+   procedure create_sun_crypt_conf (path_to_etc : String);
+
    --  Install linux /etc/ld.so.conf.d/* file
    procedure install_linux_ldsoconf (path_to_etc_ldsocnf : String);
 
