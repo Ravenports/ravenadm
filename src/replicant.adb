@@ -1385,7 +1385,8 @@ package body Replicant is
          TIO.Create (File => cryptfile,
                      Mode => TIO.Out_File,
                      Name => security & "/crypt.conf");
-         TIO.Put_Line (cryptfile, "# dummy (for now)");
+         TIO.Put_Line (cryptfile, "1   crypt_bsdmd5.so.1");
+         TIO.Put_Line (cryptfile, "md5 crypt_sunmd5.so.1");
          TIO.Close (cryptfile);
       end if;
    end create_sun_crypt_conf;
