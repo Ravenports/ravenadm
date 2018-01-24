@@ -1760,6 +1760,8 @@ package body Port_Specification.Transform is
          if not no_arguments_present (specs, module) then
             if argument_present (specs, module, "v23") then
                flavor := "v23";
+            elsif argument_present (specs, module, "v25") then
+               flavor := "v25";
             end if;
          end if;
          add_buildrun_depends (specs, "ruby-rubygems:single:" & flavor);
