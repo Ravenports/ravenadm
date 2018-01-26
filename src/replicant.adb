@@ -1363,6 +1363,7 @@ package body Replicant is
    procedure create_sun_crypt_conf (path_to_etc : String)
    is
       cryptfile : TIO.File_Type;
+      userattr  : TIO.File_Type;
       security  : constant String := path_to_etc & "/security";
    begin
       --  version found in Solaris 10u8
@@ -1386,9 +1387,19 @@ package body Replicant is
                      Mode => TIO.Out_File,
                      Name => security & "/crypt.conf");
          TIO.Put_Line (cryptfile, "1   crypt_bsdmd5.so.1");
+         TIO.Put_Line (cryptfile, "2a  crypt_bsdbf.so.1");
          TIO.Put_Line (cryptfile, "md5 crypt_sunmd5.so.1");
+         TIO.Put_Line (cryptfile, "5   crypt_sha256.so.1");
+         TIO.Put_Line (cryptfile, "6   crypt_sha512.so.1");
          TIO.Close (cryptfile);
       end if;
+      --  Dummy /etc/user_attr to allow useradd to succeed
+      TIO.Create (File => userattr,
+                  Mode => TIO.Out_File,
+                  Name => path_to_etc & "/user_attr");
+      TIO.Put_Line (userattr, "adm::::profiles=Log Management");
+      TIO.Put_Line (userattr, "lp::::profiles=Printer Management");
+      TIO.Close (userattr);
    end create_sun_crypt_conf;
 
 end Replicant;
