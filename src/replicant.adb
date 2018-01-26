@@ -972,7 +972,7 @@ package body Replicant is
       install_passwd_and_group (etc_path);
       create_etc_services      (etc_path);
       create_etc_shells        (etc_path);
-      create_sun_crypt_conf    (etc_path);
+      create_sun_files         (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
 
    exception
@@ -1358,14 +1358,17 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
-   --  create_sun_crypt_conf
+   --  create_sun_files
    --------------------------------------------------------------------------------------------
-   procedure create_sun_crypt_conf (path_to_etc : String)
+   procedure create_sun_files (path_to_etc : String)
    is
-      cryptfile : TIO.File_Type;
-      userattr  : TIO.File_Type;
-      security  : constant String := path_to_etc & "/security";
+      sun_file : TIO.File_Type;
+      security : constant String := path_to_etc & "/security";
+      skel     : constant String := path_to_etc & "/skel";
    begin
+      if platform_type /= sunos then
+         return;
+      end if;
       --  version found in Solaris 10u8
       --  #
       --  # Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
@@ -1381,25 +1384,58 @@ package body Replicant is
       --  5       crypt_sha256.so.1
       --  6       crypt_sha512.so.1
 
-      if platform_type = sunos then
-         DIR.Create_Path (security);
-         TIO.Create (File => cryptfile,
-                     Mode => TIO.Out_File,
-                     Name => security & "/crypt.conf");
-         TIO.Put_Line (cryptfile, "1   crypt_bsdmd5.so.1");
-         TIO.Put_Line (cryptfile, "2a  crypt_bsdbf.so.1");
-         TIO.Put_Line (cryptfile, "md5 crypt_sunmd5.so.1");
-         TIO.Put_Line (cryptfile, "5   crypt_sha256.so.1");
-         TIO.Put_Line (cryptfile, "6   crypt_sha512.so.1");
-         TIO.Close (cryptfile);
-      end if;
+      DIR.Create_Path (security);
+      TIO.Create (sun_file, TIO.Out_File, security & "/crypt.conf");
+      TIO.Put_Line (sun_file, "1   crypt_bsdmd5.so.1");
+      TIO.Put_Line (sun_file, "2a  crypt_bsdbf.so.1");
+      TIO.Put_Line (sun_file, "md5 crypt_sunmd5.so.1");
+      TIO.Put_Line (sun_file, "5   crypt_sha256.so.1");
+      TIO.Put_Line (sun_file, "6   crypt_sha512.so.1");
+      TIO.Close (sun_file);
+
       --  Dummy /etc/user_attr to allow useradd to succeed
-      TIO.Create (File => userattr,
-                  Mode => TIO.Out_File,
-                  Name => path_to_etc & "/user_attr");
-      TIO.Put_Line (userattr, "adm::::profiles=Log Management");
-      TIO.Put_Line (userattr, "lp::::profiles=Printer Management");
-      TIO.Close (userattr);
-   end create_sun_crypt_conf;
+      TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/user_attr");
+      TIO.Put_Line (sun_file, "adm::::profiles=Log Management");
+      TIO.Put_Line (sun_file, "lp::::profiles=Printer Management");
+      TIO.Close (sun_file);
+
+      --  Create skel files
+      DIR.Create_Path (skel);
+      TIO.Create (sun_file, TIO.Out_File, skel & "/local.cshrc");
+      TIO.Put_Line (sun_file, "umask 022");
+      TIO.Put_Line (sun_file, "set path=(/bin /usr/bin /usr/ucb /etc .)");
+      TIO.Put_Line (sun_file, "if ( $?prompt ) then");
+      TIO.Put_Line (sun_file, "   set history=32");
+      TIO.Put_Line (sun_file, "endif");
+      TIO.Close (sun_file);
+
+      --  skel/local.login
+      TIO.Create (sun_file, TIO.Out_File, skel & "/local.login");
+      TIO.Put_Line (sun_file, "stty -istrip");
+      TIO.Close (sun_file);
+
+      --  skel/local.profile
+      TIO.Create (sun_file, TIO.Out_File, skel & "/local.profile");
+      TIO.Put_Line (sun_file, "stty istrip");
+      TIO.Put_Line (sun_file, "PATH=/usr/bin:/usr/ucb:/etc:.");
+      TIO.Put_Line (sun_file, "export PATH");
+      TIO.Close (sun_file);
+
+      --  etc/datemsk (extremely pared done)
+      TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/datemsk");
+      TIO.Put_Line (sun_file, "%m/%d/%y %H:%M");
+      TIO.Put_Line (sun_file, "%m%d%H%M%y");
+      TIO.Close (sun_file);
+
+      --  etc/shadow (couple of entries)
+      TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/shadow");
+      TIO.Put_Line (sun_file, "root:kF/MO3YejnKKE:6445::::::");
+      TIO.Put_Line (sun_file, "adm:NP:6445::::::");
+      TIO.Put_Line (sun_file, "lp:NP:6445::::::");
+      TIO.Put_Line (sun_file, "nobody:*LK*:6445::::::");
+      TIO.Put_Line (sun_file, "nobody4:*LK*:6445::::::");
+      TIO.Close (sun_file);
+
+   end create_sun_files;
 
 end Replicant;
