@@ -1436,6 +1436,15 @@ package body Replicant is
       TIO.Put_Line (sun_file, "nobody4:*LK*:6445::::::");
       TIO.Close (sun_file);
 
+      --  etc/project
+      TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/project");
+      TIO.Put_Line (sun_file, "system:0::::");
+      TIO.Put_Line (sun_file, "user.root:1::::");
+      TIO.Put_Line (sun_file, "noproject:2::::");
+      TIO.Put_Line (sun_file, "default:3::::");
+      TIO.Put_Line (sun_file, "group.staff:10::::");
+      TIO.Close (sun_file);
+
    end create_sun_files;
 
 end Replicant;
