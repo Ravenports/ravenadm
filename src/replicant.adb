@@ -915,8 +915,8 @@ package body Replicant is
             forge_directory (location (slave_base, toolchain));
          end if;
       else
-         --  Limit slave to 16Gb, covers localbase + construction mainly
-         mount_tmpfs (slave_base, 16 * 1024);
+         --  Limit slave to 24Gb, covers localbase + construction mainly
+         mount_tmpfs (slave_base, 24 * 1024);
          if lbase = bsd_localbase then
             mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
          end if;
