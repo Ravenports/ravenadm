@@ -1162,9 +1162,7 @@ package body Port_Specification.Transform is
       is
          setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
       begin
-         if setting = "9.2" then
-            return "postgresql92";
-         elsif setting = "9.3" then
+         if setting = "9.3" then
             return "postgresql93";
          elsif setting = "9.4" then
             return "postgresql94";
