@@ -604,7 +604,7 @@ package body Options_Dialog is
                if num_std_options < 27 then
                   option_index := Positive (KeyCode - Key_Option_27 + 1);
                else
-                  option_index := Positive (KeyCode - Key_Option_27 + Key_Option_26 + 1);
+                  option_index := Positive (KeyCode - Key_Option_27 + 27);
                end if;
                toggle_option (option_index);
             when Key_Space =>
