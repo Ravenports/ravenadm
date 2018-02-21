@@ -597,8 +597,8 @@ package body Options_Dialog is
                end loop;
             when Key_Option_01 .. Key_Option_26 =>
                if KeyCode <= Key_Option_Last then
-                  option_index := Positive (KeyCode - Key_Option_01 + 1);
-                  toggle_option (option_index);
+                  arrow_points := Positive (KeyCode - Key_Option_01 + 1);
+                  toggle_option (arrow_points);
                end if;
             when Key_Option_27 .. Key_Option_52 =>
                if num_std_options < 27 then
@@ -606,7 +606,10 @@ package body Options_Dialog is
                else
                   option_index := Positive (KeyCode - Key_Option_27 + 27);
                end if;
-               toggle_option (option_index);
+               if option_index <= num_std_options then
+                  arrow_points := option_index;
+                  toggle_option (arrow_points);
+               end if;
             when Key_Space =>
                toggle_option (arrow_points);
             when others => null;
