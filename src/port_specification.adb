@@ -2376,7 +2376,7 @@ package body Port_Specification is
          option_name : HT.Text renames string_crate.Element (position);
       begin
          if specs.ops_helpers.Contains (option_name) then
-            disp_order.Append (option_name);
+            disp_order.Prepend (option_name);
          end if;
       end nogrup2;
 
@@ -2454,7 +2454,7 @@ package body Port_Specification is
       group := radio;    specs.opt_radio.Iterate (group_scn2'Access);
       group := restrict; specs.opt_restrict.Iterate (group_scn2'Access);
       group := sinlimit; specs.opt_unlimited.Iterate (group_scn2'Access);
-      tmpstor2.Iterate (nogrup2'Access);
+      tmpstor2.Reverse_Iterate (nogrup2'Access);
 
       group := radio;    specs.opt_radio.Iterate (group_scan'Access);
       group := restrict; specs.opt_restrict.Iterate (group_scan'Access);
