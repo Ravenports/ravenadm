@@ -2260,6 +2260,7 @@ package body Port_Specification is
       tmpstore    : string_crate.Vector;
       group       : group_type;
       answer      : HT.Text;
+      singles     : HT.Text;
       group_index : HT.Text;
 
       function bool2str (b : Boolean) return String is
@@ -2323,13 +2324,14 @@ package body Port_Specification is
          helper : Option_Helper renames specs.ops_helpers.Element (option_name);
       begin
          if specs.ops_helpers.Contains (option_name) then
-            answer := HT.SUS (
-                            LAT.Colon & LAT.Colon &
+            HT.SU.Append (singles,
+                          LAT.Colon &
+                            LAT.Colon &
                             LAT.Colon & HT.USS (option_name) &
                             LAT.Colon & bool2str (helper.set_ON_by_default) &
                             LAT.Colon & bool2str (helper.currently_set_ON) &
                             LAT.Colon & description (option_name, helper.option_description) &
-                            LAT.LF & HT.USS (answer));
+                            LAT.LF);
          end if;
       end nogroup;
 
@@ -2363,7 +2365,7 @@ package body Port_Specification is
       specs.opt_unlimited.Iterate (group_scan'Access);
 
       tmpstore.Iterate (nogroup'Access);
-      return HT.USS (answer);
+      return HT.USS (singles) & HT.USS (answer);
    end option_block_for_dialog;
 
 
