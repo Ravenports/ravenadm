@@ -23,6 +23,7 @@ private
 
    type zones is (keymenu, dialog);
    type group_type is (radio, restrict, unlimited);
+   type affection is array (1 .. 52) of Boolean;
    subtype appline is TIC.Attributed_String (1 .. appline_max);
    subtype optentry is String (1 .. 71);
    type optentry_rec is record
@@ -32,6 +33,8 @@ private
       current_value : Boolean;
       ticked_value  : Boolean;
       member_group  : Natural;
+      prevents      : affection;
+      implies       : affection;
    end record;
    type grouping_rec is record
       template      : optentry;
@@ -120,6 +123,7 @@ private
    function colorize_groups (textdata : String) return TIC.Attributed_String;
    function colorize_option (textdata : String) return TIC.Attributed_String;
    procedure toggle_option (option_index : Positive);
+   procedure cascade (option_index : Positive);
    procedure save_options;
 
 end Options_Dialog;

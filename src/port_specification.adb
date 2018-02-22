@@ -1673,12 +1673,18 @@ package body Port_Specification is
             if not specs.ops_avail.Contains (value_text) then
                raise wrong_value with "Not a defined option: '" & value & "'";
             end if;
+            if HT.equivalent (option_text, value_text) then
+               raise wrong_value with "Option refers to itself: '" & value & "'";
+            end if;
             if specs.ops_helpers.Element (option_text).IMPLIES_ON.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
          when prevents_on =>
             if not specs.ops_avail.Contains (value_text) then
                raise wrong_value with "Not a defined option: '" & value & "'";
+            end if;
+            if HT.equivalent (option_text, value_text) then
+               raise wrong_value with "Option refers to itself: '" & value & "'";
             end if;
             if specs.ops_helpers.Element (option_text).PREVENTS_ON.Contains (value_text) then
                raise dupe_list_value with value;
@@ -2247,17 +2253,24 @@ package body Port_Specification is
    function option_block_for_dialog (specs : Portspecs) return String
    is
       --  block format is
-      --  GROUP:GROUP-TYPE:GROUP-DESC:OPT-NAME:DEFAULT-VAL:CURRENT-VAL:OPT-DESC
+      --  GROUP:GROUP-TYPE:GROUP-DESC:OPT-NAME:DEFAULT-VAL:CURRENT-VAL:OPT-DESC:I:P
+      --  "I" = IMPLIES, "P" = PREVENTS  (binary string, e.g. "0010000001"
 
       type group_type is (radio, restrict, sinlimit);
       procedure scan1 (position : string_crate.Cursor);
       procedure group_scan (position : string_crate.Cursor);
+      procedure group_scn2 (position : string_crate.Cursor);
       procedure group_option_scan (position : string_crate.Cursor);
+      procedure group_option_scn2 (position : string_crate.Cursor);
       procedure nogroup (position : string_crate.Cursor);
+      procedure nogrup2 (position : string_crate.Cursor);
       function bool2str (b : Boolean) return String;
       function description (option_name, opt_description : HT.Text) return String;
+      function affection (option_name : HT.Text; implies : Boolean) return String;
 
       tmpstore    : string_crate.Vector;
+      tmpstor2    : string_crate.Vector;
+      disp_order  : string_crate.Vector;
       group       : group_type;
       answer      : HT.Text;
       singles     : HT.Text;
@@ -2275,14 +2288,20 @@ package body Port_Specification is
       procedure scan1 (position : string_crate.Cursor) is
       begin
          tmpstore.Append (string_crate.Element (position));
+         tmpstor2.Append (string_crate.Element (position));
       end scan1;
 
-      procedure group_scan (position : string_crate.Cursor)
-      is
+      procedure group_scan (position : string_crate.Cursor) is
       begin
          group_index := string_crate.Element (position);
          specs.optgroups.Element (group_index).list.Iterate (group_option_scan'Access);
       end group_scan;
+
+      procedure group_scn2 (position : string_crate.Cursor) is
+      begin
+         group_index := string_crate.Element (position);
+         specs.optgroups.Element (group_index).list.Iterate (group_option_scn2'Access);
+      end group_scn2;
 
       procedure group_option_scan (position : string_crate.Cursor)
       is
@@ -2314,9 +2333,23 @@ package body Port_Specification is
                             LAT.Colon & bool2str (helper.set_ON_by_default) &
                             LAT.Colon & bool2str (helper.currently_set_ON) &
                             LAT.Colon & description (option_name, helper.option_description) &
+                            LAT.Colon & affection (option_name, True) &
+                            LAT.Colon & affection (option_name, False) &
                             LAT.LF);
          end if;
       end group_option_scan;
+
+      procedure group_option_scn2 (position : string_crate.Cursor)
+      is
+         option_name : HT.Text renames string_crate.Element (position);
+      begin
+         if specs.ops_helpers.Contains (option_name) then
+            if tmpstor2.Contains (option_name) then
+               tmpstor2.Delete (tmpstor2.Find_Index (option_name));
+            end if;
+            disp_order.Append (option_name);
+         end if;
+      end group_option_scn2;
 
       procedure nogroup (position : string_crate.Cursor)
       is
@@ -2331,9 +2364,20 @@ package body Port_Specification is
                             LAT.Colon & bool2str (helper.set_ON_by_default) &
                             LAT.Colon & bool2str (helper.currently_set_ON) &
                             LAT.Colon & description (option_name, helper.option_description) &
+                            LAT.Colon & affection (option_name, True) &
+                            LAT.Colon & affection (option_name, False) &
                             LAT.LF);
          end if;
       end nogroup;
+
+      procedure nogrup2 (position : string_crate.Cursor)
+      is
+         option_name : HT.Text renames string_crate.Element (position);
+      begin
+         if specs.ops_helpers.Contains (option_name) then
+            disp_order.Append (option_name);
+         end if;
+      end nogrup2;
 
       function description (option_name, opt_description : HT.Text) return String is
       begin
@@ -2352,19 +2396,48 @@ package body Port_Specification is
          end if;
       end description;
 
+      function affection (option_name : HT.Text; implies : Boolean) return String
+      is
+         strlen : Natural := Natural (disp_order.Length);
+      begin
+         declare
+            procedure setone (position : string_crate.Cursor);
+
+            result : String (1 .. strlen) := (others => '0');
+
+            procedure setone (position : string_crate.Cursor)
+            is
+               optname2 : HT.Text renames string_crate.Element (position);
+               ndx : Positive;
+            begin
+               if disp_order.Contains (optname2) then
+                  ndx := disp_order.Find_Index (optname2);
+                  result (ndx) := '1';
+               end if;
+            end setone;
+         begin
+            if implies then
+               specs.ops_helpers.Element (option_name).IMPLIES_ON.Iterate (setone'Access);
+            else
+               specs.ops_helpers.Element (option_name).PREVENTS_ON.Iterate (setone'Access);
+            end if;
+            return result;
+         end;
+      end affection;
+
    begin
       specs.ops_standard.Iterate (scan1'Access);
 
-      group := radio;
-      specs.opt_radio.Iterate (group_scan'Access);
+      group := radio;    specs.opt_radio.Iterate (group_scn2'Access);
+      group := restrict; specs.opt_restrict.Iterate (group_scn2'Access);
+      group := sinlimit; specs.opt_unlimited.Iterate (group_scn2'Access);
+      tmpstor2.Iterate (nogrup2'Access);
 
-      group := restrict;
-      specs.opt_restrict.Iterate (group_scan'Access);
-
-      group := sinlimit;
-      specs.opt_unlimited.Iterate (group_scan'Access);
-
+      group := radio;    specs.opt_radio.Iterate (group_scan'Access);
+      group := restrict; specs.opt_restrict.Iterate (group_scan'Access);
+      group := sinlimit; specs.opt_unlimited.Iterate (group_scan'Access);
       tmpstore.Iterate (nogroup'Access);
+
       return HT.USS (singles) & HT.USS (answer);
    end option_block_for_dialog;
 

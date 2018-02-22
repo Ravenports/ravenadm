@@ -397,6 +397,7 @@ package body Options_Dialog is
       function str2behavior (value : String) return group_type;
       function format (value : String; size : Positive) return String;
       function group_title (value : String; gtype : group_type) return String;
+      function bin2affect (value : String) return affection;
 
       block   : String := specification.option_block_for_dialog;
       markers : HT.Line_Markers;
@@ -453,6 +454,19 @@ package body Options_Dialog is
          end case;
       end group_title;
 
+      function bin2affect (value : String) return affection
+      is
+         result  : affection := (others => False);
+         revalue : constant String (1 .. value'Length) := value;
+      begin
+         for x in revalue'Range loop
+            if revalue (x) = '1' then
+               result (x) := True;
+            end if;
+         end loop;
+         return result;
+      end bin2affect;
+
    begin
       num_std_options := specification.get_list_length (PSP.sp_opts_standard);
       if num_std_options < 27 then
@@ -497,6 +511,8 @@ package body Options_Dialog is
                fopt.current_value := str2bool (HT.specific_field (line, 6, ":"));
                fopt.ticked_value  := fopt.current_value;
                fopt.member_group  := gcount;
+               fopt.implies       := bin2affect (HT.specific_field (line, 8, ":"));
+               fopt.prevents      := bin2affect (HT.specific_field (line, 9, ":"));
                fopt.template      := button (num_options) & "[ ] " &
                  format (HT.specific_field (line, 4, ":"), 14) & " " &
                  format (HT.specific_field (line, 7, ":"), 50);
@@ -599,6 +615,7 @@ package body Options_Dialog is
                if KeyCode <= Key_Option_Last then
                   arrow_points := Positive (KeyCode - Key_Option_01 + 1);
                   toggle_option (arrow_points);
+                  cascade (arrow_points);
                end if;
             when Key_Option_27 .. Key_Option_52 =>
                if num_std_options < 27 then
@@ -609,9 +626,11 @@ package body Options_Dialog is
                if option_index <= num_std_options then
                   arrow_points := option_index;
                   toggle_option (arrow_points);
+                  cascade (arrow_points);
                end if;
             when Key_Space =>
                toggle_option (arrow_points);
+               cascade (arrow_points);
             when others => null;
          end case;
       end loop;
@@ -807,6 +826,37 @@ package body Options_Dialog is
             end if;
       end case;
    end toggle_option;
+
+
+   --------------------------------------------------------------------------------------------
+   --  cascade
+   --------------------------------------------------------------------------------------------
+   procedure cascade (option_index : Positive) is
+   begin
+      if not formatted_opts (option_index).ticked_value then
+         return;
+      end if;
+      --  implies, attempt toggle if implication set off
+      for x in 1 .. num_std_options loop
+         if x /= option_index then
+            if formatted_opts (option_index).implies (x) and then
+              not formatted_opts (x).ticked_value
+            then
+               toggle_option (x);
+            end if;
+         end if;
+      end loop;
+      --  prevents, attempt toggle if prevention set on
+      for x in 1 .. num_std_options loop
+         if x /= option_index then
+            if formatted_opts (option_index).prevents (x) and then
+              formatted_opts (x).ticked_value
+            then
+               toggle_option (x);
+            end if;
+         end if;
+      end loop;
+   end cascade;
 
 
    --------------------------------------------------------------------------------------------
