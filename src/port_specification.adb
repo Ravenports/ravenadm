@@ -2267,6 +2267,7 @@ package body Port_Specification is
       function bool2str (b : Boolean) return String;
       function description (option_name, opt_description : HT.Text) return String;
       function affection (option_name : HT.Text; implies : Boolean) return String;
+      function option_index (option_name : HT.Text) return Natural;
 
       tmpstore    : string_crate.Vector;
       tmpstor2    : string_crate.Vector;
@@ -2396,6 +2397,29 @@ package body Port_Specification is
          end if;
       end description;
 
+      function option_index (option_name : HT.Text) return Natural
+      is
+         procedure scan (position : string_crate.Cursor);
+
+         result  : Natural := 0;
+         counter : Natural := 0;
+
+         procedure scan (position : string_crate.Cursor)
+         is
+            name : HT.Text renames string_crate.Element (position);
+         begin
+            if result = 0 then
+               counter := counter + 1;
+               if HT.equivalent (name, option_name) then
+                  result := counter;
+               end if;
+            end if;
+         end scan;
+      begin
+         disp_order.Iterate (scan'Access);
+         return result;
+      end option_index;
+
       function affection (option_name : HT.Text; implies : Boolean) return String
       is
          strlen : Natural := Natural (disp_order.Length);
@@ -2408,10 +2432,9 @@ package body Port_Specification is
             procedure setone (position : string_crate.Cursor)
             is
                optname2 : HT.Text renames string_crate.Element (position);
-               ndx : Positive;
+               ndx : Natural := option_index (optname2);
             begin
-               if disp_order.Contains (optname2) then
-                  ndx := disp_order.Find_Index (optname2);
+               if ndx > 0 then
                   result (ndx) := '1';
                end if;
             end setone;
