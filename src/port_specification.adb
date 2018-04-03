@@ -3551,6 +3551,7 @@ package body Port_Specification is
          ("x11               ", x11),
          ("xau               ", xau),
          ("xaw               ", xaw),
+         ("xbitmaps          ", xbitmaps),
          ("xcb               ", xcb),
          ("xcb-render-util   ", xcb_render_util),
          ("xcb-util          ", xcb_util),
@@ -3598,6 +3599,8 @@ package body Port_Specification is
          ("xtst              ", xtst),
          ("xv                ", xv),
          ("xvmc              ", xvmc),
+         ("xxf86dga          ", xxf86dga),
+         ("xxf86misc         ", xxf86misc),
          ("xxf86vm           ", xxf86vm)
         );
 
