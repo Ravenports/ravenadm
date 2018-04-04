@@ -50,20 +50,20 @@ package body Port_Specification.Web is
       function htmlval (rawchar : Character) return String;
 
       focus : constant String :=
+        LAT.Ampersand &
         LAT.Quotation &
         LAT.Less_Than_Sign &
-        LAT.Greater_Than_Sign &
-        LAT.Ampersand;
+        LAT.Greater_Than_Sign;
       curlen : Natural := raw'Length;
       result : String (1 .. raw'Length * 6) := (others => ' ');
 
       function htmlval (rawchar : Character) return String is
       begin
          case rawchar is
+            when LAT.Ampersand         => return "&amp;";
             when LAT.Quotation         => return "&quot;";
             when LAT.Less_Than_Sign    => return "&lt;";
             when LAT.Greater_Than_Sign => return "&gt;";
-            when LAT.Ampersand         => return "&amp;";
             when others => return "";
          end case;
       end htmlval;
