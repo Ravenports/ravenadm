@@ -258,4 +258,25 @@ package body File_Operations is
       DIR.End_Search (search);
    end replace_directory_contents;
 
+
+   --------------------------------------------------------------------------------------------
+   --  convert_ORIGIN_in_runpath
+   --------------------------------------------------------------------------------------------
+   function convert_ORIGIN_in_runpath (filename : String; runpath : String) return String
+   is
+      ORIGIN : constant String := "$ORIGIN";
+   begin
+      if not HT.contains (runpath, ORIGIN) then
+         return runpath;
+      end if;
+      declare
+         basedir     : constant String := HT.head (filename, "/");
+         new_runpath : HT.Text := HT.replace_substring (US         => HT.SUS (runpath),
+                                                        old_string => ORIGIN,
+                                                        new_string => basedir);
+      begin
+         return HT.USS (new_runpath);
+      end;
+   end convert_ORIGIN_in_runpath;
+
 end File_Operations;

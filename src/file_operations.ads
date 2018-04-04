@@ -45,6 +45,11 @@ package File_Operations is
       target_directory : String;
       pattern          : String);
 
+   --  If runpath does not contain the string "$ORIGIN" then runpath is returned
+   --  Otherwise, the $ORIGIN text is replaced by the base directory of the filename
+   --             and the resulting text is returned.
+   function convert_ORIGIN_in_runpath (filename : String; runpath : String) return String;
+
 private
 
    --  helper for create_pidfile
