@@ -963,7 +963,7 @@ package body PortScan.Buildcycle is
          begin
             TIO.Put_Line (trackers (id).log_handle,
                           errmsg_prefix & library & " is not in located in " & systemdir_1 &
-                            ", " & systemdir_2 & " or within the RPATH/RUNPATH");
+                            ", " & systemdir_2 & " or within the RPATH/RUNPATH (" & paths & ")");
          end squawk;
 
       begin
