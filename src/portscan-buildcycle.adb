@@ -747,7 +747,9 @@ package body PortScan.Buildcycle is
             declare
                line : constant String := HT.extract_line (comres, markers);
             begin
-               pathstr := HT.SUS (HT.trim (HT.part_2 (line, runpath)));
+               pathstr := HT.SUS (FOP.convert_ORIGIN_in_runpath
+                                  (filename => filename,
+                                   runpath  => HT.trim (HT.part_2 (line, runpath))));
             end;
          else
             HT.initialize_markers (comres, markers);
