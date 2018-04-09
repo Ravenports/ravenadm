@@ -1107,7 +1107,7 @@ package body Replicant is
       forge_directory (path & "/mail");
       forge_directory (path & "/msgs");
       forge_directory (path & "/preserve");
-      forge_directory (path & "/run");
+      forge_directory (path & "/run/sem");
       forge_directory (path & "/spool");
       forge_directory (path & "/tmp");
    end populate_var_folder;
