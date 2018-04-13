@@ -2662,6 +2662,10 @@ package body Port_Specification.Transform is
       port_gobspec  : constant String := "gobject-introspection";
       port_intltool : constant String := "intltool";
       port_gsview3  : constant String := "gtksourceview3";
+      port_libidl   : constant String := "libIDL";
+      port_orbit2   : constant String := "ORBit2";
+      port_dconf    : constant String := "dconf";
+      port_gconf    : constant String := "gconf";
       port_libglade : constant String := "libglade:single:py27";
       port_pygtk2   : constant String := "python-gtk2:primary:py27";
       port_pygobj2  : constant String := "python-pygobject2:single:py27";
@@ -2679,10 +2683,13 @@ package body Port_Specification.Transform is
             when invalid_component => null;  --  should be impossible
             when glib      => null;
             when libglade  => null;
+            when libxml2   => null;
+            when gtk2      => null;
             when gtk3      => null;
-            when libxml2   => add_buildrun_depends (specs, port_libxml2 & ss);
+            when orbit2    => null;
+            when dconf     => add_buildrun_depends (specs, port_dconf & ps);
             when libxslt   => add_buildrun_depends (specs, port_libxslt & ss);
-                              add_buildrun_depends (specs, port_libxml2 & ss);
+            when libidl    => add_buildrun_depends (specs, port_libidl & ss);
             when atk       => add_buildrun_depends (specs, port_atk & ss);
             when cairo     => add_buildrun_depends (specs, port_cairo & ss);
             when pango     => add_buildrun_depends (specs, port_pango & ps);
@@ -2691,26 +2698,25 @@ package body Port_Specification.Transform is
             when libgsf    => add_buildrun_depends (specs, "libgsf" & ps);
             when libcroco  => add_buildrun_depends (specs, "libcroco" & ps);
             when librsvg   => add_buildrun_depends (specs, "librsvg" & ps);
+            when vte       => add_buildrun_depends (specs, "vte" & ps);
             when pygobject => add_buildrun_depends (specs, port_pygobj);
                               add_buildrun_depends (specs, port_pygobjcm);
             when pygobj2   => add_buildrun_depends (specs, port_pygobj2);
             when pygtk2    => add_buildrun_depends (specs, port_pygtk2);
                               add_buildrun_depends (specs, port_pygobj2);
             when gtksourceview3 =>
-                              add_buildrun_depends (specs, port_libxml2 & ss);
                               add_buildrun_depends (specs, port_gsview3 & ps);
             when introspection =>
                               add_build_depends (specs, port_gobspec & ss);
                               add_build_depends (specs, PYTHON27);
                               specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                               specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
-            when gtk2      => add_buildrun_depends (specs, port_gtk2 & ss);
-                              add_buildrun_depends (specs, port_atk & ss);
-                              add_buildrun_depends (specs, port_pango & ps);
+            when gconf     => add_buildrun_depends (specs, port_gconf & ps);
+
          end case;
          --  These components imply gtk3
          case comp is
-            when gtk3 | gtksourceview3 =>
+            when gtk3 | gtksourceview3 | vte =>
                add_buildrun_depends (specs, port_gtk3 & ss);
                add_buildrun_depends (specs, port_atk & ss);
                add_buildrun_depends (specs, port_pango & ps);
@@ -2718,19 +2724,37 @@ package body Port_Specification.Transform is
          end case;
          --  These components imply glib
          case comp is
-            when introspection | glib | atk | pango | gdkpixbuf | pygobject | pygobj2 | pygtk2 =>
+            when introspection | glib | atk | pango | gdkpixbuf | pygobject | pygobj2 | pygtk2 |
+               libidl | orbit2 | dconf =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, port_gettext);
+            when others => null;
+         end case;
+         --  These components imply orbit2 (which implies libidl)
+         case comp is
+            when orbit2 | gconf =>
+               add_buildrun_depends (specs, port_orbit2 & ss);
+               add_buildrun_depends (specs, port_libidl & ss);
             when others => null;
          end case;
          --  These components imply libglade (which implies libxml2 and gtk2)
          case comp is
             when libglade | pygtk2 =>
                add_buildrun_depends (specs, port_libglade);
-               add_buildrun_depends (specs, port_libxml2 & ss);
+            when others => null;
+         end case;
+         --  These components imply gtk2
+         case comp is
+            when gtk2 | gconf | libglade | pygtk2 =>
                add_buildrun_depends (specs, port_gtk2 & ss);
                add_buildrun_depends (specs, port_atk & ss);
                add_buildrun_depends (specs, port_pango & ps);
+            when others => null;
+         end case;
+         --  These components imply libxml2
+         case comp is
+            when libxml2 | libxslt | libglade | pygtk2 | gconf | gtksourceview3 =>
+               add_buildrun_depends (specs, port_libxml2 & ss);
             when others => null;
          end case;
       end import;

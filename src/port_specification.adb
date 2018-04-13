@@ -3393,6 +3393,8 @@ package body Port_Specification is
          ("INVALID           ", invalid_component),
          ("atk               ", atk),
          ("cairo             ", cairo),
+         ("dconf             ", dconf),
+         ("gconf             ", gconf),
          ("gdkpixbuf         ", gdkpixbuf),
          ("glib              ", glib),
          ("gtk2              ", gtk2),
@@ -3403,22 +3405,23 @@ package body Port_Specification is
          ("libcroco          ", libcroco),
          ("libglade          ", libglade),
          ("libgsf            ", libgsf),
+         ("libidl            ", libidl),
          ("librsvg           ", librsvg),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
+         ("orbit2            ", orbit2),
          ("pango             ", pango),
          ("pygobj2           ", pygobj2),
          ("pygobject         ", pygobject),
-         ("pygtk2            ", pygtk2)
+         ("pygtk2            ", pygtk2),
+         ("vte               ", vte)
         );
 
 --  atkmm
 --  atspi
 --  cairomm
---  dconf
 --  esound
 --  evolutionserver
---  gconf2
 --  gconfmm26
 --  gdkpixbuf2
 --  glibmm
@@ -3455,20 +3458,17 @@ package body Port_Specification is
 --  libgnomeui
 --  libgtkhtml
 --  libgtksourceviewmm
---  libidl
 --  libsigc++12
 --  libsigc++20
 --  libwnck
 --  libxml++26
 --  metacity
 --  nautilus3
---  orbit2
 --  pangomm
 --  pangox-compat
 --  pygnome2
 --  pygtksourceview
 --  referencehack
---  vte
 
       bandolier    : keyword_string := (others => LAT.Space);
       Low          : Natural := all_keywords'First;

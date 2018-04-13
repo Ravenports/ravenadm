@@ -312,6 +312,7 @@ private
    type gnome_type is
      (atk, cairo, glib, gtk2, gtk3, gtksourceview3, gdkpixbuf, intltool, introspection, pango,
       pygobject, pygobj2, libcroco, libglade, libgsf, librsvg, libxml2, libxslt, pygtk2,
+      dconf, gconf, libidl, orbit2, vte,
       invalid_component);
 
    type xorg_type is
