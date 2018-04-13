@@ -2733,7 +2733,7 @@ package body Port_Specification.Transform is
          --  These components imply orbit2 (which implies libidl)
          case comp is
             when orbit2 | gconf =>
-               add_buildrun_depends (specs, port_orbit2 & ss);
+               add_buildrun_depends (specs, port_orbit2 & ps);
                add_buildrun_depends (specs, port_libidl & ss);
             when others => null;
          end case;
