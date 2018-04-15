@@ -122,7 +122,7 @@ package body Parameters is
          end;
          declare
             selected_profile : String := IFM.show_value (master_section, global_01);
-            envprofile       : String := OSL.Getenv ("SYNTHPROFILE").all;
+            envprofile       : String := OSL.Getenv ("RAVENPROFILE").all;
          begin
             if envprofile /= "" and then IFM.section_exists (envprofile) then
                change_active_profile (envprofile);
