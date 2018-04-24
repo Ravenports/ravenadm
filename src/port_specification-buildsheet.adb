@@ -675,9 +675,12 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_TAIL",         specs.extract_tail, 4);
       blank_line;
       send ("LICENSE",              specs.licenses, 2);
+      send ("LICENSE_TERMS",        specs.lic_terms, 1);
       send ("LICENSE_NAME",         specs.lic_names, 1);
-      send ("LICENSE_SCHEME",       specs.lic_scheme);
       send ("LICENSE_FILE",         specs.lic_files, 1);
+      send ("LICENSE_AWK",          specs.lic_awk, 1);
+      send ("LICENSE_SOURCE",       specs.lic_source, 1);
+      send ("LICENSE_SCHEME",       specs.lic_scheme);
       blank_line;
       send ("PREFIX",               specs.prefix);
       send ("INFO",                 specs.info, 1);

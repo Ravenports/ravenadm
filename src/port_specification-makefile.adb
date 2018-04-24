@@ -619,6 +619,8 @@ package body Port_Specification.Makefile is
 
       procedure dump_license is
          procedure dump_lic_file (position : string_crate.Cursor);
+         procedure dump_lic_awk (position : string_crate.Cursor);
+         procedure dump_lic_source (position : string_crate.Cursor);
          procedure dump_spkg_licenses (position : string_crate.Cursor);
 
          procedure dump_lic_file (position : string_crate.Cursor)
@@ -629,6 +631,24 @@ package body Port_Specification.Makefile is
          begin
             send ("LICENSE_FILE_" & lic & " = " & path);
          end dump_lic_file;
+
+         procedure dump_lic_awk (position : string_crate.Cursor)
+         is
+            value : String := HT.USS (string_crate.Element (position));
+            lic   : String := HT.part_1 (value, ":");
+            code  : String := HT.part_2 (value, ":");
+         begin
+            send ("LICENSE_AWK_" & lic & " = " & code);
+         end dump_lic_awk;
+
+         procedure dump_lic_source (position : string_crate.Cursor)
+         is
+            value : String := HT.USS (string_crate.Element (position));
+            lic   : String := HT.part_1 (value, ":");
+            path  : String := HT.part_2 (value, ":");
+         begin
+            send ("LICENSE_SOURCE_" & lic & " = " & path);
+         end dump_lic_source;
 
          procedure dump_spkg_licenses (position : string_crate.Cursor)
          is
@@ -669,6 +689,8 @@ package body Port_Specification.Makefile is
          end if;
          send ("LICENSE_SCHEME=" & HT.USS (specs.lic_scheme));
          specs.lic_files.Iterate (dump_lic_file'Access);
+         specs.lic_awk.Iterate (dump_lic_awk'Access);
+         specs.lic_source.Iterate (dump_lic_source'Access);
          specs.licenses.Iterate (dump_spkg_licenses'Access);
       end dump_license;
 

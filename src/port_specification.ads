@@ -44,7 +44,8 @@ package Port_Specification is
                        sp_gnome, sp_rcscript, sp_ug_pkg, sp_broken_mysql, sp_broken_pgsql,
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
                        sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
-                       sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses);
+                       sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
+                       sp_lic_terms, sp_lic_awk, sp_lic_src);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -540,6 +541,9 @@ private
          licenses       : string_crate.Vector;
          lic_names      : string_crate.Vector;
          lic_files      : string_crate.Vector;
+         lic_terms      : string_crate.Vector;
+         lic_awk        : string_crate.Vector;
+         lic_source     : string_crate.Vector;
          lic_scheme     : HT.Text;
          usergroup_pkg  : HT.Text;
          users          : string_crate.Vector;

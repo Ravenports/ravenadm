@@ -493,6 +493,9 @@ package body Specification_Parser is
                      when groups           => build_list (spec, PSP.sp_groups, line);
                      when lic_file         => build_list (spec, PSP.sp_lic_file, line);
                      when lic_name         => build_list (spec, PSP.sp_lic_name, line);
+                     when lic_terms        => build_list (spec, PSP.sp_lic_terms, line);
+                     when lic_awk          => build_list (spec, PSP.sp_lic_awk, line);
+                     when lic_source       => build_list (spec, PSP.sp_lic_src, line);
                      when mandirs          => build_list (spec, PSP.sp_mandirs, line);
                      when broken_ssl       => build_list (spec, PSP.sp_broken_ssl, line);
                      when broken_mysql     => build_list (spec, PSP.sp_broken_mysql, line);
@@ -1057,7 +1060,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 169;
+      total_singlets : constant Positive := 172;
 
       type singlet_pair is
          record
@@ -1149,9 +1152,12 @@ package body Specification_Parser is
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
          ("LICENSE               ",  7, licenses),
+         ("LICENSE_AWK           ", 11, lic_awk),
          ("LICENSE_FILE          ", 12, lic_file),
          ("LICENSE_NAME          ", 12, lic_name),
          ("LICENSE_SCHEME        ", 14, lic_scheme),
+         ("LICENSE_SOURCE        ", 14, lic_source),
+         ("LICENSE_TERMS         ", 13, lic_terms),
          ("MAKEFILE              ",  8, makefile),
          ("MAKE_ARGS             ",  9, make_args),
          ("MAKE_ENV              ",  8, make_env),

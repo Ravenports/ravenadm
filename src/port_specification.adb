@@ -120,8 +120,14 @@ package body Port_Specification is
       specs.last_catchkey  := HT.blank;
       specs.usergroup_pkg  := HT.blank;
       specs.soversion      := HT.blank;
+      specs.lic_scheme     := HT.blank;
 
       specs.licenses.Clear;
+      specs.lic_names.Clear;
+      specs.lic_files.Clear;
+      specs.lic_terms.Clear;
+      specs.lic_awk.Clear;
+      specs.lic_source.Clear;
       specs.users.Clear;
       specs.groups.Clear;
       specs.catch_all.Clear;
@@ -873,7 +879,7 @@ package body Port_Specification is
                end scan;
             begin
                if lic = INVALID then
-                  raise wrong_value with "LICENSE not recognized: " & testlic;
+                  raise wrong_value with "License not recognized: " & testlic;
                end if;
                if not HT.contains (path, "/") then
                   raise wrong_value with "LICENSE_FILE path component missing directory " &
@@ -881,11 +887,106 @@ package body Port_Specification is
                end if;
                specs.licenses.Iterate (scan'Access);
                if not found then
-                  raise wrong_value with "LICENSE " & testlic & " not previously defined " &
+                  raise wrong_value with "License " & testlic & " not previously defined " &
                     " for " & value;
                end if;
             end;
             specs.lic_files.Append (text_value);
+         when sp_lic_terms =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid LICENSE_TERMS format, must be subpackage:path";
+            end if;
+            declare
+               testpkg  : String := HT.part_1 (value, ":");
+               testpath : String := HT.part_2 (value, ":");
+            begin
+               if not specs.subpackage_exists (testpkg) then
+                  raise wrong_value with "LICENSE_TERMS subpackage unrecognized: " & testpkg;
+               end if;
+               if not HT.contains (testpath, "/") then
+                  raise wrong_value with "LICENSE_TERMS path component missing directory " &
+                    "separator: " & testpath;
+               end if;
+            end;
+            specs.lic_terms.Append (text_value);
+         when sp_lic_src =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid LICENSE_SOURCE format, must be LICENSE:path";
+            end if;
+            declare
+               procedure scan (position : string_crate.Cursor);
+
+               testlic : String := HT.part_1 (value, ":");
+               path    : String := HT.part_2 (value, ":");
+               lic     : license_type := determine_license (testlic);
+               found   : Boolean := False;
+
+               procedure scan (position : string_crate.Cursor)
+               is
+                  license_val : String := HT.USS (string_crate.Element (position));
+                  name_part   : String := HT.part_1 (license_val, ":");
+               begin
+                  if not found then
+                     if testlic = name_part then
+                        found := True;
+                     end if;
+                  end if;
+               end scan;
+            begin
+               if lic = INVALID then
+                  raise wrong_value with "License not recognized: " & testlic;
+               end if;
+               if not HT.contains (path, "/") then
+                  raise wrong_value with "LICENSE_SOURCE path component missing directory " &
+                    "separator: " & path;
+               end if;
+               specs.licenses.Iterate (scan'Access);
+               if not found then
+                  raise wrong_value with "License " & testlic & " not previously defined " &
+                    " for " & value;
+               end if;
+            end;
+            specs.lic_source.Append (text_value);
+         when sp_lic_awk =>
+            verify_entry_is_post_options;
+            if not HT.contains (value, ":") then
+               raise wrong_value with "Invalid LICENSE_AWK format, must be LICENSE:" &
+                 LAT.Quotation & "awk code" & LAT.Quotation;
+            end if;
+            declare
+               procedure scan (position : string_crate.Cursor);
+
+               testlic : String := HT.part_1 (value, ":");
+               name    : String := HT.part_2 (value, ":");
+               lic     : license_type := determine_license (testlic);
+               found   : Boolean := False;
+
+               procedure scan (position : string_crate.Cursor)
+               is
+                  license_val : String := HT.USS (string_crate.Element (position));
+                  name_part   : String := HT.part_1 (license_val, ":");
+               begin
+                  if not found then
+                     if testlic = name_part then
+                        found := True;
+                     end if;
+                  end if;
+               end scan;
+            begin
+               if name (name'First) /= LAT.Quotation or else
+                 name (name'Last) /= LAT.Quotation
+               then
+                  raise wrong_value with "LICENSE_AWK value must be quoted: " & name;
+               end if;
+               specs.licenses.Iterate (scan'Access);
+               if not found then
+                  raise wrong_value with "LICENSE " & testlic & " not previously defined " &
+                    "for " & value;
+               end if;
+            end;
+            specs.lic_awk.Append (text_value);
          when sp_broken_ssl =>
             verify_entry_is_post_options;
             if specs.broken_ssl.Contains (text_value) then
@@ -4203,9 +4304,11 @@ package body Port_Specification is
    is
       procedure dump_name (position : string_crate.Cursor);
       procedure check_for_custom_name (position : string_crate.Cursor);
+      procedure check_source_for_awk (position : string_crate.Cursor);
 
       still_good    : Boolean := True;
       found_custom  : Boolean := False;
+      src_awk_good  : Boolean := True;
       lic_count     : Natural;
       solo_scheme   : constant Boolean :=  HT.equivalent (specs.lic_scheme, "solo");
       tempstorage   : string_crate.Vector;
@@ -4282,13 +4385,40 @@ package body Port_Specification is
             end case;
          end if;
       end check_for_custom_name;
+
+      procedure check_source_for_awk (position : string_crate.Cursor)
+      is
+         procedure check_src (src_pos : string_crate.Cursor);
+         found_src : Boolean := False;
+         lic_part : HT.Text := HT.SUS (HT.part_1 (HT.USS (string_crate.Element (position)), ":"));
+
+         procedure check_src (src_pos : string_crate.Cursor)
+         is
+            lic_src : HT.Text := HT.SUS (HT.part_1 (HT.USS (string_crate.Element (src_pos)), ":"));
+         begin
+            if not found_src then
+               found_src := HT.equivalent (lic_part, lic_src);
+            end if;
+         end check_src;
+      begin
+         if src_awk_good then
+            specs.lic_source.Iterate (check_src'Access);
+            if not found_src then
+               TIO.Put_Line ("No LICENSE_SOURCE entry found for LICENSE_AWK " &
+                               HT.USS (lic_part) & " entry");
+               src_awk_good := False;
+            end if;
+         end if;
+      end check_source_for_awk;
    begin
       if specs.licenses.Is_Empty then
          --  no license case, but make sure everything else is blank too
          if not specs.lic_names.Is_Empty or else
+           not specs.lic_source.Is_Empty or else
+           not specs.lic_awk.Is_Empty or else
            not specs.lic_files.Is_Empty
          then
-            TIO.Put_Line ("LICENSE is empty but LICENSE_NAMES or LICENSE_FILES is not");
+            TIO.Put_Line ("LICENSE is empty but LICENSE_(NAMES,FILES,SOURCE,AWK) is not");
             return False;
          end if;
          if HT.IsBlank (specs.lic_scheme) or else solo_scheme then
@@ -4344,7 +4474,30 @@ package body Port_Specification is
          end if;
       end if;
 
+      --  If AWK is defined, SOURCE must be defined (and vice versa)
+      if specs.lic_awk.Is_Empty and then not specs.lic_source.Is_Empty then
+         TIO.Put_Line ("LICENSE_AWK is defined which requires LICENSE_SOURCE to be defined");
+         return False;
+      end if;
+      if specs.lic_source.Is_Empty and then not specs.lic_awk.Is_Empty then
+         TIO.Put_Line ("LICENSE_SOURCE is defined which requires LICENSE_AWK to be defined");
+         return False;
+      end if;
+
+      --  Verify AWK and SOURCE have same count.
+      if Natural (specs.lic_awk.Length) /= Natural (specs.lic_source.Length) then
+         TIO.Put_Line ("There are not equal definitions LICENSE_AWK and LICENSE_SOURCE");
+         return False;
+      end if;
+
+      --  Check each AWK has a source (error message in loop)
+      specs.lic_awk.Iterate (check_source_for_awk'Access);
+      if not src_awk_good then
+         return False;
+      end if;
+
       return still_good;
+
    end post_parse_license_check_passes;
 
 
@@ -4997,6 +5150,11 @@ package body Port_Specification is
             when sp_extra_patches => specs.extra_patches.Iterate (print_item'Access);
             when sp_plist_sub     => specs.plist_sub.Iterate (print_item'Access);
             when sp_licenses      => specs.licenses.Iterate (print_item'Access);
+            when sp_lic_terms     => specs.lic_terms.Iterate (print_item'Access);
+            when sp_lic_name      => specs.lic_names.Iterate (print_item'Access);
+            when sp_lic_file      => specs.lic_files.Iterate (print_item'Access);
+            when sp_lic_awk       => specs.lic_awk.Iterate (print_item'Access);
+            when sp_lic_src       => specs.lic_source.Iterate (print_item'Access);
             when sp_users         => specs.users.Iterate (print_item'Access);
             when sp_groups        => specs.groups.Iterate (print_item'Access);
             when sp_test_tgt      => specs.test_tgt.Iterate (print_item'Access);
@@ -5081,6 +5239,7 @@ package body Port_Specification is
             when sp_prefix         => TIO.Put_Line (HT.USS (specs.prefix));
             when sp_ug_pkg         => TIO.Put_Line (HT.USS (specs.usergroup_pkg));
             when sp_soversion      => TIO.Put_Line (HT.USS (specs.soversion));
+            when sp_lic_scheme     => TIO.Put_Line (HT.USS (specs.lic_scheme));
             when others => null;
          end case;
       end print_single;
@@ -5221,6 +5380,12 @@ package body Port_Specification is
       print_single      ("INSTALL_WRKSRC", sp_install_wrksrc);
       print_vector_list ("PLIST_SUB", sp_plist_sub);
       print_vector_list ("LICENSES", sp_licenses);
+      print_vector_list ("LICENSE_TERMS", sp_lic_terms);
+      print_vector_list ("LICENSE_NAME", sp_lic_name);
+      print_vector_list ("LICENSE_FILE", sp_lic_file);
+      print_vector_list ("LICENSE_AWK", sp_lic_awk);
+      print_vector_list ("LICENSE_SOURCE", sp_lic_src);
+      print_single      ("LICENSE_SCHEME", sp_lic_scheme);
       print_vector_list ("USERS", sp_users);
       print_vector_list ("GROUPS", sp_groups);
       print_single      ("USERGROUP_SPKG", sp_ug_pkg);
