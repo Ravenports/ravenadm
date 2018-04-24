@@ -881,7 +881,9 @@ package body Port_Specification is
                if lic = INVALID then
                   raise wrong_value with "License not recognized: " & testlic;
                end if;
-               if not HT.contains (path, "/") then
+               if path /= "stock" and then
+                 not HT.contains (path, "/")
+               then
                   raise wrong_value with "LICENSE_FILE path component missing directory " &
                     "separator: " & path;
                end if;
@@ -942,10 +944,12 @@ package body Port_Specification is
                   raise wrong_value with "LICENSE_SOURCE path component missing directory " &
                     "separator: " & path;
                end if;
-               specs.licenses.Iterate (scan'Access);
-               if not found then
-                  raise wrong_value with "License " & testlic & " not previously defined " &
-                    " for " & value;
+               if testlic /= "TERMS" then
+                  specs.licenses.Iterate (scan'Access);
+                  if not found then
+                     raise wrong_value with
+                       "License " & testlic & " not previously defined for " & value;
+                  end if;
                end if;
             end;
             specs.lic_source.Append (text_value);
@@ -980,10 +984,12 @@ package body Port_Specification is
                then
                   raise wrong_value with "LICENSE_AWK value must be quoted: " & name;
                end if;
-               specs.licenses.Iterate (scan'Access);
-               if not found then
-                  raise wrong_value with "LICENSE " & testlic & " not previously defined " &
-                    "for " & value;
+               if testlic /= "TERMS" then
+                  specs.licenses.Iterate (scan'Access);
+                  if not found then
+                     raise wrong_value with
+                       "LICENSE " & testlic & " not previously defined for " & value;
+                  end if;
                end if;
             end;
             specs.lic_awk.Append (text_value);
