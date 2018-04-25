@@ -618,10 +618,20 @@ package body Port_Specification.Makefile is
       end dump_conditional_vars;
 
       procedure dump_license is
-         procedure dump_lic_file (position : string_crate.Cursor);
-         procedure dump_lic_awk (position : string_crate.Cursor);
-         procedure dump_lic_source (position : string_crate.Cursor);
+         procedure dump_lic_terms     (position : string_crate.Cursor);
+         procedure dump_lic_file      (position : string_crate.Cursor);
+         procedure dump_lic_awk       (position : string_crate.Cursor);
+         procedure dump_lic_source    (position : string_crate.Cursor);
          procedure dump_spkg_licenses (position : string_crate.Cursor);
+
+         procedure dump_lic_terms (position : string_crate.Cursor)
+         is
+            value : String := HT.USS (string_crate.Element (position));
+            path  : String := HT.part_1 (value, ":");
+            spkg  : String := HT.part_2 (value, ":");
+         begin
+            send ("LICENSE_TERMS_" & spkg & " = " & path);
+         end dump_lic_terms;
 
          procedure dump_lic_file (position : string_crate.Cursor)
          is
@@ -688,6 +698,7 @@ package body Port_Specification.Makefile is
             send ("LICENSE_SET=yes");
          end if;
          send ("LICENSE_SCHEME=" & HT.USS (specs.lic_scheme));
+         specs.lic_terms.Iterate (dump_lic_terms'Access);
          specs.lic_files.Iterate (dump_lic_file'Access);
          specs.lic_awk.Iterate (dump_lic_awk'Access);
          specs.lic_source.Iterate (dump_lic_source'Access);
