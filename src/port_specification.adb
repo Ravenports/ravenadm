@@ -937,14 +937,14 @@ package body Port_Specification is
                   end if;
                end scan;
             begin
-               if lic = INVALID then
-                  raise wrong_value with "License not recognized: " & testlic;
-               end if;
                if not HT.contains (path, "/") then
                   raise wrong_value with "LICENSE_SOURCE path component missing directory " &
                     "separator: " & path;
                end if;
                if testlic /= "TERMS" then
+                  if lic = INVALID then
+                     raise wrong_value with "License not recognized: " & testlic;
+                  end if;
                   specs.licenses.Iterate (scan'Access);
                   if not found then
                      raise wrong_value with
@@ -985,6 +985,9 @@ package body Port_Specification is
                   raise wrong_value with "LICENSE_AWK value must be quoted: " & name;
                end if;
                if testlic /= "TERMS" then
+                  if lic = INVALID then
+                     raise wrong_value with "License not recognized: " & testlic;
+                  end if;
                   specs.licenses.Iterate (scan'Access);
                   if not found then
                      raise wrong_value with
