@@ -646,7 +646,8 @@ package body Port_Specification.Makefile is
          is
             value : String := HT.USS (string_crate.Element (position));
             lic   : String := HT.part_1 (value, ":");
-            code  : String := HT.specific_field (HT.part_2 (value, ":"), 2, LAT.Quotation);
+            delim : String (1 .. 1) := (others => LAT.Quotation);
+            code  : String := HT.specific_field (HT.part_2 (value, ":"), 2, delim);
          begin
             send ("LICENSE_AWK_" & lic & " = " & code);
          end dump_lic_awk;
