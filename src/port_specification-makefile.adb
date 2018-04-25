@@ -627,8 +627,8 @@ package body Port_Specification.Makefile is
          procedure dump_lic_terms (position : string_crate.Cursor)
          is
             value : String := HT.USS (string_crate.Element (position));
-            path  : String := HT.part_1 (value, ":");
-            spkg  : String := HT.part_2 (value, ":");
+            spkg  : String := HT.part_1 (value, ":");
+            path  : String := HT.part_2 (value, ":");
          begin
             send ("LICENSE_TERMS_" & spkg & " = " & path);
          end dump_lic_terms;
