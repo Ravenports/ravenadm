@@ -693,7 +693,9 @@ package body Port_Specification.Makefile is
             end case;
          end dump_spkg_licenses;
       begin
-         if specs.licenses.Is_Empty then
+         if specs.licenses.Is_Empty and then
+           specs.lic_terms.Is_Empty
+         then
             return;
          else
             send ("LICENSE_SET=yes");
