@@ -987,11 +987,13 @@ package body Port_Specification.Makefile is
       AL    : constant String := "Apache License ";
       ART   : constant String := "Artistic License version ";
       later : constant String := " or later";
+      CCA   : constant String := "Creative Commons Attribution ";
    begin
       case license is
          when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 => return "Don't use for custom licenses";
          when INVALID    => return "error, invalid license";
 
+         when AFL        => return "Academic Free License 3.0";
          when AGPLv3     => return AGPL & "3";
          when AGPLv3x    => return AGPL & "3" & later;
          when APACHE10   => return AL & "1.0";
@@ -1004,6 +1006,21 @@ package body Port_Specification.Makefile is
          when BSD3CLAUSE => return "BSD 3-clause 'New' or 'Revised' License";
          when BSD4CLAUSE => return "BSD 4-clause 'Original' or 'Old' License";
          when BSDGROUP   => return "BSD, check license for number of clauses";
+         when CC0_10     => return "Creative Commons Zero v1.0 Universal";
+         when CC_30      => return CCA & "3.0";
+         when CC_40      => return CCA & "4.0";
+         when CC_NC_30   => return CCA & "Non-Commercial 3.0";
+         when CC_NC_40   => return CCA & "Non-Commercial 4.0";
+         when CC_NCND_30 => return CCA & "Non-Commercial No Derivatives 3.0";
+         when CC_NCND_40 => return CCA & "Non-Commercial No Derivatives 4.0";
+         when CC_NCSA_30 => return CCA & "Non-Commercial Share-Alike 3.0";
+         when CC_NCSA_40 => return CCA & "Non-Commercial Share-Alike 4.0";
+         when CC_ND_30   => return CCA & "No Derivatives 3.0";
+         when CC_ND_40   => return CCA & "No Derivatives 4.0";
+         when CC_SA_30   => return CCA & "Share-Alike 3.0";
+         when CC_SA_40   => return CCA & "Share-Alike 4.0";
+         when CDDL       => return "Common Development and Distribution License 1.0";
+         when GFDL       => return "GNU Free Documentation License";
          when GMGPL      => return "GNAT Modified General Public License (v2)";
          when GMGPL3     => return "GNAT Modified General Public License (v3)";
          when GPLv1      => return GPL & "1";
@@ -1014,6 +1031,7 @@ package body Port_Specification.Makefile is
          when GPLv3x     => return GPL & "3" & later;
          when GPLv3RLE   => return RLE3;
          when GPLv3RLEx  => return RLE3 & later;
+         when HPND       => return "Historical Permission Notice and Disclaimer";
          when LGPL20     => return LGPL & "2.0";
          when LGPL20x    => return LGPL & "2.0" & later;
          when LGPL21     => return LGPL & "2.1";
