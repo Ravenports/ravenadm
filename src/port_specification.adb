@@ -4059,9 +4059,9 @@ package body Port_Specification is
       --  It is critical that this list be alphabetized correctly.
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
+         ("AFL       ", AFL),
          ("AGPLv3    ", AGPLv3),
          ("AGPLv3+   ", AGPLv3x),
-         ("AFL       ", AFL),
          ("APACHE10  ", APACHE10),
          ("APACHE11  ", APACHE11),
          ("APACHE20  ", APACHE20),
