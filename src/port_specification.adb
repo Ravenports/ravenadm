@@ -2141,6 +2141,9 @@ package body Port_Specification is
       if Unix.env_variable_defined ("SKIPCCRUN") then
          specs.fatal_rpath := False;
       end if;
+      if specs.debugging_on then
+         specs.optimizer_lvl := 0;
+      end if;
    end adjust_defaults_port_parse;
 
 
