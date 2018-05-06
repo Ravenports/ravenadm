@@ -101,6 +101,7 @@ package body Port_Specification.Web is
       bing : constant String := LAT.Greater_Than_Sign & LAT.LF;
       content : constant String := "Ravenports individual port description";
       csslink : constant String := "../../../style/ravenports.css";
+      cctrl   : constant String := "public, max-age=21600";  --  valid 6 hours
    begin
       return
         "<!doctype html" & bing &
@@ -109,6 +110,7 @@ package body Port_Specification.Web is
         " <title>" & escape_value (title) & "</title" & bing &
         " <meta" & nvpair ("charset", "utf-8") & bing &
         " <meta" & nvpair ("name", "description") & nvpair ("content", content) & bing &
+        " <meta" & nvpair ("http-equiv", "Cache-Control") & nvpair ("content", cctrl) & bing &
         " <link" & nvpair ("rel", "stylesheet") & nvpair ("href", csslink) & bing &
         "</head" & bing &
         "<body>";

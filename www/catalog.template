@@ -4,6 +4,7 @@
  <title>Ravenports Catalog</title>
  <meta charset="utf-8">
  <meta name="description" content="Searchable index of Ravenports">
+ <meta http-equiv="Cache-Control" content="public, max-age=21600">
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
  <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>
  <link href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
