@@ -3291,7 +3291,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 56;
+      total_modules : constant Positive := 57;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3332,6 +3332,7 @@ package body Port_Specification is
          "makeinfo       ",
          "mesa           ",
          "meson          ",
+         "mime-info      ",
          "mysql          ",
          "ncurses        ",
          "ninja          ",

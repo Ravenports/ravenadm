@@ -266,6 +266,7 @@ package body Port_Specification.Transform is
       apply_gettext_runtime_module (specs);
       apply_gettext_tools_module (specs);
       apply_gnome_icons_module (specs);
+      apply_mime_info_module (specs);
       apply_autoconf_module (specs);
       apply_execinfo_module (specs);
       apply_display_module (specs);
@@ -1403,6 +1404,19 @@ package body Port_Specification.Transform is
          add_run_depends (specs, "gtk-update-icon-cache:single:standard");
       end if;
    end apply_gnome_icons_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_mime_info_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_mime_info_module (specs : in out Portspecs)
+   is
+      module : String := "mime-info";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_run_depends (specs, "shared-mime-info:single:standard");
+      end if;
+   end apply_mime_info_module;
 
 
    --------------------------------------------------------------------------------------------
