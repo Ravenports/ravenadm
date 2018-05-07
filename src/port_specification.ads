@@ -572,6 +572,12 @@ private
          optgroups      : list_crate.Map;
       end record;
 
+   --  Ordinal type representing numbers that have subpackage arguments
+   type smodules is range 1 .. 5;
+
+   --  Returns the name of the module associated with the smodules index
+   function base_module (index : smodules) return String;
+
    --  Compares given keyword against known values
    function keyword_is_valid (keyword : String) return Boolean;
 
@@ -632,8 +638,12 @@ private
    --  Returns true if subpackage exists in any variant.
    function subpackage_exists (specs : Portspecs; subpackage : String) return Boolean;
 
-   --  Returns True if terminfo module exists and it doesn't have a subpackage argument
-   function terminfo_failed (specs : Portspecs; module : String) return Boolean;
+   --  Returns True if given_module matches the base_module exists, but it doesn't have
+   --  an argument or the argument doesn't match a known subpackage.
+   function module_subpackage_failed
+     (specs        : Portspecs;
+      base_module  : String;
+      given_module : String) return Boolean;
 
    --  Checks against known list of gnome components and identifies it
    function determine_gnome_component (component : String) return gnome_type;

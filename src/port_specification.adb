@@ -706,9 +706,14 @@ package body Port_Specification is
             if specs.uses.Contains (text_value) then
                raise dupe_list_value with "Duplicate USES module '" & value & "'";
             end if;
-            if HT.leads (value, "terminfo") and then specs.terminfo_failed (value) then
-               raise wrong_value with "Terminfo USES module doesn't have a subpackage argument";
-            end if;
+            for x in smodules'Range loop
+               if HT.leads (value, base_module (x)) and then
+                 specs.module_subpackage_failed (base_module (x), value)
+               then
+                  raise wrong_value
+                    with base_module (x) & " USES module doesn't have a subpackage argument";
+               end if;
+            end loop;
             declare
                errmsg        : HT.Text;
                text_stripped : HT.Text := HT.SUS (HT.part_1 (value, ":"));
@@ -1462,11 +1467,14 @@ package body Port_Specification is
             then
                raise dupe_list_value with "Duplicate USES module '" & value & "'";
             end if;
-            if HT.leads (value, "terminfo") and then
-              specs.terminfo_failed (value)
-            then
-               raise wrong_value with "Terminfo USES module doesn't have a subpackage argument";
-            end if;
+            for x in smodules'Range loop
+               if HT.leads (value, base_module (x)) and then
+                 specs.module_subpackage_failed (base_module (x), value)
+               then
+                  raise wrong_value
+                    with base_module (x) & " USES module doesn't have a subpackage argument";
+               end if;
+            end loop;
             declare
                errmsg : HT.Text;
             begin
@@ -4705,9 +4713,12 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  terminfo_failed
+   --  module_subpackage_failed
    --------------------------------------------------------------------------------------------
-   function terminfo_failed (specs : Portspecs; module : String) return Boolean
+   function module_subpackage_failed
+     (specs        : Portspecs;
+      base_module  : String;
+      given_module : String) return Boolean
    is
       procedure check_variant    (position : string_crate.Cursor);
       procedure check_subpackage (position : string_crate.Cursor);
@@ -4737,15 +4748,15 @@ package body Port_Specification is
       end check_subpackage;
 
    begin
-      if not HT.leads (module, "terminfo:") then
+      if not HT.leads (given_module, base_module & ":") then
          return True;
       end if;
 
-      candidate := HT.SUS (HT.part_2 (module, ":"));
+      candidate := HT.SUS (HT.part_2 (given_module, ":"));
       specs.variants.Iterate (check_variant'Access);
 
       return not matched;
-   end terminfo_failed;
+   end module_subpackage_failed;
 
 
    --------------------------------------------------------------------------------------------
@@ -4911,6 +4922,21 @@ package body Port_Specification is
       end if;
       return HT.USS (result);
    end equivalent_fpc_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  base_module
+   --------------------------------------------------------------------------------------------
+   function base_module (index : smodules) return String is
+   begin
+      case index is
+         when 1 => return "terminfo";
+         when 2 => return "schemas";
+         when 3 => return "mime-info";
+         when 4 => return "gnome-icons";
+         when 5 => return "desktop-utils";
+      end case;
+   end base_module;
 
 
    --------------------------------------------------------------------------------------------
