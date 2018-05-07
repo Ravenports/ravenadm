@@ -140,6 +140,7 @@ package body PortScan.Tests is
                new_rec   : entry_record := (subpackage, False);
             begin
                if HT.leads (line, "@comment ") or else
+                 HT.leads (line, "@desktop-file-utils") or else
                  HT.leads (line, "@terminfo") or else
                  HT.leads (line, "@fcfontsdir") or else
                  HT.leads (line, "@fontsdir") or else
