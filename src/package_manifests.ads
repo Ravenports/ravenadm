@@ -5,6 +5,7 @@ package Package_Manifests is
 
    compress_issue   : exception;
    decompress_issue : exception;
+   sorting_issue    : exception;
 
    type Filename is new String;
 
@@ -26,8 +27,17 @@ package Package_Manifests is
      (compressed_file : Filename;
       save_to_file    : Filename);
 
+   --  Replace the given manifest with a sorted version
+   procedure sort_manifest (manifest : Filename);
+
 private
 
    file_handling : exception;
+
+   --  Read in a manifest, internally sort it, and save the result as a new file
+   --  Returns True upon success
+   function save_sorted_manifest
+     (old_manifest    : Filename;
+      sorted_manifest : Filename) return Boolean;
 
 end Package_Manifests;
