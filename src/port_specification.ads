@@ -320,12 +320,8 @@ private
       invalid_component);
 
    type xorg_type is
-     (bigreqsproto, compositeproto, damageproto, dmxproto, dri2proto, dri3proto, evieproto,
-      fixesproto, fontcacheproto, fontsproto, glproto, inputproto, kbproto, presentproto,
-      printproto, randrproto, recordproto, renderproto, resourceproto, scrnsaverproto, trapproto,
-      videoproto, xcmiscproto, xextproto, xf86bigfontproto, xf86dgaproto, xf86driproto,
-      xf86miscproto, xf86rushproto, xf86vidmodeproto, xineramaproto, xproto, xproxymngproto,
-      xtransproto, dmx, fontenc, fontutil, ice, pciaccess, pixman, sm, x11, xau, xaw, xcb,
+     (xorgproto, fontcacheproto, printproto, xtransproto,
+      dmx, fontenc, fontutil, ice, pciaccess, pixman, sm, x11, xau, xaw, xcb,
       xcb_util, xcb_util_cursor, xcb_util_image, xcb_util_keysyms, xcb_util_wm, xcb_util_xrm,
       xcb_render_util, xcomposite, xcursor, xdamage, xdmcp, xext, xfixes, xfont, xfont2,
       xfontcache, xft, xi, xinerama, xkbfile, xmu, xp, xpm, xprop, xrandr, xrender, xres,
