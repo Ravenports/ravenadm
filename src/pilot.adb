@@ -1584,7 +1584,7 @@ package body Pilot is
       manifestdir : constant String := portsrc & "/manifests";
    begin
       if not DIR.Exists (manifestdir) then
-         TIO.Put_Line ("Manifest sort failed due to nonexistent directory: " & manifestdir);
+         TIO.Put_Line ("Sort ignored: No manifests directory detected");
          return;
       end if;
       declare
