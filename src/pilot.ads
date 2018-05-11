@@ -24,6 +24,7 @@ package Pilot is
                                   save_command : String);
    procedure regenerate_patches (optional_directory : String;
                                  optional_variant : String);
+   procedure resort_manifests (sourcedir : String);
    procedure generate_website;
 
    --  Return True when TERM is defined in environment (required)

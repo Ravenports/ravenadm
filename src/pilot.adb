@@ -25,6 +25,7 @@ with PortScan.Operations;
 with PortScan.Buildcycle;
 with PortScan.Scan;
 with PortScan.Log;
+with Package_Manifests;
 with Options_Dialog;
 with Ravenports;
 with Repository;
@@ -45,6 +46,7 @@ package body Pilot is
    package CYC renames PortScan.Buildcycle;
    package SCN renames PortScan.Scan;
    package LOG renames PortScan.Log;
+   package MAN renames Package_Manifests;
    package OPT renames Options_Dialog;
    package LAT renames Ada.Characters.Latin_1;
    package CLI renames Ada.Command_Line;
@@ -1562,5 +1564,61 @@ package body Pilot is
          REP.finalize;
       end if;
    end regenerate_patches;
+
+
+   --------------------------------------------------------------------------------------------
+   --  resort_manifests
+      --------------------------------------------------------------------------------------------
+   procedure resort_manifests (sourcedir : String)
+   is
+      function assume_dot (source : String) return String;
+      function assume_dot (source : String) return String is
+      begin
+         if source = "" then
+            return ".";
+         else
+            return source;
+         end if;
+      end assume_dot;
+      portsrc     : constant String := Unix.true_path (assume_dot (sourcedir));
+      manifestdir : constant String := portsrc & "/manifests";
+   begin
+      if not DIR.Exists (manifestdir) then
+         TIO.Put_Line ("Manifest sort failed due to nonexistent directory: " & manifestdir);
+         return;
+      end if;
+      declare
+         use type DIR.File_Kind;
+      begin
+         if not (DIR.Kind (manifestdir) = DIR.Directory) then
+            TIO.Put_Line ("Manifest sort failed because " & manifestdir & " is not a directory");
+            return;
+         end if;
+      end;
+      declare
+         search : DIR.Search_Type;
+         dirent : DIR.Directory_Entry_Type;
+         filter : constant DIR.Filter_Type := (DIR.Ordinary_File => True, others => False);
+      begin
+         DIR.Start_Search (Search    => search,
+                           Directory => manifestdir,
+                           Pattern   => "plist.*",
+                           Filter    => filter);
+         while DIR.More_Entries (search) loop
+            DIR.Get_Next_Entry (search, dirent);
+            declare
+               sname : constant String := DIR.Simple_Name (dirent);
+               plist : constant String := manifestdir & "/" & sname;
+            begin
+               MAN.sort_manifest (MAN.Filename (plist));
+               TIO.Put_Line ("Sort complete: " & sname);
+            exception
+               when others =>
+                  TIO.Put_Line ("Failed to sort " & plist & " manifest");
+            end;
+         end loop;
+         DIR.End_Search (search);
+      end;
+   end resort_manifests;
 
 end Pilot;

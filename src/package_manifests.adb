@@ -10,7 +10,7 @@ with HelperText;
 
 package body Package_Manifests
 is
-   package AD  renames Ada.Directories;
+   package DIR renames Ada.Directories;
    package CON renames Ada.Containers;
    package TIO renames Ada.Text_IO;
    package FOP renames File_Operations;
@@ -309,8 +309,8 @@ is
       if not succeeded then
          raise sorting_issue;
       end if;
-      AD.Delete_File (String (manifest));
-      AD.Rename (String (temp_file), String (manifest));
+      DIR.Delete_File (String (manifest));
+      DIR.Rename (String (temp_file), String (manifest));
    exception
       when others =>
          raise sorting_issue;

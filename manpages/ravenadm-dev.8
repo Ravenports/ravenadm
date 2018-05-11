@@ -1,4 +1,4 @@
-.Dd July 31, 2017
+.Dd May 10, 2018
 .Dt DEV 8
 .Os
 .Sh NAME
@@ -110,6 +110,11 @@ to help design the standard web page format of the port description.  The
 first argument is required; it is the namebase of port.  This requires the
 buildsheet to be generated first.  The second argument is optional and
 represents the variant.  If unspecified, the "standard" variant is assumed.
+.It sort
+The
+.Em sort
+subcommand reads the existing manifest files, sort the data by keyword and
+subdirectory groups, and rewrites the manifests.
 .El
 .Sh SEE ALSO
 .Xr ravenadm 8 ,

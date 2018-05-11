@@ -16,7 +16,7 @@ procedure Ravenadm is
                          status, status_everything, configure, locate, purge, changeopts,
                          checkports, portsnap, repository, list_subpackages, website);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
-                         repatch);
+                         repatch, sort_plist);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -89,6 +89,8 @@ procedure Ravenadm is
          return web;
       elsif second = "repatch" then
          return repatch;
+      elsif second = "sort" then
+         return sort_plist;
       else
          return unset;
       end if;
@@ -326,6 +328,8 @@ begin
                      Pilot.generate_webpage (get_arg (3), get_arg (4));
                   when repatch =>
                      Pilot.regenerate_patches (get_arg (3), get_arg (4));
+                  when sort_plist =>
+                     Pilot.resort_manifests (get_arg (3));
                   when template =>
                      Pilot.print_spec_template (get_arg (3));
                   when genindex =>
