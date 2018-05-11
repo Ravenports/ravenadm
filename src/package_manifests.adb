@@ -587,10 +587,11 @@ is
             procedure write_name (word_position : keyword_crate.Cursor)
             is
                filename : String := HT.USS (keyword_crate.Element (word_position));
+               fullpath : String := HT.USS (folder) & "/" & filename;
                perms    : manifest_file :=
                  store_folders.Element (folder).files.Element (HT.SUS (filename));
             begin
-               TIO.Put_Line (new_manifest, perms_string (perms) & filename);
+               TIO.Put_Line (new_manifest, perms_string (perms) & fullpath);
             end write_name;
          begin
             store_folders.Element (folder).files.Iterate (extract_name'Access);
