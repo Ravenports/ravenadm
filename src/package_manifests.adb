@@ -48,17 +48,6 @@ is
       procedure increment (Key : HT.Text; Element : in out Natural);
       procedure save_line (line : String);
 
-      back_marker   : Natural;
-      back_marker2  : Natural := 0;
-      front_marker  : Natural;
-      front_marker2 : Natural := 0;
-      contents      : String := scan_manifest (manifest);
-      canvas        : String (1 .. contents'Length);
-      dircount      : crate.Map;
-      new_key       : HT.Text;
-      last_key      : HT.Text;
-      spos          : Natural;
-
       function scan_manifest (manifest : Filename) return String
       is
          actual_contents : String := FOP.get_file_contents (String (manifest));
@@ -69,6 +58,17 @@ is
             return actual_contents;
          end if;
       end scan_manifest;
+
+      back_marker   : Natural;
+      back_marker2  : Natural := 0;
+      front_marker  : Natural;
+      front_marker2 : Natural := 0;
+      contents      : String := scan_manifest (manifest);
+      canvas        : String (1 .. contents'Length);
+      dircount      : crate.Map;
+      new_key       : HT.Text;
+      last_key      : HT.Text;
+      spos          : Natural;
 
       function next_line return Boolean is
       begin
