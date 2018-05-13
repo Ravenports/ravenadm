@@ -61,9 +61,18 @@ is
 
       function next_line return Boolean is
       begin
-         if front_marker + 2 > contents'Last then
+         if front_marker > 1 and then
+           front_marker + 2 > contents'Last then
+            --  lines are at least one character long
             return False;
          end if;
+
+         --  Any manifest with 2 consecutive line feeds will break the logic, so just
+         --  truncate immediately if as soon as this is detected
+         if contents (front_marker) = ASCII.LF then
+            return False;
+         end if;
+
          if front_marker > contents'First then
             back_marker  := front_marker + 2;
             front_marker := back_marker;
