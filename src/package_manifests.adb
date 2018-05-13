@@ -64,7 +64,7 @@ is
          actual_contents : String := FOP.get_file_contents (String (manifest));
       begin
          if HT.IsBlank (HT.trim (actual_contents)) then
-            return "@comment manifest is empty, mistake??";
+            return "manifest-is-empty.txt";
          else
             return actual_contents;
          end if;
