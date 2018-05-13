@@ -165,6 +165,22 @@ begin
    case mandate is
       when help | locate | list_subpackages => null;
          low_rights := True;
+      when dev =>
+         declare
+            dev_subcmd : dev_mandate := unset;
+         begin
+            if CLI.Argument_Count > 1 then
+               dev_subcmd := scan_dev_command_word;
+            end if;
+            case dev_subcmd is
+               when template | sort_plist | unset =>
+                  low_rights := True;
+               when dump | makefile | distinfo | buildsheet | genindex | web | repatch =>
+                  if Pilot.insufficient_privileges then
+                     return;
+                  end if;
+            end case;
+         end;
       when others =>
          if Pilot.insufficient_privileges then
             return;
