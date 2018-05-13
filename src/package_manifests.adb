@@ -44,6 +44,7 @@ is
 
       function next_line return Boolean;
       function last_slash return Natural;
+      function scan_manifest (manifest : Filename) return String;
       procedure increment (Key : HT.Text; Element : in out Natural);
       procedure save_line (line : String);
 
@@ -51,12 +52,23 @@ is
       back_marker2  : Natural := 0;
       front_marker  : Natural;
       front_marker2 : Natural := 0;
-      contents      : String := FOP.get_file_contents (String (manifest));
+      contents      : String := scan_manifest (manifest);
       canvas        : String (1 .. contents'Length);
       dircount      : crate.Map;
       new_key       : HT.Text;
       last_key      : HT.Text;
       spos          : Natural;
+
+      function scan_manifest (manifest : Filename) return String
+      is
+         actual_contents : String := FOP.get_file_contents (String (manifest));
+      begin
+         if HT.IsBlank (HT.trim (actual_contents)) then
+            return "@comment manifest is empty, mistake??";
+         else
+            return actual_contents;
+         end if;
+      end scan_manifest;
 
       function next_line return Boolean is
       begin
