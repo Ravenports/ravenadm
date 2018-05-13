@@ -93,8 +93,8 @@ is
             return 0;  --  Unexpected, probably plist error
          end if;
          loop
-            exit when marker < back_marker;
             marker := marker - 1;
+            exit when marker < back_marker;
             if contents (marker) = '/' then
                return marker;
             end if;
