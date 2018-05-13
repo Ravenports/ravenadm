@@ -94,7 +94,8 @@ is
                end if;
             end if;
          end loop;
-         return True;
+         --  Return True as long as least one non-space character is on this line
+         return not checkstart;
       end next_line;
 
       function last_slash return Natural
