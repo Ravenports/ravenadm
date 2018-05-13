@@ -44,31 +44,20 @@ is
 
       function next_line return Boolean;
       function last_slash return Natural;
-      function scan_manifest (manifest : Filename) return String;
       procedure increment (Key : HT.Text; Element : in out Natural);
       procedure save_line (line : String);
-
-      function scan_manifest (manifest : Filename) return String
-      is
-         actual_contents : String := FOP.get_file_contents (String (manifest));
-      begin
-         if HT.IsBlank (HT.trim (actual_contents)) then
-            return "manifest-is-empty.txt";
-         else
-            return actual_contents;
-         end if;
-      end scan_manifest;
 
       back_marker   : Natural;
       back_marker2  : Natural := 0;
       front_marker  : Natural;
       front_marker2 : Natural := 0;
-      contents      : String := scan_manifest (manifest);
+      contents      : String := FOP.get_file_contents (String (manifest));
       canvas        : String (1 .. contents'Length);
       dircount      : crate.Map;
       new_key       : HT.Text;
       last_key      : HT.Text;
       spos          : Natural;
+      empty_plist   : constant String "@comment manifest is empty, mistake??"
 
       function next_line return Boolean is
       begin
@@ -122,7 +111,7 @@ is
 
    begin
       if contents'Length < 2 then
-         return "";
+         return empty_plist;
       end if;
       back_marker  := contents'First;
       front_marker := contents'First;
@@ -176,7 +165,11 @@ is
             end if;
          end if;
       end loop;
-      return canvas (canvas'First .. front_marker2);
+      if front_marker2 = 0 then
+         return empty_plist;
+      else
+         return canvas (canvas'First .. front_marker2);
+      end if;
    exception
       when file_handling => raise compress_issue;
    end compress_manifest;
