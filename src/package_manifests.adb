@@ -59,10 +59,13 @@ is
       spos          : Natural;
       empty_plist   : constant String := "@comment manifest is empty, mistake??";
 
-      function next_line return Boolean is
+      function next_line return Boolean
+      is
+         checkstart : Boolean := True;
       begin
          if front_marker > 1 and then
-           front_marker + 2 > contents'Last then
+           front_marker + 2 > contents'Last
+         then
             --  lines are at least one character long
             return False;
          end if;
@@ -82,6 +85,14 @@ is
             exit when front_marker = contents'Last;
             exit when contents (front_marker + 1) = ASCII.LF;
             front_marker := front_marker + 1;
+            if checkstart then
+               if contents (back_marker) = ' ' then
+                  --  Remove leading spaces
+                  back_marker := back_marker + 1;
+               else
+                  checkstart := False;
+               end if;
+            end if;
          end loop;
          return True;
       end next_line;
