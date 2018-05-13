@@ -57,7 +57,7 @@ is
       new_key       : HT.Text;
       last_key      : HT.Text;
       spos          : Natural;
-      empty_plist   : constant String "@comment manifest is empty, mistake??"
+      empty_plist   : constant String := "@comment manifest is empty, mistake??";
 
       function next_line return Boolean is
       begin
