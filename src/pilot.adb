@@ -106,7 +106,7 @@ package body Pilot is
       function man_command return String is
       begin
          case platform_type is
-            when sunos  => return host_localbase & "/bin/man 8 " & level2;
+            when sunos  => return host_localbase & "/bin/man 8 ravenadm-" & level2;
             when others => return "/usr/bin/man " & man_page;
          end case;
       end man_command;
