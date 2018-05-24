@@ -96,6 +96,15 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    procedure launch_man_page (level2 : String)
    is
+      function man_command return String;
+      function man_command return String is
+      begin
+         case platform_type is
+            when sunos  => return host_localbase & "/bin/man ";
+            when others => return "/usr/bin/man ";
+         end case;
+      end man_command;
+
       result   : Boolean;
       level2ok : Boolean := False;
       man_page : constant String :=
@@ -121,7 +130,7 @@ package body Pilot is
         level2 = "subpackages"
       then
          if DIR.Exists (man_page) then
-            result := Unix.external_command ("/usr/bin/man " & man_page);
+            result := Unix.external_command (man_command & man_page);
          else
             TIO.Put_Line (errprefix & "the " & level2 & " man page is missing");
          end if;
