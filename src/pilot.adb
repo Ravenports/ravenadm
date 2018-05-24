@@ -97,18 +97,20 @@ package body Pilot is
    procedure launch_man_page (level2 : String)
    is
       function man_command return String;
-      function man_command return String is
-      begin
-         case platform_type is
-            when sunos  => return host_localbase & "/bin/man ";
-            when others => return "/usr/bin/man ";
-         end case;
-      end man_command;
 
       result   : Boolean;
       level2ok : Boolean := False;
       man_page : constant String :=
         host_localbase & "/share/man/man8/ravenadm-" & level2 & ".8.gz";
+
+      function man_command return String is
+      begin
+         case platform_type is
+            when sunos  => return host_localbase & "/bin/man 8 " & level2;
+            when others => return "/usr/bin/man " & man_page;
+         end case;
+      end man_command;
+
    begin
       if
         level2 = "dev" or else
@@ -130,7 +132,7 @@ package body Pilot is
         level2 = "subpackages"
       then
          if DIR.Exists (man_page) then
-            result := Unix.external_command (man_command & man_page);
+            result := Unix.external_command (man_command);
          else
             TIO.Put_Line (errprefix & "the " & level2 & " man page is missing");
          end if;
