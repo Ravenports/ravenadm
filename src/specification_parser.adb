@@ -62,6 +62,7 @@ package body Specification_Parser is
    begin
       success := False;
       specification.initialize;
+      spec_definitions.Clear;
       HT.initialize_markers (contents, markers);
       loop
          exit when not HT.next_line_present (contents, markers);

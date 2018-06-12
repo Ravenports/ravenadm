@@ -214,7 +214,7 @@ package body PortScan.Scan is
                                     opsys_focus     => platform_type,
                                     arch_focus      => arch_focus,
                                     success         => successful,
-                                    stop_at_targets => False);
+                                    stop_at_targets => True);
       if not successful then
          raise bsheet_parsing
            with unkindness & specfile & "-> " & PAR.get_parse_error;
@@ -1526,7 +1526,7 @@ package body PortScan.Scan is
 
                   DIR.Start_Search (Search    => Inner_Search,
                                     Directory => bucket_dir,
-                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Filter    => (DIR.Directory => True, others => False),
                                     Pattern   => "*");
 
                   while DIR.More_Entries (Inner_Search) loop
@@ -1536,27 +1536,32 @@ package body PortScan.Scan is
                         successful : Boolean;
                         customspec : PSP.Portspecs;
                         arch_focus : supported_arch := x86_64;  -- unused, pick one
-                        buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
+                        buildsheet : constant String :=
+                          "/bucket_" & bucket & "/" & namebase & "/specification";
                      begin
-                        PAR.parse_specification_file (dossier         => unkindness & buildsheet,
-                                                      specification   => customspec,
-                                                      opsys_focus     => platform_type,
-                                                      arch_focus      => arch_focus,
-                                                      success         => successful,
-                                                      stop_at_targets => True);
-                        if not successful then
-                           raise bsheet_parsing
-                             with unkindness & buildsheet & "-> " & PAR.get_parse_error;
+                        if namebase /= "." and then namebase /= ".." then
+                           PAR.parse_specification_file (dossier       => unkindness & buildsheet,
+                                                         specification => customspec,
+                                                         opsys_focus   => platform_type,
+                                                         arch_focus    => arch_focus,
+                                                         success       => successful,
+                                                         stop_at_targets => True);
+                           if not successful then
+                              raise bsheet_parsing
+                                with unkindness & buildsheet & "-> " & PAR.get_parse_error;
+                           end if;
+                           declare
+                              num_dfiles  : Natural;
+                              dist_subdir : String :=
+                                customspec.get_field_value (PSP.sp_distsubdir);
+                           begin
+                              num_dfiles := customspec.get_list_length (PSP.sp_distfiles);
+                              for df in 1 .. num_dfiles loop
+                                 insert_distfile
+                                   (dist_subdir, customspec.get_list_item (PSP.sp_distfiles, df));
+                              end loop;
+                           end;
                         end if;
-                        declare
-                           dist_subdir : String := customspec.get_field_value (PSP.sp_distsubdir);
-                           num_dfiles  : Natural := customspec.get_list_length (PSP.sp_distfiles);
-                        begin
-                           for df in 1 .. num_dfiles loop
-                              insert_distfile (dist_subdir,
-                                               customspec.get_list_item (PSP.sp_distfiles, df));
-                           end loop;
-                        end;
                      end;
                   end loop;
                   DIR.End_Search (Inner_Search);
