@@ -337,6 +337,16 @@ package body Pilot is
       specification : Port_Specification.Portspecs;
    begin
       if save_command = "save" then
+         --  We don't want custom ports to be saved into the conspiracy directory.
+         --  These source ports are parsed every time (not through a build sheet).
+         --  However, we want to preserve the ability to construct and display a build sheet,
+         --  but just not save it.  If it's a custom port, tell user that saving is a no-no
+         if not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) then
+            if HT.leads (PM.configuration.dir_conspiracy, ravensrcdir) then
+               TIO.Put_Line (errprefix & "custom port buildsheets must not be saved");
+               return;
+            end if;
+         end if;
          save_it := True;
       elsif save_command /= "" then
          TIO.Put_Line (errprefix & "fourth argument can only be 'save'");
