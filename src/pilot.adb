@@ -645,8 +645,9 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    procedure locate (candidate : String)
    is
-      should_be : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
-        UTL.bucket (candidate) & LAT.Solidus & candidate;
+      suffix    : String := "/bucket_" & UTL.bucket (candidate) & LAT.Solidus & candidate;
+      should_be : String := HT.USS (PM.configuration.dir_conspiracy) & suffix;
+      customloc : String := HT.USS (PM.configuration.dir_unkindness) & suffix;
    begin
       if candidate = "" then
          TIO.Put_Line ("The locate command requires the port's name base as an argument");
@@ -654,6 +655,10 @@ package body Pilot is
       end if;
       if DIR.Exists (should_be) then
          TIO.Put_Line ("Found at " & should_be);
+      elsif not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) and then
+        DIR.Exists (customloc)
+      then
+         TIO.Put_Line ("Custom port found at " & customloc);
       else
          TIO.Put_Line ("Does not exist at " & should_be);
       end if;
