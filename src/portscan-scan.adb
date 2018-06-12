@@ -1394,6 +1394,9 @@ package body PortScan.Scan is
                               sysrootver    => sysrootver,
                               success       => good_scan,
                               show_progress => using_screen);
+      if unkindness /= PM.no_unkindness then
+         linear_scan_unkindness_for_distfiles (unkindness);
+      end if;
       LOG.set_scan_complete (CAL.Clock);
       return good_scan;
    end gather_distfile_set;
