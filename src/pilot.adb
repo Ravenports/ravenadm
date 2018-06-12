@@ -342,7 +342,7 @@ package body Pilot is
          --  However, we want to preserve the ability to construct and display a build sheet,
          --  but just not save it.  If it's a custom port, tell user that saving is a no-no
          if not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) then
-            if HT.leads (PM.configuration.dir_conspiracy, ravensrcdir) then
+            if HT.leads (PM.configuration.dir_unkindness, ravensrcdir) then
                TIO.Put_Line (errprefix & "custom port buildsheets must not be saved");
                return;
             end if;
