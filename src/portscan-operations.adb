@@ -2870,7 +2870,8 @@ package body PortScan.Operations is
       function get_buildsheet return String is
       begin
          if all_ports (sequence_id).unkind_custom then
-            return HT.USS (PM.configuration.dir_unkindness) & "/bucket_" & bucket & "/" & namebase;
+            return HT.USS (PM.configuration.dir_unkindness) &
+              "/bucket_" & bucket & "/" & namebase & "/specification";
          else
             return HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" & bucket & "/" & namebase;
          end if;

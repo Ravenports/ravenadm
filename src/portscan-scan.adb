@@ -472,7 +472,7 @@ package body PortScan.Scan is
          buildsheet : String := "/bucket_" & rec.bucket & "/" & HT.USS (rec.port_namebase);
       begin
          if rec.unkind_custom then
-            return unkindness & buildsheet;
+            return unkindness & buildsheet & "/specification";
          else
             return conspiracy & buildsheet;
          end if;
