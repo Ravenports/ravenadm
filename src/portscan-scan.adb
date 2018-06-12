@@ -214,7 +214,7 @@ package body PortScan.Scan is
                                     opsys_focus     => platform_type,
                                     arch_focus      => arch_focus,
                                     success         => successful,
-                                    stop_at_targets => True);
+                                    stop_at_targets => False);
       if not successful then
          raise bsheet_parsing
            with unkindness & specfile & "-> " & PAR.get_parse_error;
