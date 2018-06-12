@@ -833,6 +833,7 @@ package body PortScan.Scan is
       fatal := False;
       if not prescanned then
          prescan_ports_tree (conspiracy, unkindness, sysrootver);
+         prescan_unkindness (unkindness);
       end if;
       if ports_keys.Contains (portkey) then
          target := ports_keys.Element (portkey);
