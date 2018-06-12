@@ -1038,7 +1038,9 @@ package body Pilot is
             known_std  := True;
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
-               return variant_valid (bsheetu, variant_standard);
+               --  unkindness ports have no compiled buildsheets.  They have to be
+               --  constructed in real time.
+               return valid_variant_after_compilation (bsheetu, variant_standard);
             elsif  DIR.Exists (bsheetc) then
                bad_namebase := False;
                return variant_valid (bsheetc, variant_standard);
