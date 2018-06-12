@@ -305,10 +305,12 @@ package body PortScan.Scan is
                      declare
                         namebase : String := DIR.Simple_Name (Inner_Dirent);
                      begin
-                        prescan_custom (unkindness => unkindness,
-                                        bucket     => bucket,
-                                        namebase   => namebase,
-                                        max_lots   => max_lots);
+                        if namebase /= "." and then namebase /= ".." then
+                           prescan_custom (unkindness => unkindness,
+                                           bucket     => bucket,
+                                           namebase   => namebase,
+                                           max_lots   => max_lots);
+                        end if;
                      end;
                   end loop;
                   DIR.End_Search (Inner_Search);
