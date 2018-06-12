@@ -207,9 +207,9 @@ package body PortScan.Scan is
       successful : Boolean;
       customspec : PSP.Portspecs;
       arch_focus : supported_arch := x86_64;  -- unused, pick one
-      buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
+      specfile   : constant String := "/bucket_" & bucket & "/" & namebase & "/specification";
    begin
-      PAR.parse_specification_file (dossier         => unkindness & buildsheet,
+      PAR.parse_specification_file (dossier         => unkindness & specfile,
                                     specification   => customspec,
                                     opsys_focus     => platform_type,
                                     arch_focus      => arch_focus,
@@ -217,7 +217,7 @@ package body PortScan.Scan is
                                     stop_at_targets => True);
       if not successful then
          raise bsheet_parsing
-           with unkindness & buildsheet & "-> " & PAR.get_parse_error;
+           with unkindness & specfile & "-> " & PAR.get_parse_error;
       end if;
       declare
          varcount : Natural := customspec.get_number_of_variants;
@@ -297,7 +297,7 @@ package body PortScan.Scan is
 
                   DIR.Start_Search (Search    => Inner_Search,
                                     Directory => bucket_dir,
-                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Filter    => (DIR.Directory => True, others => False),
                                     Pattern   => "*");
 
                   while DIR.More_Entries (Inner_Search) loop
