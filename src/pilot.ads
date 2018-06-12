@@ -194,4 +194,7 @@ private
    --  Internally, the ports are stacked.
    function valid_origin_file (regular_file : String) return Boolean;
 
+   --  Compiles ravenport at sourcedir, then returns true if given variant is valid
+   function valid_variant_after_compilation (ravensrcdir, variant : String) return Boolean;
+
 end Pilot;

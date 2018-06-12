@@ -1018,7 +1018,9 @@ package body Pilot is
             known_std := (variant = variant_standard);
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
-               return variant_valid (bsheetu, variant);
+               --  unkindness ports have no compiled buildsheets.  They have to be
+               --  constructed in real time.
+               return valid_variant_after_compilation (bsheetu, variant);
             elsif  DIR.Exists (bsheetc) then
                bad_namebase := False;
                return variant_valid (bsheetc, variant);
@@ -1589,7 +1591,7 @@ package body Pilot is
 
    --------------------------------------------------------------------------------------------
    --  resort_manifests
-      --------------------------------------------------------------------------------------------
+   --------------------------------------------------------------------------------------------
    procedure resort_manifests (sourcedir : String)
    is
       function assume_dot (source : String) return String;
@@ -1641,5 +1643,32 @@ package body Pilot is
          DIR.End_Search (search);
       end;
    end resort_manifests;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_variant_after_compilation
+   --------------------------------------------------------------------------------------------
+   function valid_variant_after_compilation (ravensrcdir, variant : String) return Boolean
+   is
+      specification : Port_Specification.Portspecs;
+      filename      : constant String := ravensrcdir & "/" & specfile;
+      successful    : Boolean;
+   begin
+      PAR.parse_specification_file (dossier         => filename,
+                                    specification   => specification,
+                                    opsys_focus     => platform_type,  --  unused
+                                    arch_focus      => sysrootver.arch,
+                                    success         => successful,
+                                    stop_at_targets => True);
+
+      if not successful then
+         TIO.Put_Line ("Failed to parse " & filename);
+         TIO.Put_Line (PAR.get_parse_error);
+         return False;
+      end if;
+
+      return specification.variant_exists (variant);
+
+   end valid_variant_after_compilation;
 
 end Pilot;
