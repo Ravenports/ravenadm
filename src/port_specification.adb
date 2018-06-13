@@ -3133,6 +3133,10 @@ package body Port_Specification is
             when others => return True;
          end case;
       end loop;
+      --  namebases can contain dots, but not as first character
+      if value (value'First) = '.' then
+         return True;
+      end if;
       return False;
    end invalid_namebase;
 
