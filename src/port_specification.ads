@@ -282,6 +282,9 @@ package Port_Specification is
    --  Ensure opsys dependencies are not applied (only for web page generation)
    procedure do_not_apply_opsys_dependencies (specs : in out Portspecs);
 
+   --  Return true if broken_all key present in the broken array
+   function broken_all_set (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;

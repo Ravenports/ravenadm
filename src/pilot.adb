@@ -706,8 +706,12 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function fully_scan_ports_tree return Boolean
    is
-      successful : Boolean := SCN.scan_entire_ports_tree (sysrootver);
+      successful : Boolean;
    begin
+      if not unkindness_index_current then
+         return False;
+      end if;
+      successful := SCN.scan_entire_ports_tree (sysrootver);
       if successful then
          SCN.set_build_priority;
          if PortScan.queue_is_empty then
@@ -730,8 +734,12 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function scan_stack_of_single_ports (always_build : Boolean) return Boolean
    is
-      successful : Boolean := SCN.scan_provided_list_of_ports (always_build, sysrootver);
+      successful : Boolean;
    begin
+      if not unkindness_index_current then
+         return False;
+      end if;
+      successful := SCN.scan_provided_list_of_ports (always_build, sysrootver);
       if successful then
          SCN.set_build_priority;
          if PortScan.queue_is_empty then
@@ -1677,5 +1685,21 @@ package body Pilot is
       return specification.variant_exists (variant);
 
    end valid_variant_after_compilation;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unkindness_index_current
+   --------------------------------------------------------------------------------------------
+   function unkindness_index_current return Boolean
+   is
+      require_new_index : Boolean;
+   begin
+      require_new_index := SCN.unkindness_index_required;
+      if require_new_index then
+         return SCN.generate_unkindness_index (sysrootver);
+      else
+         return True;
+      end if;
+   end unkindness_index_current;
 
 end Pilot;

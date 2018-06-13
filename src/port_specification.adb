@@ -3116,6 +3116,36 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  broken_all_set
+   --------------------------------------------------------------------------------------------
+   function broken_all_set (specs : Portspecs) return Boolean
+   is
+      procedure precheck (position : list_crate.Cursor);
+
+      result : Boolean := False;
+
+      procedure precheck (position : list_crate.Cursor)
+      is
+         procedure precheck_list (position : string_crate.Cursor);
+
+         broken_Key : String := HT.USS (list_crate.Element (position).group);
+
+         procedure precheck_list (position : string_crate.Cursor) is
+         begin
+            if broken_Key = broken_all then
+               result := True;
+            end if;
+         end precheck_list;
+      begin
+         list_crate.Element (position).list.Iterate (Process => precheck_list'Access);
+      end precheck;
+   begin
+      specs.broken.Iterate (Process => precheck'Access);
+      return result;
+   end broken_all_set;
+
+
+   --------------------------------------------------------------------------------------------
    --  keyword_is_valid
    --------------------------------------------------------------------------------------------
    function invalid_namebase (value : String; allow_comma : Boolean) return Boolean is

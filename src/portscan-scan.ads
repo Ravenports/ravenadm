@@ -62,6 +62,14 @@ package PortScan.Scan is
      (www_site   : String;
       sysrootver : sysroot_characteristics) return Boolean;
 
+   --  Regenerate buildsheets for unkindness as necessary, and return True if index needs
+   --  to be regenerated
+   function unkindness_index_required return Boolean;
+
+   --  Linearly scan through generated unkindness directory and generate a new index
+   --  Returns false if exception hit
+   function generate_unkindness_index (sysrootver : sysroot_characteristics) return Boolean;
+
 private
 
    package CAL renames Ada.Calendar;
@@ -228,5 +236,27 @@ private
      (conspiracy : String;
       crate      : in out dates_crate.Map;
       catcrate   : in out catalog_crate.Set);
+
+   --  Slurp last-modification timestamps of each buildsheet in unkindness
+   procedure scan_unkindness_buildsheets
+     (comp_unkind : String;
+      crate       : in out dates_crate.Map);
+
+   --  Generate missing or obsolete buildsheets and remove from crate's checklist crate
+   --  Returns true if index needs to be regenerated
+   function generate_buildsheets
+     (comp_unkind : String;
+      crate       : in out dates_crate.Map) return Boolean;
+
+   --  Returns true if unkindness source files are newer than existing buildsheet
+   function unkindness_source_newer
+     (BS_modtime  : Ada.Calendar.Time;
+      bucket_name : String) return Boolean;
+
+   --  Given the directory of the unkindness port files, generate a buildsheet at the
+   --  given filename.  However, if BROKEN[ALL] is set, don't generate and return True;
+   function generate_unkindness_buildsheet
+     (unkindness_srcdir : String;
+      new_buildsheet    : String) return Boolean;
 
 end PortScan.Scan;

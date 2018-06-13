@@ -6,6 +6,7 @@ with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Calendar;
 with File_Operations;
+with Port_Specification.Buildsheet;
 with Port_Specification.Transform;
 with Port_Specification.Json;
 with Port_Specification.Web;
@@ -27,6 +28,7 @@ package body PortScan.Scan is
    package OPS renames PortScan.Operations;
    package FOP renames File_Operations;
    package PAR renames Specification_Parser;
+   package PSB renames Port_Specification.Buildsheet;
    package PST renames Port_Specification.Transform;
    package WEB renames Port_Specification.Web;
    package PSP renames Port_Specification;
@@ -2296,5 +2298,378 @@ package body PortScan.Scan is
          TIO.Put_Line ("catalog_row_block: " & Ada.Exceptions.Exception_Message (issue));
          return (HT.USS (result));
    end catalog_row_block;
+
+
+   --------------------------------------------------------------------------------------------
+   --  scan_unkindness_buildsheets
+   --------------------------------------------------------------------------------------------
+   procedure scan_unkindness_buildsheets
+     (comp_unkind : String;
+      crate       : in out dates_crate.Map)
+   is
+      bucket : bucket_code;
+   begin
+      --  caller must ensure comp_unkind exists and is a directory
+      crate.Clear;
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            bucket := tohex (highdigit) & tohex (lowdigit);
+            declare
+               bucket_dir   : constant String := comp_unkind & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               use type DIR.File_Kind;
+            begin
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
+
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Pattern   => "*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Inner_Search, Inner_Dirent);
+                     declare
+                        newrec   : port_dates_record;
+                        namebase : HT.Text := HT.SUS (DIR.Simple_Name (Inner_Dirent));
+                     begin
+                        newrec.lastmod := DIR.Modification_Time (Inner_Dirent);
+                        crate.Insert (namebase, newrec);
+                     end;
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+               end if;
+            end;
+         end loop;
+      end loop;
+   end scan_unkindness_buildsheets;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unkindness_index_required
+   --------------------------------------------------------------------------------------------
+   function unkindness_index_required return Boolean
+   is
+      procedure delete_BS (position : dates_crate.Cursor);
+      use type DIR.File_Kind;
+
+      compiled_BS_directory : String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
+      generation_required   : Boolean := False;
+      current_buildsheets   : dates_crate.Map;
+
+      procedure delete_BS (position : dates_crate.Cursor)
+      is
+         name_key : HT.Text renames dates_crate.Key (position);
+         namebase : String := HT.USS (name_key);
+         bucket   : bucket_code := UTL.bucket (namebase);
+         BS_file  : String := compiled_BS_directory & "/bucket_" & bucket & "/" & namebase;
+      begin
+         DIR.Delete_File (BS_file);
+         generation_required := True;
+      exception
+         when others =>
+            TIO.Put_Line ("Failed to remove obsolete custom buildsheet: " & BS_file);
+      end delete_BS;
+   begin
+      if HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) then
+         if DIR.Exists (compiled_BS_directory) then
+            begin
+               if DIR.Kind (compiled_BS_directory) = DIR.Directory then
+                  DIR.Delete_Tree (compiled_BS_directory);
+               elsif DIR.Kind (compiled_BS_directory) = DIR.Ordinary_File or else
+                 DIR.Kind (compiled_BS_directory) = DIR.Special_File
+               then
+                  DIR.Delete_File (compiled_BS_directory);
+               end if;
+            exception
+               when issue : others =>
+                  TIO.Put_Line ("Encountered issue removing obsolete custom directory: " &
+                                  compiled_BS_directory);
+                  TIO.Put_Line (EX.Exception_Information (issue));
+            end;
+         end if;
+         return False;
+      else
+         if not DIR.Exists (compiled_BS_directory) then
+            DIR.Create_Path (compiled_BS_directory);
+         elsif DIR.Kind (compiled_BS_directory) /= DIR.Directory then
+            TIO.Put_Line ("Notice: ustom buildsheet location not a directory: "
+                          & compiled_BS_directory);
+            TIO.Put_Line ("Customization disabled.");
+            return False;
+         end if;
+         scan_unkindness_buildsheets (compiled_BS_directory, current_buildsheets);
+         generation_required := generate_buildsheets (compiled_BS_directory, current_buildsheets);
+      end if;
+      current_buildsheets.Iterate (delete_BS'Access);
+      return generation_required;
+   end unkindness_index_required;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_buildsheets
+   --------------------------------------------------------------------------------------------
+   function generate_buildsheets
+     (comp_unkind : String;
+      crate       : in out dates_crate.Map) return Boolean
+   is
+      bucket         : bucket_code;
+      must_gen_index : Boolean := False;
+      unkindness     : constant String := HT.USS (PM.configuration.dir_unkindness);
+   begin
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            bucket := tohex (highdigit) & tohex (lowdigit);
+            declare
+               bucket_dir   : constant String := unkindness & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               use type DIR.File_Kind;
+            begin
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
+
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Directory => True, others => False),
+                                    Pattern   => "^[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Inner_Search, Inner_Dirent);
+                     declare
+                        namebase : String  := DIR.Simple_Name (Inner_Dirent);
+                        name_key : HT.Text := HT.SUS (namebase);
+                        buckname : String  := bucket_dir & "/" & namebase;
+                        compname : String  := comp_unkind & "/bucket_" & bucket & "/" & namebase;
+                        must_gen : Boolean := False;
+                        broken   : Boolean;
+                     begin
+                        if crate.Contains (name_key) then
+                           if unkindness_source_newer
+                             (BS_modtime  => crate.Element (name_key).lastmod,
+                              bucket_name => buckname)
+                           then
+                              must_gen := True;
+                           else
+                              crate.Delete (name_key);
+                           end if;
+                        else
+                           must_gen := True;
+                        end if;
+
+                        if must_gen then
+                           must_gen_index := True;
+                           broken := generate_unkindness_buildsheet (buckname, compname);
+                           if not broken then
+                              crate.Delete (name_key);
+                           end if;
+                        end if;
+                     end;
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+               end if;
+            end;
+         end loop;
+      end loop;
+      return must_gen_index;
+   end generate_buildsheets;
+
+
+   --------------------------------------------------------------------------------------------
+   --  unkindness_source_newer
+   --------------------------------------------------------------------------------------------
+   function unkindness_source_newer
+     (BS_modtime  : Ada.Calendar.Time;
+      bucket_name : String) return Boolean
+   is
+      use type CAL.Time;
+
+      inner_search  : DIR.Search_Type;
+      inner_dirent  : DIR.Directory_Entry_Type;
+      already_newer : Boolean := False;
+   begin
+      DIR.Start_Search (Search    => inner_search,
+                        Directory => bucket_name,
+                        Filter    => (others => True),
+                        Pattern   => "");
+      while not already_newer and then DIR.More_Entries (inner_search)
+      loop
+         DIR.Get_Next_Entry (inner_search, inner_dirent);
+
+         --  We're going to get "." and "..".  It's faster to check them (always older)
+         --  than convert to simple name and exclude them.
+         if BS_modtime < DIR.Modification_Time (inner_dirent) then
+            already_newer := True;
+         end if;
+      end loop;
+      DIR.End_Search (inner_search);
+      return not already_newer;
+   end unkindness_source_newer;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_unkindness_buildsheet
+   --------------------------------------------------------------------------------------------
+   function generate_unkindness_buildsheet
+     (unkindness_srcdir : String;
+      new_buildsheet    : String) return Boolean
+   is
+      filename      : constant String := unkindness_srcdir & "/specification";
+      specification : Port_Specification.Portspecs;
+      successful    : Boolean;
+   begin
+
+      PAR.parse_specification_file (dossier         => filename,
+                                    specification   => specification,
+                                    opsys_focus     => platform_type,  --  unused
+                                    arch_focus      => x86_64,         --  irrelevant
+                                    success         => successful,
+                                    stop_at_targets => False);
+
+      if not successful then
+         TIO.Put_Line ("Custom: Failed to parse " & filename);
+         TIO.Put_Line (PAR.get_parse_error);
+         return True;
+      end if;
+
+      if specification.broken_all_set then
+         return True;
+      end if;
+
+      --  This check here only verifies option transformation works.
+      PST.set_option_defaults
+        (specs         => specification,
+         variant       => specification.get_list_item (Port_Specification.sp_variants, 1),
+         opsys         => platform_type,
+         arch_standard => x86_64,
+         osrelease     => "1");
+
+      if not specification.post_transform_option_group_defaults_passes then
+         successful := False;
+         return True;
+      end if;
+
+      declare
+         namebase    : String := specification.get_namebase;
+      begin
+         FOP.mkdirp_from_filename (new_buildsheet);
+         PSB.generator (specs       => specification,
+                        ravensrcdir => unkindness_srcdir,
+                        output_file => new_buildsheet);
+         TIO.Put_Line ("custom buildsheet regenerated: " & namebase);
+      end;
+      return False;  --  specification file is not broken (normal state)
+   end generate_unkindness_buildsheet;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_unkindness_index
+   --------------------------------------------------------------------------------------------
+   function generate_unkindness_index (sysrootver : sysroot_characteristics) return Boolean
+   is
+      procedure scan_port (position : string_crate.Cursor);
+
+      compiled_BS : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
+      finalcvar   : constant String := compiled_BS & "/kindness_variants";
+      indexfile   : TIO.File_Type;
+      bucket      : bucket_code;
+      total_ports    : Natural := 0;
+      total_variants : Natural := 0;
+      total_subpkgs  : Natural := 0;
+
+      procedure scan_port (position : string_crate.Cursor)
+      is
+         namebase   : String := HT.USS (string_crate.Element (position));
+         successful : Boolean;
+         customspec : PSP.Portspecs;
+         arch_focus : supported_arch := x86_64;  -- unused, pick one
+         dossier    : constant String := compiled_BS & "/bucket_" & bucket & "/" & namebase;
+      begin
+         PAR.parse_specification_file (dossier         => dossier,
+                                       specification   => customspec,
+                                       opsys_focus     => platform_type,
+                                       arch_focus      => arch_focus,
+                                       success         => successful,
+                                       stop_at_targets => True);
+         if not successful then
+            raise bsheet_parsing with dossier & "-> " & PAR.get_parse_error;
+         end if;
+
+         declare
+            varcnt  : Natural := customspec.get_number_of_variants;
+            varlist : String  := customspec.get_field_value (PSP.sp_variants);
+         begin
+            total_ports := total_ports + 1;
+            total_variants := total_variants + varcnt;
+            TIO.Put (indexfile, bucket & " " & namebase & " " & HT.int2str (varcnt));
+            for varx in Integer range 1 .. varcnt loop
+               declare
+                  variant : String  := HT.specific_field (varlist, varx, ", ");
+                  spkgcnt : Natural := customspec.get_subpackage_length (variant);
+               begin
+                  total_subpkgs := total_subpkgs  + spkgcnt;
+                  TIO.Put (indexfile, " " & variant);
+               end;
+            end loop;
+            TIO.Put_Line (indexfile, "");
+         end;
+      end scan_port;
+   begin
+
+      TIO.Create (File => indexfile,
+                  Mode => TIO.Out_File,
+                  Name => finalcvar);
+
+
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            bucket := tohex (highdigit) & tohex (lowdigit);
+            declare
+               bucket_dir   : constant String := compiled_BS & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               tempstore    : string_crate.Vector;
+               use type DIR.File_Kind;
+            begin
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
+
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Ordinary_File => True, others => False),
+                                    Pattern   => "*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Search => Inner_Search, Directory_Entry => Inner_Dirent);
+                     tempstore.Append (HT.SUS (DIR.Simple_Name (Inner_Dirent)));
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+                  sorter.Sort (tempstore);
+                  tempstore.Iterate (scan_port'Access);
+               end if;
+            end;
+         end loop;
+      end loop;
+
+      TIO.Close (indexfile);
+
+      TIO.Put_Line ("Custom index successfully generated.");
+      TIO.Put_Line ("       Total custom ports : " & HT.int2str (total_ports));
+      TIO.Put_Line ("    Total custom variants : " & HT.int2str (total_variants));
+      TIO.Put_Line ("    Total custom packages : " & HT.int2str (total_subpkgs));
+
+      return True;
+   exception
+      when issue : others =>
+         if TIO.Is_Open (indexfile) then
+            TIO.Close (indexfile);
+         end if;
+         TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
+         return False;
+   end generate_unkindness_index;
 
 end PortScan.Scan;

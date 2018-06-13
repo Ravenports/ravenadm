@@ -150,7 +150,6 @@ package Pilot is
 private
 
    package HT renames HelperText;
-   package CON renames Ada.Containers;
 
    subtype logname_field is String (1 .. 19);
    type dim_logname  is array (count_type) of logname_field;
@@ -196,5 +195,9 @@ private
 
    --  Compiles ravenport at sourcedir, then returns true if given variant is valid
    function valid_variant_after_compilation (ravensrcdir, variant : String) return Boolean;
+
+   --  Generates unkindness buildsheets and index if obsolete or missing
+   --  Returns true on success
+   function unkindness_index_current return Boolean;
 
 end Pilot;
