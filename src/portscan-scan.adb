@@ -2434,7 +2434,8 @@ package body PortScan.Scan is
                         if must_gen then
                            must_gen_index := True;
                            broken := generate_unkindness_buildsheet (buckname, compname);
-                           if not broken then
+                           if not broken and then crate.Contains (name_key)
+                           then
                               crate.Delete (name_key);
                            end if;
                         end if;
