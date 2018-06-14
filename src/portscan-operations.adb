@@ -2867,13 +2867,14 @@ package body PortScan.Operations is
       portloc  : String := HT.USS (PM.configuration.dir_buildbase) &
                            "/" & REP.slave_name (builder) & "/port";
 
-      function get_buildsheet return String is
+      function get_buildsheet return String
+      is
+         buckname : constant String := "/bucket_" & bucket & "/" & namebase;
       begin
          if all_ports (sequence_id).unkind_custom then
-            return HT.USS (PM.configuration.dir_unkindness) &
-              "/bucket_" & bucket & "/" & namebase & "/specification";
+            return HT.USS (PM.configuration.dir_profile) & "/unkindness" & buckname;
          else
-            return HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" & bucket & "/" & namebase;
+            return HT.USS (PM.configuration.dir_conspiracy) & buckname;
          end if;
       end get_buildsheet;
 
