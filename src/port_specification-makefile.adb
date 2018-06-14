@@ -29,27 +29,27 @@ package body Port_Specification.Makefile is
       procedure send (varname : String; crate : list_crate.Map; flavor : Positive);
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send (varname : String; value, default : Integer);
-      procedure print_item (position : string_crate.Cursor);
-      procedure print_module (position : string_crate.Cursor);
-      procedure print_verbation (position : string_crate.Cursor);
-      procedure print_if_defined (varname, value : String);
-      procedure dump_list (position : list_crate.Cursor);
-      procedure dump_variant_index (position : list_crate.Cursor);
-      procedure dump_distfiles (position : string_crate.Cursor);
-      procedure dump_makesum   (position : string_crate.Cursor);
-      procedure dump_ext_zip   (position : string_crate.Cursor);
-      procedure dump_ext_7z    (position : string_crate.Cursor);
-      procedure dump_ext_lha   (position : string_crate.Cursor);
-      procedure dump_ext_deb   (position : string_crate.Cursor);
-      procedure dump_line      (position : string_crate.Cursor);
+      procedure print_item             (position : string_crate.Cursor);
+      procedure print_module           (position : string_crate.Cursor);
+      procedure print_verbation        (position : string_crate.Cursor);
+      procedure print_if_defined       (varname, value : String);
+      procedure dump_list              (position : list_crate.Cursor);
+      procedure dump_variant_index     (position : list_crate.Cursor);
+      procedure dump_distfiles         (position : string_crate.Cursor);
+      procedure dump_makesum           (position : string_crate.Cursor);
+      procedure dump_ext_zip           (position : string_crate.Cursor);
+      procedure dump_ext_7z            (position : string_crate.Cursor);
+      procedure dump_ext_lha           (position : string_crate.Cursor);
+      procedure dump_ext_deb           (position : string_crate.Cursor);
+      procedure dump_line              (position : string_crate.Cursor);
       procedure dump_extract_head_tail (position : list_crate.Cursor);
-      procedure dump_dirty_extract (position : string_crate.Cursor);
-      procedure dump_standard_target (target : String);
-      procedure dump_opsys_target    (target : String);
-      procedure dump_option_target   (target : String);
+      procedure dump_dirty_extract     (position : string_crate.Cursor);
+      procedure dump_standard_target   (target : String);
+      procedure dump_opsys_target      (target : String);
+      procedure dump_option_target     (target : String);
       procedure dump_broken;
       procedure dump_catchall;
-      procedure dump_has_configure   (value  : HT.Text);
+      procedure dump_has_configure     (value  : HT.Text);
       procedure dump_distname;
       procedure dump_license;
       procedure dump_subr;
@@ -251,7 +251,8 @@ package body Port_Specification.Makefile is
                  HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
             begin
                if HT.leads (dlsite, "GITHUB/") or else
-                 HT.leads (dlsite, "GH/")
+                 HT.leads (dlsite, "GITHUB_PRIV/") or else
+                 HT.leads (dlsite, "GHPRIV/")
                then
                   send (NDX & generate_github_distfile (dlsite) & ":" & group);
                   return;
@@ -277,7 +278,8 @@ package body Port_Specification.Makefile is
                  HT.USS (specs.dl_sites.Element (HT.SUS (dlgroup_main)).list.First_Element);
             begin
                if HT.leads (first_dlsite, "GITHUB/") or else
-                 HT.leads (first_dlsite, "GH/")
+                 HT.leads (first_dlsite, "GITHUB_PRIV/") or else
+                 HT.leads (first_dlsite, "GHPRIV/")
                then
                   send ("DISTNAME", generate_github_distname (first_dlsite));
                end if;

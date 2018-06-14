@@ -276,10 +276,11 @@ package body Specification_Parser is
                                                             dlgroup_none & "'");
                               exit;
                            else
+                              transform_download_sites (site => defvalue);
                               build_group_list (spec  => specification,
                                                 field => PSP.sp_dl_sites,
                                                 key   => tkey,
-                                                value => tvalue);
+                                                value => HT.USS (defvalue));
                            end if;
                         when spkgs =>
                            build_group_list (spec  => specification,
@@ -2338,6 +2339,38 @@ package body Specification_Parser is
       perform_check (strvalue (word_start .. strvalue'Last));
 
    end verify_extra_file_exists;
+
+
+   --------------------------------------------------------------------------------------------
+   --  transform_download_sites
+   --------------------------------------------------------------------------------------------
+   procedure transform_download_sites (site : in out HT.Text) is
+   begin
+      --  special case, GITHUB_PRIV (aka GHPRIV).
+      --  If found, append with site with ":<token>" where <token> is the contents of
+      --  confdir/tokens/account-project (or ":missing-security-token" if not found)
+      if HT.leads (site, "GITHUB_PRIV/") or else HT.leads (site, "GHPRIV/") then
+         declare
+            notoken : constant String := ":missing-security-token";
+            triplet : constant String := HT.part_2 (HT.USS (site), "/");
+         begin
+            if HT.count_char (triplet, ':') = 2 then
+               declare
+                  account : constant String := HT.specific_field (triplet, 1, ":");
+                  project : constant String := HT.specific_field (triplet, 2, ":");
+                  tfile   : constant String := Parameters.raven_confdir &
+                                               "/tokens/" & account & '-' & project;
+                  token   : constant String := FOP.get_file_contents (tfile);
+               begin
+                  HT.SU.Append (site, ':' & token);
+               end;
+            end if;
+         exception
+            when others =>
+               HT.SU.Append (site, notoken);
+         end;
+      end if;
+   end transform_download_sites;
 
 
 end Specification_Parser;

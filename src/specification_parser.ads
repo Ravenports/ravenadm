@@ -205,4 +205,7 @@ private
       is_option : Boolean;
       sub_file  : Boolean);
 
+   --  Handle GITHUB_PRIVATE special case
+   procedure transform_download_sites (site : in out HT.Text);
+
 end Specification_Parser;
