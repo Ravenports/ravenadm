@@ -251,7 +251,7 @@ package body Port_Specification.Makefile is
                  HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
             begin
                if HT.leads (dlsite, "GITHUB/") or else
-                 HT.leads (dlsite, "GITHUB_PRIV/") or else
+                 HT.leads (dlsite, "GITHUB_PRIVATE/") or else
                  HT.leads (dlsite, "GHPRIV/")
                then
                   send (NDX & generate_github_distfile (dlsite) & ":" & group);
@@ -278,7 +278,7 @@ package body Port_Specification.Makefile is
                  HT.USS (specs.dl_sites.Element (HT.SUS (dlgroup_main)).list.First_Element);
             begin
                if HT.leads (first_dlsite, "GITHUB/") or else
-                 HT.leads (first_dlsite, "GITHUB_PRIV/") or else
+                 HT.leads (first_dlsite, "GITHUB_PRIVATE/") or else
                  HT.leads (first_dlsite, "GHPRIV/")
                then
                   send ("DISTNAME", generate_github_distname (first_dlsite));

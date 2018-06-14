@@ -2346,10 +2346,10 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure transform_download_sites (site : in out HT.Text) is
    begin
-      --  special case, GITHUB_PRIV (aka GHPRIV).
+      --  special case, GITHUB_PRIVATE (aka GHPRIV).
       --  If found, append with site with ":<token>" where <token> is the contents of
       --  confdir/tokens/account-project (or ":missing-security-token" if not found)
-      if HT.leads (site, "GITHUB_PRIV/") or else HT.leads (site, "GHPRIV/") then
+      if HT.leads (site, "GITHUB_PRIVATE/") or else HT.leads (site, "GHPRIV/") then
          declare
             notoken : constant String := ":missing-security-token";
             triplet : constant String := HT.part_2 (HT.USS (site), "/");
