@@ -2547,7 +2547,7 @@ package body PortScan.Scan is
       procedure scan_port (position : string_crate.Cursor);
 
       compiled_BS : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
-      finalcvar   : constant String := compiled_BS & "/kindness_variants";
+      finalcvar   : constant String := compiled_BS & unkinindex;
       indexfile   : TIO.File_Type;
       bucket      : bucket_code;
       total_ports    : Natural := 0;
