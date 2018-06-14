@@ -1383,7 +1383,8 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    procedure purge_distfiles is
    begin
-      if PortScan.Scan.gather_distfile_set (sysrootver)
+      if unkindness_index_current and then
+        PortScan.Scan.gather_distfile_set (sysrootver)
       then
          PortScan.Scan.purge_obsolete_distfiles;
       end if;

@@ -2366,7 +2366,7 @@ package body PortScan.Scan is
          if not DIR.Exists (compiled_BS_directory) then
             DIR.Create_Path (compiled_BS_directory);
          elsif DIR.Kind (compiled_BS_directory) /= DIR.Directory then
-            TIO.Put_Line ("Notice: ustom buildsheet location not a directory: "
+            TIO.Put_Line ("Notice: custom buildsheet location not a directory: "
                           & compiled_BS_directory);
             TIO.Put_Line ("Customization disabled.");
             return False;
