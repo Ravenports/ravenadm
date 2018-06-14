@@ -343,7 +343,8 @@ package body Pilot is
          --  but just not save it.  If it's a custom port, tell user that saving is a no-no
          if not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) then
             if HT.leads (ravensrcdir, HT.USS (PM.configuration.dir_unkindness)) then
-               TIO.Put_Line (errprefix & "custom port buildsheets must not be saved");
+               TIO.Put_Line ("Custom port buildsheets must not be saved.");
+               TIO.Put_Line ("Don't worry, ravenadm will compile them automatically as needed.");
                return;
             end if;
          end if;
@@ -1026,14 +1027,13 @@ package body Pilot is
             variant    : String := HT.part_2 (port_variant, ":");
             bsheetname : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
             bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
-            bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
+            bsheetu    : String := HT.USS (PM.configuration.dir_profile) &
+                                   "/unkindness" & bsheetname;
          begin
             known_std := (variant = variant_standard);
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
-               --  unkindness ports have no compiled buildsheets.  They have to be
-               --  constructed in real time.
-               return valid_variant_after_compilation (bsheetu, variant);
+               return variant_valid (bsheetu, variant);
             elsif  DIR.Exists (bsheetc) then
                bad_namebase := False;
                return variant_valid (bsheetc, variant);
@@ -1045,15 +1045,14 @@ package body Pilot is
          declare
             bsheetname : String := "/bucket_" & UTL.bucket (port_variant) & "/" & port_variant;
             bsheetc    : String := HT.USS (PM.configuration.dir_conspiracy) & bsheetname;
-            bsheetu    : String := HT.USS (PM.configuration.dir_unkindness) & bsheetname;
+            bsheetu    : String := HT.USS (PM.configuration.dir_profile) &
+                                   "/unkindness" & bsheetname;
          begin
             assume_std := True;
             known_std  := True;
             if DIR.Exists (bsheetu) then
                bad_namebase := False;
-               --  unkindness ports have no compiled buildsheets.  They have to be
-               --  constructed in real time.
-               return valid_variant_after_compilation (bsheetu, variant_standard);
+               return variant_valid (bsheetu, variant_standard);
             elsif  DIR.Exists (bsheetc) then
                bad_namebase := False;
                return variant_valid (bsheetc, variant_standard);
@@ -1658,33 +1657,6 @@ package body Pilot is
          DIR.End_Search (search);
       end;
    end resort_manifests;
-
-
-   --------------------------------------------------------------------------------------------
-   --  valid_variant_after_compilation
-   --------------------------------------------------------------------------------------------
-   function valid_variant_after_compilation (ravensrcdir, variant : String) return Boolean
-   is
-      specification : Port_Specification.Portspecs;
-      filename      : constant String := ravensrcdir & "/" & specfile;
-      successful    : Boolean;
-   begin
-      PAR.parse_specification_file (dossier         => filename,
-                                    specification   => specification,
-                                    opsys_focus     => platform_type,  --  unused
-                                    arch_focus      => sysrootver.arch,
-                                    success         => successful,
-                                    stop_at_targets => True);
-
-      if not successful then
-         TIO.Put_Line ("Failed to parse " & filename);
-         TIO.Put_Line (PAR.get_parse_error);
-         return False;
-      end if;
-
-      return specification.variant_exists (variant);
-
-   end valid_variant_after_compilation;
 
 
    --------------------------------------------------------------------------------------------

@@ -193,9 +193,6 @@ private
    --  Internally, the ports are stacked.
    function valid_origin_file (regular_file : String) return Boolean;
 
-   --  Compiles ravenport at sourcedir, then returns true if given variant is valid
-   function valid_variant_after_compilation (ravensrcdir, variant : String) return Boolean;
-
    --  Generates unkindness buildsheets and index if obsolete or missing
    --  Returns true on success
    function unkindness_index_current return Boolean;

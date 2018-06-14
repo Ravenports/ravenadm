@@ -82,6 +82,7 @@ private
 
    conspindex : constant String := "/Mk/Misc/conspiracy_variants";
    port_dates : constant String := "/Mk/Misc/port_dates";
+   unkinindex : constant String := "/unkindness_variants";
 
    type port_dates_record is
       record
@@ -117,24 +118,20 @@ private
       unkindness : String;
       sysrootver : sysroot_characteristics);
 
-   procedure prescan_unkindness (unkindness : String);
-
-   procedure prescan_custom
+   procedure prescan_unkindness
      (unkindness    : String;
-      bucket        : bucket_code;
-      namebase      : String;
-      max_lots      : scanners);
+      compiled_BS   : String);
 
    procedure populate_port_data
      (conspiracy    : String;
-      unkindness    : String;
+      compiled_BS   : String;
       target        : port_index;
       always_build  : Boolean;
       sysrootver    : sysroot_characteristics);
 
    procedure parallel_deep_scan
      (conspiracy    : String;
-      unkindness    : String;
+      compiled_BS   : String;
       sysrootver    : sysroot_characteristics;
       success       : out Boolean;
       show_progress : Boolean);
@@ -151,7 +148,7 @@ private
 
    procedure skeleton_compiler_data
      (conspiracy    : String;
-      unkindness    : String;
+      compiled_BS   : String;
       target        : port_index;
       sysrootver    : sysroot_characteristics);
 
@@ -174,7 +171,7 @@ private
    function version_difference (id : port_id; kind : out verdiff) return String;
 
    --  Don't bother with parallel scan on unkindness, just get the distfiles now.
-   procedure linear_scan_unkindness_for_distfiles (unkindness : String);
+   procedure linear_scan_unkindness_for_distfiles (compiled_BS : String);
 
    --  Split conspiracy up equally between available scanners looking for distfiles
    procedure parallel_distfile_scan

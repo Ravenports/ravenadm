@@ -45,17 +45,18 @@ package body PortScan.Scan is
       using_screen : constant Boolean := Unix.screen_attached;
       conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
+      compiled_BS  : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
    begin
       --  Override BATCH_MODE setting when we build everything
       PM.configuration.batch_mode := True;
 
       --  All scanning done on host system (no need to mount in a slave)
       prescan_ports_tree (conspiracy, unkindness, sysrootver);
-      prescan_unkindness (unkindness);
+      prescan_unkindness (unkindness, compiled_BS);
       set_portlist_to_everything;
       LOG.set_scan_start_time (CAL.Clock);
       parallel_deep_scan (conspiracy    => conspiracy,
-                          unkindness    => unkindness,
+                          compiled_BS   => compiled_BS,
                           sysrootver    => sysrootver,
                           success       => good_scan,
                           show_progress => using_screen);
@@ -75,6 +76,7 @@ package body PortScan.Scan is
       good_operation : Boolean;
       conspiracy     : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness     : constant String := HT.USS (PM.configuration.dir_unkindness);
+      compiled_BS    : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
       sharedir       : constant String := host_localbase & "/share/ravenadm";
       ravencss       : constant String := "/ravenports.css";
       ravenboxpng    : constant String := "/ravenports-200.png";
@@ -85,7 +87,7 @@ package body PortScan.Scan is
 
       --  All scanning done on host system (no need to mount in a slave)
       prescan_ports_tree (conspiracy, unkindness, sysrootver);
-      prescan_unkindness (unkindness);
+      prescan_unkindness (unkindness, compiled_BS);
 
       --  pre-place css file
       DIR.Create_Path (styledir);
@@ -196,130 +198,101 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
-   --  prescan_custom
-   --------------------------------------------------------------------------------------------
-   procedure prescan_custom
-     (unkindness    : String;
-      bucket        : bucket_code;
-      namebase      : String;
-      max_lots      : scanners)
-   is
-      --  Assume buildsheet exists (has already been validated)
-      --  Assume it starts with directory separator
-      successful : Boolean;
-      customspec : PSP.Portspecs;
-      arch_focus : supported_arch := x86_64;  -- unused, pick one
-      specfile   : constant String := "/bucket_" & bucket & "/" & namebase & "/specification";
-   begin
-      PAR.parse_specification_file (dossier         => unkindness & specfile,
-                                    specification   => customspec,
-                                    opsys_focus     => platform_type,
-                                    arch_focus      => arch_focus,
-                                    success         => successful,
-                                    stop_at_targets => True);
-      if not successful then
-         raise bsheet_parsing
-           with unkindness & specfile & "-> " & PAR.get_parse_error;
-      end if;
-      declare
-         varcount : Natural := customspec.get_number_of_variants;
-         varlist  : String  := customspec.get_field_value (PSP.sp_variants);
-      begin
-         for varx in Integer range 1 .. varcount loop
-            declare
-               varxname : constant String := HT.specific_field (varlist, varx, ", ");
-               portkey  : HT.Text := HT.SUS (namebase & ":" & varxname);
-               kc       : portkey_crate.Cursor;
-               success  : Boolean;
-               use type portkey_crate.Cursor;
-            begin
-               if ports_keys.Contains (portkey) then
-                  kc := ports_keys.Find (portkey);
-                  for x in 1 .. last_port loop
-                     if all_ports (x).key_cursor = kc then
-                        all_ports (x).unkind_custom := True;
-                        exit;
-                     end if;
-                  end loop;
-               else
-                  ports_keys.Insert (Key      => portkey,
-                                     New_Item => lot_counter,
-                                     Position => kc,
-                                     Inserted => success);
-                  last_port := lot_counter;
-                  all_ports (lot_counter).sequence_id   := lot_counter;
-                  all_ports (lot_counter).key_cursor    := kc;
-                  all_ports (lot_counter).port_namebase := HT.SUS (namebase);
-                  all_ports (lot_counter).port_variant  := HT.SUS (varxname);
-                  all_ports (lot_counter).bucket        := bucket;
-                  all_ports (lot_counter).unkind_custom := True;
-
-                  make_queue (lot_number).Append (lot_counter);
-                  lot_counter := lot_counter + 1;
-                  if lot_number = max_lots then
-                     lot_number := 1;
-                  else
-                     lot_number := lot_number + 1;
-                  end if;
-               end if;
-            end;
-         end loop;
-      end;
-   end prescan_custom;
-
-
-   --------------------------------------------------------------------------------------------
    --  prescan_unkindness
    --------------------------------------------------------------------------------------------
-   procedure prescan_unkindness (unkindness : String)
+   procedure prescan_unkindness (unkindness : String; compiled_BS : String)
    is
+      unkinindex_path : constant String := compiled_BS & unkinindex;
       --  Disable parallel scanning (not reliable; make one scanner do everything
       --  max_lots : constant scanners := get_max_lots;
       max_lots : constant scanners := 1;
-      bucket   : bucket_code;
    begin
       if unkindness = PM.no_unkindness or else
-        not DIR.Exists (unkindness)
+        not DIR.Exists (unkinindex_path)
       then
          return;
       end if;
 
-      for highdigit in AF'Range loop
-         for lowdigit in AF'Range loop
-            bucket := tohex (highdigit) & tohex (lowdigit);
+      declare
+         fulldata  : String := FOP.get_file_contents (unkinindex_path);
+         markers   : HT.Line_Markers;
+         linenum   : Natural := 0;
+      begin
+         HT.initialize_markers (fulldata, markers);
+         loop
+            exit when not HT.next_line_present (fulldata, markers);
+            linenum := linenum + 1;
             declare
-               bucket_dir   : constant String := unkindness & "/bucket_" & bucket;
-               Inner_Search : DIR.Search_Type;
-               Inner_Dirent : DIR.Directory_Entry_Type;
-               use type DIR.File_Kind;
+               line     : constant String := HT.extract_line (fulldata, markers);
+               bucket   : constant String := HT.specific_field (line, 1);
+               namebase : constant String := HT.specific_field (line, 2);
+               numvar   : constant String := HT.specific_field (line, 3);
+               bsheet   : constant String := "/bucket_" & bucket & "/" & namebase;
+               linestr  : constant String := ", line " & HT.int2str (linenum);
+               varcount : Integer;
             begin
-               if DIR.Exists (bucket_dir) and then
-                 DIR.Kind (bucket_dir) = DIR.Directory
-               then
-
-                  DIR.Start_Search (Search    => Inner_Search,
-                                    Directory => bucket_dir,
-                                    Filter    => (DIR.Directory => True, others => False),
-                                    Pattern   => "*");
-
-                  while DIR.More_Entries (Inner_Search) loop
-                     DIR.Get_Next_Entry (Inner_Search, Inner_Dirent);
-                     declare
-                        namebase : String := DIR.Simple_Name (Inner_Dirent);
-                     begin
-                        if namebase /= "." and then namebase /= ".." then
-                           prescan_custom (unkindness => unkindness,
-                                           bucket     => bucket,
-                                           namebase   => namebase,
-                                           max_lots   => max_lots);
-                        end if;
-                     end;
-                  end loop;
-                  DIR.End_Search (Inner_Search);
+               if bucket'Length /= 2 or else namebase'Length = 0 or else numvar'Length = 0 then
+                  raise bad_index_data with unkinindex & linestr;
                end if;
+               begin
+                  varcount := Integer'Value (numvar);
+               exception
+                  when others =>
+                     raise bad_index_data
+                       with unkinindex & ", numvariant fields not an integer" & linestr;
+               end;
+               if not DIR.Exists (compiled_BS & bsheet) then
+                  raise bad_index_data
+                    with unkinindex & bsheet & " buildsheet does not exist" & linestr;
+               end if;
+
+               for varx in Integer range 1 .. varcount loop
+                  declare
+                     use type portkey_crate.Cursor;
+
+                     varxname : constant String := HT.specific_field (line, varx + 3);
+                     portkey  : HT.Text := HT.SUS (namebase & ":" & varxname);
+                     kc       : portkey_crate.Cursor;
+                     success  : Boolean;
+                  begin
+                     if varxname = "" then
+                        raise bad_index_data
+                          with unkinindex & ", less variants than counter" & linestr;
+                     end if;
+                     if ports_keys.Contains (portkey) then
+                        kc := ports_keys.Find (portkey);
+                        for x in 1 .. last_port loop
+                           if all_ports (x).key_cursor = kc then
+                              all_ports (x).unkind_custom := True;
+                              exit;
+                           end if;
+                        end loop;
+                     else
+                        ports_keys.Insert (Key      => portkey,
+                                           New_Item => lot_counter,
+                                           Position => kc,
+                                           Inserted => success);
+                        last_port := lot_counter;
+                        all_ports (lot_counter).sequence_id   := lot_counter;
+                        all_ports (lot_counter).key_cursor    := kc;
+                        all_ports (lot_counter).port_namebase := HT.SUS (namebase);
+                        all_ports (lot_counter).port_variant  := HT.SUS (varxname);
+                        all_ports (lot_counter).bucket        := bucket_code (bucket);
+                        all_ports (lot_counter).unkind_custom := True;
+
+                        make_queue (lot_number).Append (lot_counter);
+                        lot_counter := lot_counter + 1;
+                        if lot_number = max_lots then
+                           lot_number := 1;
+                        else
+                           lot_number := lot_number + 1;
+                        end if;
+                     end if;
+                  end;
+               end loop;
             end;
          end loop;
-      end loop;
+      end;
    end prescan_unkindness;
 
 
@@ -360,7 +333,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure parallel_deep_scan
      (conspiracy    : String;
-      unkindness    : String;
+      compiled_BS   : String;
       sysrootver    : sysroot_characteristics;
       success       : out Boolean;
       show_progress : Boolean)
@@ -379,7 +352,7 @@ package body PortScan.Scan is
          begin
             if not aborted then
                populate_port_data (conspiracy   => conspiracy,
-                                   unkindness   => unkindness,
+                                   compiled_BS  => compiled_BS,
                                    target       => target_port,
                                    always_build => False,
                                    sysrootver   => sysrootver);
@@ -457,7 +430,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure skeleton_compiler_data
      (conspiracy    : String;
-      unkindness    : String;
+      compiled_BS   : String;
       target        : port_index;
       sysrootver    : sysroot_characteristics)
    is
@@ -474,7 +447,7 @@ package body PortScan.Scan is
          buildsheet : String := "/bucket_" & rec.bucket & "/" & HT.USS (rec.port_namebase);
       begin
          if rec.unkind_custom then
-            return unkindness & buildsheet & "/specification";
+            return compiled_BS & buildsheet;
          else
             return conspiracy & buildsheet;
          end if;
@@ -520,7 +493,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure populate_port_data
      (conspiracy    : String;
-      unkindness    : String;
+      compiled_BS   : String;
       target        : port_index;
       always_build  : Boolean;
       sysrootver    : sysroot_characteristics)
@@ -539,7 +512,7 @@ package body PortScan.Scan is
          buildsheet : String := "/bucket_" & rec.bucket & "/" & HT.USS (rec.port_namebase);
       begin
          if rec.unkind_custom then
-            return unkindness & buildsheet & "/specification";
+            return compiled_BS & buildsheet;
          else
             return conspiracy & buildsheet;
          end if;
@@ -786,14 +759,15 @@ package body PortScan.Scan is
    is
       procedure dig (cursor : block_crate.Cursor);
 
-      conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
-      unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
+      conspiracy  : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      unkindness  : constant String := HT.USS (PM.configuration.dir_unkindness);
+      compiled_BS : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
 
-      two_partid : constant String := namebase & LAT.Colon & variant;
-      portkey    : HT.Text := HT.SUS (two_partid);
-      target     : port_index;
-      aborted    : Boolean := False;
-      indy500    : Boolean := False;
+      two_partid  : constant String := namebase & LAT.Colon & variant;
+      portkey     : HT.Text := HT.SUS (two_partid);
+      target      : port_index;
+      aborted     : Boolean := False;
+      indy500     : Boolean := False;
 
       procedure dig (cursor : block_crate.Cursor)
       is
@@ -806,7 +780,7 @@ package body PortScan.Scan is
             end if;
             if not all_ports (new_target).scanned then
                populate_port_data (conspiracy   => conspiracy,
-                                   unkindness   => unkindness,
+                                   compiled_BS  => compiled_BS,
                                    target       => new_target,
                                    always_build => False,
                                    sysrootver   => sysrootver);
@@ -837,7 +811,7 @@ package body PortScan.Scan is
       fatal := False;
       if not prescanned then
          prescan_ports_tree (conspiracy, unkindness, sysrootver);
-         prescan_unkindness (unkindness);
+         prescan_unkindness (unkindness, compiled_BS);
       end if;
       if ports_keys.Contains (portkey) then
          target := ports_keys.Element (portkey);
@@ -852,7 +826,7 @@ package body PortScan.Scan is
             return True;
          else
             populate_port_data (conspiracy   => conspiracy,
-                                unkindness   => unkindness,
+                                compiled_BS  => compiled_BS,
                                 target       => target,
                                 always_build => always_build,
                                 sysrootver   => sysrootver);
@@ -1048,11 +1022,13 @@ package body PortScan.Scan is
         not portlist.Contains (compiler_key)
       then
          --  We always need current information on the default compiler
+         declare
+            compiled_BS : String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
          begin
-            skeleton_compiler_data (conspiracy => HT.USS (PM.configuration.dir_conspiracy),
-                                    unkindness => HT.USS (PM.configuration.dir_unkindness),
-                                    target     => ports_keys.Element (compiler_key),
-                                    sysrootver => sysrootver);
+            skeleton_compiler_data (conspiracy  => HT.USS (PM.configuration.dir_conspiracy),
+                                    compiled_BS => compiled_BS,
+                                    target      => ports_keys.Element (compiler_key),
+                                    sysrootver  => sysrootver);
          exception
             when others =>
                TIO.Put_Line ("Scan of the compiler port failed, fatal issue");
@@ -1389,6 +1365,7 @@ package body PortScan.Scan is
       using_screen : constant Boolean := Unix.screen_attached;
       conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
+      compiled_BS  : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
    begin
       prescan_conspiracy_index_for_distfiles (conspiracy, unkindness, sysrootver);
       LOG.set_scan_start_time (CAL.Clock);
@@ -1397,7 +1374,7 @@ package body PortScan.Scan is
                               success       => good_scan,
                               show_progress => using_screen);
       if unkindness /= PM.no_unkindness then
-         linear_scan_unkindness_for_distfiles (unkindness);
+         linear_scan_unkindness_for_distfiles (compiled_BS);
       end if;
       LOG.set_scan_complete (CAL.Clock);
       return good_scan;
@@ -1480,7 +1457,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  linear_scan_unkindness_for_distfiles
    --------------------------------------------------------------------------------------------
-   procedure linear_scan_unkindness_for_distfiles (unkindness : String)
+   procedure linear_scan_unkindness_for_distfiles (compiled_BS : String)
    is
       procedure insert_distfile (dist_subdir : String; distfile_group : String);
 
@@ -1510,17 +1487,14 @@ package body PortScan.Scan is
          end if;
       end insert_distfile;
    begin
-      if unkindness = PM.no_unkindness or else
-        not DIR.Exists (unkindness)
-      then
-         return;
-      end if;
+      --  caller must check that custom ports are being used.
+      --  It's assumed that this has been done
 
       for highdigit in AF'Range loop
          for lowdigit in AF'Range loop
             declare
                bucket       : bucket_code := tohex (highdigit) & tohex (lowdigit);
-               bucket_dir   : constant String := unkindness & "/bucket_" & bucket;
+               bucket_dir   : constant String := compiled_BS & "/bucket_" & bucket;
                Inner_Search : DIR.Search_Type;
                Inner_Dirent : DIR.Directory_Entry_Type;
                use type DIR.File_Kind;
@@ -1531,7 +1505,7 @@ package body PortScan.Scan is
 
                   DIR.Start_Search (Search    => Inner_Search,
                                     Directory => bucket_dir,
-                                    Filter    => (DIR.Directory => True, others => False),
+                                    Filter    => (DIR.Ordinary_File => True, others => False),
                                     Pattern   => "*");
 
                   while DIR.More_Entries (Inner_Search) loop
@@ -1541,32 +1515,29 @@ package body PortScan.Scan is
                         successful : Boolean;
                         customspec : PSP.Portspecs;
                         arch_focus : supported_arch := x86_64;  -- unused, pick one
-                        buildsheet : constant String :=
-                          "/bucket_" & bucket & "/" & namebase & "/specification";
+                        buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
                      begin
-                        if namebase /= "." and then namebase /= ".." then
-                           PAR.parse_specification_file (dossier       => unkindness & buildsheet,
-                                                         specification => customspec,
-                                                         opsys_focus   => platform_type,
-                                                         arch_focus    => arch_focus,
-                                                         success       => successful,
-                                                         stop_at_targets => True);
-                           if not successful then
-                              raise bsheet_parsing
-                                with unkindness & buildsheet & "-> " & PAR.get_parse_error;
-                           end if;
-                           declare
-                              num_dfiles  : Natural;
-                              dist_subdir : String :=
-                                customspec.get_field_value (PSP.sp_distsubdir);
-                           begin
-                              num_dfiles := customspec.get_list_length (PSP.sp_distfiles);
-                              for df in 1 .. num_dfiles loop
-                                 insert_distfile
-                                   (dist_subdir, customspec.get_list_item (PSP.sp_distfiles, df));
-                              end loop;
-                           end;
+                        PAR.parse_specification_file (dossier       => compiled_BS & buildsheet,
+                                                      specification => customspec,
+                                                      opsys_focus   => platform_type,
+                                                      arch_focus    => arch_focus,
+                                                      success       => successful,
+                                                      stop_at_targets => True);
+                        if not successful then
+                           raise bsheet_parsing
+                             with compiled_BS & buildsheet & "-> " & PAR.get_parse_error;
                         end if;
+                        declare
+                           num_dfiles  : Natural;
+                           dist_subdir : String :=
+                             customspec.get_field_value (PSP.sp_distsubdir);
+                        begin
+                           num_dfiles := customspec.get_list_length (PSP.sp_distfiles);
+                           for df in 1 .. num_dfiles loop
+                              insert_distfile
+                                (dist_subdir, customspec.get_list_item (PSP.sp_distfiles, df));
+                           end loop;
+                        end;
                      end;
                   end loop;
                   DIR.End_Search (Inner_Search);
