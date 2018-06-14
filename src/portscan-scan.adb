@@ -2335,8 +2335,10 @@ package body PortScan.Scan is
          name_key : HT.Text renames dates_crate.Key (position);
          namebase : String := HT.USS (name_key);
          bucket   : bucket_code := UTL.bucket (namebase);
-         BS_file  : String := compiled_BS_directory & "/bucket_" & bucket & "/" & namebase;
+         buckname : constant String := "bucket_" & bucket & "/" & namebase;
+         BS_file  : String := compiled_BS_directory & "/" & buckname;
       begin
+         TIO.Put_Line ("Removing obsolete custom buildsheet: " & buckname);
          DIR.Delete_File (BS_file);
          generation_required := True;
       exception
@@ -2466,7 +2468,7 @@ package body PortScan.Scan is
       DIR.Start_Search (Search    => inner_search,
                         Directory => bucket_name,
                         Filter    => (others => True),
-                        Pattern   => "");
+                        Pattern   => "*");
       while not already_newer and then DIR.More_Entries (inner_search)
       loop
          DIR.Get_Next_Entry (inner_search, inner_dirent);
@@ -2478,7 +2480,7 @@ package body PortScan.Scan is
          end if;
       end loop;
       DIR.End_Search (inner_search);
-      return not already_newer;
+      return already_newer;
    end unkindness_source_newer;
 
 
