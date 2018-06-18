@@ -2596,6 +2596,18 @@ package body Port_Specification.Transform is
                return name_subpackage & "lua52";
             end if;
          end;
+      elsif HT.trails (dep, ":ruby_default") then
+         declare
+            setting : String := HT.USS (Parameters.configuration.def_ruby);
+         begin
+            if setting = ports_default or else setting = default_ruby then
+               return name_subpackage & "v24";
+            elsif setting = "2.3" then
+              return name_subpackage & "v23";
+            else
+               return name_subpackage & "v25";
+            end if;
+         end;
       else
          return dep;
       end if;
