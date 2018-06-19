@@ -256,6 +256,9 @@ package body Port_Specification.Makefile is
                then
                   send (NDX & generate_github_distfile (dlsite) & ":" & group);
                   return;
+               elsif HT.leads (dlsite, "GITLAB/") then
+                  send (NDX & generate_gitlab_distname (dlsite) & ":" & group);
+                  return;
                else
                   --  seems like a mistake, fall through
                   null;
@@ -282,6 +285,8 @@ package body Port_Specification.Makefile is
                  HT.leads (first_dlsite, "GHPRIV/")
                then
                   send ("DISTNAME", generate_github_distname (first_dlsite));
+               elsif HT.leads (first_dlsite, "GITLAB/") then
+                  send ("DISTNAME", generate_gitlab_distname (first_dlsite));
                end if;
             end;
          end if;
@@ -914,6 +919,29 @@ package body Port_Specification.Makefile is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_gitlab_distname
+   --------------------------------------------------------------------------------------------
+   function generate_gitlab_distname (download_site : String) return String
+   is
+      lab_args   : constant String  := HT.part_2 (download_site, "/");
+      num_colons : constant Natural := HT.count_char (lab_args, LAT.Colon);
+   begin
+      if num_colons < 2 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return lab_args;
+      end if;
+      --  So far gitlab doesn't seem to transform tags like github does, so keep the
+      --  leading 'v' and '+' characters until this is proven wrong.
+      declare
+         proj : constant String := HT.specific_field (lab_args, 2, ":");
+         vers : constant String := HT.specific_field (lab_args, 3, ":");
+      begin
+         return proj & LAT.Hyphen & vers;
+      end;
+   end generate_gitlab_distname;
+
+
+   --------------------------------------------------------------------------------------------
    --  handle_github_relocations
    --------------------------------------------------------------------------------------------
    procedure handle_github_relocations (specs : Portspecs; makefile : TIO.File_Type)
@@ -946,7 +974,11 @@ package body Port_Specification.Makefile is
             gh_args : String  := HT.part_2 (dlsite, "/");
             num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
          begin
-            if not HT.leads (dlsite, "GITHUB/") and then not  HT.leads (dlsite, "GH/") then
+            if not HT.leads (dlsite, "GITHUB/") and then
+              not HT.leads (dlsite, "GITHUB_PRIVATE/") and then
+              not HT.leads (dlsite, "GHPRIV/") and then
+              not HT.leads (dlsite, "GITLAB/")
+            then
                return;
             end if;
             if num_colons /= 3 then

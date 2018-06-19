@@ -26,8 +26,12 @@ private
    dev_error : exception;
 
    --  Given a string GITHUB/account:project:tag(:directory) return a standard
-   --  distname per github rules.  Also works for GH/ prefix.
+   --  distname per github rules.  Also works for GITHUB_PRIVATE and GHPRIV
    function generate_github_distname (download_site : String) return String;
+
+   --  Given a string GITLAB/account:project:tag return a standard distname.
+   --  Rare characters in account/project may have to be URL encoded
+   function generate_gitlab_distname (download_site : String) return String;
 
    --  Used for non-custom (and not invalid) licenses, returns the full license name
    function standard_license_names (license : license_type) return String;
