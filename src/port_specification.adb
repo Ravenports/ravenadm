@@ -4794,6 +4794,29 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_gitlab_distfile
+   --------------------------------------------------------------------------------------------
+   function generate_gitlab_distfile (download_site : String) return String
+   is
+      lab_args    : constant String  := HT.part_2 (download_site, "/");
+      num_colons : constant Natural := HT.count_char (lab_args, LAT.Colon);
+      lab_ext     : constant String  := ".tar.gz";
+   begin
+      if num_colons < 2 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return lab_args & lab_ext;
+      end if;
+      declare
+         acct : constant String := HT.specific_field (lab_args, 1, ":");
+         proj : constant String := HT.specific_field (lab_args, 2, ":");
+         vers : constant String := HT.specific_field (lab_args, 3, ":");
+      begin
+         return acct & LAT.Hyphen & proj & LAT.Hyphen & vers & lab_ext;
+      end;
+   end generate_gitlab_distfile;
+
+
+   --------------------------------------------------------------------------------------------
    --  post_parse_opt_desc_check_passes
    --------------------------------------------------------------------------------------------
    function post_parse_opt_desc_check_passes (specs : Portspecs) return Boolean

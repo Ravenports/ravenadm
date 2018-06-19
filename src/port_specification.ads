@@ -656,9 +656,12 @@ private
    --  Checks against known list of PHP extensions and identifies it
    function determine_php_extension (component : String) return phpext_type;
 
-   --  Given a string GITHUB/account:project:tag(:directory) return a standard
-   --  distribution file name.  Also works for GH/ prefix.
+   --  Given a string XXXX/account:project:tag(:directory) return a standard
+   --  distribution file name.
    function generate_github_distfile (download_site : String) return String;
+
+   --  Like generate_github_distfile, but doesn't filter/modify out leading v's and plus signs
+   function generate_gitlab_distfile (download_site : String) return String;
 
    --  Returns True if a given option already present in radio, restricted or unlimited group
    function option_already_in_group (specs : Portspecs; option_name : String) return Boolean;

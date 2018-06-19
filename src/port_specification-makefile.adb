@@ -257,7 +257,7 @@ package body Port_Specification.Makefile is
                   send (NDX & generate_github_distfile (dlsite) & ":" & group);
                   return;
                elsif HT.leads (dlsite, "GITLAB/") then
-                  send (NDX & generate_gitlab_distname (dlsite) & ":" & group);
+                  send (NDX & generate_gitlab_distfile (dlsite) & ":" & group);
                   return;
                else
                   --  seems like a mistake, fall through
