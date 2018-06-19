@@ -948,8 +948,10 @@ package body Port_Specification.Makefile is
    is
       procedure send (data : String);
       procedure check_for_generated (position : string_crate.Cursor);
+      procedure check_for_generated_shift (position : string_crate.Cursor);
 
       target_set    : Boolean := False;
+      shift_tgt_set : Boolean := False;
       write_to_file : Boolean := (TIO.Is_Open (makefile));
 
       procedure send (data : String) is
@@ -990,9 +992,9 @@ package body Port_Specification.Makefile is
                target_set := True;
             end if;
             send (LAT.HT & "# relocate " & HT.specific_field (gh_args, 1, ":") &
-                    "/" & HT.specific_field (dlsite, 2, ":") & " project");
+                    "/" & HT.specific_field (gh_args, 2, ":") & " project");
             declare
-               reldir     : constant String := HT.specific_field (dlsite, 4, ":");
+               reldir     : constant String := HT.specific_field (gh_args, 4, ":");
                extractdir : constant String :=
                  HT.replace_all (S      => generate_github_distname (dlsite),
                                  reject => LAT.Colon,
@@ -1004,8 +1006,55 @@ package body Port_Specification.Makefile is
             end;
          end;
       end check_for_generated;
+
+      procedure check_for_generated_shift (position : string_crate.Cursor)
+      is
+         pload : String := HT.USS (string_crate.Element (position));
+      begin
+         if not HT.leads (pload, "generated:") then
+            return;
+         end if;
+         declare
+            group   : HT.Text := HT.SUS (HT.part_2 (pload, ":"));
+            dlsite  : String  := HT.USS (specs.dl_sites.Element (group).list.First_Element);
+            gh_args : String  := HT.part_2 (dlsite, "/");
+            num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
+         begin
+            if num_colons < 2 then
+               return;
+            end if;
+            if not HT.leads (dlsite, "GITHUB_PRIVATE/") and then
+              not HT.leads (dlsite, "GHPRIV/") and then
+              not HT.leads (dlsite, "GITLAB/")
+            then
+               return;
+            end if;
+            --  Gitlab and github private use full hashes in the tarball regardless of the
+            --  reference used to generate it.  Thus it's cleanest if we can shift it's location
+            --  to the normal $WRKSRC location after extraction.
+            if not shift_tgt_set then
+               send (LAT.LF & "shift-wrksrc:");
+               shift_tgt_set := True;
+            end if;
+
+            declare
+               account : constant String := HT.specific_field (gh_args, 1, ":");
+               project : constant String := HT.specific_field (gh_args, 2, ":");
+               taghash : constant String := HT.specific_field (gh_args, 3, ":");
+               wrksrc  : constant String := project & "-" & taghash;
+            begin
+               send (LAT.HT & "# redefine " & account & "/" & project & " work directory");
+               if HT.leads (dlsite, "GITLAB/") then
+                  send (LAT.HT & "@${MV} " & project & "-* " & wrksrc);
+               else -- GITHUB_PRIVATE, GHPRIV
+                  send (LAT.HT & "@${MV} " & account & "-" & project & "-* " & wrksrc);
+               end if;
+            end;
+         end;
+      end check_for_generated_shift;
    begin
       specs.distfiles.Iterate (check_for_generated'Access);
+      specs.distfiles.Iterate (check_for_generated_shift'Access);
    end handle_github_relocations;
 
 
