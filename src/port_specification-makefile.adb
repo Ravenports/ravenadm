@@ -1041,13 +1041,13 @@ package body Port_Specification.Makefile is
                account : constant String := HT.specific_field (gh_args, 1, ":");
                project : constant String := HT.specific_field (gh_args, 2, ":");
                taghash : constant String := HT.specific_field (gh_args, 3, ":");
-               wrksrc  : constant String := project & "-" & taghash;
+               wrksrc  : constant String := "${WRKDIR}/" & project & "-" & taghash;
             begin
                send (LAT.HT & "# redefine " & account & "/" & project & " work directory");
                if HT.leads (dlsite, "GITLAB/") then
-                  send (LAT.HT & "@${MV} " & project & "-* " & wrksrc);
+                  send (LAT.HT & "@${MV} ${WRKDIR}/" & project & "-* " & wrksrc);
                else -- GITHUB_PRIVATE, GHPRIV
-                  send (LAT.HT & "@${MV} " & account & "-" & project & "-* " & wrksrc);
+                  send (LAT.HT & "@${MV} ${WRKDIR}/" & account & "-" & project & "-* " & wrksrc);
                end if;
             end;
          end;
