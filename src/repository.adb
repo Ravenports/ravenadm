@@ -243,7 +243,7 @@ package body Repository is
          TIO.Put_Line (handle, "  fingerprints   : " & keydir);
       elsif set_raven_conf_with_RSA then
          TIO.Put_Line (handle, "  signature_type : PUBKEY,");
-         TIO.Put_Line (handle, "  pubkey         : " & pubkey);
+         TIO.Put_Line (handle, "  pubkey         : " & LAT.Quotation & pubkey & LAT.Quotation);
       end if;
       TIO.Put_Line (handle, "}");
       TIO.Close (handle);
@@ -311,7 +311,6 @@ package body Repository is
       if DIR.Exists (xz_pkgsite) then
          DIR.Delete_File (xz_pkgsite);
       end if;
-      TIO.Put_Line ("Rebuilding local repository ...");
       if valid_signing_command then
          build_res := build_repository (signing_command);
       elsif acceptable_RSA_signing_support then
@@ -355,10 +354,13 @@ package body Repository is
       cmd_out : HT.Text;
    begin
       if use_key then
+         TIO.Put_Line ("Rebuilding RSA-signed local repository ...");
          silent_exec (command & " " & key_private);
       elsif use_cmd then
+         TIO.Put_Line ("Rebuilding externally-signed local repository ...");
          silent_exec (sc_cmd);
       else
+         TIO.Put_Line ("Rebuilding local repository ...");
          silent_exec (command);
       end if;
       return True;
