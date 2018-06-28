@@ -150,10 +150,26 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    function file_permissions (full_path : String) return String
    is
-      command : constant String := HT.USS (PM.configuration.dir_sysroot) &
-                                   "/usr/bin/stat -f %Lp " & full_path;
+      function OS_command return String;
+
       content  : HT.Text;
       status   : Integer;
+
+      function OS_command return String is
+      begin
+         case platform_type is
+            when dragonfly |
+                 freebsd   |
+                 netbsd    |
+                 openbsd   |
+                 macos     => return "/usr/bin/stat -f %Lp ";
+            when linux     |
+                 sunos     => return "/usr/bin/stat -L --format=%a ";
+         end case;
+      end OS_command;
+
+      command : constant String := HT.USS (PM.configuration.dir_sysroot) & OS_command & full_path;
+
    begin
       content := Unix.piped_command (command, status);
       if status /= 0 then
