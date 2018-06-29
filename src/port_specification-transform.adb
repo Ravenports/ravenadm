@@ -1169,13 +1169,13 @@ package body Port_Specification.Transform is
             return "postgresql94";
          elsif setting = "9.5" then
             return "postgresql95";
-         elsif setting = "10" then
-            return "postgresql100";
+         elsif setting = "9.6" then
+            return "postgresql96";
          else
             --  case: setting = ports_default
-            --  case: setting = default_pgsql (9.6 right now)
+            --  case: setting = default_pgsql (10 right now)
             --  case: setting = invalid value
-            return "postgresql96";
+            return "postgresql100";
          end if;
       end determine_namebase;
 
@@ -1543,7 +1543,7 @@ package body Port_Specification.Transform is
       SETUPTOOLS : constant String := "python-setuptools:single:";
       PY27       : constant String := "py27";
       PY36       : constant String := "py36";
-      PY35       : constant String := "py35";
+      PY37       : constant String := "py37";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1553,23 +1553,23 @@ package body Port_Specification.Transform is
          if argument_present (specs, module, PY27) then
             add_build_depends (specs, PYTHON27);
             add_build_depends (specs, SETUPTOOLS & PY27);
-         elsif argument_present (specs, module, PY35) then
-            add_build_depends (specs, PYTHON35);
-            add_build_depends (specs, SETUPTOOLS & PY35);
-         else -- default to py36
+         elsif argument_present (specs, module, PY36) then
             add_build_depends (specs, PYTHON36);
             add_build_depends (specs, SETUPTOOLS & PY36);
+         else -- default to py37
+            add_build_depends (specs, PYTHON37);
+            add_build_depends (specs, SETUPTOOLS & PY37);
          end if;
       else
          if argument_present (specs, module, PY27) then
             add_buildrun_depends (specs, PYTHON27);
             add_buildrun_depends (specs, SETUPTOOLS & PY27);
-         elsif argument_present (specs, module, PY35) then
-            add_buildrun_depends (specs, PYTHON35);
-            add_buildrun_depends (specs, SETUPTOOLS & PY35);
-         else -- default to py36
+         elsif argument_present (specs, module, PY36) then
             add_buildrun_depends (specs, PYTHON36);
             add_buildrun_depends (specs, SETUPTOOLS & PY36);
+         else -- default to py37
+            add_buildrun_depends (specs, PYTHON37);
+            add_buildrun_depends (specs, SETUPTOOLS & PY37);
          end if;
       end if;
    end apply_python_module;
@@ -1594,18 +1594,18 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, v23) then
             add_build_depends (specs, RUBY23);
-         elsif argument_present (specs, module, v25) then
-            add_build_depends (specs, RUBY25);
-         else -- default to ruby24 (current default)
+         elsif argument_present (specs, module, v24) then
             add_build_depends (specs, RUBY24);
+         else -- default to ruby25 (current default)
+            add_build_depends (specs, RUBY25);
          end if;
       else
          if argument_present (specs, module, v23) then
             add_buildrun_depends (specs, RUBY23);
-         elsif argument_present (specs, module, v25) then
-            add_buildrun_depends (specs, RUBY25);
-         else -- default to ruby24 (current default)
+         elsif argument_present (specs, module, v24) then
             add_buildrun_depends (specs, RUBY24);
+         else -- default to ruby25 (current default)
+            add_buildrun_depends (specs, RUBY25);
          end if;
       end if;
    end apply_ruby_module;
@@ -1772,6 +1772,8 @@ package body Port_Specification.Transform is
          if not no_arguments_present (specs, module) then
             if argument_present (specs, module, "v23") then
                flavor := "v23";
+            elsif argument_present (specs, module, "v24") then
+               flavor := "v24";
             elsif argument_present (specs, module, "v25") then
                flavor := "v25";
             end if;
@@ -2482,10 +2484,10 @@ package body Port_Specification.Transform is
          elsif exrundep = "python" then
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
                Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON35)) then
-               Element := HT.SUS (PYTHON35);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON36)) then
+               Element := HT.SUS (PYTHON36);
             else
-              Element := HT.SUS (PYTHON36);
+              Element := HT.SUS (PYTHON37);
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
@@ -2571,9 +2573,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & "py36";
+               return name_subpackage & "py37";
             else
-               return name_subpackage & "py35";
+               return name_subpackage & "py36";
             end if;
          end;
       elsif HT.trails (dep, ":perl_default") then
@@ -2601,11 +2603,11 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_ruby);
          begin
             if setting = ports_default or else setting = default_ruby then
-               return name_subpackage & "v24";
+               return name_subpackage & "v25";
             elsif setting = "2.3" then
               return name_subpackage & "v23";
             else
-               return name_subpackage & "v25";
+               return name_subpackage & "v24";
             end if;
          end;
       else
@@ -2677,6 +2679,7 @@ package body Port_Specification.Transform is
    is
       procedure import (position : string_crate.Cursor);
 
+      defpy         : constant String := "py" & HT.replace_char (default_python3, '.', "");
       ss            : constant String := ":single:standard";
       ps            : constant String := ":primary:standard";
       port_libxml2  : constant String := "libxml2";
@@ -2697,9 +2700,9 @@ package body Port_Specification.Transform is
       port_libglade : constant String := "libglade:single:py27";
       port_pygtk2   : constant String := "python-gtk2:primary:py27";
       port_pygobj2  : constant String := "python-pygobject2:single:py27";
-      port_pygobjcm : constant String := "python-pygobject:common:py35";
-      port_pygobj   : constant String := "python-pygobject:primary:py" &
-        HT.replace_char (default_python3, '.', "");
+      port_pygobjcm : constant String := "python-pygobject:common:" & defpy;
+      port_pygobj   : constant String := "python-pygobject:primary:" & defpy;
+
 
 
       procedure import (position : string_crate.Cursor)
