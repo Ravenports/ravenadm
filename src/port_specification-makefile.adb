@@ -983,8 +983,13 @@ package body Port_Specification.Makefile is
             then
                return;
             end if;
-            if num_colons /= 3 then
+            if num_colons < 3 then
                --  It's a github site, but there's no extraction wrksrc override
+               return;
+            end if;
+            if HT.specific_field (gh_args, 4, ":") = "" then
+               --  The extraction field is blank (usually seen with private github repositories
+               --  So no extraction override in this case either
                return;
             end if;
             if not target_set then

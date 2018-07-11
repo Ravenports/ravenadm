@@ -2349,12 +2349,18 @@ package body Specification_Parser is
       --  special case, GITHUB_PRIVATE (aka GHPRIV).
       --  If found, append with site with ":<token>" where <token> is the contents of
       --  confdir/tokens/account-project (or ":missing-security-token" if not found)
+      --  With this case, there is always 4 colons / 5 fields.  The 4th (extraction directory)
+      --  is often blank
       if HT.leads (site, "GITHUB_PRIVATE/") or else HT.leads (site, "GHPRIV/") then
          declare
             notoken : constant String := ":missing-security-token";
             triplet : constant String := HT.part_2 (HT.USS (site), "/");
+            ncolons : constant Natural := HT.count_char (triplet, ':');
          begin
-            if HT.count_char (triplet, ':') = 2 then
+            if ncolons < 3 then
+               HT.SU.Append (site, ':');
+            end if;
+            if ncolons >= 2 then
                declare
                   account : constant String := HT.specific_field (triplet, 1, ":");
                   project : constant String := HT.specific_field (triplet, 2, ":");
