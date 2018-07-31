@@ -440,6 +440,10 @@ package body Port_Specification is
             if not HT.contains (value, ":") then
                raise wrong_value with "No download group prefix present in distfile";
             end if;
+            if not specs.dl_sites.Contains (HT.SUS (HT.part_2 (value, ":"))) then
+               raise wrong_value with
+                 "Download group '" & HT.part_2 (value, ":") & "' hasn't been defined yet.";
+            end if;
             specs.distfiles.Append (text_value);
             specs.last_set := so_distfiles;
             declare
