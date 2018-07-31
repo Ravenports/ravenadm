@@ -737,9 +737,7 @@ package body Pilot is
    is
       successful : Boolean;
    begin
-      if not unkindness_index_current then
-         return False;
-      end if;
+      --  unkindness index generated at store_origins routine (can't get this far if failed)
       successful := SCN.scan_provided_list_of_ports (always_build, sysrootver);
       if successful then
          SCN.set_build_priority;
@@ -915,6 +913,10 @@ package body Pilot is
    begin
       if CLI.Argument_Count < 2 then
          TIO.Put_Line ("This command requires a list of one or more port origins.");
+         return False;
+      end if;
+      if not unkindness_index_current then
+         TIO.Put_Line ("Failed to generate unkindness index.");
          return False;
       end if;
       all_stdvar := True;
