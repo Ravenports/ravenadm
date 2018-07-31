@@ -34,11 +34,11 @@ package Definitions is
    default_ruby      : constant String := "2.5";
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
-   default_compiler  : constant String := "gcc7";
-   compiler_version  : constant String := "7.3.0";
-   previous_compiler : constant String := "7.2.0";
-   binutils_version  : constant String := "2.30";
-   previous_binutils : constant String := "2.29.1";
+   default_compiler  : constant String := "gcc8";
+   compiler_version  : constant String := "8.2.0";
+   previous_compiler : constant String := "7.3.0";
+   binutils_version  : constant String := "2.31.1";
+   previous_binutils : constant String := "2.30";
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
 
