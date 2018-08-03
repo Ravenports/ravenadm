@@ -234,11 +234,13 @@ main (int argc, char *argv[])
       execv (argv[2], (argv + 2));
 
       /* command failed to execute */
+#ifndef __sun__
       dprintf (STDERR_FILENO, "Command execution failed: %s\n", argv[2]);
       dprintf (STDERR_FILENO, "               arguments:");
       for (int x = 2; x < argc; x++)
          dprintf (STDERR_FILENO, " %s", argv[x]);
       dprintf (STDERR_FILENO, "\n");
+#endif
       _exit (1);
    }
 

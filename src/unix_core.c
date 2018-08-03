@@ -110,7 +110,7 @@ int __shut_it_down (pid_t dead_pid_walking)
 
 /*
  * Ignore all background attempts to write to TTY
- * If this signal comes during an ncurses display, synth will be suspended
+ * If this signal comes during an ncurses display, ravenadm will be suspended
  */
 u_int8_t
 __ignore_background_tty_writes ()
