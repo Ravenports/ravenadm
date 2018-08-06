@@ -487,14 +487,24 @@ is
       procedure add_to_folder (filename : String; perms : manifest_file)
       is
          procedure add_file (Key : HT.Text; Element : in out manifest_directory);
+         procedure insert_unique (mandir : in out manifest_directory);
 
          caboose  : HT.Text := HT.SUS (HT.tail (filename, "/"));
          train    : HT.Text := HT.SUS (HT.head (filename, "/"));
 
          procedure add_file (Key : HT.Text; Element : in out manifest_directory) is
          begin
-            Element.files.Insert (caboose, perms);
+            insert_unique (Element);
          end add_file;
+
+         procedure insert_unique (mandir : in out manifest_directory) is
+         begin
+            if mandir.files.Contains (caboose) then
+               TIO.Put_Line ("Notice: Ignoring duplicate file '" & HT.USS (caboose) & "'");
+            else
+               mandir.files.Insert (caboose, perms);
+            end if;
+         end insert_unique;
       begin
          if store_folders.Contains (train) then
             --  Folder has already been registered
@@ -506,7 +516,7 @@ is
                first_file : manifest_directory;
             begin
                first_file.folder := train;
-               first_file.files.Insert (caboose, perms);
+               insert_unique (first_file);
                store_folders.Insert (train, first_file);
             end;
             store_order.Append (train);
