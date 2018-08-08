@@ -682,4 +682,33 @@ package body Configure is
       end case;
    end update_version;
 
+
+   --------------------------------------------------------------------------------------------
+   --  print_configuration_value
+   --------------------------------------------------------------------------------------------
+   procedure print_configuration_value (option : Character) is
+   begin
+      case option is
+         when 'A' => TIO.Put_Line (HT.USS (PM.configuration.dir_sysroot));
+         when 'B' => TIO.Put_Line (HT.USS (PM.configuration.dir_toolchain));
+         when 'C' => TIO.Put_Line (HT.USS (PM.configuration.dir_localbase));
+         when 'D' => TIO.Put_Line (HT.USS (PM.configuration.dir_conspiracy));
+         when 'E' => TIO.Put_Line (HT.USS (PM.configuration.dir_unkindness));
+         when 'F' => TIO.Put_Line (HT.USS (PM.configuration.dir_distfiles));
+         when 'G' => TIO.Put_Line (HT.USS (PM.configuration.dir_profile));
+         when 'H' => TIO.Put_Line (HT.USS (PM.configuration.dir_packages));
+         when 'I' => TIO.Put_Line (HT.USS (PM.configuration.dir_ccache));
+         when 'J' => TIO.Put_Line (HT.USS (PM.configuration.dir_buildbase));
+         when 'K' => TIO.Put_Line (HT.int2str (Integer (PM.configuration.num_builders)));
+         when 'L' => TIO.Put_Line (HT.int2str (Integer (PM.configuration.jobs_limit)));
+         when 'M' => TIO.Put_Line (HT.bool2str (PM.configuration.avoid_tmpfs));
+         when 'N' => TIO.Put_Line (HT.bool2str (PM.configuration.defer_prebuilt));
+         when 'O' => TIO.Put_Line (HT.bool2str (PM.configuration.avec_ncurses));
+         when 'P' => TIO.Put_Line (HT.bool2str (PM.configuration.record_options));
+         when 'Q' => TIO.Put_Line (HT.bool2str (PM.configuration.batch_mode));
+         when others => TIO.Put_Line ("Error: Input must be character 'A'...'Q'");
+      end case;
+   end print_configuration_value;
+
+
 end Configure;

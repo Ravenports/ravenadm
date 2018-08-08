@@ -12,6 +12,10 @@ package Configure is
    --  Interactive configuration menu
    procedure launch_configure_menu;
 
+   --  Print out configuration value
+   --  If input not 'A' - 'Q', return "Error: Input must be character 'A'...'Q'"
+   procedure print_configuration_value (option : Character);
+
 private
 
    package LAT renames Ada.Characters.Latin_1;

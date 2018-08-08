@@ -4332,7 +4332,7 @@ package body Port_Specification is
    begin
       if specs.users.Is_Empty and then specs.groups.Is_Empty then
          if ugspkg_defined then
-            TIO.Put_Line ("Warning: USERGROUP_SPKG is set, but GROUPS and USERS are not");
+            TIO.Put_Line ("Warning: USERGROUP_SPKG is set, but GROUPS and USERS are not.");
          end if;
          return True;
       end if;

@@ -115,6 +115,14 @@ The
 .Em sort
 subcommand reads the existing manifest files, sort the data by keyword and
 subdirectory groups, and rewrites the manifests.
+.It info
+The
+.Em info
+subcommand displays the value of configuration items.  The next argument
+must be a single character ranging from 'A' to 'Q'.  That character
+corresponds to the main configuration menu options.  For example,
+"ravenadm info A" prints out the System root directory for the given
+profile.
 .El
 .Sh SEE ALSO
 .Xr ravenadm 8 ,

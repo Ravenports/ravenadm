@@ -16,7 +16,7 @@ procedure Ravenadm is
                          status, status_everything, configure, locate, purge, changeopts,
                          checkports, portsnap, repository, list_subpackages, website);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
-                         repatch, sort_plist);
+                         repatch, sort_plist, confinfo);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -91,6 +91,8 @@ procedure Ravenadm is
          return repatch;
       elsif second = "sort" then
          return sort_plist;
+      elsif second = "info" then
+         return confinfo;
       else
          return unset;
       end if;
@@ -173,7 +175,7 @@ begin
                dev_subcmd := scan_dev_command_word;
             end if;
             case dev_subcmd is
-               when template | sort_plist | unset =>
+               when template | sort_plist | confinfo | unset =>
                   low_rights := True;
                when dump | makefile | distinfo | buildsheet | genindex | web | repatch =>
                   if Pilot.insufficient_privileges then
@@ -350,6 +352,8 @@ begin
                      Pilot.print_spec_template (get_arg (3));
                   when genindex =>
                      Pilot.generate_ports_index;
+                  when confinfo =>
+                     Pilot.show_config_value (get_arg (3));
                end case;
             end;
          else

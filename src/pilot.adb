@@ -1677,4 +1677,24 @@ package body Pilot is
       end if;
    end unkindness_index_current;
 
+
+   --------------------------------------------------------------------------------------------
+   --  show_config_value
+   --------------------------------------------------------------------------------------------
+   procedure show_config_value (AQvalue : String)
+   is
+      errmsg : constant String := "Configuration info command requires 'A' .. 'Q' argument";
+      option : Character;
+   begin
+      if HT.IsBlank (AQvalue) then
+         TIO.Put_Line (errmsg);
+      else
+         option := AQvalue (AQvalue'First);
+         case option is
+            when 'A' .. 'Z' => Configure.print_configuration_value (option);
+            when others => TIO.Put_Line (errmsg);
+         end case;
+      end if;
+   end show_config_value;
+
 end Pilot;
