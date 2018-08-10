@@ -177,6 +177,9 @@ private
    --  copy ldconfig hints to /var/run (for pkg-static)
    procedure copy_ldconfig_hints (path_to_varrun : String);
 
+   --  If existing, copy unkindness GID and UID definitions to /construction
+   procedure copy_unkindness_IDs (path_to_construction : String);
+
    --  Install user and group databases
    procedure install_passwd_and_group (path_to_etc : String);
 

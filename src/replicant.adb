@@ -968,6 +968,7 @@ package body Replicant is
       copy_rc_default          (etc_path);
       copy_resolv_conf         (etc_path);
       copy_ldconfig_hints      (slave_base & "/var/run");
+      copy_unkindness_IDs      (slave_base & "/construction");
       create_make_conf         (etc_path);
       install_passwd_and_group (etc_path);
       create_etc_services      (etc_path);
@@ -1174,6 +1175,30 @@ package body Replicant is
       install (nssfiles);
       install (nssdns);
    end copy_resolv_conf;
+
+
+   --------------------------------------------------------------------------------------------
+   --  copy_unkindness_IDs
+   --------------------------------------------------------------------------------------------
+   procedure copy_unkindness_IDs (path_to_construction : String)
+   is
+      procedure install (filename, new_name : String);
+
+      dir_unkindness : constant String := HT.USS (PM.configuration.dir_unkindness);
+
+      procedure install (filename, new_name : String) is
+      begin
+         if DIR.Exists (filename) then
+            DIR.Copy_File (Source_Name => filename,
+                           Target_Name => path_to_construction & new_name);
+         end if;
+      end install;
+   begin
+      if dir_unkindness /= PM.no_unkindness then
+         install (dir_unkindness & "/custom_UID", "/.UID.custom");
+         install (dir_unkindness & "/custom_GID", "/.GID.custom");
+      end if;
+   end copy_unkindness_IDs;
 
 
    --------------------------------------------------------------------------------------------
