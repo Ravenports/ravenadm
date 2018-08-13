@@ -1104,46 +1104,23 @@ package body Port_Specification.Transform is
 
       module : String := "mysql";
 
-      function determine_dependency return String
-      is
-         suffix  : String := ":client:standard";
-         setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
+      function determine_dependency return String is
       begin
          if argument_present (specs, module, "server") then
-            suffix := ":server:standard";
-         end if;
-         if setting = "oracle-5.5" then
-            return "mysql55" & suffix;
-         elsif setting = "oracle-5.6" then
-            return "mysql56" & suffix;
-         elsif setting = "mariadb-10.1" then
-            return "mariadb101" & suffix;
-         elsif setting = "mariadb-10.2" then
-            return "mariadb102" & suffix;
-         elsif setting = "percona-5.5" then
-            return "percona55" & suffix;
-         elsif setting = "percona-5.6" then
-            return "percona56" & suffix;
-         elsif setting = "percona-5.7" then
-            return "percona57" & suffix;
-         elsif setting = "galera-5.5" then
-            return "percona55" & suffix;
-         elsif setting = "galera-5.6" then
-            return "percona56" & suffix;
-         elsif setting = "galera-5.7" then
-            return "percona57" & suffix;
+            return determine_mysql_package (True);
          else
-            --  case: setting = ports_default
-            --  case: setting = default_mysql
-            --  case: setting = invalid value
-            return "mysql57" & suffix;
+            return determine_mysql_package (False);
          end if;
       end determine_dependency;
 
       dependency : String := determine_dependency;
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, dependency);
+         if argument_present (specs, module, "build") then
+            add_build_depends (specs, dependency);
+         else
+            add_buildrun_depends (specs, dependency);
+         end if;
       end if;
    end apply_mysql_module;
 
@@ -1153,33 +1130,11 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_pgsql_module (specs : in out Portspecs)
    is
-      function determine_namebase return String;
       procedure set_dependency (subpackage : String);
       procedure set_dependency_on_subpackage (subpackage : String);
 
       module : String := "pgsql";
-
-      function determine_namebase return String
-      is
-         setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
-      begin
-         if setting = "9.3" then
-            return "postgresql93";
-         elsif setting = "9.4" then
-            return "postgresql94";
-         elsif setting = "9.5" then
-            return "postgresql95";
-         elsif setting = "9.6" then
-            return "postgresql96";
-         else
-            --  case: setting = ports_default
-            --  case: setting = default_pgsql (10 right now)
-            --  case: setting = invalid value
-            return "postgresql100";
-         end if;
-      end determine_namebase;
-
-      namebase : String := determine_namebase;
+      namebase : String := determine_pgsql_namebase;
       build_only : Boolean := argument_present (specs, module, BUILD);
 
       procedure set_dependency (subpackage : String)
@@ -2506,6 +2461,12 @@ package body Port_Specification.Transform is
                   Element := HT.SUS ("perl-" & setting & suffix);
                end if;
             end;
+         elsif exrundep = "mysql" then
+            --  only mysql:client is supported by EXRUN
+            Element := HT.SUS (determine_mysql_package (False));
+         elsif exrundep = "pgsql" then
+            --  only pgsql:client is supported by EXRUN
+            Element := HT.SUS (determine_pgsql_namebase & ":client:standard");
          end if;
       end convert3;
 
@@ -2515,6 +2476,8 @@ package body Port_Specification.Transform is
          txt_python : HT.Text := HT.SUS ("python");
          txt_tcl    : HT.Text := HT.SUS ("tcl");
          txt_perl   : HT.Text := HT.SUS ("perl");
+         txt_mysql  : HT.Text := HT.SUS ("mysql");
+         txt_pgsql  : HT.Text := HT.SUS ("pgsql");
       begin
          if Element.list.Contains (txt_ssl) then
             Element.list.Update_Element (Position => Element.list.Find (txt_ssl),
@@ -2532,6 +2495,15 @@ package body Port_Specification.Transform is
             Element.list.Update_Element (Position => Element.list.Find (txt_perl),
                                          Process  => convert3'Access);
          end if;
+         if Element.list.Contains (txt_mysql) then
+            Element.list.Update_Element (Position => Element.list.Find (txt_mysql),
+                                         Process  => convert3'Access);
+         end if;
+         if Element.list.Contains (txt_pgsql) then
+            Element.list.Update_Element (Position => Element.list.Find (txt_pgsql),
+                                         Process  => convert3'Access);
+         end if;
+
       end convert2;
 
       procedure convert1 (position1 : list_crate.Cursor) is
@@ -2920,5 +2892,70 @@ package body Port_Specification.Transform is
       hit_ext   := argument_present (specs, php_module, "ext");
       specs.php_extensions.Iterate (import'Access);
    end apply_php_extension_dependencies;
+
+
+   --------------------------------------------------------------------------------------------
+   --  determine_mysql_package
+   --------------------------------------------------------------------------------------------
+   function determine_mysql_package (server : Boolean) return String
+   is
+      suffix  : String := ":client:standard";
+      setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
+   begin
+      if server then
+         suffix := ":server:standard";
+      end if;
+      if setting = "oracle-5.5" then
+         return "mysql55" & suffix;
+      elsif setting = "oracle-5.6" then
+         return "mysql56" & suffix;
+      elsif setting = "mariadb-10.1" then
+         return "mariadb101" & suffix;
+      elsif setting = "mariadb-10.2" then
+         return "mariadb102" & suffix;
+      elsif setting = "percona-5.5" then
+         return "percona55" & suffix;
+      elsif setting = "percona-5.6" then
+         return "percona56" & suffix;
+      elsif setting = "percona-5.7" then
+         return "percona57" & suffix;
+      elsif setting = "galera-5.5" then
+         return "percona55" & suffix;
+      elsif setting = "galera-5.6" then
+         return "percona56" & suffix;
+      elsif setting = "galera-5.7" then
+         return "percona57" & suffix;
+      else
+         --  case: setting = ports_default
+         --  case: setting = default_mysql
+         --  case: setting = invalid value
+         return "mysql57" & suffix;
+      end if;
+   end determine_mysql_package;
+
+
+   --------------------------------------------------------------------------------------------
+   --  determine_pgsql_namebase
+   --------------------------------------------------------------------------------------------
+   function determine_pgsql_namebase return String
+   is
+      setting : constant String := HT.USS (Parameters.configuration.def_postgresql);
+   begin
+      if setting = "9.3" then
+         return "postgresql93";
+      elsif setting = "9.4" then
+         return "postgresql94";
+      elsif setting = "9.5" then
+         return "postgresql95";
+      elsif setting = "9.6" then
+         return "postgresql96";
+      else
+         --  case: setting = ports_default
+         --  case: setting = default_pgsql (10 right now)
+         --  case: setting = invalid value
+         return "postgresql100";
+      end if;
+   end determine_pgsql_namebase;
+
 
 end Port_Specification.Transform;

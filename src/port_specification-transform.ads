@@ -151,4 +151,11 @@ private
    --  True for all defaults as they get formed
    function transform_defaults (dep : String) return String;
 
+   --  Returns XXXX:server:standard or XXXX:client:standard depending on server value
+   --  and mysql configuration setting
+   function determine_mysql_package (server : Boolean) return String;
+
+   --  Returns XXXX based on pgsql configuration setting
+   function determine_pgsql_namebase return String;
+
 end Port_Specification.Transform;
