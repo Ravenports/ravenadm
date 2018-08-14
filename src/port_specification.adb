@@ -2914,10 +2914,10 @@ package body Port_Specification is
             dlsite : String :=
               HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
          begin
-            if HT.leads (dlsite, "GITHUB/") or else
-              HT.leads (dlsite, "GH/")
-            then
+            if HT.leads (dlsite, "GITHUB/") then
                return generate_github_distfile (dlsite);
+            elsif HT.leads (dlsite, "GITLAB/") then
+              return generate_gitlab_distfile (dlsite);
             else
                --  future generations
               return "implement me: " & distfile;
