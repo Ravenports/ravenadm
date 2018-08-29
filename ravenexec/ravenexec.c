@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/wait.h>
@@ -21,7 +22,6 @@
 #include <sys/prctl.h>
 #include <sys/types.h>
 #include <dirent.h>
-#include <stdio.h>
 #endif
 #ifndef __unused
 #define __unused __attribute__((__unused__))
@@ -196,7 +196,7 @@ main (int argc, char *argv[])
    dup2 (fd, STDOUT_FILENO);
    dup2 (fd, STDERR_FILENO);
    close (fd);
-#ifndef __linux__
+#if !(defined __linux__ || defined __APPLE__)
    closefrom (3);
 #endif
 
