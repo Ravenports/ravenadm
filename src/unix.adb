@@ -175,6 +175,16 @@ package body Unix is
 
 
    --------------------------------------------------------------------------------------------
+   --  good_stream
+   --------------------------------------------------------------------------------------------
+   function good_stream (OpenFile : CSM.FILEs) return Boolean is
+      res : constant CSM.int := ferror (FileStream => OpenFile);
+   begin
+      return Integer (res) = 0;
+   end good_stream;
+
+
+   --------------------------------------------------------------------------------------------
    --  piped_command
    --------------------------------------------------------------------------------------------
    function piped_command
@@ -187,9 +197,14 @@ package body Unix is
       result     : HT.Text;
    begin
       filestream := popen (IC.To_C (command & redirect), IC.To_C ("re"));
-      result := pipe_read (OpenFile => filestream);
-      status := pipe_close (OpenFile => filestream);
-      return result;
+      if good_stream (filestream) then
+         result := pipe_read (OpenFile => filestream);
+         status := pipe_close (OpenFile => filestream);
+         return result;
+      else
+         status := 1;
+         return HT.SUS ("popen failed: " & command & redirect);
+      end if;
    end piped_command;
 
 
@@ -205,9 +220,14 @@ package body Unix is
       status     : Integer;
    begin
       filestream := popen (IC.To_C (command & redirect), IC.To_C ("re"));
-      abnormal   := pipe_read (OpenFile => filestream);
-      status     := pipe_close (OpenFile => filestream);
-      return status = 0;
+      if good_stream (filestream) then
+         abnormal := pipe_read (OpenFile => filestream);
+         status   := pipe_close (OpenFile => filestream);
+         return status = 0;
+      else
+         abnormal := HT.SUS ("popen failed: " & command & redirect);
+         return False;
+      end if;
    end piped_mute_command;
 
 

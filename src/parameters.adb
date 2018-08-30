@@ -206,14 +206,25 @@ package body Parameters is
       --  Works for *BSD, DragonFly, Bitrig
       --  DF/Free "hw.physmem: 8525971456"  (8G)
       --  NetBSD  "hw.physmem = 1073278976" (1G)
-      command : constant String := "/sbin/sysctl hw.physmem";
+      --  MacOS   "hw.memsize = 2147483648" (16G)
+      bsd_command : constant String := "/sbin/sysctl hw.physmem";
+      mac_command : constant String := "/usr/sbin/sysctl hw.memsize";
       content : HT.Text;
       status  : Integer;
    begin
       memory_megs := 1024;
-      content := Unix.piped_command (command, status);
+      case platform_type is
+         when dragonfly | freebsd | netbsd | openbsd =>
+            content := Unix.piped_command (bsd_command, status);
+         when macos =>
+            content := Unix.piped_command (mac_command, status);
+         when linux | sunos =>
+            --  Impossible case
+            return;
+      end case;
+
       if status /= 0 then
-         TIO.Put_Line ("command failed: " & command);
+         TIO.Put_Line ("query_physical_memory command failed");
          return;
       end if;
       declare
@@ -682,6 +693,7 @@ package body Parameters is
    function get_number_cpus return Positive
    is
       bsd_cmd : constant String := "/sbin/sysctl hw.ncpu";
+      mac_cmd : constant String := "/usr/sbin/sysctl hw.ncpu";
       lin_cmd : constant String := "/usr/bin/nproc";
       sol_cmd : constant String := "/usr/sbin/psrinfo -pv";
       comres  : HT.Text;
@@ -689,6 +701,7 @@ package body Parameters is
       start   : Positive;
    begin
       --  DF/Free: expected output: "hw.ncpu: C" where C is integer
+      --  MacOS:   expected output: "hw.ncpu: C"
       --  NetBSD:  expected output: "hw.ncpu = C"
       --  OpenBSD: expected output: "hw.ncpu=C"
       --  Linux:   expected output: "C"
@@ -699,8 +712,10 @@ package body Parameters is
       --      UltraSPARC-T2+ (cpuid 64 clock 1165 MHz)
 
       case platform_type is
-         when dragonfly | freebsd | macos | netbsd | openbsd =>
+         when dragonfly | freebsd | netbsd | openbsd =>
             comres := Unix.piped_command (bsd_cmd, status);
+         when macos =>
+            comres := Unix.piped_command (mac_cmd, status);
          when linux =>
             comres := Unix.piped_command (lin_cmd, status);
          when sunos =>

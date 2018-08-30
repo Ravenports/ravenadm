@@ -81,6 +81,9 @@ private
    function pclose (FileStream : CSM.FILEs) return CSM.int;
    pragma Import (C, pclose);
 
+   function ferror (FileStream : CSM.FILEs) return CSM.int;
+   pragma Import (C, ferror);
+
    function realpath (pathname, resolved_path : IC.char_array)
                       return ICS.chars_ptr;
    pragma Import (C, realpath, "realpath");
@@ -108,5 +111,8 @@ private
 
    --  internal pipe read command
    function pipe_read (OpenFile : CSM.FILEs) return HT.Text;
+
+   --  Internal file error check
+   function good_stream (OpenFile : CSM.FILEs) return Boolean;
 
 end Unix;
