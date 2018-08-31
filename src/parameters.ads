@@ -58,6 +58,11 @@ package Parameters is
    configuration  : configuration_record;
    active_profile : HT.Text;
 
+   --  Return true if configuration file exists.
+   --  Reason: if it doesn't, we need to check privileges because root is needed
+   --          to pre-create the first version
+   function configuration_exists return Boolean;
+
    --  This procedure will create a default configuration file if one
    --  does not already exist, otherwise it will it load it.  In every case,
    --  the "configuration" record will be populated after this is run.

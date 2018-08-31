@@ -107,6 +107,17 @@ package body Parameters is
 
 
    --------------------------------------------------------------------------------------------
+   --  configuration_exists
+   --------------------------------------------------------------------------------------------
+   function configuration_exists return Boolean
+   is
+      use type DIR.File_Kind;
+   begin
+      return DIR.Exists (conf_location) and then DIR.Kind (conf_location) = DIR.Ordinary_File;
+   end configuration_exists;
+
+
+   --------------------------------------------------------------------------------------------
    --  load_configuration
    --------------------------------------------------------------------------------------------
    function load_configuration return Boolean is

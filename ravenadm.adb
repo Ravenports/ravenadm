@@ -24,6 +24,7 @@ procedure Ravenadm is
 
    mandate    : mandate_type := unset;
    low_rights : Boolean := False;
+   reg_user   : Boolean;
 
    procedure scan_first_command_word
    is
@@ -129,6 +130,14 @@ begin
       return;
    end if;
 
+   reg_user := Pilot.insufficient_privileges;
+
+   if not Parameters.configuration_exists and then reg_user then
+      TIO.Put_Line ("No configuration file found.");
+      TIO.Put_Line ("Please switch to root permissions and retry the command.");
+      return;
+   end if;
+
    if not Parameters.load_configuration then
       return;
    end if;
@@ -178,13 +187,13 @@ begin
                when template | sort_plist | confinfo | unset =>
                   low_rights := True;
                when dump | makefile | distinfo | buildsheet | genindex | web | repatch =>
-                  if Pilot.insufficient_privileges then
+                  if reg_user then
                      return;
                   end if;
             end case;
          end;
       when others =>
-         if Pilot.insufficient_privileges then
+         if reg_user then
             return;
          end if;
    end case;
