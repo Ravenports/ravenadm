@@ -75,6 +75,9 @@ private
    type uInt8 is mod 2 ** 16;
    type Int32 is range -(2 ** 31) .. +(2 ** 31) - 1;
 
+   popen_re : constant IC.char_array := IC.To_C ("re");
+   popen_r  : constant IC.char_array := IC.To_C ("r");
+
    function popen (Command, Mode : IC.char_array) return CSM.FILEs;
    pragma Import (C, popen);
 

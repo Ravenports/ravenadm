@@ -1,6 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Definitions;  use Definitions;
 with GNAT.OS_Lib;
 with Ada.Text_IO;
 with Parameters;
@@ -177,10 +178,17 @@ package body Unix is
    --------------------------------------------------------------------------------------------
    --  good_stream
    --------------------------------------------------------------------------------------------
-   function good_stream (OpenFile : CSM.FILEs) return Boolean is
-      res : constant CSM.int := ferror (FileStream => OpenFile);
+   function good_stream (OpenFile : CSM.FILEs) return Boolean
+   is
+      use type System.Address;
+      res : CSM.int;
    begin
-      return Integer (res) = 0;
+      if OpenFile = CSM.NULL_Stream then
+         return False;
+      else
+         res := ferror (FileStream => OpenFile);
+         return Integer (res) = 0;
+      end if;
    end good_stream;
 
 
@@ -196,7 +204,12 @@ package body Unix is
       filestream : CSM.FILEs;
       result     : HT.Text;
    begin
-      filestream := popen (IC.To_C (command & redirect), IC.To_C ("re"));
+      case platform_type is
+         when freebsd | dragonfly | linux | netbsd | openbsd =>
+            filestream := popen (IC.To_C (command & redirect), popen_re);
+         when macos | sunos =>
+            filestream := popen (IC.To_C (command & redirect), popen_r);
+      end case;
       if good_stream (filestream) then
          result := pipe_read (OpenFile => filestream);
          status := pipe_close (OpenFile => filestream);
@@ -219,7 +232,12 @@ package body Unix is
       filestream : CSM.FILEs;
       status     : Integer;
    begin
-      filestream := popen (IC.To_C (command & redirect), IC.To_C ("re"));
+      case platform_type is
+         when freebsd | dragonfly | linux | netbsd | openbsd =>
+            filestream := popen (IC.To_C (command & redirect), popen_re);
+         when macos | sunos =>
+            filestream := popen (IC.To_C (command & redirect), popen_r);
+      end case;
       if good_stream (filestream) then
          abnormal := pipe_read (OpenFile => filestream);
          status   := pipe_close (OpenFile => filestream);
