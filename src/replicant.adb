@@ -591,6 +591,7 @@ package body Replicant is
       cmd_dragonfly : constant String := "/sbin/mount_null";
       cmd_solaris   : constant String := "/sbin/mount -F lofs";
       cmd_linux     : constant String := "/bin/mount --bind";
+      cmd_macos     : constant String := host_localbase & "/bin/bindfs";
       command       : HT.Text;
    begin
       if not DIR.Exists (mount_point) then
@@ -608,7 +609,8 @@ package body Replicant is
               netbsd    => command := HT.SUS (cmd_dragonfly);
          when sunos     => command := HT.SUS (cmd_solaris);
          when linux     => command := HT.SUS (cmd_linux);
-         when openbsd | macos =>
+         when macos     => command := HT.SUS (cmd_macos);
+         when openbsd   =>
             raise scenario_unexpected with
               "Null mounting not supported on " & platform_type'Img;
       end case;
@@ -640,7 +642,7 @@ package body Replicant is
          when linux     => command := HT.SUS (cmd_linux);
          when macos     =>
             raise scenario_unexpected with
-              "Null mounting not supported on " & platform_type'Img;
+              "tmpfs not supported on " & platform_type'Img;
       end case;
       if max_size_M > 0 then
          HT.SU.Append (command, " -o size=" & HT.trim (max_size_M'Img) & "M");
@@ -668,11 +670,11 @@ package body Replicant is
    begin
       case platform_type is
          when dragonfly |
-              freebsd   => execute (bsd_command);
+              freebsd   |
+              macos     => execute (bsd_command);
          when linux     => execute (lin_command);
          when netbsd    |
               openbsd   |
-              macos     |
               sunos     => mount_nullfs (target => "/dev", mount_point => path_to_dev);
       end case;
    end mount_devices;
@@ -705,7 +707,7 @@ package body Replicant is
          when sunos     => mount_nullfs (target => "/proc", mount_point => path_to_proc);
          when macos =>
             raise scenario_unexpected with
-              "Null mounting not supported on " & platform_type'Img;
+              "procfs not supported on " & platform_type'Img;
       end case;
    end mount_procfs;
 

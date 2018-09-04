@@ -443,7 +443,7 @@ package body Parameters is
       result.dir_profile    := HT.replace_substring (HT.SUS (pri_profile), "[X]", new_profile);
       result.num_builders   := builders (def_builders);
       result.jobs_limit     := builders (def_jlimit);
-      result.avoid_tmpfs    := not enough_memory (builders (def_builders));
+
       result.avec_ncurses   := True;
       result.defer_prebuilt := False;
       result.record_options := False;
@@ -459,6 +459,11 @@ package body Parameters is
       result.def_ruby        := floating;
       result.def_ssl         := floating;
       result.def_tcl_tk      := floating;
+
+      case platform_type is
+         when macos  => result.avoid_tmpfs := True;
+         when others => result.avoid_tmpfs := not enough_memory (builders (def_builders));
+      end case;
 
       return result;
    end default_profile;

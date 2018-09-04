@@ -300,7 +300,11 @@ package body Configure is
          end case;
       end loop;
       case opt is
-         when 13 => dupe.avoid_tmpfs    := new_value;
+         when 13 =>
+            case platform_type is
+               when macos  => dupe.avoid_tmpfs := True;
+               when others => dupe.avoid_tmpfs := new_value;
+            end case;
          when 14 => dupe.defer_prebuilt := new_value;
          when 15 => dupe.avec_ncurses   := new_value;
          when 16 => dupe.record_options := new_value;
