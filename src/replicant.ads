@@ -180,6 +180,9 @@ private
    --  If existing, copy unkindness GID and UID definitions to /construction
    procedure copy_unkindness_IDs (path_to_construction : String);
 
+   --  On macos, create hardlink of /var/run/mDNSReponder to enable DNS lookups
+   procedure fix_macos_resolv (path_to_varrun : String);
+
    --  Install user and group databases
    procedure install_passwd_and_group (path_to_etc : String);
 

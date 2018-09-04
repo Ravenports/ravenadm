@@ -302,4 +302,23 @@ package body Unix is
       when others => return "";
    end true_path;
 
+
+   --------------------------------------------------------------------------------------------
+   --  create_hardlink
+   --------------------------------------------------------------------------------------------
+   function create_hardlink (actual_file : String; destination : String) return Boolean
+   is
+      use type IC.int;
+      path1  : IC.char_array := IC.To_C (actual_file);
+      path2  : IC.char_array := IC.To_C (destination);
+      result : IC.int;
+   begin
+      if actual_file = "" or else destination = "" then
+         return False;
+      end if;
+      result := link (path1, path2);
+
+      return result = 0;
+   end create_hardlink;
+
 end Unix;

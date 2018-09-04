@@ -971,6 +971,7 @@ package body Replicant is
       copy_resolv_conf         (etc_path);
       copy_ldconfig_hints      (slave_base & "/var/run");
       copy_unkindness_IDs      (slave_base & "/construction");
+      fix_macos_resolv         (slave_base & "/var/run");
       create_make_conf         (etc_path);
       install_passwd_and_group (etc_path);
       create_etc_services      (etc_path);
@@ -1133,6 +1134,31 @@ package body Replicant is
          when macos | linux | sunos => null;
       end case;
    end copy_ldconfig_hints;
+
+
+   --------------------------------------------------------------------------------------------
+   --  fix_macos_resolv
+   --------------------------------------------------------------------------------------------
+   procedure fix_macos_resolv (path_to_varrun : String)
+   is
+
+      DNSR      : constant String := "/mDNSResponder";
+      path_orig : constant String := "/var/run" & DNSR;
+      path_dest : constant String := path_to_varrun & DNSR;
+      errprefix : constant String := "Hardlink failure: ";
+   begin
+      case platform_type is
+         when macos =>
+            if DIR.Exists (path_orig) then
+               if not Unix.create_hardlink (path_orig, path_dest) then
+                  TIO.Put_Line (errprefix & "link " & path_dest & " to " & path_orig);
+               end if;
+            else
+               TIO.Put_Line (errprefix & path_orig & " is not present on system");
+            end if;
+         when others => null;
+      end case;
+   end fix_macos_resolv;
 
 
    --------------------------------------------------------------------------------------------

@@ -70,6 +70,9 @@ package Unix is
    --  If that happens, synth will suspend and ultimately fail.
    procedure ignore_background_tty;
 
+   --  Attempts to create a hardlink and returns True on success
+   function create_hardlink (actual_file : String; destination : String) return Boolean;
+
 private
 
    type uInt8 is mod 2 ** 16;
@@ -108,6 +111,9 @@ private
 
    function ignore_tty_read return uInt8;
    pragma Import (C, ignore_tty_read, "__ignore_background_tty_reads");
+
+   function link (path1, path2 : IC.char_array) return IC.int;
+   pragma Import (C, link);
 
    --  internal pipe close command
    function pipe_close (OpenFile : CSM.FILEs) return Integer;

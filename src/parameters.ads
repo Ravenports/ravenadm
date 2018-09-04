@@ -149,13 +149,11 @@ private
    global_01 : constant String := "profile_selected";
    global_02 : constant String := "url_conspiracy";
 
-   first_profile : constant String := "primary";
-   raven_var     : constant String := "/var/ravenports";
-
+   first_profile  : constant String := "primary";
    master_section : constant String := "Global Configuration";
    pri_packages   : constant String := raven_var & "/[X]/packages";
    pri_profile    : constant String := raven_var & "/[X]";
-   pri_buildbase  : constant String := "/usr/obj/ravenports";
+   pri_buildbase  : constant String := raven_var & "/builders";
    ravenadm_ini   : constant String := "ravenadm.ini";
    conf_location  : constant String := raven_confdir & "/" & ravenadm_ini;
    std_localbase  : constant String := "/raven";
