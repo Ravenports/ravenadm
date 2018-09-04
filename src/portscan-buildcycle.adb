@@ -1068,13 +1068,17 @@ package body PortScan.Buildcycle is
       function probe_load return String
       is
          bsd  : constant String := "/usr/bin/env LANG=C /sbin/sysctl vm.loadavg";
+         mac  : constant String := "/usr/bin/env LANG=C /usr/sbin/sysctl vm.loadavg";
          lin  : constant String := "/bin/cat /proc/loadavg";
          sol  : constant String := "/usr/bin/uptime";
       begin
          case platform_type is
-            when dragonfly | freebsd | macos =>
+            when dragonfly | freebsd =>
                lo := 14;
                return generic_system_command (bsd);
+            when macos =>
+               lo := 14;
+               return generic_system_command (mac);
             when netbsd | openbsd =>
                lo := 12;
                return generic_system_command (bsd);
