@@ -1041,7 +1041,9 @@ package body Replicant is
       end case;
 
       if PM.configuration.avoid_tmpfs then
-         unmount (slave_base & lbase, 5);
+         if lbase = bsd_localbase then
+            unmount (slave_base & lbase, 5);
+         end if;
          annihilate_directory_tree (slave_local);
       else
          if lbase = bsd_localbase then
