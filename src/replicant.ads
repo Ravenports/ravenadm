@@ -77,7 +77,7 @@ private
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
                    proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain,
-                   devices);
+                   devices, frameworks);
    subtype safefolders is folder range bin .. ccache;
 
    --  home and root need to be set readonly
@@ -106,6 +106,7 @@ private
    bsd_localbase    : constant String := "/usr/local";
    toolchain_dir    : constant String := "/toolchain";
    root_devices     : constant String := "/devices";
+   root_frameworks  : constant String := "/System/Library/Frameworks";
 
    chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
 

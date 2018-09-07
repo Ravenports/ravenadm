@@ -749,6 +749,7 @@ package body Replicant is
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
          when devices     => return mount_base & root_devices;
+         when frameworks  => return mount_base & root_frameworks;
          when localbase   => return mount_base & HT.USS (PM.configuration.dir_localbase);
          when toolchain   => return mount_base & HT.USS (PM.configuration.dir_localbase) &
                                     toolchain_dir;
@@ -942,7 +943,7 @@ package body Replicant is
             mount_nullfs (location (dir_system, lib),   location (slave_base, lib));
             mount_nullfs (root_devices,                 location (slave_base, devices));
          when macos =>
-            null;  --  for now
+            forge_directory (location (slave_base, frameworks));
       end case;
 
       folder_access (location (slave_base, home), lock);
