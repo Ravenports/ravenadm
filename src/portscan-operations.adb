@@ -1150,9 +1150,27 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
+   --  isolate_arch_from_macho_file
+   --------------------------------------------------------------------------------------------
+   function isolate_arch_from_macho_file (fileinfo : String) return filearch
+   is
+      --  Mac: Mach-O 64-bit x86_64 executable, flags
+      fragment : constant String := HT.trim (HT.specific_field (fileinfo, 3));
+      answer   : filearch := (others => ' ');
+   begin
+      if fragment'Length > filearch'Length then
+         answer := fragment (fragment'First .. fragment'First + filearch'Length - 1);
+      else
+         answer (answer'First .. answer'First + fragment'Length - 1) := fragment;
+      end if;
+      return answer;
+   end isolate_arch_from_macho_file;
+
+
+   --------------------------------------------------------------------------------------------
    --  establish_package_architecture
    --------------------------------------------------------------------------------------------
-   procedure establish_package_architecture
+   procedure establish_package_architecture (release : String)
    is
       function newsuffix   (arch : filearch) return String;
       function suffix      (arch : filearch) return String;
@@ -1298,7 +1316,12 @@ package body PortScan.Operations is
 
    begin
       UN   := Unix.piped_command (command, status);
-      arch := isolate_arch_from_file_type (HT.USS (UN));
+      case platform_type is
+         when macos =>
+            arch := isolate_arch_from_macho_file (HT.USS (UN));
+         when others =>
+            arch := isolate_arch_from_file_type (HT.USS (UN));
+      end case;
       case platform_type is
          when dragonfly =>
             declare
@@ -1353,7 +1376,16 @@ package body PortScan.Operations is
                abi_formats.calculated_alt_abi := HT.SUS (sol2);
                craft_common_endings (release);
             end;
-         when macos   => null;
+         when macos   =>
+            --  Hardcode i386 for now until pkg(8) fixed to provide correct arch
+            abi_formats.calculated_abi     := HT.SUS ("Darwin:" & release & ":");
+            abi_formats.calculated_alt_abi := HT.SUS ("darwin:" & release & ":");
+            abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
+            abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
+            HT.SU.Append (abi_formats.calculated_abi, "i386");
+            HT.SU.Append (abi_formats.calculated_alt_abi, "i386:32");
+            HT.SU.Append (abi_formats.calc_abi_noarch, "*");
+            HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
          when openbsd => null;
       end case;
    end establish_package_architecture;
@@ -1366,7 +1398,8 @@ package body PortScan.Operations is
      (repository       : String;
       dry_run          : Boolean;
       rebuild_compiler : Boolean;
-      suppress_remote  : Boolean)
+      suppress_remote  : Boolean;
+      major_release    : String)
    is
       procedure prune_packages (cursor : ranking_crate.Cursor);
       procedure check_package (cursor : ranking_crate.Cursor);
@@ -1569,7 +1602,7 @@ package body PortScan.Operations is
       if Unix.env_variable_defined ("WHYFAIL") then
          activate_debugging_code;
       end if;
-      establish_package_architecture;
+      establish_package_architecture (major_release);
       original_queue_len := rank_queue.Length;
       for m in scanners'Range loop
          mq_progress (m) := 0;

@@ -69,7 +69,8 @@ package PortScan.Operations is
      (repository       : String;
       dry_run          : Boolean;
       rebuild_compiler : Boolean;
-      suppress_remote  : Boolean);
+      suppress_remote  : Boolean;
+      major_release    : String);
 
    --  Unconditionally copies web assets to <log directory/report directory
    --  It also provides an initial summary.json data file just the report has something to load
@@ -237,9 +238,13 @@ private
 
    --  This calculates the ABI for the platform and stores it.  The value is
    --  used by passed_abi_check()
-   procedure establish_package_architecture;
+   procedure establish_package_architecture (release : String);
 
+   --  Use file to determine arch on ELF platforms
    function isolate_arch_from_file_type (fileinfo : String) return filearch;
+
+   --  Use file to dtermine arch on MacOS
+   function isolate_arch_from_macho_file (fileinfo : String) return filearch;
 
    --  This function returns "True" if the scanned dependencies match exactly
    --  what the current ports tree has.
