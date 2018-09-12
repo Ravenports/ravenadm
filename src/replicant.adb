@@ -537,9 +537,9 @@ package body Replicant is
    function df_command return String is
    begin
       case platform_type is
-         when freebsd   => return "/bin/df -h";
+         when freebsd   |
+              macos     => return "/bin/df -h";
          when dragonfly |
-              macos     |
               netbsd    |
               openbsd   => return "/bin/df -h -t null,tmpfs,devfs,procfs";
          when sunos     => return "/usr/sbin/df -h";
