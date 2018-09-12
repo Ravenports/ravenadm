@@ -805,7 +805,7 @@ package body Pilot is
                                 dry_run          => dry_run,
                                 rebuild_compiler => explicit_ravensys,
                                 suppress_remote  => block_remote,
-                                major_release    => HT.USS (sysrootver.release));
+                                major_release    => HT.USS (sysrootver.major));
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
       if dry_run then
          return True;
