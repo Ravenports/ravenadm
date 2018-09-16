@@ -589,7 +589,11 @@ package body PortScan.Buildcycle is
       function set_terminal (enable_tty : Boolean) return String is
       begin
          if enable_tty then
-            return "TERM=xterm ";
+            case platform_type is
+               when macos  => return "TERM=builtin_xterm ";
+               when sunos  => return "TERM=sun-color ";
+               when others => return "TERM=xterm ";
+            end case;
          end if;
          return "TERM=dumb ";
       end set_terminal;

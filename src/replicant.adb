@@ -944,6 +944,7 @@ package body Replicant is
             mount_nullfs (root_devices,                 location (slave_base, devices));
          when macos =>
             forge_directory (location (slave_base, frameworks));
+            mount_nullfs (location (dir_system, frameworks), location (slave_base, frameworks));
       end case;
 
       folder_access (location (slave_base, home), lock);
@@ -1037,7 +1038,7 @@ package body Replicant is
             unmount (location (slave_base, lib));
             unmount (location (slave_base, devices));
          when macos =>
-            null;
+            unmount (location (dir_system, frameworks));
       end case;
 
       if PM.configuration.avoid_tmpfs then

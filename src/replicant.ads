@@ -106,7 +106,7 @@ private
    bsd_localbase    : constant String := "/usr/local";
    toolchain_dir    : constant String := "/toolchain";
    root_devices     : constant String := "/devices";
-   root_frameworks  : constant String := "/System/Library/Frameworks";
+   root_frameworks  : constant String := "/System/Library";
 
    chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
 
