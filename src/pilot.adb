@@ -494,7 +494,7 @@ package body Pilot is
          if resint = 0 then
             return False;
          else
-            TIO.Put_Line ("This command requires root permissions to execute.");
+            --  Regular user called this
             return True;
          end if;
       end;
