@@ -590,7 +590,6 @@ package body PortScan.Buildcycle is
       begin
          if enable_tty then
             case platform_type is
-               when macos  => return "TERM=builtin_xterm ";
                when sunos  => return "TERM=sun-color ";
                when others => return "TERM=xterm ";
             end case;
