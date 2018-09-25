@@ -306,10 +306,11 @@ package body Port_Specification.Transform is
          apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
          apply_gcc_run_module (specs, variant, "cclibs", "libs");
          apply_gcc_run_module (specs, variant, "compiler", "complete");
-         if platform_type = sunos then
+         if platform_type = sunos or else platform_type = macos
+         then
             --  Solaris 10 doesn't use dl_iterate_phdr, so many packages have executables that
             --  requires libgcc_s.so.  Rather than specify potentially hundreds of C_USES
-            --  keywords, just make gcc7:libs:standard a run depends of every package (including
+            --  keywords, just make gcc8:libs:standard a run depends of every package (including
             --  gcc6, gcc7, gcc8 and later).
             add_exrun_cclibs (specs, variant);
          end if;

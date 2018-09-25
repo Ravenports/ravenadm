@@ -205,6 +205,9 @@ private
    --  Concatentation used for per-profile make.conf fragments (if they exist)
    procedure concatenate_makeconf (makeconf_handle : TIO.File_Type; target_name : String);
 
+   --  Only MacOS (only, current), copy libgcc_s over so it's always available.
+   procedure preplace_libgcc_s (path_to_toolchain : String);
+
    --  Returns true if mount point has a nullfs or tmpfs mount on it.
    function specific_mount_exists (mount_point : String) return Boolean;
 

@@ -1154,8 +1154,8 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function isolate_arch_from_macho_file (fileinfo : String) return filearch
    is
-      --  Mac: Mach-O 64-bit x86_64 executable, flags
-      fragment : constant String := HT.trim (HT.specific_field (fileinfo, 3));
+      --  Mac: Mach-O 64-bit executable x86_64
+      fragment : constant String := HT.trim (HT.specific_field (fileinfo, 4));
       answer   : filearch := (others => ' ');
    begin
       if fragment'Length > filearch'Length then
