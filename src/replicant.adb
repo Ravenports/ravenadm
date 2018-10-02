@@ -980,7 +980,6 @@ package body Replicant is
       create_etc_shells        (etc_path);
       create_sun_files         (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
-      preplace_libgcc_s        (location (slave_base, toolchain));
 
    exception
       when hiccup : others =>
@@ -1164,29 +1163,6 @@ package body Replicant is
          when others => null;
       end case;
    end fix_macos_resolv;
-
-
-   --------------------------------------------------------------------------------------------
-   --  preplace_libgcc_s
-   --------------------------------------------------------------------------------------------
-   procedure preplace_libgcc_s (path_to_toolchain : String)
-   is
-      mpath : constant String := "/" & default_compiler & "/lib";
-      dylib : constant String := mpath & "/libgcc_s.1.dylib";
-      TC : constant String := mount_target (toolchain);
-   begin
-      case platform_type is
-         when macos =>
-            if DIR.Exists (TC & dylib) then
-               forge_directory (path_to_toolchain & mpath);
-               DIR.Copy_File (Source_Name => TC & dylib,
-                              Target_Name => path_to_toolchain & dylib);
-            else
-               TIO.Put_Line (TC & dylib & " is not present on system");
-            end if;
-         when others => null;
-      end case;
-   end preplace_libgcc_s;
 
 
    --------------------------------------------------------------------------------------------
