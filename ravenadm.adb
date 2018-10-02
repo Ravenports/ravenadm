@@ -194,6 +194,7 @@ begin
          end;
       when others =>
          if reg_user then
+            TIO.Put_Line ("This command requires root permissions to execute.");
             return;
          end if;
    end case;
