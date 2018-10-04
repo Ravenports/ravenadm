@@ -2769,10 +2769,7 @@ package body Port_Specification is
       if HT.IsBlank (joined) then
          return "";
       else
-         return "    ," & quote ("contacts") & ": " &
-           UTL.json_array (True, 0) &
-           " " & HT.USS (joined) & " " &
-           UTL.json_array (False, 0);
+         return "    ," & quote ("contacts") & ": [ " & HT.USS (joined) & " ]" & LAT.LF;
       end if;
    end get_json_contacts;
 
