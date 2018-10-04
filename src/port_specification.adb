@@ -2733,6 +2733,51 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_json_contacts
+   --------------------------------------------------------------------------------------------
+   function get_json_contacts (specs : Portspecs) return String
+   is
+      procedure scan_contact (position : string_crate.Cursor);
+      function quote (value : String) return String;
+
+      joined : HT.Text;
+
+      function quote (value : String) return String is
+      begin
+         return LAT.Quotation & value & LAT.Quotation;
+      end quote;
+
+      procedure scan_contact (position : string_crate.Cursor)
+      is
+         contact : String := HT.USS (string_crate.Element (position));
+         email   : String := HT.part_1 (HT.part_2 (contact, "["), "]");
+         guy     : String := HT.replace_all (S      => HT.part_1 (contact, "["),
+                                             reject => LAT.Low_Line,
+                                             shiny  => LAT.Space);
+      begin
+         if contact /= contact_nobody then
+            if not HT.IsBlank (joined) then
+               HT.SU.Append (joined, ", ");
+            end if;
+            HT.SU.Append (joined, "{ " & quote ("name") & ": " & quote (guy) &
+                            ", " & quote ("email") & ": " & quote (email) & " }");
+
+         end if;
+      end scan_contact;
+   begin
+      specs.contacts.Iterate (scan_contact'Access);
+      if HT.IsBlank (joined) then
+         return "";
+      else
+         return "    ," & quote ("contacts") & ": " &
+           UTL.json_array (True, 0) &
+           " " & HT.USS (joined) & " " &
+           UTL.json_array (False, 0);
+      end if;
+   end get_json_contacts;
+
+
+   --------------------------------------------------------------------------------------------
    --  get_tagline
    --------------------------------------------------------------------------------------------
    function get_tagline (specs : Portspecs; variant : String) return String

@@ -31,6 +31,7 @@ package body Port_Specification.Json is
            UTL.json_nvpair_string  ("FPC",      fpcval, 3, pad) &
            UTL.json_nvpair_complex ("keywords", describe_keywords (specs), 3, pad) &
            UTL.json_nvpair_complex ("distfile", describe_distfiles (specs), 3, pad) &
+           specs.get_json_contacts &
            UTL.json_name_complex   ("variants", 4, pad) &
            UTL.json_array (True, pad + 1)
         );

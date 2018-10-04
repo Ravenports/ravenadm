@@ -279,6 +279,10 @@ package Port_Specification is
    --  Format contacts with html (span, mailto)
    function get_web_contacts (specs : Portspecs; subject : String) return String;
 
+   --  Provides json-formatted contacts
+   --  If contact is "nobody" then it returns a blank string
+   function get_json_contacts (specs : Portspecs) return String;
+
    --  Ensure opsys dependencies are not applied (only for web page generation)
    procedure do_not_apply_opsys_dependencies (specs : in out Portspecs);
 
