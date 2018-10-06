@@ -1097,7 +1097,7 @@ package body Replicant is
       case platform_type is
          when macos | openbsd =>
             if DIR.Exists (tc_path) then
-               DIR.Delete_File (tc_path);
+               DIR.Delete_Directory (tc_path);
             end if;
             if not Unix.create_symlink (tc_path & "-active", tc_path) then
                raise scenario_unexpected
@@ -1120,7 +1120,7 @@ package body Replicant is
       case platform_type is
          when macos | openbsd =>
             if DIR.Exists (tc_path) then
-               DIR.Delete_File (tc_path);
+               DIR.Delete_Directory (tc_path);
             end if;
             if not Unix.create_symlink (tc_path & "-disabled", tc_path) then
                raise scenario_unexpected
