@@ -947,6 +947,7 @@ package body Replicant is
                             location (slave_base, toolchain) & "-active",
                             dir_system);
             preplace_libgcc_s (location (slave_base, toolchain) & "-disabled");
+            unhook_toolchain (id);
          when others =>
             mount_nullfs (location (dir_system, bin), location (slave_base, bin));
             mount_nullfs (location (dir_system, usr), location (slave_base, usr));
