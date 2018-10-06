@@ -1091,13 +1091,18 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure hook_toolchain (id : builders)
    is
+      use type DIR.File_Kind;
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
    begin
       case platform_type is
          when macos | openbsd =>
             if DIR.Exists (tc_path) then
-               DIR.Delete_Directory (tc_path);
+               if DIR.Kind (tc_path) = DIR.Directory then
+                  DIR.Delete_Directory (tc_path);
+               else
+                  DIR.Delete_File (tc_path);
+               end if;
             end if;
             if not Unix.create_symlink (tc_path & "-active", tc_path) then
                raise scenario_unexpected
@@ -1114,13 +1119,18 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure unhook_toolchain (id : builders)
    is
+      use type DIR.File_Kind;
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
    begin
       case platform_type is
          when macos | openbsd =>
             if DIR.Exists (tc_path) then
-               DIR.Delete_Directory (tc_path);
+               if DIR.Kind (tc_path) = DIR.Directory then
+                  DIR.Delete_Directory (tc_path);
+               else
+                  DIR.Delete_File (tc_path);
+               end if;
             end if;
             if not Unix.create_symlink (tc_path & "-disabled", tc_path) then
                raise scenario_unexpected
