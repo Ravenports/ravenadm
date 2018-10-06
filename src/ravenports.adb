@@ -178,20 +178,14 @@ package body Ravenports is
       consdir       : constant String := HT.USS (PM.configuration.dir_conspiracy);
       mv_program    : constant String := sysroot & "/bin/mv ";
       tar_program   : constant String := sysroot & "/usr/bin/tar ";
-      find_program  : constant String := sysroot & "/usr/bin/find ";
-      chmod_program : constant String := sysroot & "/bin/chmod ";
       tarball       : constant String := "/tmp/" & latest_version & ".tar.gz";
       extract_dir   : constant String := "/tmp/Ravenports-" & latest_version;
       cmd_output    : HT.Text;
       command       : constant String := tar_program & "-C /tmp -xf " & tarball;
       command2      : constant String := mv_program & extract_dir & " " & consdir;
-      command3      : constant String := find_program & consdir & " -type d -exec " &
-                                         chmod_program & "555 {} +";
    begin
-      if Unix.piped_mute_command (command, cmd_output) and then
-        Unix.piped_mute_command (command2, cmd_output)
-      then
-         return Unix.piped_mute_command (command3, cmd_output);
+      if Unix.piped_mute_command (command, cmd_output) then
+         return Unix.piped_mute_command (command2, cmd_output);
       else
          return False;
       end if;

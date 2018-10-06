@@ -73,6 +73,9 @@ package Unix is
    --  Attempts to create a hardlink and returns True on success
    function create_hardlink (actual_file : String; destination : String) return Boolean;
 
+   --  Attempts to create a symlink and returns True on success
+   function create_symlink (actual_file : String; destination : String) return Boolean;
+
 private
 
    type uInt8 is mod 2 ** 16;
@@ -114,6 +117,9 @@ private
 
    function link (path1, path2 : IC.char_array) return IC.int;
    pragma Import (C, link);
+
+   function symlink (path1, path2 : IC.char_array) return IC.int;
+   pragma Import (C, symlink);
 
    --  internal pipe close command
    function pipe_close (OpenFile : CSM.FILEs) return Integer;

@@ -321,4 +321,23 @@ package body Unix is
       return result = 0;
    end create_hardlink;
 
+
+   --------------------------------------------------------------------------------------------
+   --  create_symlink
+   --------------------------------------------------------------------------------------------
+   function create_symlink (actual_file : String; destination : String) return Boolean
+   is
+      use type IC.int;
+      path1  : IC.char_array := IC.To_C (actual_file);
+      path2  : IC.char_array := IC.To_C (destination);
+      result : IC.int;
+   begin
+      if actual_file = "" or else destination = "" then
+         return False;
+      end if;
+      result := symlink (path1, path2);
+
+      return result = 0;
+   end create_symlink;
+
 end Unix;

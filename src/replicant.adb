@@ -591,7 +591,8 @@ package body Replicant is
       cmd_dragonfly : constant String := "/sbin/mount_null";
       cmd_solaris   : constant String := "/sbin/mount -F lofs";
       cmd_linux     : constant String := "/bin/mount --bind";
-      cmd_macos     : constant String := host_localbase & "/bin/bindfs";
+      cmd_macos     : constant String := "/sbin/mount -t nfs";
+      cmd_openbsd   : constant String := "/sbin/mount_nfs";
       command       : HT.Text;
    begin
       if not DIR.Exists (mount_point) then
@@ -610,15 +611,18 @@ package body Replicant is
          when sunos     => command := HT.SUS (cmd_solaris);
          when linux     => command := HT.SUS (cmd_linux);
          when macos     => command := HT.SUS (cmd_macos);
-         when openbsd   =>
-            raise scenario_unexpected with
-              "Null mounting not supported on " & platform_type'Img;
+         when openbsd   => command := HT.SUS (cmd_openbsd);
       end case;
       case mode is
          when readonly  => HT.SU.Append (command, " -o ro");
          when readwrite => null;
       end case;
-      execute (HT.USS (command) & " " & target & " " & mount_point);
+      case platform_type is
+         when macos | openbsd =>
+            execute (HT.USS (command) & " 127.0.0.1:" & target & " " & mount_point);
+         when others =>
+            execute (HT.USS (command) & " " & target & " " & mount_point);
+      end case;
    end mount_nullfs;
 
 
@@ -635,12 +639,12 @@ package body Replicant is
    begin
       case platform_type is
          when freebsd   |
-              netbsd    |
-              openbsd   => command := HT.SUS (cmd_freebsd);
+              netbsd    => command := HT.SUS (cmd_freebsd);
          when dragonfly => command := HT.SUS (cmd_dragonfly);
          when sunos     => command := HT.SUS (cmd_solaris);
          when linux     => command := HT.SUS (cmd_linux);
-         when macos     =>
+         when macos     |     --  Not available at all
+              openbsd   =>    --  Was available, disabled on OpenBSD 6.0 (no maintenance)
             raise scenario_unexpected with
               "tmpfs not supported on " & platform_type'Img;
       end case;
@@ -652,9 +656,9 @@ package body Replicant is
          when freebsd   |
               dragonfly |
               netbsd    |
-              openbsd   |
               linux     => HT.SU.Append (command, " tmpfs " & mount_point);
          when macos     => null;
+         when openbsd   => null;
       end case;
       execute (HT.USS (command));
    end mount_tmpfs;
@@ -719,6 +723,23 @@ package body Replicant is
    begin
       unmount (path_to_proc);
    end unmount_procfs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_hardlink
+   --------------------------------------------------------------------------------------------
+   procedure mount_hardlink (target, mount_point, sysroot : String)
+   is
+      find_program  : constant String := sysroot & "/usr/bin/find ";
+      copy_program  : constant String := sysroot & "/bin/cp -al ";
+      chmod_program : constant String := sysroot & "/bin/chmod ";
+   begin
+      if DIR.Exists (mount_point) then
+         DIR.Delete_Directory (mount_point);
+      end if;
+      execute (copy_program & target & " " & mount_point);
+      execute (find_program & mount_point & " -type d -exec " & chmod_program & "555 {} +");
+   end mount_hardlink;
 
 
    --------------------------------------------------------------------------------------------
@@ -792,40 +813,30 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure folder_access (path : String; operation : folder_operation)
    is
+      --  chattr does not work on tmpfs partitions
+      --  It appears immutable locking can't be supported on Linux
       cmd_freebsd   : constant String := "/bin/chflags";
       cmd_dragonfly : constant String := "/usr/bin/chflags";
-      cmd_linux     : constant String := "/usr/bin/chattr";
-      cmd_solaris   : constant String := "/bin/chmod";
+      cmd_fallback  : constant String := "/bin/chmod";
       flag_lock     : constant String := " schg ";
       flag_unlock   : constant String := " noschg ";
-      chattr_lock   : constant String := " +i ";
-      chattr_unlock : constant String := " -i ";
-      sol_lock      : constant String := " S+ci ";
-      sol_unlock    : constant String := " S-ci ";
+      fback_lock    : constant String := " 555 ";
+      fback_unlock  : constant String := " 755 ";
       command       : HT.Text;
    begin
       if not DIR.Exists (path) then
          --  e.g. <slave>/var/empty does not exist on NetBSD
          return;
       end if;
-      if platform_type = linux then
-         --  chattr does not work on tmpfs partitions
-         --  It appears immutable locking can't be supported on Linux
-         return;
-      end if;
-      if platform_type = sunos then
-         --  chmod S+ci only works for ZFS
-         --  Just disable immutable locking until understood better
-         return;
-      end if;
+
       case platform_type is
          when freebsd   => command := HT.SUS (cmd_freebsd);
          when dragonfly |
               netbsd    |
               openbsd   |
               macos     => command := HT.SUS (cmd_dragonfly);
-         when linux     => command := HT.SUS (cmd_linux);
-         when sunos     => command := HT.SUS (cmd_solaris);
+         when sunos     |
+              linux     => command := HT.SUS (cmd_fallback);
       end case;
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd | macos =>
@@ -833,15 +844,10 @@ package body Replicant is
                when lock   => HT.SU.Append (command, flag_lock & path);
                when unlock => HT.SU.Append (command, flag_unlock & path);
             end case;
-         when linux =>
+         when sunos | linux =>
             case operation is
-               when lock   => HT.SU.Append (command, chattr_lock & path);
-               when unlock => HT.SU.Append (command, chattr_unlock & path);
-            end case;
-         when sunos =>
-            case operation is
-               when lock   => HT.SU.Append (command, sol_lock & path);
-               when unlock => HT.SU.Append (command, sol_unlock & path);
+               when lock   => HT.SU.Append (command, fback_lock & path);
+               when unlock => HT.SU.Append (command, fback_unlock & path);
             end case;
       end case;
       execute (HT.USS (command));
@@ -930,8 +936,22 @@ package body Replicant is
          forge_directory (location (slave_base, mnt));
       end loop;
 
-      mount_nullfs (location (dir_system, bin), location (slave_base, bin));
-      mount_nullfs (location (dir_system, usr), location (slave_base, usr));
+      case platform_type is
+         when macos | openbsd =>
+            mount_hardlink (location (dir_system, bin), location (slave_base, bin), dir_system);
+            mount_hardlink (location (dir_system, usr), location (slave_base, usr), dir_system);
+            mount_hardlink (mount_target (xports) & "/Mk",
+                            location (slave_base, xports) & "/Mk",
+                            dir_system);
+            mount_hardlink (mount_target (toolchain),
+                            location (slave_base, toolchain) & "-active",
+                            dir_system);
+            preplace_libgcc_s (location (slave_base, toolchain) & "-disabled");
+         when others =>
+            mount_nullfs (location (dir_system, bin), location (slave_base, bin));
+            mount_nullfs (location (dir_system, usr), location (slave_base, usr));
+            mount_nullfs (mount_target (xports),      location (slave_base, xports));
+      end case;
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd =>
             mount_nullfs (location (dir_system, libexec), location (slave_base, libexec));
@@ -950,7 +970,6 @@ package body Replicant is
       folder_access (location (slave_base, home), lock);
       folder_access (location (slave_base, root), lock);
 
-      mount_nullfs (mount_target (xports),    location (slave_base, xports));
       mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readwrite);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
@@ -962,8 +981,7 @@ package body Replicant is
       end if;
 
       if DIR.Exists (mount_target (ccache)) then
-         mount_nullfs (mount_target (ccache), location (slave_base, ccache),
-                       mode => readwrite);
+         mount_nullfs (mount_target (ccache), location (slave_base, ccache), readwrite);
       end if;
 
       mount_devices (location (slave_base, dev));
@@ -980,7 +998,6 @@ package body Replicant is
       create_etc_shells        (etc_path);
       create_sun_files         (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
-      preplace_libgcc_s        (location (slave_base, toolchain));
 
    exception
       when hiccup : others =>
@@ -1017,18 +1034,22 @@ package body Replicant is
 
       unmount (location (slave_base, distfiles));
       unmount (location (slave_base, packages));
-      unmount (location (slave_base, xports));
 
       if DIR.Exists (location (slave_base, toolchain) & "/bin") then
-         unmount (location (slave_base, toolchain));
+         unhook_toolchain (id);
       end if;
 
       folder_access (location (slave_base, root), unlock);
       folder_access (location (slave_base, home), unlock);
       folder_access (location (slave_base, var) & "/empty", unlock);
 
-      unmount (location (slave_base, bin));
-      unmount (location (slave_base, usr));
+      case platform_type is
+         when macos | openbsd => null;
+         when others =>
+            unmount (location (slave_base, xports));
+            unmount (location (slave_base, bin));
+            unmount (location (slave_base, usr));
+      end case;
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd =>
             unmount (location (slave_base, libexec));
@@ -1039,7 +1060,8 @@ package body Replicant is
             unmount (location (slave_base, lib));
             unmount (location (slave_base, devices));
          when macos =>
-            unmount (location (dir_system, frameworks));
+            --  Do nothing, frameworks is hardlinked
+            null;
       end case;
 
       if PM.configuration.avoid_tmpfs then
@@ -1069,8 +1091,20 @@ package body Replicant is
    procedure hook_toolchain (id : builders)
    is
       slave_base : constant String := get_slave_mount (id);
+      tc_path    : constant String := location (slave_base, toolchain);
    begin
-      mount_nullfs (mount_target (toolchain), location (slave_base, toolchain));
+      case platform_type is
+         when macos | openbsd =>
+            if DIR.Exists (tc_path) then
+               DIR.Delete_File (tc_path);
+            end if;
+            if not Unix.create_symlink (tc_path & "-active", tc_path) then
+               raise scenario_unexpected
+                 with "Failed to symlink active toolchain on builder" & id'Img;
+            end if;
+         when others =>
+            mount_nullfs (mount_target (toolchain), tc_path);
+      end case;
    end hook_toolchain;
 
 
@@ -1080,8 +1114,20 @@ package body Replicant is
    procedure unhook_toolchain (id : builders)
    is
       slave_base : constant String := get_slave_mount (id);
+      tc_path    : constant String := location (slave_base, toolchain);
    begin
-      unmount (location (slave_base, toolchain));
+      case platform_type is
+         when macos | openbsd =>
+            if DIR.Exists (tc_path) then
+               DIR.Delete_File (tc_path);
+            end if;
+            if not Unix.create_symlink (tc_path & "-disabled", tc_path) then
+               raise scenario_unexpected
+                 with "Failed to symlink disabled toolchain on builder" & id'Img;
+            end if;
+         when others =>
+            unmount (tc_path);
+      end case;
    end unhook_toolchain;
 
 
@@ -1159,7 +1205,8 @@ package body Replicant is
                   TIO.Put_Line (errprefix & "link " & path_dest & " to " & path_orig);
                end if;
             else
-               TIO.Put_Line (errprefix & path_orig & " is not present on system");
+               raise scenario_unexpected
+                 with errprefix & path_orig & " is not present on system";
             end if;
          when others => null;
       end case;
@@ -1175,17 +1222,14 @@ package body Replicant is
       dylib : constant String := mpath & "/libgcc_s.1.dylib";
       TC : constant String := mount_target (toolchain);
    begin
-      case platform_type is
-         when macos =>
-            if DIR.Exists (TC & dylib) then
-               forge_directory (path_to_toolchain & mpath);
-               DIR.Copy_File (Source_Name => TC & dylib,
-                              Target_Name => path_to_toolchain & dylib);
-            else
-               TIO.Put_Line (TC & dylib & " is not present on system");
-            end if;
-         when others => null;
-      end case;
+      if DIR.Exists (TC & dylib) then
+         forge_directory (path_to_toolchain & mpath);
+         DIR.Copy_File (Source_Name => TC & dylib,
+                        Target_Name => path_to_toolchain & dylib);
+      else
+         raise scenario_unexpected
+           with TC & dylib & " is not present on system";
+      end if;
    end preplace_libgcc_s;
 
 
