@@ -608,6 +608,15 @@ package body PortScan.Buildcycle is
          end if;
       end toolchain_path;
 
+      function dyld_fallback return String is
+      begin
+         case platform_type is
+            macos  => return "DYLD_FALLBACK_LIBRARY_PATH=" &
+                             localbase & "/toolchain-fallback/" & default_compiler & "/lib ";
+            others => return "";
+         end case;
+      end dyld_fallback;
+
       PATH : constant String := "PATH=/bin:/usr/bin:"
         & toolchain_path
         & localbase & "/toolchain/bin:"
@@ -623,8 +632,10 @@ package body PortScan.Buildcycle is
       PKG8 : constant String := "PKG_DBDIR=/var/db/pkg8 " &
                                 "PKG_CACHEDIR=/var/cache/pkg8 ";
       CENV : constant String := HT.USS (customenv);
+      DYLD : constant String := dyld_fallback;
    begin
-      return " /usr/bin/env -i " & CENV & LANG & TERM & SHLL & USER & HOME & RAVN & PKG8 & PATH;
+      return " /usr/bin/env -i " &
+        CENV & LANG & TERM & SHLL & USER & HOME & RAVN & PKG8 & DYLD & PATH;
    end environment_override;
 
 

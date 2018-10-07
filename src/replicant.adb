@@ -984,9 +984,10 @@ package body Replicant is
                             location (slave_base, xports) & "/Mk",
                             dir_system);
             mount_hardlink (mount_target (toolchain),
-                            location (slave_base, toolchain) & "-active",
+                            location (slave_base, toolchain) & "-off",
                             dir_system);
-            preplace_libgcc_s (location (slave_base, toolchain));
+            preplace_libgcc_s (location (slave_base, toolchain) & "-fallback");
+            DIR.Delete_Directory (location (slave_base, toolchain));
          when others =>
             mount_nullfs (location (dir_system, bin), location (slave_base, bin));
             mount_nullfs (location (dir_system, usr), location (slave_base, usr));
@@ -1139,12 +1140,10 @@ package body Replicant is
    begin
       case platform_type is
          when macos | openbsd =>
-            --  We have 2 directories in $LB at this time: toolchain and toolchain-active
-            --  We have to name toolchain => toolchain-disabled then
-            --  we have to name toolchain-active => toolchain
-            --  We cannot use symlinks to switch between them unfortunately
-            DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-disabled");
-            DIR.Rename (Old_Name => tc_path & "-active", New_Name => tc_path);
+            --  The toolchain-off directory is expected in LB
+            --  we have to name toolchain-off => toolchain
+            --  We cannot use symlinks here unfortunately
+            DIR.Rename (Old_Name => tc_path & "-off", New_Name => tc_path);
          when others =>
             mount_nullfs (mount_target (toolchain), tc_path);
       end case;
@@ -1162,12 +1161,10 @@ package body Replicant is
    begin
       case platform_type is
          when macos | openbsd =>
-            --  We have 2 directories in $LB at this time: toolchain and toolchain-disabled
-            --  We have to name toolchain => toolchain-active then
-            --  we have to name toolchain-disabled => toolchain
-            --  We cannot use symlinks to switch between them unfortunately
-            DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-active");
-            DIR.Rename (Old_Name => tc_path & "-disabled", New_Name => tc_path);
+            --  The toolchain directory is expected in LB
+            --  we have to name toolchain => toolchain-off
+            --  We cannot use symlinks here unfortunately
+            DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-off");
          when others =>
             unmount (tc_path);
       end case;
