@@ -987,7 +987,6 @@ package body Replicant is
                             location (slave_base, toolchain) & "-off",
                             dir_system);
             preplace_libgcc_s (location (slave_base, toolchain) & "-fallback");
-            DIR.Delete_Directory (location (slave_base, toolchain));
          when others =>
             mount_nullfs (location (dir_system, bin), location (slave_base, bin));
             mount_nullfs (location (dir_system, usr), location (slave_base, usr));
@@ -1138,11 +1137,16 @@ package body Replicant is
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
    begin
+      --  When hook_toolchain is called, there very well may be installed packages that
+      --  brought in gcc libs and installed them at /raven/toolchain.
+      --  For null-mount systems, the toolchain is mounted over /raven/toolchain, but it's
+      --  unmounted before package deinstallation.
+      --  For NFS-mount systems, the toolchain is hardlink-copied at toolchain-off.  The
+      --  toolchain and toolchain-off are renamed toolchain-packages and toolchain respectively.
+      --  This is reversed during unhooking.
       case platform_type is
          when macos | openbsd =>
-            --  The toolchain-off directory is expected in LB
-            --  we have to name toolchain-off => toolchain
-            --  We cannot use symlinks here unfortunately
+            DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-packaged");
             DIR.Rename (Old_Name => tc_path & "-off", New_Name => tc_path);
          when others =>
             mount_nullfs (mount_target (toolchain), tc_path);
@@ -1161,10 +1165,8 @@ package body Replicant is
    begin
       case platform_type is
          when macos | openbsd =>
-            --  The toolchain directory is expected in LB
-            --  we have to name toolchain => toolchain-off
-            --  We cannot use symlinks here unfortunately
             DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-off");
+            DIR.Rename (Old_Name => tc_path & "-packaged", New_Name => tc_path);
          when others =>
             unmount (tc_path);
       end case;
