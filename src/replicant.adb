@@ -1086,8 +1086,7 @@ package body Replicant is
             unmount (location (slave_base, lib));
             unmount (location (slave_base, devices));
          when macos =>
-            --  Do nothing, frameworks is hardlinked
-            null;
+            unmount (location (slave_base, frameworks));
       end case;
 
       if PM.configuration.avoid_tmpfs then
