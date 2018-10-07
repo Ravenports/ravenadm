@@ -453,6 +453,7 @@ package body Replicant is
    procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type)
    is
       function write_usr return String;
+      function opsys_specific return String;
 
       RB : String := LAT.Full_Stop & HT.USS (ravenbase);
 
@@ -468,6 +469,20 @@ package body Replicant is
             return "./usr" & LAT.LF;
          end if;
       end write_usr;
+
+      function opsys_specific return String is
+      begin
+         case platform_type is
+            when freebsd | dragonfly | netbsd | openbsd =>
+               return "./libexec" & LAT.LF;
+            when linux =>
+               return "./lib" & LAT.LF & "./lib64" & LAT.LF;
+            when sunos =>
+               return "./lib" & LAT.LF & "./devices" & LAT.LF;
+            when macos =>
+               return "./System" & LAT.LF;
+         end case;
+      end opsys_specific;
    begin
       TIO.Put_Line
         (mtreefile,
@@ -475,16 +490,15 @@ package body Replicant is
          & "./ccache" & LAT.LF
          & "./construction" & LAT.LF
          & "./dev" & LAT.LF
-         & "./devices" & LAT.LF
          & "./distfiles" & LAT.LF
          & "./home" & LAT.LF
-         & "./libexec" & LAT.LF
          & "./packages" & LAT.LF
          & "./port" & LAT.LF
          & "./proc" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
          & write_usr
+         & opsys_specific
          & "./var/db/rvnfontconfig" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
@@ -1153,7 +1167,7 @@ package body Replicant is
             --  we have to name toolchain-disabled => toolchain
             --  We cannot use symlinks to switch between them unfortunately
             DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-active");
-            DIR.Rename (Old_Name => tc_path & "-disable", New_Name => tc_path);
+            DIR.Rename (Old_Name => tc_path & "-disabled", New_Name => tc_path);
          when others =>
             unmount (tc_path);
       end case;
