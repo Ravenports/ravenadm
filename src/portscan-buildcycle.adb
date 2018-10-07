@@ -583,6 +583,7 @@ package body PortScan.Buildcycle is
    is
       function set_terminal (enable_tty : Boolean) return String;
       function toolchain_path return String;
+      function dyld_fallback return String;
 
       localbase : constant String := HT.USS (PM.configuration.dir_localbase);
 
@@ -611,9 +612,9 @@ package body PortScan.Buildcycle is
       function dyld_fallback return String is
       begin
          case platform_type is
-            macos  => return "DYLD_FALLBACK_LIBRARY_PATH=" &
-                             localbase & "/toolchain-fallback/" & default_compiler & "/lib ";
-            others => return "";
+            when macos => return "DYLD_FALLBACK_LIBRARY_PATH=" &
+                                 localbase & "/toolchain-fallback/" & default_compiler & "/lib ";
+            when others => return "";
          end case;
       end dyld_fallback;
 
