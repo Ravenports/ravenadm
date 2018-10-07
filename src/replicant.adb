@@ -855,6 +855,24 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  folder_access
+   --------------------------------------------------------------------------------------------
+   procedure set_folder_mode (path : String; operation : folder_operation)
+   is
+      cmd      : constant String := "/bin/chmod";
+      oplock   : constant String := " 555 ";
+      opunlock : constant String := " 755 ";
+      command  : HT.Text;
+   begin
+      case operation is
+         when lock   => command := HT.SUS (cmd & oplock & path);
+         when unlock => command := HT.SUS (cmd & opunlock & path);
+      end case;
+      execute (HT.USS (command));
+   end set_folder_mode;
+
+
+   --------------------------------------------------------------------------------------------
    --  get_workzone_path
    --------------------------------------------------------------------------------------------
    function get_workzone_path return String is
@@ -918,8 +936,16 @@ package body Replicant is
 
       if PM.configuration.avoid_tmpfs then
          if lbase = bsd_localbase then
-            forge_directory (location (slave_local, toolchain));
-            mount_nullfs (slave_local, slave_base & lbase, readwrite);
+            --  /usr is write only, so to build on /usr/local, we need a dedicated mount
+            --  restriction isn't necessary on mac or openbsd which copies via hardlink
+            case platform_type is
+               when macos | openbsd =>
+                  set_folder_mode (slave_base & lbase, unlock);
+                  forge_directory (location (slave_base, toolchain));
+               when others =>
+                  forge_directory (location (slave_local, toolchain));
+                  mount_nullfs (slave_local, slave_base & lbase, readwrite);
+            end case;
          else
             forge_directory (location (slave_base, toolchain));
          end if;
@@ -946,8 +972,7 @@ package body Replicant is
             mount_hardlink (mount_target (toolchain),
                             location (slave_base, toolchain) & "-active",
                             dir_system);
-            preplace_libgcc_s (location (slave_base, toolchain) & "-disabled");
-            unhook_toolchain (id);
+            preplace_libgcc_s (location (slave_base, toolchain));
          when others =>
             mount_nullfs (location (dir_system, bin), location (slave_base, bin));
             mount_nullfs (location (dir_system, usr), location (slave_base, usr));
@@ -1067,7 +1092,11 @@ package body Replicant is
 
       if PM.configuration.avoid_tmpfs then
          if lbase = bsd_localbase then
-            unmount (slave_base & lbase, 5);
+            case platform_type is
+               when macos | openbsd => null;
+               when others =>
+                  unmount (slave_base & lbase, 5);
+            end case;
          end if;
          annihilate_directory_tree (slave_local);
       else
@@ -1097,17 +1126,12 @@ package body Replicant is
    begin
       case platform_type is
          when macos | openbsd =>
-            if DIR.Exists (tc_path) then
-               if DIR.Kind (tc_path) = DIR.Directory then
-                  DIR.Delete_Directory (tc_path);
-               else
-                  DIR.Delete_File (tc_path);
-               end if;
-            end if;
-            if not Unix.create_symlink (tc_path & "-active", tc_path) then
-               raise scenario_unexpected
-                 with "Failed to symlink active toolchain on builder" & id'Img;
-            end if;
+            --  We have 2 directories in $LB at this time: toolchain and toolchain-active
+            --  We have to name toolchain => toolchain-disabled then
+            --  we have to name toolchain-active => toolchain
+            --  We cannot use symlinks to switch between them unfortunately
+            DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-disabled");
+            DIR.Rename (Old_Name => tc_path & "-active", New_Name => tc_path);
          when others =>
             mount_nullfs (mount_target (toolchain), tc_path);
       end case;
@@ -1125,17 +1149,12 @@ package body Replicant is
    begin
       case platform_type is
          when macos | openbsd =>
-            if DIR.Exists (tc_path) then
-               if DIR.Kind (tc_path) = DIR.Directory then
-                  DIR.Delete_Directory (tc_path);
-               else
-                  DIR.Delete_File (tc_path);
-               end if;
-            end if;
-            if not Unix.create_symlink (tc_path & "-disabled", tc_path) then
-               raise scenario_unexpected
-                 with "Failed to symlink disabled toolchain on builder" & id'Img;
-            end if;
+            --  We have 2 directories in $LB at this time: toolchain and toolchain-disabled
+            --  We have to name toolchain => toolchain-active then
+            --  we have to name toolchain-disabled => toolchain
+            --  We cannot use symlinks to switch between them unfortunately
+            DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-active");
+            DIR.Rename (Old_Name => tc_path & "-disable", New_Name => tc_path);
          when others =>
             unmount (tc_path);
       end case;

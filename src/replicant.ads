@@ -171,6 +171,9 @@ private
    --  locks and unlocks folders, even from root
    procedure folder_access (path : String; operation : folder_operation);
 
+   --  sets or removes write permissions on folder
+   procedure set_folder_mode (path : String; operation : folder_operation);
+
    --  create slave's /var directory tree.  Path should be an empty directory.
    procedure populate_var_folder (path : String);
 
