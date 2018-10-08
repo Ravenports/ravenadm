@@ -439,30 +439,37 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function launch_clash_detected return Boolean
    is
+      violation  : Boolean;
       cwd        : constant String := DIR.Current_Directory;
       sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
       portsdir   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       distfiles  : constant String := HT.USS (PM.configuration.dir_distfiles);
       packages   : constant String := HT.USS (PM.configuration.dir_packages);
-      profile    : constant String := HT.USS (PM.configuration.dir_profile);
       ccache     : constant String := HT.USS (PM.configuration.dir_ccache);
       buildbase  : constant String := HT.USS (PM.configuration.dir_buildbase) & "/";
-
    begin
-      if HT.leads (cwd, sysroot) or else
-        HT.leads (cwd, portsdir) or else
-        HT.leads (cwd, distfiles) or else
-        HT.leads (cwd, packages) or else
-        HT.leads (cwd, profile) or else
-        HT.leads (cwd, ccache) or else
-        HT.leads (cwd, buildbase)
-      then
+      case platform_type is
+         when macos | openbsd =>
+            violation :=
+              HT.leads (cwd, sysroot & "/System") or else
+              HT.leads (cwd, distfiles) or else
+              HT.leads (cwd, packages) or else
+              HT.leads (cwd, ccache) or else
+              HT.leads (cwd, buildbase);
+         when others =>
+            violation :=
+              HT.leads (cwd, sysroot) or else
+              HT.leads (cwd, portsdir) or else
+              HT.leads (cwd, distfiles) or else
+              HT.leads (cwd, packages) or else
+              HT.leads (cwd, ccache) or else
+              HT.leads (cwd, buildbase);
+      end case;
+      if violation then
          TIO.Put_Line ("Please change the current directory; " &
                          "ravenadm is unable to launch from here.");
-         return True;
-      else
-         return False;
       end if;
+      return not violation;
    end launch_clash_detected;
 
 
