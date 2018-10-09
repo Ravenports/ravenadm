@@ -487,7 +487,7 @@ package body PortScan.Log is
               "--  Final Statistics" & LAT.LF &
               "---------------------------" & LAT.LF &
               " Initial queue size:" & bld_counter (total)'Img & LAT.LF &
-              "     packages built:" & bld_counter (success)'Img & LAT.LF &
+              "        ports built:" & bld_counter (success)'Img & LAT.LF &
               "            ignored:" & bld_counter (ignored)'Img & LAT.LF &
               "            skipped:" & bld_counter (skipped)'Img & LAT.LF &
               "             failed:" & bld_counter (failure)'Img);
