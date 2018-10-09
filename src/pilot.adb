@@ -469,7 +469,7 @@ package body Pilot is
          TIO.Put_Line ("Please change the current directory; " &
                          "ravenadm is unable to launch from here.");
       end if;
-      return not violation;
+      return violation;
    end launch_clash_detected;
 
 

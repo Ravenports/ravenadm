@@ -143,7 +143,7 @@ begin
    end if;
 
    case mandate is
-      when build | build_everything | test | status | status_everything =>
+      when build | force | build_everything | test | status | status_everything =>
          --  All commands involving replicant slaves
          if Pilot.launch_clash_detected then
             return;
@@ -152,7 +152,7 @@ begin
    end case;
 
    case mandate is
-      when build | build_everything | test =>
+      when build | force | build_everything | test =>
          if Parameters.configuration.avec_ncurses and then
            not Pilot.TERM_defined_in_environment
          then
