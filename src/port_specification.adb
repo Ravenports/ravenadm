@@ -727,14 +727,6 @@ package body Port_Specification is
                      specs.uses_base.Append (text_stripped);
                   end if;
                   specs.uses.Append (text_value);
-
-                  --  We want to apply macfix whenever libtool is brought in (MacOS only)
-                  if platform_type = macos and then HT.equivalent (text_stripped, "libtool") then
-                     if not specs.uses_base.Contains (macfix) then
-                        specs.uses_base.Append (macfix);
-                        specs.uses.Append (macfix);
-                     end if;
-                  end if;
                else
                   raise wrong_value with HT.USS (errmsg);
                end if;
@@ -4981,6 +4973,14 @@ package body Port_Specification is
                end;
             end loop;
          end if;
+      end if;
+
+      --  Don't allow macfix and libtool to be specified together (libtool brings it in)
+      if (stripped = "libtool" and then specs.uses_base.Contains (HT.SUS ("macfix"))) or else
+        (stripped = "macfix" and then specs.uses_base.Contains (HT.SUS ("libtool")))
+      then
+         errmsg := HT.SUS ("macfix and libtool USES modules detected together; remove macfix");
+         return False;
       end if;
       return True;
    end extra_uses_modules_sanity_check_passes;
