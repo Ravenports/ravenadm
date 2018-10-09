@@ -707,9 +707,6 @@ package body Port_Specification is
             if not valid_uses_module (value) then
                raise wrong_value with "invalid USES module '" & value & "'";
             end if;
-            if specs.uses.Contains (text_value) then
-               raise dupe_list_value with "Duplicate USES module '" & value & "'";
-            end if;
             for x in smodules'Range loop
                if HT.leads (value, base_module (x)) and then
                  specs.module_subpackage_failed (base_module (x), value)
@@ -724,14 +721,18 @@ package body Port_Specification is
                macfix        : HT.Text := HT.SUS ("macfix");
             begin
                if specs.extra_uses_modules_sanity_check_passes (value, errmsg) then
-                  specs.uses.Append (text_value);
-                  if not specs.uses_base.Contains (text_stripped) then
+                  if specs.uses_base.Contains (text_stripped) then
+                     raise dupe_list_value with "Duplicate USES base module '" & value & "'";
+                  else
                      specs.uses_base.Append (text_stripped);
                   end if;
+                  specs.uses.Append (text_value);
+
                   --  We want to apply macfix whenever libtool is brought in (MacOS only)
                   if platform_type = macos and then HT.equivalent (text_stripped, "libtool") then
                      if not specs.uses_base.Contains (macfix) then
                         specs.uses_base.Append (macfix);
+                        specs.uses.Append (macfix);
                      end if;
                   end if;
                else
