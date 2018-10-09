@@ -721,11 +721,18 @@ package body Port_Specification is
             declare
                errmsg        : HT.Text;
                text_stripped : HT.Text := HT.SUS (HT.part_1 (value, ":"));
+               macfix        : HT.Text := HT.SUS ("macfix");
             begin
                if specs.extra_uses_modules_sanity_check_passes (value, errmsg) then
                   specs.uses.Append (text_value);
                   if not specs.uses_base.Contains (text_stripped) then
                      specs.uses_base.Append (text_stripped);
+                  end if;
+                  --  We want to apply macfix whenever libtool is brought in (MacOS only)
+                  if platform_type = macos and then HT.equivalent (text_stripped, "libtool") then
+                     if not specs.uses_base.Contains (macfix) then
+                        specs.uses_base.Append (macfix);
+                     end if;
                   end if;
                else
                   raise wrong_value with HT.USS (errmsg);
