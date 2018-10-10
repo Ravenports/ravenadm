@@ -946,11 +946,15 @@ package body Port_Specification.Transform is
       module     : String := "execinfo";
       dependency : String := "libexecinfo:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         if argument_present (specs, module, BUILD) then
-            add_build_depends (specs, dependency);
-         else
-            add_buildrun_depends (specs, dependency);
+      if platform_type /= macos then
+         --  MacOS has Mach-O formatted files while libexecinfo only
+         --  functions under the ELF format, so it's both unbuildable and unusable on mac.
+         if specs.uses_base.Contains (HT.SUS (module)) then
+            if argument_present (specs, module, BUILD) then
+               add_build_depends (specs, dependency);
+            else
+               add_buildrun_depends (specs, dependency);
+            end if;
          end if;
       end if;
    end apply_execinfo_module;
