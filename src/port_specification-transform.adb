@@ -104,7 +104,8 @@ package body Port_Specification.Transform is
                      when run_depends_off      => specs.run_deps.Append (item);
                      when cmake_args_off       => specs.cmake_args.Append (item);
                      when cflags_off           => specs.cflags.Append (item);
-                     when cppflags_off         => specs.cflags.Append (item);
+                     when cppflags_off         => specs.cppflags.Append (item);
+                     when cxxflags_off         => specs.cxxflags.Append (item);
                      when ldflags_off          => specs.ldflags.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
                      when df_index_off         => specs.df_index.Append (item);
@@ -227,6 +228,7 @@ package body Port_Specification.Transform is
             augment (build_depends_off,    rec.BUILD_DEPENDS_OFF);
             augment (cflags_off,           rec.CFLAGS_OFF);
             augment (cppflags_off,         rec.CPPFLAGS_OFF);
+            augment (cxxflags_off,         rec.CXXFLAGS_OFF);
             augment (ldflags_off,          rec.LDFLAGS_OFF);
             augment (cmake_args_off,       rec.CMAKE_ARGS_OFF);
             augment (configure_args_off,   rec.CONFIGURE_ARGS_OFF);
