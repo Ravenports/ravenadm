@@ -104,6 +104,7 @@ package body Port_Specification.Transform is
                      when run_depends_off      => specs.run_deps.Append (item);
                      when cmake_args_off       => specs.cmake_args.Append (item);
                      when cflags_off           => specs.cflags.Append (item);
+                     when ldflags_off          => specs.ldflags.Append (item);
                      when configure_args_off   => specs.config_args.Append (item);
                      when df_index_off         => specs.df_index.Append (item);
                      when gnome_comp_off       => specs.gnome_comps.Append (item);

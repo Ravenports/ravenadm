@@ -333,6 +333,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.INFO_ON, "INFO_ON");
          dump_helper (name, rec.INSTALL_TARGET_ON, "INSTALL_TARGET_ON");
          dump_helper (name, rec.KEYWORDS_ON, "KEYWORDS_ON");
+         dump_helper (name, rec.LDFLAGS_OFF, "LDFLAGS_OFF");
          dump_helper (name, rec.LDFLAGS_ON, "LDFLAGS_ON");
          dump_helper (name, rec.MAKEFILE_OFF, "MAKEFILE_OFF");
          dump_helper (name, rec.MAKEFILE_ON, "MAKEFILE_ON");
