@@ -1641,6 +1641,8 @@ package body Port_Specification is
                Element.CONFIGURE_ENV_ON.Append (value_text);
             when configure_with_both =>
                Element.CONFIGURE_WITH_BOTH.Append (value_text);
+            when cppflags_off =>
+               Element.CPPFLAGS_OFF.Append (value_text);
             when cppflags_on =>
                Element.CPPFLAGS_ON.Append (value_text);
             when cxxflags_on =>
@@ -1751,7 +1753,7 @@ package body Port_Specification is
          when broken_on | build_target_on | cflags_on | cmake_args_off | cmake_args_on |
               cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
-              cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
+              cppflags_off | cppflags_on | cxxflags_on | extra_patches_on | install_target_on |
               ldflags_off | ldflags_on | make_args_off | make_args_on | make_env_on |
               patchfiles_on |
               plist_sub_on | qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
@@ -1900,6 +1902,7 @@ package body Port_Specification is
             when configure_enable_both => return rec.CONFIGURE_ENABLE_BOTH.Is_Empty;
             when configure_env_on      => return rec.CONFIGURE_ENV_ON.Is_Empty;
             when configure_with_both   => return rec.CONFIGURE_WITH_BOTH.Is_Empty;
+            when cppflags_off          => return rec.CPPFLAGS_OFF.Is_Empty;
             when cppflags_on           => return rec.CPPFLAGS_ON.Is_Empty;
             when cxxflags_on           => return rec.CXXFLAGS_ON.Is_Empty;
             when df_index_off          => return rec.DF_INDEX_OFF.Is_Empty;

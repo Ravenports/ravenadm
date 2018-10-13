@@ -52,7 +52,8 @@ package Port_Specification is
                          build_target_on, cflags_off, cflags_on, cmake_args_off, cmake_args_on,
                          cmake_bool_f_both, cmake_bool_t_both, configure_args_off,
                          configure_args_on, configure_enable_both, configure_env_on,
-                         configure_with_both, cppflags_on, cxxflags_on, df_index_off, df_index_on,
+                         configure_with_both, cppflags_off, cppflags_on, cxxflags_on,
+                         df_index_off, df_index_on,
                          extra_patches_on, extract_only_on, implies_on, info_off, info_on,
                          install_target_on, keywords_on, ldflags_off, ldflags_on,
                          make_args_off, make_args_on,
@@ -399,6 +400,7 @@ private
          CONFIGURE_ENABLE_BOTH : string_crate.Vector;
          CONFIGURE_ENV_ON      : string_crate.Vector;
          CONFIGURE_WITH_BOTH   : string_crate.Vector;
+         CPPFLAGS_OFF          : string_crate.Vector;
          CPPFLAGS_ON           : string_crate.Vector;
          CXXFLAGS_ON           : string_crate.Vector;
          DF_INDEX_OFF          : string_crate.Vector;
