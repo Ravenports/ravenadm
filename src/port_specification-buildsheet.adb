@@ -319,6 +319,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.CONFIGURE_ARGS_OFF, "CONFIGURE_ARGS_OFF");
          dump_helper (name, rec.CONFIGURE_ARGS_ON, "CONFIGURE_ARGS_ON");
          dump_helper (name, rec.CONFIGURE_ENABLE_BOTH, "CONFIGURE_ENABLE_BOTH");
+         dump_helper (name, rec.CONFIGURE_ENV_OFF, "CONFIGURE_ENV_OFF");
          dump_helper (name, rec.CONFIGURE_ENV_ON, "CONFIGURE_ENV_ON");
          dump_helper (name, rec.CONFIGURE_WITH_BOTH, "CONFIGURE_WITH_BOTH");
          dump_helper (name, rec.CPPFLAGS_OFF, "CPPFLAGS_OFF");
