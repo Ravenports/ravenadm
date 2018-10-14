@@ -308,6 +308,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.BUILDRUN_DEPENDS_ON, "BUILDRUN_DEPENDS_ON");
          dump_helper (name, rec.BUILD_DEPENDS_OFF, "BUILD_DEPENDS_OFF");
          dump_helper (name, rec.BUILD_DEPENDS_ON, "BUILD_DEPENDS_ON");
+         dump_helper (name, rec.BUILD_TARGET_OFF, "BUILD_TARGET_OFF");
          dump_helper (name, rec.BUILD_TARGET_ON, "BUILD_TARGET_ON");
          dump_helper (name, rec.CFLAGS_OFF, "CFLAGS_OFF");
          dump_helper (name, rec.CFLAGS_ON, "CFLAGS_ON");

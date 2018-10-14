@@ -99,8 +99,9 @@ package body Port_Specification.Transform is
                   end case;
                else
                   case field is
-                     when build_depends_off    => specs.build_deps.Append (item);
                      when buildrun_depends_off => specs.buildrun_deps.Append (item);
+                     when build_depends_off    => specs.build_deps.Append (item);
+                     when build_target_off     => specs.build_target.Append (item);
                      when run_depends_off      => specs.run_deps.Append (item);
                      when cmake_args_off       => specs.cmake_args.Append (item);
                      when cflags_off           => specs.cflags.Append (item);
@@ -226,6 +227,7 @@ package body Port_Specification.Transform is
          else
             augment (buildrun_depends_off, rec.BUILDRUN_DEPENDS_OFF);
             augment (build_depends_off,    rec.BUILD_DEPENDS_OFF);
+            augment (build_target_off,     rec.BUILD_TARGET_OFF);
             augment (cflags_off,           rec.CFLAGS_OFF);
             augment (cppflags_off,         rec.CPPFLAGS_OFF);
             augment (cxxflags_off,         rec.CXXFLAGS_OFF);

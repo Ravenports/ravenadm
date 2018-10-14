@@ -1617,6 +1617,8 @@ package body Port_Specification is
                Element.BUILD_DEPENDS_OFF.Append (value_text);
             when build_depends_on =>
                Element.BUILD_DEPENDS_ON.Append (value_text);
+            when build_target_off =>
+               Element.BUILD_TARGET_OFF.Append (value_text);
             when build_target_on =>
                Element.BUILD_TARGET_ON.Append (value_text);
             when cflags_off =>
@@ -1752,7 +1754,8 @@ package body Port_Specification is
 
       --  validate first
       case field is
-         when broken_on | build_target_on | cflags_on | cmake_args_off | cmake_args_on |
+         when broken_on | build_target_off | build_target_on | cflags_on |
+              cmake_args_off | cmake_args_on |
               cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
               configure_enable_both | configure_env_on | configure_with_both | cflags_off |
               cppflags_off | cppflags_on | cxxflags_off | cxxflags_on |
@@ -1892,6 +1895,7 @@ package body Port_Specification is
             when buildrun_depends_on   => return rec.BUILDRUN_DEPENDS_ON.Is_Empty;
             when build_depends_off     => return rec.BUILD_DEPENDS_OFF.Is_Empty;
             when build_depends_on      => return rec.BUILD_DEPENDS_ON.Is_Empty;
+            when build_target_off      => return rec.BUILD_TARGET_OFF.Is_Empty;
             when build_target_on       => return rec.BUILD_TARGET_ON.Is_Empty;
             when cflags_off            => return rec.CFLAGS_OFF.Is_Empty;
             when cflags_on             => return rec.CFLAGS_ON.Is_Empty;
