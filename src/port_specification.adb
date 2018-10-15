@@ -1659,6 +1659,8 @@ package body Port_Specification is
                Element.DF_INDEX_OFF.Append (value_text);
             when df_index_on =>
                Element.DF_INDEX_ON.Append (value_text);
+            when extra_patches_off =>
+               Element.EXTRA_PATCHES_OFF.Append (value_text);
             when extra_patches_on =>
                Element.EXTRA_PATCHES_ON.Append (value_text);
             when extract_only_on  =>
@@ -1759,9 +1761,9 @@ package body Port_Specification is
          when broken_on | build_target_off | build_target_on | cmake_args_off | cmake_args_on |
               cmake_bool_f_both | cmake_bool_t_both | configure_args_off | configure_args_on |
               configure_enable_both | configure_env_off | configure_env_on |
-              configure_with_both | cflags_off | cflags_on |
-              cppflags_off | cppflags_on | cxxflags_off | cxxflags_on |
-              extra_patches_on | install_target_on | ldflags_off | ldflags_on |
+              configure_with_both | cflags_off | cflags_on | cppflags_off | cppflags_on |
+              cxxflags_off | cxxflags_on | extra_patches_off | extra_patches_on |
+              install_target_on | ldflags_off | ldflags_on |
               make_args_off | make_args_on | make_env_on | patchfiles_on |
               plist_sub_on | qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
               sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
@@ -1918,6 +1920,7 @@ package body Port_Specification is
             when df_index_off          => return rec.DF_INDEX_OFF.Is_Empty;
             when df_index_on           => return rec.DF_INDEX_ON.Is_Empty;
             when description           => return HT.IsBlank (rec.option_description);
+            when extra_patches_off     => return rec.EXTRA_PATCHES_OFF.Is_Empty;
             when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
             when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
             when gnome_comp_off        => return rec.GNOME_COMPONENTS_OFF.Is_Empty;

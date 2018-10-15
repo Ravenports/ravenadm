@@ -328,6 +328,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.CXXFLAGS_ON, "CXXFLAGS_ON");
          dump_helper (name, rec.DF_INDEX_OFF, "DF_INDEX_OFF");
          dump_helper (name, rec.DF_INDEX_ON, "DF_INDEX_ON");
+         dump_helper (name, rec.EXTRA_PATCHES_OFF, "EXTRA_PATCHES_OFF");
          dump_helper (name, rec.EXTRA_PATCHES_ON, "EXTRA_PATCHES_ON");
          dump_helper (name, rec.EXTRACT_ONLY_ON, "EXTRACT_ONLY_ON");
          dump_helper (name, rec.GNOME_COMPONENTS_OFF, "GNOME_COMPONENTS_OFF");
