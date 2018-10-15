@@ -149,7 +149,7 @@ private
 
    --  Convert e.g. python_default to py36/py37 depending on current defaults.
    --  True for all defaults as they get formed
-   function transform_defaults (dep : String) return String;
+   function transform_defaults (dep, pyx, plx, lux, rbx : String) return String;
 
    --  Returns XXXX:server:standard or XXXX:client:standard depending on server value
    --  and mysql configuration setting

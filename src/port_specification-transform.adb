@@ -1540,23 +1540,29 @@ package body Port_Specification.Transform is
          if argument_present (specs, module, PY27) then
             add_build_depends (specs, PYTHON27);
             add_build_depends (specs, SETUPTOOLS & PY27);
+            specs.used_python := HT.SUS (PY27);
          elsif argument_present (specs, module, PY36) then
             add_build_depends (specs, PYTHON36);
             add_build_depends (specs, SETUPTOOLS & PY36);
+            specs.used_python := HT.SUS (PY36);
          else -- default to py37
             add_build_depends (specs, PYTHON37);
             add_build_depends (specs, SETUPTOOLS & PY37);
+            specs.used_python := HT.SUS (PY37);
          end if;
       else
          if argument_present (specs, module, PY27) then
             add_buildrun_depends (specs, PYTHON27);
             add_buildrun_depends (specs, SETUPTOOLS & PY27);
+            specs.used_python := HT.SUS (PY27);
          elsif argument_present (specs, module, PY36) then
             add_buildrun_depends (specs, PYTHON36);
             add_buildrun_depends (specs, SETUPTOOLS & PY36);
+            specs.used_python := HT.SUS (PY36);
          else -- default to py37
             add_buildrun_depends (specs, PYTHON37);
             add_buildrun_depends (specs, SETUPTOOLS & PY37);
+            specs.used_python := HT.SUS (PY37);
          end if;
       end if;
    end apply_python_module;
@@ -1581,18 +1587,24 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, v23) then
             add_build_depends (specs, RUBY23);
+            specs.used_ruby := HT.SUS (RUBY23);
          elsif argument_present (specs, module, v24) then
             add_build_depends (specs, RUBY24);
-         else -- default to ruby25 (current default)
+            specs.used_ruby := HT.SUS (RUBY24);
+         else -- default to current default
             add_build_depends (specs, RUBY25);
+            specs.used_ruby := HT.SUS (RUBY25);
          end if;
       else
          if argument_present (specs, module, v23) then
             add_buildrun_depends (specs, RUBY23);
+            specs.used_ruby := HT.SUS (RUBY23);
          elsif argument_present (specs, module, v24) then
             add_buildrun_depends (specs, RUBY24);
-         else -- default to ruby25 (current default)
+            specs.used_ruby := HT.SUS (RUBY24);
+         else -- default to current default
             add_buildrun_depends (specs, RUBY25);
+            specs.used_ruby := HT.SUS (RUBY25);
          end if;
       end if;
    end apply_ruby_module;
@@ -1870,6 +1882,7 @@ package body Port_Specification.Transform is
       else
          add_run_depends (specs, dependency);
       end if;
+      specs.used_lua := HT.SUS (HT.specific_field (dependency, 1, ":"));
    end apply_lua_module;
 
 
@@ -2113,6 +2126,8 @@ package body Port_Specification.Transform is
             add_build_depends (specs, pmodbuildtiny & dep_suffix);
          end if;
       end if;
+
+      specs.used_perl := HT.SUS (dep_suffix);
 
    end apply_perl_module;
 
@@ -2565,15 +2580,18 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  transform_defaults
    --------------------------------------------------------------------------------------------
-   function transform_defaults (dep : String) return String
+   function transform_defaults (dep, pyx, plx, lux, rbx : String) return String
    is
       function name_subpackage return String;
+
+      trailer : constant String := HT.specific_field (dep, 3, ":");
+
       function name_subpackage return String is
       begin
          return HT.specific_field (dep, 1, ":") & ":" & HT.specific_field (dep, 2, ":") & ":";
       end name_subpackage;
    begin
-      if HT.trails (dep, ":python_default") then
+      if trailer = "python_default" then
          declare
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
@@ -2583,7 +2601,7 @@ package body Port_Specification.Transform is
                return name_subpackage & "py36";
             end if;
          end;
-      elsif HT.trails (dep, ":perl_default") then
+      elsif trailer = "perl_default" then
          declare
             setting : String := HT.USS (Parameters.configuration.def_perl);
          begin
@@ -2593,7 +2611,7 @@ package body Port_Specification.Transform is
                return name_subpackage & "526";
             end if;
          end;
-      elsif HT.trails (dep, ":lua_default") then
+      elsif trailer = "lua_default" then
          declare
             setting : String := HT.USS (Parameters.configuration.def_lua);
          begin
@@ -2603,7 +2621,7 @@ package body Port_Specification.Transform is
                return name_subpackage & "lua52";
             end if;
          end;
-      elsif HT.trails (dep, ":ruby_default") then
+      elsif trailer = "ruby_default" then
          declare
             setting : String := HT.USS (Parameters.configuration.def_ruby);
          begin
@@ -2615,6 +2633,14 @@ package body Port_Specification.Transform is
                return name_subpackage & "v24";
             end if;
          end;
+      elsif trailer = "python_used" then
+         return name_subpackage & pyx;
+      elsif trailer = "perl_used" then
+         return name_subpackage & plx;
+      elsif trailer = "lua_used" then
+         return name_subpackage & lux;
+      elsif trailer = "ruby_used" then
+         return name_subpackage & rbx;
       else
          return dep;
       end if;
@@ -2633,6 +2659,11 @@ package body Port_Specification.Transform is
 
       transformed_dep : HT.Text;
 
+      pyx : constant String := HT.USS (specs.used_python);
+      plx : constant String := HT.USS (specs.used_perl);
+      lux : constant String := HT.USS (specs.used_lua);
+      rbx : constant String := HT.USS (specs.used_ruby);
+
       procedure alter (Element : in out HT.Text) is
       begin
          Element := transformed_dep;
@@ -2641,7 +2672,7 @@ package body Port_Specification.Transform is
       procedure check_build (position : string_crate.Cursor)
       is
          dep  : String := HT.USS (string_crate.Element (position));
-         xdep : String := transform_defaults (dep);
+         xdep : String := transform_defaults (dep, pyx, plx, lux, rbx);
       begin
          if xdep /= dep then
             transformed_dep := HT.SUS (xdep);
@@ -2652,7 +2683,7 @@ package body Port_Specification.Transform is
       procedure check_buildrun (position : string_crate.Cursor)
       is
          dep  : String := HT.USS (string_crate.Element (position));
-         xdep : String := transform_defaults (dep);
+         xdep : String := transform_defaults (dep, pyx, plx, lux, rbx);
       begin
          if xdep /= dep then
             transformed_dep := HT.SUS (xdep);
@@ -2663,7 +2694,7 @@ package body Port_Specification.Transform is
       procedure check_run (position : string_crate.Cursor)
       is
          dep  : String := HT.USS (string_crate.Element (position));
-         xdep : String := transform_defaults (dep);
+         xdep : String := transform_defaults (dep, pyx, plx, lux, rbx);
       begin
          if xdep /= dep then
             transformed_dep := HT.SUS (xdep);

@@ -586,6 +586,10 @@ private
          extra_rundeps  : list_crate.Map;
          last_catchkey  : HT.Text;
          soversion      : HT.Text;
+         used_python    : HT.Text;
+         used_perl      : HT.Text;
+         used_ruby      : HT.Text;
+         used_lua       : HT.Text;
 
          opt_radio      : string_crate.Vector;
          opt_restrict   : string_crate.Vector;

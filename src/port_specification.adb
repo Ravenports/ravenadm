@@ -18,7 +18,9 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------
-   procedure initialize (specs : out Portspecs) is
+   procedure initialize (specs : out Portspecs)
+   is
+      unset : HT.Text := HT.SUS ("unset");
    begin
       specs.namebase     := HT.blank;
       specs.version      := HT.blank;
@@ -121,6 +123,10 @@ package body Port_Specification is
       specs.usergroup_pkg  := HT.blank;
       specs.soversion      := HT.blank;
       specs.lic_scheme     := HT.blank;
+      specs.used_python    := unset;
+      specs.used_perl      := unset;
+      specs.used_ruby      := unset;
+      specs.used_lua       := unset;
 
       specs.licenses.Clear;
       specs.lic_names.Clear;
