@@ -55,8 +55,8 @@ package Port_Specification is
                          configure_enable_both, configure_env_off, configure_env_on,
                          configure_with_both, cppflags_off, cppflags_on,
                          cxxflags_off, cxxflags_on, df_index_off, df_index_on,
-                         extra_patches_off, extra_patches_on, extract_only_on, implies_on,
-                         info_off, info_on, install_target_on, keywords_on,
+                         extract_only_off, extract_only_on, extra_patches_off, extra_patches_on,
+                         implies_on, info_off, info_on, install_target_on, keywords_on,
                          ldflags_off, ldflags_on, make_args_off, make_args_on,
                          make_env_on, patchfiles_on, plist_sub_on, prevents_on, qmake_args_off,
                          qmake_args_on, run_depends_off, run_depends_on, sub_files_off,
@@ -409,9 +409,10 @@ private
          CXXFLAGS_ON           : string_crate.Vector;
          DF_INDEX_OFF          : string_crate.Vector;
          DF_INDEX_ON           : string_crate.Vector;
+         EXTRACT_ONLY_OFF      : string_crate.Vector;
+         EXTRACT_ONLY_ON       : string_crate.Vector;
          EXTRA_PATCHES_OFF     : string_crate.Vector;
          EXTRA_PATCHES_ON      : string_crate.Vector;
-         EXTRACT_ONLY_ON       : string_crate.Vector;
          IMPLIES_ON            : string_crate.Vector;
          INFO_OFF              : string_crate.Vector;
          INFO_ON               : string_crate.Vector;

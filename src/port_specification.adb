@@ -1659,12 +1659,14 @@ package body Port_Specification is
                Element.DF_INDEX_OFF.Append (value_text);
             when df_index_on =>
                Element.DF_INDEX_ON.Append (value_text);
+            when extract_only_off =>
+               Element.EXTRACT_ONLY_OFF.Append (value_text);
+            when extract_only_on  =>
+               Element.EXTRACT_ONLY_ON.Append (value_text);
             when extra_patches_off =>
                Element.EXTRA_PATCHES_OFF.Append (value_text);
             when extra_patches_on =>
                Element.EXTRA_PATCHES_ON.Append (value_text);
-            when extract_only_on  =>
-               Element.EXTRACT_ONLY_ON.Append (value_text);
             when gnome_comp_off =>
                Element.GNOME_COMPONENTS_OFF.Append (value_text);
             when gnome_comp_on =>
@@ -1809,6 +1811,13 @@ package body Port_Specification is
             if specs.ops_helpers.Element (option_text).EXTRACT_ONLY_ON.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
+         when extract_only_off =>
+            if not specs.dist_index_is_valid (value) then
+               raise wrong_value with "distfile index '" & value & "' is not valid";
+            end if;
+            if specs.ops_helpers.Element (option_text).EXTRACT_ONLY_OFF.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
          when implies_on =>
             if not specs.ops_avail.Contains (value_text) then
                raise wrong_value with "Not a defined option: '" & value & "'";
@@ -1920,9 +1929,10 @@ package body Port_Specification is
             when df_index_off          => return rec.DF_INDEX_OFF.Is_Empty;
             when df_index_on           => return rec.DF_INDEX_ON.Is_Empty;
             when description           => return HT.IsBlank (rec.option_description);
+            when extract_only_off      => return rec.EXTRACT_ONLY_OFF.Is_Empty;
+            when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
             when extra_patches_off     => return rec.EXTRA_PATCHES_OFF.Is_Empty;
             when extra_patches_on      => return rec.EXTRA_PATCHES_ON.Is_Empty;
-            when extract_only_on       => return rec.EXTRACT_ONLY_ON.Is_Empty;
             when gnome_comp_off        => return rec.GNOME_COMPONENTS_OFF.Is_Empty;
             when gnome_comp_on         => return rec.GNOME_COMPONENTS_ON.Is_Empty;
             when implies_on            => return rec.IMPLIES_ON.Is_Empty;
