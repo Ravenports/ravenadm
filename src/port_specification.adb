@@ -1701,6 +1701,8 @@ package body Port_Specification is
                Element.MAKE_ENV_ON.Append (value_text);
             when only_for_opsys_on =>
                Element.ONLY_FOR_OPSYS_ON.Append (value_text);
+            when patchfiles_off =>
+               Element.PATCHFILES_OFF.Append (value_text);
             when patchfiles_on =>
                Element.PATCHFILES_ON.Append (value_text);
             when plist_sub_on =>
@@ -1770,8 +1772,9 @@ package body Port_Specification is
               configure_with_both | cflags_off | cflags_on | cppflags_off | cppflags_on |
               cxxflags_off | cxxflags_on | extra_patches_off | extra_patches_on |
               install_target_off | install_target_on | ldflags_off | ldflags_on |
-              make_args_off | make_args_on | make_env_off | make_env_on | patchfiles_on |
-              plist_sub_on | qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
+              make_args_off | make_args_on | make_env_off | make_env_on |
+              patchfiles_off | patchfiles_on | plist_sub_on |
+              qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
               sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
             --  No validation required
             null;
@@ -1954,6 +1957,7 @@ package body Port_Specification is
             when make_env_off          => return rec.MAKE_ENV_OFF.Is_Empty;
             when make_env_on           => return rec.MAKE_ENV_ON.Is_Empty;
             when only_for_opsys_on     => return rec.ONLY_FOR_OPSYS_ON.Is_Empty;
+            when patchfiles_off        => return rec.PATCHFILES_OFF.Is_Empty;
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
             when plist_sub_on          => return rec.PLIST_SUB_ON.Is_Empty;
             when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
