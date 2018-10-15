@@ -115,6 +115,7 @@ package body Port_Specification.Transform is
                      when extra_patches_off    => specs.extra_patches.Append (item);
                      when gnome_comp_off       => specs.gnome_comps.Append (item);
                      when info_off             => specs.info.Append (item);
+                     when install_target_off   => specs.install_tgt.Append (item);
                      when qmake_args_off       => specs.qmake_args.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
                      when make_args_off        => specs.make_args.Append (item);
@@ -244,6 +245,7 @@ package body Port_Specification.Transform is
             augment (extra_patches_off,    rec.EXTRA_PATCHES_OFF);
             augment (gnome_comp_off,       rec.GNOME_COMPONENTS_OFF);
             augment (info_off,             rec.INFO_OFF);
+            augment (install_target_off,   rec.INSTALL_TARGET_OFF);
             augment (makefile_off,         rec.MAKEFILE_OFF);
             augment (make_args_off,        rec.MAKE_ARGS_OFF);
             augment (qmake_args_off,       rec.QMAKE_ARGS_OFF);

@@ -1677,6 +1677,8 @@ package body Port_Specification is
                Element.INFO_OFF.Append (value_text);
             when info_on =>
                Element.INFO_ON.Append (value_text);
+            when install_target_off =>
+               Element.INSTALL_TARGET_OFF.Append (value_text);
             when install_target_on =>
                Element.INSTALL_TARGET_ON.Append (value_text);
             when keywords_on =>
@@ -1765,7 +1767,7 @@ package body Port_Specification is
               configure_enable_both | configure_env_off | configure_env_on |
               configure_with_both | cflags_off | cflags_on | cppflags_off | cppflags_on |
               cxxflags_off | cxxflags_on | extra_patches_off | extra_patches_on |
-              install_target_on | ldflags_off | ldflags_on |
+              install_target_off | install_target_on | ldflags_off | ldflags_on |
               make_args_off | make_args_on | make_env_on | patchfiles_on |
               plist_sub_on | qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
               sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
@@ -1938,6 +1940,7 @@ package body Port_Specification is
             when implies_on            => return rec.IMPLIES_ON.Is_Empty;
             when info_off              => return rec.INFO_OFF.Is_Empty;
             when info_on               => return rec.INFO_ON.Is_Empty;
+            when install_target_off    => return rec.INSTALL_TARGET_OFF.Is_Empty;
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
             when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
             when ldflags_off           => return rec.LDFLAGS_OFF.Is_Empty;
