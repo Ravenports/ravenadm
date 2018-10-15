@@ -1727,6 +1727,8 @@ package body Port_Specification is
                Element.SUB_FILES_ON.Append (value_text);
             when sub_list_on =>
                Element.SUB_LIST_ON.Append (value_text);
+            when test_target_off =>
+               Element.TEST_TARGET_OFF.Append (value_text);
             when test_target_on =>
                Element.TEST_TARGET_ON.Append (value_text);
             when uses_off =>
@@ -1777,7 +1779,8 @@ package body Port_Specification is
               make_args_off | make_args_on | make_env_off | make_env_on |
               patchfiles_off | patchfiles_on | plist_sub_off | plist_sub_on |
               qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
-              sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
+              sub_list_off | sub_list_on | test_target_off | test_target_on |
+              makefile_on | makefile_off =>
             --  No validation required
             null;
          when build_depends_on | buildrun_depends_on | run_depends_on |
@@ -1972,6 +1975,7 @@ package body Port_Specification is
             when sub_files_on          => return rec.SUB_FILES_ON.Is_Empty;
             when sub_list_off          => return rec.SUB_LIST_OFF.Is_Empty;
             when sub_list_on           => return rec.SUB_LIST_ON.Is_Empty;
+            when test_target_off       => return rec.TEST_TARGET_OFF.Is_Empty;
             when test_target_on        => return rec.TEST_TARGET_ON.Is_Empty;
             when uses_off              => return rec.USES_OFF.Is_Empty;
             when uses_on               => return rec.USES_ON.Is_Empty;

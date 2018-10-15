@@ -362,6 +362,7 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.SUB_FILES_ON, "SUB_FILES_ON");
          dump_helper (name, rec.SUB_LIST_OFF, "SUB_LIST_OFF");
          dump_helper (name, rec.SUB_LIST_ON, "SUB_LIST_ON");
+         dump_helper (name, rec.TEST_TARGET_OFF, "TEST_TARGET_OFF");
          dump_helper (name, rec.TEST_TARGET_ON, "TEST_TARGET_ON");
          dump_helper (name, rec.USES_OFF, "USES_OFF");
          dump_helper (name, rec.USES_ON, "USES_ON");

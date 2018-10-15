@@ -64,10 +64,10 @@ package body Port_Specification.Transform is
                      when make_env_on         => specs.make_env.Append (item);
                      when patchfiles_on       => specs.patchfiles.Append (item);
                      when plist_sub_on        => specs.plist_sub.Append (item);
+                     when qmake_args_on       => specs.qmake_args.Append (item);
                      when run_depends_on      => specs.run_deps.Append (item);
                      when sub_files_on        => specs.sub_files.Append (item);
                      when sub_list_on         => specs.sub_list.Append (item);
-                     when qmake_args_on       => specs.qmake_args.Append (item);
                      when test_target_on      => specs.test_tgt.Append (item);
                      when makefile_on         => specs.mk_verbatim.Append (item);
                      when only_for_opsys_on   => specs.inc_opsys.Append (item);
@@ -116,14 +116,15 @@ package body Port_Specification.Transform is
                      when gnome_comp_off       => specs.gnome_comps.Append (item);
                      when info_off             => specs.info.Append (item);
                      when install_target_off   => specs.install_tgt.Append (item);
-                     when qmake_args_off       => specs.qmake_args.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
                      when make_args_off        => specs.make_args.Append (item);
                      when make_env_off         => specs.make_env.Append (item);
                      when patchfiles_off       => specs.patchfiles.Append (item);
                      when plist_sub_off        => specs.plist_sub.Append (item);
+                     when qmake_args_off       => specs.qmake_args.Append (item);
                      when sub_files_off        => specs.sub_files.Append (item);
                      when sub_list_off         => specs.sub_list.Append (item);
+                     when test_target_off      => specs.test_tgt.Append (item);
                      when xorg_comp_off        => specs.xorg_comps.Append (item);
                      when cmake_bool_f_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL-true");
@@ -258,6 +259,7 @@ package body Port_Specification.Transform is
             augment (run_depends_off,      rec.RUN_DEPENDS_OFF);
             augment (sub_files_off,        rec.SUB_FILES_OFF);
             augment (sub_list_off,         rec.SUB_LIST_OFF);
+            augment (test_target_off,      rec.TEST_TARGET_OFF);
             augment (uses_off,             rec.USES_OFF);
             augment (xorg_comp_off,        rec.XORG_COMPONENTS_OFF);
          end if;
