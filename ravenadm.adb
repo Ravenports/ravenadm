@@ -25,6 +25,7 @@ procedure Ravenadm is
    mandate    : mandate_type := unset;
    low_rights : Boolean := False;
    reg_user   : Boolean;
+   reg_error  : constant String := "This command requires root permissions to execute."
 
    procedure scan_first_command_word
    is
@@ -188,13 +189,14 @@ begin
                   low_rights := True;
                when dump | makefile | distinfo | buildsheet | genindex | web | repatch =>
                   if reg_user then
+                     TIO.Put_Line (reg_error);
                      return;
                   end if;
             end case;
          end;
       when others =>
          if reg_user then
-            TIO.Put_Line ("This command requires root permissions to execute.");
+            TIO.Put_Line (reg_error);
             return;
          end if;
    end case;
