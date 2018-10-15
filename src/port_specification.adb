@@ -1705,6 +1705,8 @@ package body Port_Specification is
                Element.PATCHFILES_OFF.Append (value_text);
             when patchfiles_on =>
                Element.PATCHFILES_ON.Append (value_text);
+            when plist_sub_off =>
+               Element.PLIST_SUB_OFF.Append (value_text);
             when plist_sub_on =>
                Element.PLIST_SUB_ON.Append (value_text);
             when prevents_on =>
@@ -1773,7 +1775,7 @@ package body Port_Specification is
               cxxflags_off | cxxflags_on | extra_patches_off | extra_patches_on |
               install_target_off | install_target_on | ldflags_off | ldflags_on |
               make_args_off | make_args_on | make_env_off | make_env_on |
-              patchfiles_off | patchfiles_on | plist_sub_on |
+              patchfiles_off | patchfiles_on | plist_sub_off | plist_sub_on |
               qmake_args_on | qmake_args_off | sub_files_off | sub_files_on |
               sub_list_off | sub_list_on | test_target_on | makefile_on | makefile_off =>
             --  No validation required
@@ -1959,6 +1961,7 @@ package body Port_Specification is
             when only_for_opsys_on     => return rec.ONLY_FOR_OPSYS_ON.Is_Empty;
             when patchfiles_off        => return rec.PATCHFILES_OFF.Is_Empty;
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
+            when plist_sub_off         => return rec.PLIST_SUB_OFF.Is_Empty;
             when plist_sub_on          => return rec.PLIST_SUB_ON.Is_Empty;
             when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
             when qmake_args_off        => return rec.QMAKE_ARGS_OFF.Is_Empty;

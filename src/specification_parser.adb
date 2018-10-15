@@ -1299,7 +1299,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    function determine_option (line : String) return PSP.spec_option
    is
-      total_helpers : constant Positive := 64;
+      total_helpers : constant Positive := 65;
 
       subtype helper_string is String (1 .. 21);
 
@@ -1361,6 +1361,7 @@ package body Specification_Parser is
          ("ONLY_FOR_OPSYS_ON    ", PSP.only_for_opsys_on),
          ("PATCHFILES_OFF       ", PSP.patchfiles_off),
          ("PATCHFILES_ON        ", PSP.patchfiles_on),
+         ("PLIST_SUB_OFF        ", PSP.plist_sub_off),
          ("PLIST_SUB_ON         ", PSP.plist_sub_on),
          ("PREVENTS_ON          ", PSP.prevents_on),
          ("QMAKE_ARGS_OFF       ", PSP.qmake_args_off),
