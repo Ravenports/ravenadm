@@ -1681,6 +1681,8 @@ package body Port_Specification is
                Element.INSTALL_TARGET_OFF.Append (value_text);
             when install_target_on =>
                Element.INSTALL_TARGET_ON.Append (value_text);
+            when keywords_off =>
+               Element.KEYWORDS_OFF.Append (value_text);
             when keywords_on =>
                Element.KEYWORDS_ON.Append (value_text);
             when ldflags_off =>
@@ -1857,6 +1859,13 @@ package body Port_Specification is
             if option_crate.Element (mycursor).KEYWORDS_ON.Contains (value_text) then
                raise dupe_list_value with value;
             end if;
+         when keywords_off =>
+            if not keyword_is_valid (value) then
+               raise wrong_value with "Keyword '" & value & "' is not recognized";
+            end if;
+            if option_crate.Element (mycursor).KEYWORDS_OFF.Contains (value_text) then
+               raise dupe_list_value with value;
+            end if;
          when uses_on | uses_off =>
             if not valid_uses_module (value) then
                raise wrong_value with "USES '" & value & "' is not recognized";
@@ -1952,6 +1961,7 @@ package body Port_Specification is
             when info_on               => return rec.INFO_ON.Is_Empty;
             when install_target_off    => return rec.INSTALL_TARGET_OFF.Is_Empty;
             when install_target_on     => return rec.INSTALL_TARGET_ON.Is_Empty;
+            when keywords_off          => return rec.KEYWORDS_OFF.Is_Empty;
             when keywords_on           => return rec.KEYWORDS_ON.Is_Empty;
             when ldflags_off           => return rec.LDFLAGS_OFF.Is_Empty;
             when ldflags_on            => return rec.LDFLAGS_ON.Is_Empty;

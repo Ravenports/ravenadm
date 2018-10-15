@@ -116,6 +116,7 @@ package body Port_Specification.Transform is
                      when gnome_comp_off       => specs.gnome_comps.Append (item);
                      when info_off             => specs.info.Append (item);
                      when install_target_off   => specs.install_tgt.Append (item);
+                     when keywords_off         => specs.keywords.Append (item);
                      when makefile_off         => specs.mk_verbatim.Append (item);
                      when make_args_off        => specs.make_args.Append (item);
                      when make_env_off         => specs.make_env.Append (item);
@@ -250,6 +251,7 @@ package body Port_Specification.Transform is
             augment (gnome_comp_off,       rec.GNOME_COMPONENTS_OFF);
             augment (info_off,             rec.INFO_OFF);
             augment (install_target_off,   rec.INSTALL_TARGET_OFF);
+            augment (keywords_off,         rec.KEYWORDS_OFF);
             augment (makefile_off,         rec.MAKEFILE_OFF);
             augment (make_args_off,        rec.MAKE_ARGS_OFF);
             augment (make_env_off,         rec.MAKE_ENV_OFF);
