@@ -59,9 +59,9 @@ package Port_Specification is
                          implies_on, info_off, info_on,
                          install_target_off, install_target_on, keywords_on,
                          ldflags_off, ldflags_on, make_args_off, make_args_on,
-                         make_env_on, patchfiles_on, plist_sub_on, prevents_on, qmake_args_off,
-                         qmake_args_on, run_depends_off, run_depends_on, sub_files_off,
-                         sub_files_on, sub_list_off, sub_list_on, test_target_on,
+                         make_env_off, make_env_on, patchfiles_on, plist_sub_on, prevents_on,
+                         qmake_args_off, qmake_args_on, run_depends_off, run_depends_on,
+                         sub_files_off, sub_files_on, sub_list_off, sub_list_on, test_target_on,
                          uses_off, uses_on, makefile_off, makefile_on, description,
                          only_for_opsys_on, xorg_comp_off, xorg_comp_on,
                          gnome_comp_off, gnome_comp_on);
@@ -426,6 +426,7 @@ private
          MAKEFILE_ON           : string_crate.Vector;
          MAKE_ARGS_OFF         : string_crate.Vector;
          MAKE_ARGS_ON          : string_crate.Vector;
+         MAKE_ENV_OFF          : string_crate.Vector;
          MAKE_ENV_ON           : string_crate.Vector;
          ONLY_FOR_OPSYS_ON     : string_crate.Vector;
          PATCHFILES_ON         : string_crate.Vector;
