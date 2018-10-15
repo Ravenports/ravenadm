@@ -25,7 +25,7 @@ procedure Ravenadm is
    mandate    : mandate_type := unset;
    low_rights : Boolean := False;
    reg_user   : Boolean;
-   reg_error  : constant String := "This command requires root permissions to execute."
+   reg_error  : constant String := "This command requires root permissions to execute.";
 
    procedure scan_first_command_word
    is
