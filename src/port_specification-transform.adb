@@ -2859,7 +2859,7 @@ package body Port_Specification.Transform is
             when net1   => add_buildrun_depends (specs, "sdl1_net" & ss);
             when net2   => add_buildrun_depends (specs, "sdl2_net" & ss);
             when ttf1   => add_buildrun_depends (specs, "sdl1_ttf" & ss);
-            when ttf2   => add_buildrun_depends (specs, "sdl2_ttf2" & ss);
+            when ttf2   => add_buildrun_depends (specs, "sdl2_ttf" & ss);
          end case;
          case comp is
             when sdl1 | gfx1 | image1 | mixer1 | net1 | ttf1 =>
