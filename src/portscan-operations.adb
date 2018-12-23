@@ -2433,7 +2433,7 @@ package body PortScan.Operations is
            "  ," & nv ("pkghour",  LOG.hourly_build_rate) & LAT.LF &
            "  ," & nv ("impulse",  LOG.impulse_rate)      & LAT.LF &
            "  ," & nv ("swapinfo", DPY.fmtpc (get_swap_status, True)) & LAT.LF &
-           "  ," & nv ("load",     DPY.fmtpc (CYC.load_core (True), False)) & LAT.LF &
+           "  ," & nv ("load",     DPY.fmtload (CYC.load_core (True))) & LAT.LF &
            " }" & LAT.LF &
            " ," & LAT.Quotation & "builders" & LAT.Quotation & LAT.Colon & "[" & LAT.LF);
 
