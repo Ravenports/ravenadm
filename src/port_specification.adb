@@ -5474,6 +5474,7 @@ package body Port_Specification is
             when sp_rpath_warning  => TIO.Put_Line (specs.fatal_rpath'Img);
             when sp_debugging      => TIO.Put_Line (specs.debugging_on'Img);
             when sp_generated      => TIO.Put_Line (specs.generated'Img);
+            when sp_repsucks       => TIO.Put_Line (specs.repology_sucks'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -5570,6 +5571,7 @@ package body Port_Specification is
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("SET_DEBUGGING_ON", sp_debugging);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
+      print_boolean     ("REPOLOGY_SUCKS", sp_repsucks);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
       print_single      ("MAKEFILE", sp_makefile);
       print_single      ("DESTDIRNAME", sp_destdirname);
