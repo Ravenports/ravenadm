@@ -571,6 +571,7 @@ package body Replicant is
       sol_command : constant String := "/usr/sbin/umount " & device_or_node;
       lin_command : constant String := "/bin/umount " & device_or_node;
       counter     : Natural := 0;
+      success     : Boolean := False;
    begin
       --  failure to unmount causes stderr squawks which messes up curses display
       --  Just log it and ignore for now (Add robustness later)
@@ -586,6 +587,7 @@ package body Replicant is
                when linux     => execute (lin_command);
                when sunos     => execute (sol_command);
             end case;
+            success := True;
             exit;
          exception
             when others =>
@@ -593,6 +595,9 @@ package body Replicant is
                delay 10.0;
          end;
       end loop;
+      if not success then
+         raise failed_unmount with device_or_node;
+      end if;
    end unmount;
 
 
@@ -1056,13 +1061,14 @@ package body Replicant is
       slave_local : constant String := slave_base & "_localbase";
       dir_system  : constant String := HT.USS (PM.configuration.dir_sysroot);
       lbase       : constant String := HT.USS (PM.configuration.dir_localbase);
+      retry1min   : constant Natural := 6;
       counter     : Natural := 0;
    begin
 
       unmount_devices (location (slave_base, dev));
 
       if DIR.Exists (mount_target (ccache)) then
-         unmount (location (slave_base, ccache));
+         unmount (location (slave_base, ccache), retry1min);
       end if;
 
       if need_procfs or else
@@ -1072,8 +1078,8 @@ package body Replicant is
          unmount_procfs (location (slave_base, proc));
       end if;
 
-      unmount (location (slave_base, distfiles));
-      unmount (location (slave_base, packages));
+      unmount (location (slave_base, distfiles), retry1min);
+      unmount (location (slave_base, packages), retry1min);
 
       if DIR.Exists (location (slave_base, toolchain) & "/bin") then
          unhook_toolchain (id);
@@ -1108,15 +1114,15 @@ package body Replicant is
             case platform_type is
                when macos | openbsd => null;
                when others =>
-                  unmount (slave_base & lbase, 5);
+                  unmount (slave_base & lbase, retry1min);
             end case;
          end if;
          annihilate_directory_tree (slave_local);
       else
          if lbase = bsd_localbase then
-            unmount (slave_base & lbase, 5);
+            unmount (slave_base & lbase, retry1min);
          end if;
-         unmount (slave_base, 50);
+         unmount (slave_base, retry1min * 5);
       end if;
       annihilate_directory_tree (slave_base);
 

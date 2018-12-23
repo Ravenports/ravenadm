@@ -68,6 +68,7 @@ private
    abn_log_ready  : Boolean;
    abnormal_log   : TIO.File_Type;
    ravenbase      : HT.Text;
+   failed_unmount : exception;
 
    abnormal_cmd_logname : constant String := "05_abnormal_command_output.log";
 
