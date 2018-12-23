@@ -82,7 +82,7 @@ private
                                   "galera-5.5:galera-5.6:galera-5.7";
    version_D : constant String := "5.26:" & default_perl;
    version_E : constant String := "7.0:7.1:" & default_php & ":7.3";
-   version_F : constant String := "9.3:9.4:9.5:9.6:" & default_pgsql;
+   version_F : constant String := "9.3:9.4:9.5:9.6:" & default_pgsql & ":11";
    version_G : constant String := "3.6:" & default_python3;
    version_H : constant String := "2.3:2.4:" & default_ruby;
    version_I : constant String := "openssl:openssl-devel:" & default_ssl & ":libressl-devel";

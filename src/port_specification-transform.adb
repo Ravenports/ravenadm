@@ -3017,6 +3017,8 @@ package body Port_Specification.Transform is
          return "postgresql95";
       elsif setting = "9.6" then
          return "postgresql96";
+      elsif setting = "11" then
+         return "postgresql11";
       else
          --  case: setting = ports_default
          --  case: setting = default_pgsql (10 right now)
