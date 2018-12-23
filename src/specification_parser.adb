@@ -449,6 +449,7 @@ package body Specification_Parser is
                      when invalid_rpath    => set_boolean (spec, PSP.sp_rpath_warning, line);
                      when debugging        => set_boolean (spec, PSP.sp_debugging, line);
                      when generated        => set_boolean (spec, PSP.sp_generated, line);
+                     when repsucks         => set_boolean (spec, PSP.sp_repsucks, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -1062,7 +1063,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 172;
+      total_singlets : constant Positive := 173;
 
       type singlet_pair is
          record
@@ -1199,6 +1200,7 @@ package body Specification_Parser is
          ("PYSETUP               ",  7, catchall),
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("RC_SUBR               ",  7, rc_scripts),
+         ("REPOLOGY_SUCKS        ", 14, repsucks),
          ("REVISION              ",  8, revision),
          ("RUBY_EXTCONF          ", 12, catchall),
          ("RUBY_FLAGS            ", 10, catchall),

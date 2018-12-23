@@ -79,6 +79,7 @@ package body Port_Specification is
       specs.generated      := False;
       specs.opt_df_index   := False;
       specs.skip_opsys_dep := False;
+      specs.repology_sucks := False;
       specs.build_wrksrc   := HT.blank;
       specs.makefile       := HT.blank;
       specs.destdirname    := HT.blank;
@@ -1588,6 +1589,8 @@ package body Port_Specification is
             specs.debugging_on := value;
          when sp_generated =>
             specs.generated := value;
+         when sp_repsucks =>
+            specs.repology_sucks := value;
          when others =>
             raise wrong_type with field'Img;
       end case;

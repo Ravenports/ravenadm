@@ -166,7 +166,9 @@ package body Port_Specification.Json is
    is
       homepage : constant String := specs.get_field_value (sp_homepage);
    begin
-      if homepage = homepage_none then
+      if homepage = homepage_none or else
+        specs.repology_sucks
+      then
          return "";
       end if;
       return UTL.json_nvpair_string  ("homepage", specs.get_field_value (sp_homepage), 3, pad);
