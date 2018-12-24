@@ -68,6 +68,7 @@ private
          goodpaths   : string_crate.Vector;
          rpath_fatal : Boolean;
          check_strip : Boolean;
+         disable_dog : Boolean;
          loglines    : Natural := 0;
       end record;
 

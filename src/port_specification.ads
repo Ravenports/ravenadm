@@ -45,7 +45,7 @@ package Port_Specification is
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
                        sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
                        sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
-                       sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks);
+                       sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks, sp_killdog);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -295,6 +295,9 @@ package Port_Specification is
    --  Return true if broken_all key present in the broken array
    function broken_all_set (specs : Portspecs) return Boolean;
 
+   --  Return true if BLOCK_WATCHDOG set by specification
+   function watchdog_disabled (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -530,6 +533,7 @@ private
          opt_df_index   : Boolean;
          skip_opsys_dep : Boolean;
          repology_sucks : Boolean;
+         kill_watchdog  : Boolean;
          prefix         : HT.Text;
          build_wrksrc   : HT.Text;
          makefile       : HT.Text;

@@ -450,6 +450,7 @@ package body Specification_Parser is
                      when debugging        => set_boolean (spec, PSP.sp_debugging, line);
                      when generated        => set_boolean (spec, PSP.sp_generated, line);
                      when repsucks         => set_boolean (spec, PSP.sp_repsucks, line);
+                     when killdog          => set_boolean (spec, PSP.sp_killdog, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -1063,7 +1064,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 173;
+      total_singlets : constant Positive := 174;
 
       type singlet_pair is
          record
@@ -1075,6 +1076,7 @@ package body Specification_Parser is
       --  It is critical that this list be alphabetized correctly.
       all_singlets : constant array (1 .. total_singlets) of singlet_pair :=
         (
+         ("BLOCK_WATCHDOG        ", 14, killdog),
          ("BROKEN_MYSQL          ", 12, broken_mysql),
          ("BROKEN_PGSQL          ", 12, broken_pgsql),
          ("BROKEN_SSL            ", 10, broken_ssl),

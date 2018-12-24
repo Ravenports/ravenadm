@@ -42,6 +42,7 @@ package body PortScan.Buildcycle is
       trackers (id).loglines := 0;
       trackers (id).check_strip := not specification.debugging_is_on;
       trackers (id).rpath_fatal := specification.rpath_check_errors_are_fatal;
+      trackers (id).disable_dog := specification.watchdog_disabled;
       if not LOG.initialize_log (log_handle => trackers (id).log_handle,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
@@ -49,7 +50,8 @@ package body PortScan.Buildcycle is
                                  UNAME      => HT.USS (uname_mrv),
                                  BENV       => get_environment (id),
                                  COPTS      => specification.options_summary (variant),
-                                 PTVAR      => get_port_variables (id))
+                                 PTVAR      => get_port_variables (id),
+                                 block_dog  => trackers (id).disable_dog)
       then
          LOG.finalize_log (trackers (id).log_handle,
                            trackers (id).head_time,
@@ -1526,7 +1528,7 @@ package body PortScan.Buildcycle is
       status      : Unix.process_exit;
       lock_lines  : Natural;
       quartersec  : one_minute := one_minute'First;
-      hangmonitor : constant Boolean := True;
+      hangmonitor : constant Boolean := True and then not trackers (id).disable_dog;
       truecommand : constant String := ravenexec & " " &
                              LOG.log_name (trackers (id).seq_id) & " " & command;
    begin

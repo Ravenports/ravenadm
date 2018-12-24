@@ -18,7 +18,8 @@ package PortScan.Log is
       UNAME      : String;
       BENV       : String;
       COPTS      : String;
-      PTVAR      : String) return Boolean;
+      PTVAR      : String;
+      block_dog  : Boolean) return Boolean;
 
    --  Stop time, write duration data, close log
    procedure finalize_log

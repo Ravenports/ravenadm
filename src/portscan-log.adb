@@ -359,7 +359,8 @@ package body PortScan.Log is
       UNAME      : String;
       BENV       : String;
       COPTS      : String;
-      PTVAR      : String) return Boolean
+      PTVAR      : String;
+      block_dog  : Boolean) return Boolean
    is
       H_ENV : constant String := "Environment";
       H_OPT : constant String := "Options";
@@ -387,6 +388,9 @@ package body PortScan.Log is
                    " (version " & HT.USS (all_ports (seq_id).pkgversion) & ")");
       TIO.Put_Line (log_handle, "Started : " & timestamp (head_time));
       TIO.Put      (log_handle, "Platform: " & UNAME);
+      if block_dog then
+         TIO.Put   (log_handle, "Watchdog: Disabled");
+      end if;
       if BENV = discerr then
          TIO.Put_Line (log_handle, LAT.LF & "Environment definition failed, " &
                          "aborting entire build");
