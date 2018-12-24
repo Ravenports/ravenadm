@@ -740,6 +740,7 @@ package body Port_Specification.Buildsheet is
       send ("SUB_LIST",               specs.sub_list, 1);
       blank_line;
       send ("REPOLOGY_SUCKS",       specs.repology_sucks, True);
+      send ("BLOCK_WATCHDOG",       specs.kill_watchdog, True);
       send ("SET_DEBUGGING_ON",     specs.debugging_on, True);
       send ("CFLAGS",               specs.cflags, 1);
       send ("CXXFLAGS",             specs.cxxflags, 1);
