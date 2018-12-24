@@ -3023,7 +3023,7 @@ package body Port_Specification.Transform is
          --  case: setting = ports_default
          --  case: setting = default_pgsql (10 right now)
          --  case: setting = invalid value
-         return "postgresql100";
+         return "postgresql10";
       end if;
    end determine_pgsql_namebase;
 
