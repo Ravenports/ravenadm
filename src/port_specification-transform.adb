@@ -1574,9 +1574,9 @@ package body Port_Specification.Transform is
    procedure apply_ruby_module (specs : in out Portspecs)
    is
       module     : constant String := "ruby";
-      v23        : constant String := "v23";
       v24        : constant String := "v24";
       v25        : constant String := "v25";
+      v26        : constant String := "v26";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) or else
         argument_present (specs, module, "interp")
@@ -1585,9 +1585,9 @@ package body Port_Specification.Transform is
       end if;
 
       if argument_present (specs, module, "build") then
-         if argument_present (specs, module, v23) then
-            add_build_depends (specs, RUBY23);
-            specs.used_ruby := HT.SUS (RUBY23);
+         if argument_present (specs, module, v26) then
+            add_build_depends (specs, RUBY26);
+            specs.used_ruby := HT.SUS (RUBY26);
          elsif argument_present (specs, module, v24) then
             add_build_depends (specs, RUBY24);
             specs.used_ruby := HT.SUS (RUBY24);
@@ -1596,9 +1596,9 @@ package body Port_Specification.Transform is
             specs.used_ruby := HT.SUS (RUBY25);
          end if;
       else
-         if argument_present (specs, module, v23) then
-            add_buildrun_depends (specs, RUBY23);
-            specs.used_ruby := HT.SUS (RUBY23);
+         if argument_present (specs, module, v26) then
+            add_buildrun_depends (specs, RUBY26);
+            specs.used_ruby := HT.SUS (RUBY26);
          elsif argument_present (specs, module, v24) then
             add_buildrun_depends (specs, RUBY24);
             specs.used_ruby := HT.SUS (RUBY24);
@@ -1769,8 +1769,8 @@ package body Port_Specification.Transform is
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if not no_arguments_present (specs, module) then
-            if argument_present (specs, module, "v23") then
-               flavor := "v23";
+            if argument_present (specs, module, "v26") then
+               flavor := "v26";
             elsif argument_present (specs, module, "v24") then
                flavor := "v24";
             elsif argument_present (specs, module, "v25") then
@@ -2629,8 +2629,8 @@ package body Port_Specification.Transform is
          begin
             if setting = ports_default or else setting = default_ruby then
                return name_subpackage & "v25";
-            elsif setting = "2.3" then
-              return name_subpackage & "v23";
+            elsif setting = "2.6" then
+               return name_subpackage & "v26";
             else
                return name_subpackage & "v24";
             end if;
