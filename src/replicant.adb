@@ -981,13 +981,15 @@ package body Replicant is
          forge_directory (location (slave_base, mnt));
       end loop;
 
+      --  Save a null mount on all platforms (all keeps /xports to the bare minimum)
+      mount_hardlink (mount_target (xports) & "/Mk",
+                      location (slave_base, xports) & "/Mk",
+                      dir_system);
+
       case platform_type is
          when macos | openbsd =>
             mount_hardlink (location (dir_system, bin), location (slave_base, bin), dir_system);
             mount_hardlink (location (dir_system, usr), location (slave_base, usr), dir_system);
-            mount_hardlink (mount_target (xports) & "/Mk",
-                            location (slave_base, xports) & "/Mk",
-                            dir_system);
             mount_hardlink (mount_target (toolchain),
                             location (slave_base, toolchain) & "-off",
                             dir_system);
@@ -995,7 +997,6 @@ package body Replicant is
          when others =>
             mount_nullfs (location (dir_system, bin), location (slave_base, bin));
             mount_nullfs (location (dir_system, usr), location (slave_base, usr));
-            mount_nullfs (mount_target (xports),      location (slave_base, xports));
       end case;
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd =>
@@ -1092,7 +1093,6 @@ package body Replicant is
       case platform_type is
          when macos | openbsd => null;
          when others =>
-            unmount (location (slave_base, xports));
             unmount (location (slave_base, bin));
             unmount (location (slave_base, usr));
       end case;
