@@ -1808,8 +1808,6 @@ package body Port_Specification.Transform is
             flavor := "php72";
          elsif argument_present (specs, module, "71") then
             flavor := "php71";
-         elsif argument_present (specs, module, "56") then
-            flavor := "php56";
          end if;
          hit_build   := argument_present (specs, module, BUILD);
          hit_phpsize := argument_present (specs, module, "phpsize");
