@@ -1575,15 +1575,22 @@ package body Pilot is
                                           stop_at_targets => True);
             if presuccess then
                declare
-                  namebase  : constant String := prespec.get_namebase;
-                  savedspec : String := HT.USS (PM.configuration.dir_conspiracy) & "/bucket_" &
-                    UTL.bucket (namebase) & "/" & namebase;
+                  namebase  : String := prespec.get_namebase;
+                  buckname  : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
+                  savedspec : String := HT.USS (PM.configuration.dir_conspiracy) & buckname;
+                  custspec  : String := HT.USS (PM.configuration.dir_profile) &
+                                        "/unkindness/" & buckname;
                begin
-                  if DIR.Exists (savedspec) then
+                  if DIR.Exists (custspec) then
                      spec_found := True;
-                     return savedspec;
+                     return custspec;
                   else
-                     DNE (savedspec);
+                     if DIR.Exists (savedspec) then
+                        spec_found := True;
+                        return savedspec;
+                     else
+                        DNE (savedspec);
+                     end if;
                   end if;
                end;
             end if;
