@@ -1579,7 +1579,7 @@ package body Pilot is
                   buckname  : String := "/bucket_" & UTL.bucket (namebase) & "/" & namebase;
                   savedspec : String := HT.USS (PM.configuration.dir_conspiracy) & buckname;
                   custspec  : String := HT.USS (PM.configuration.dir_profile) &
-                                        "/unkindness/" & buckname;
+                                        "/unkindness" & buckname;
                begin
                   if DIR.Exists (custspec) then
                      spec_found := True;

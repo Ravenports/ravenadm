@@ -750,7 +750,7 @@ package body Replicant is
    procedure mount_hardlink (target, mount_point, sysroot : String)
    is
       find_program  : constant String := sysroot & "/usr/bin/find ";
-      copy_program  : constant String := sysroot & "/bin/cp -al ";
+      copy_program  : constant String := sysroot & "/bin/cp -RpPl ";
       chmod_program : constant String := sysroot & "/bin/chmod ";
    begin
       if DIR.Exists (mount_point) then
@@ -759,6 +759,23 @@ package body Replicant is
       execute (copy_program & target & " " & mount_point);
       execute (find_program & mount_point & " -type d -exec " & chmod_program & "555 {} +");
    end mount_hardlink;
+
+
+   --------------------------------------------------------------------------------------------
+   --  mount_fullcopy
+   --------------------------------------------------------------------------------------------
+   procedure mount_fullcopy (target, mount_point, sysroot : String)
+   is
+      find_program  : constant String := sysroot & "/usr/bin/find ";
+      copy_program  : constant String := sysroot & "/bin/cp -RpP ";
+      chmod_program : constant String := sysroot & "/bin/chmod ";
+   begin
+      if DIR.Exists (mount_point) then
+         DIR.Delete_Directory (mount_point);
+      end if;
+      execute (copy_program & target & " " & mount_point);
+      execute (find_program & mount_point & " -type d -exec " & chmod_program & "555 {} +");
+   end mount_fullcopy;
 
 
    --------------------------------------------------------------------------------------------
@@ -982,9 +999,15 @@ package body Replicant is
       end loop;
 
       --  Save a null mount on all platforms (all keeps /xports to the bare minimum)
-      mount_hardlink (mount_target (xports) & "/Mk",
-                      location (slave_base, xports) & "/Mk",
-                      dir_system);
+      if PM.configuration.avoid_tmpfs then
+         mount_hardlink (mount_target (xports) & "/Mk",
+                         location (slave_base, xports) & "/Mk",
+                         dir_system);
+      else
+         mount_fullcopy (mount_target (xports) & "/Mk",
+                         location (slave_base, xports) & "/Mk",
+                         dir_system);
+      end if;
 
       case platform_type is
          when macos | openbsd =>

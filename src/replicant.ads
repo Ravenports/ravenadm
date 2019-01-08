@@ -146,7 +146,12 @@ private
    --  Simulate null mount, but recursively copy target as hardlinks to mount_point
    --  Only used for systems that don't support null mounts and must use NFS mounts instead
    --  These are always "read only", so the directories will recursively be set to 555
+   --  Cannot be used over tmpfs (cross-device link error)
    procedure mount_hardlink (target, mount_point, sysroot : String);
+
+   --  Simulate null mount, but recursively copy target to mount_point
+   --  These are always "read only", so the directories will recursively be set to 555
+   procedure mount_fullcopy (target, mount_point, sysroot : String);
 
    --  Throws exception if mount attempt was unsuccessful of if tmpfs is unsupported
    procedure mount_tmpfs (mount_point : String; max_size_M : Natural := 0);
