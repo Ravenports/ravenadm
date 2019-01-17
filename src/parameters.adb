@@ -838,10 +838,10 @@ package body Parameters is
    is
       alternate_chroot : constant String := "/usr/bin/chroot";
    begin
-      if DIR.Exists (chroot_cmd) then
+      if DIR.Exists (HT.trim (chroot_cmd)) then
          return;
       elsif DIR.Exists (alternate_chroot) then
-         chroot_cmd := alternate_chroot & " ";
+         chroot_cmd := alternate_chroot & "  ";
       else
          TIO.Put_Line ("chroot program not found!");
          TIO.Put_Line ("ravenadm will not be able to build any software.");
