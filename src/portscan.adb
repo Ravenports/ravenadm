@@ -317,8 +317,9 @@ package body PortScan is
    is
       procedure search (position : string_crate.Cursor);
 
-      conspiracy   : constant String := HT.USS (Parameters.configuration.dir_conspiracy);
-      unkindness   : constant String := HT.USS (Parameters.configuration.dir_unkindness);
+      conspiracy : constant String := HT.USS (Parameters.configuration.dir_conspiracy);
+      unkindness : constant String := HT.USS (Parameters.configuration.dir_profile) &
+                                      "/unkindness";
       counter : Natural := 0;
       answer  : HT.Text;
 
