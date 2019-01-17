@@ -219,7 +219,6 @@ private
    original_queue_len : CON.Count_Type;
 
    discerr      : constant String := "Discovery error";
-   chroot       : constant String := "/usr/sbin/chroot ";
 
    function get_port_variant (PR : port_record) return String;
    procedure wipe_make_queue;

@@ -145,12 +145,12 @@ package body PortScan.Packager is
          namebase : constant String := specification.get_namebase;
          pkgname : String := namebase & "-" & subpackage & "-" &
            HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers;
-         package_cmd : constant String := chroot & rootdir & " /usr/bin/env FORCE_POST=" &
+         package_cmd : constant String := PM.chroot_cmd & rootdir & " /usr/bin/env FORCE_POST=" &
            LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
            PKG_CREATE & PKG_CREATE_ARGS & pkgname;
-         move_cmd : constant String := chroot & rootdir & " /bin/mv " & newpkgdir & "/" &
+         move_cmd : constant String := PM.chroot_cmd & rootdir & " /bin/mv " & newpkgdir & "/" &
            pkgname & ".tzst /packages/All/";
-         link_cmd : constant String := chroot & rootdir & " /bin/ln -sf /packages/All/" &
+         link_cmd : constant String := PM.chroot_cmd & rootdir & " /bin/ln -sf /packages/All/" &
            pkgname & ".tzst /packages/Latest/" & pkgname & ".tzst";
       begin
          if still_good then

@@ -109,8 +109,6 @@ private
    root_devices     : constant String := "/devices";
    root_frameworks  : constant String := "/System/Library";
 
-   chroot           : constant String := "/usr/sbin/chroot ";  -- localhost
-
    workzone_id      : constant builders := 7;
 
    --  Query configuration to determine the master and slave mounts

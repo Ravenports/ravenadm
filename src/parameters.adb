@@ -842,7 +842,6 @@ package body Parameters is
          return;
       elsif DIR.Exists (alternate_chroot) then
          chroot_cmd := alternate_chroot & " ";
-         TIO.Put_Line ("set chroot to " & alternate_chroot);  --  debug, remove later
       else
          TIO.Put_Line ("chroot program not found!");
          TIO.Put_Line ("ravenadm will not be able to build any software.");
