@@ -836,12 +836,14 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    procedure set_chroot
    is
-      primary_chroot : constant String := "/usr/bin/chroot";
+      alternate_chroot : constant String := "/usr/bin/chroot";
    begin
-      if DIR.Exists (primary_chroot) then
-         chroot_cmd := primary_chroot & " ";
-         TIO.Put_Line ("set chroot to " & primary_chroot);  --  debug, remove later
-      elsif DIR.Exists (chroot_cmd) then
+      if DIR.Exists (chroot_cmd) then
+         return;
+      elsif DIR.Exists (alternate_chroot) then
+         chroot_cmd := alternate_chroot & " ";
+         TIO.Put_Line ("set chroot to " & alternate_chroot);  --  debug, remove later
+      else
          TIO.Put_Line ("chroot program not found!");
          TIO.Put_Line ("ravenadm will not be able to build any software.");
       end if;
