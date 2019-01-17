@@ -58,6 +58,10 @@ package Parameters is
    configuration  : configuration_record;
    active_profile : HT.Text;
 
+   --  Gentoo linux puts chroot in /usr/sbin when ever other system has the program or
+   --  a symlink at /usr/bin.  Precreate the longest string for the command.
+   chroot_cmd     : String := "/usr/sbin/chroot";
+
    --  Return true if configuration file exists.
    --  Reason: if it doesn't, we need to check privileges because root is needed
    --          to pre-create the first version

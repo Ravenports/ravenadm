@@ -511,7 +511,19 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    --  already_running
    --------------------------------------------------------------------------------------------
-   function already_running return Boolean is
+   function already_running return Boolean
+   is
+      procedure remove_stale_pidfile;
+      procedure remove_stale_pidfile is
+      begin
+         DIR.Delete_File (pidfile);
+      exception
+         when others =>
+            --  silently ignore failure.  Likely ravenadm was launched by regular
+            --  user after event that left root-created stale pid file.  We can
+            --  clean it up the next time root executes this command
+            null;
+      end remove_stale_pidfile;
    begin
       if DIR.Exists (pidfile) then
          declare
@@ -533,13 +545,13 @@ package body Pilot is
                return True;
             else
                --  pidfile is obsolete, remove it.
-               DIR.Delete_File (pidfile);
+               remove_stale_pidfile;
                return False;
             end if;
          exception
             when others =>
                --  pidfile contains garbage, remove it
-               DIR.Delete_File (pidfile);
+               remove_stale_pidfile;
                return False;
          end;
       end if;
