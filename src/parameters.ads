@@ -192,4 +192,8 @@ private
    --  Updates the global section to indicate active profile
    procedure change_active_profile (new_active_profile : String);
 
+   --  Set chroot to /usr/bin/chroot if program is found
+   --  If not, chroot remains set to /usr/sbin/chroot
+   procedure set_chroot;
+
 end Parameters;

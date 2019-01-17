@@ -122,6 +122,7 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    function load_configuration return Boolean is
    begin
+      set_chroot;
       set_cores;
       if DIR.Exists (conf_location) then
          begin
@@ -828,5 +829,22 @@ package body Parameters is
       change_active_profile (new_active_profile => to_profile);
       transfer_configuration;
    end switch_profile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_chroot
+   --------------------------------------------------------------------------------------------
+   procedure set_chroot
+   is
+      primary_chroot : constant String := "/usr/bin/chroot";
+   begin
+      if DIR.Exists (primary_chroot) then
+         chroot_cmd := primary_chroot & " ";
+         TIO.Put_Line ("set chroot to " & primary_chroot);  --  debug, remove later
+      elsif DIR.Exists (chroot_cmd) then
+         TIO.Put_Line ("chroot program not found!");
+         TIO.Put_Line ("ravenadm will not be able to build any software.");
+      end if;
+   end set_chroot;
 
 end Parameters;
