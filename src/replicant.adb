@@ -851,41 +851,22 @@ package body Replicant is
    is
       --  chattr does not work on tmpfs partitions
       --  It appears immutable locking can't be supported on Linux
-      cmd_freebsd   : constant String := "/bin/chflags";
-      cmd_dragonfly : constant String := "/usr/bin/chflags";
+      --  Don't use chflags schg on *BSD as securitylevel > 0 (BSD) will block it
       cmd_fallback  : constant String := "/bin/chmod";
-      flag_lock     : constant String := " schg ";
-      flag_unlock   : constant String := " noschg ";
       fback_lock    : constant String := " 555 ";
       fback_unlock  : constant String := " 755 ";
-      command       : HT.Text;
+
+      command       : HT.Text  := HT.SUS (cmd_fallback);
    begin
       if not DIR.Exists (path) then
-         --  e.g. <slave>/var/empty does not exist on NetBSD
          return;
       end if;
 
-      case platform_type is
-         when freebsd   => command := HT.SUS (cmd_freebsd);
-         when dragonfly |
-              netbsd    |
-              openbsd   |
-              macos     => command := HT.SUS (cmd_dragonfly);
-         when sunos     |
-              linux     => command := HT.SUS (cmd_fallback);
+      case operation is
+         when lock   => HT.SU.Append (command, fback_lock & path);
+         when unlock => HT.SU.Append (command, fback_unlock & path);
       end case;
-      case platform_type is
-         when freebsd | dragonfly | netbsd | openbsd | macos =>
-            case operation is
-               when lock   => HT.SU.Append (command, flag_lock & path);
-               when unlock => HT.SU.Append (command, flag_unlock & path);
-            end case;
-         when sunos | linux =>
-            case operation is
-               when lock   => HT.SU.Append (command, fback_lock & path);
-               when unlock => HT.SU.Append (command, fback_unlock & path);
-            end case;
-      end case;
+
       execute (HT.USS (command));
    end folder_access;
 
@@ -1108,10 +1089,6 @@ package body Replicant is
       if DIR.Exists (location (slave_base, toolchain) & "/bin") then
          unhook_toolchain (id);
       end if;
-
-      folder_access (location (slave_base, root), unlock);
-      folder_access (location (slave_base, home), unlock);
-      folder_access (location (slave_base, var) & "/empty", unlock);
 
       case platform_type is
          when macos | openbsd => null;
