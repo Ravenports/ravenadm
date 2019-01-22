@@ -126,6 +126,10 @@ package Pilot is
    --  actual downloads and removes any distfiles that don't belong.
    procedure purge_distfiles;
 
+   --  Determines all possible log files of the ports tree, then scans the log directory for
+   --  the purpose of removing any logs to ports that no longer exist.
+   procedure purge_logs;
+
    --  Launches options dialog to allow user to set them
    procedure change_options;
 

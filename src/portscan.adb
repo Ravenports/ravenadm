@@ -344,4 +344,22 @@ package body PortScan is
       return HT.USS (answer);
    end get_buildsheet_from_origin_list;
 
+
+   --------------------------------------------------------------------------------------------
+   --  remove_obsolete_logs
+   --------------------------------------------------------------------------------------------
+   procedure remove_obsolete_logs
+   is
+      procedure delete_log (position : string_crate.Cursor);
+      procedure delete_log (position : string_crate.Cursor)
+      is
+         logname : constant String := HT.USS (string_crate.Element (position));
+      begin
+         TIO.Put_Line (logname);
+      end delete_log;
+   begin
+      TIO.Put_Line ("Removing...");
+      log_list.Iterate (delete_log'Access);
+   end remove_obsolete_logs;
+
 end PortScan;

@@ -70,6 +70,14 @@ package PortScan.Scan is
    --  Returns false if exception hit
    function generate_unkindness_index (sysrootver : sysroot_characteristics) return Boolean;
 
+   --  Walk through log directory and gather list of existing build logs
+   procedure gather_list_of_build_logs;
+
+   --  Calculate all possible build log names and remove from the actual list
+   --  of build logs if found.  Use either conspiracy_variants or unkindness_variants
+   --  based on value of main_tree boolean.
+   procedure eliminate_current_logs (main_tree : Boolean);
+
 private
 
    package CAL renames Ada.Calendar;

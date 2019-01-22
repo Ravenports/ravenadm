@@ -2647,4 +2647,83 @@ package body PortScan.Scan is
          return False;
    end generate_unkindness_index;
 
+
+   --------------------------------------------------------------------------------------------
+   --  gather_list_of_build_logs
+   --------------------------------------------------------------------------------------------
+   procedure gather_list_of_build_logs
+   is
+      buildlog_dir : constant String := HT.USS (PM.configuration.dir_logs) & "/logs";
+      Log_Search   : DIR.Search_Type;
+      Log_Dirent   : DIR.Directory_Entry_Type;
+      use type DIR.File_Kind;
+   begin
+      if DIR.Exists (buildlog_dir) and then
+        DIR.Kind (buildlog_dir) = DIR.Directory
+      then
+         DIR.Start_Search (Search    => Log_Search,
+                           Directory => buildlog_dir,
+                           Filter    => (DIR.Directory => True, others => False),
+                           Pattern   => "*.log");
+
+         while DIR.More_Entries (Log_Search) loop
+            DIR.Get_Next_Entry (Log_Search, Log_Dirent);
+            log_list.Append (HT.SUS (DIR.Simple_Name (Log_Dirent)));
+         end loop;
+         DIR.End_Search (Log_Search);
+      end if;
+   end gather_list_of_build_logs;
+
+
+   --------------------------------------------------------------------------------------------
+   --  eliminate_current_logs
+   --------------------------------------------------------------------------------------------
+   procedure eliminate_current_logs (main_tree : Boolean)
+   is
+      function get_variant_index return String;
+      function get_variant_index return String
+      is
+         conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
+         unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
+      begin
+         if main_tree then
+            return conspiracy & conspindex;
+         else
+            return unkindness & unkinindex;
+         end if;
+      end get_variant_index;
+
+      variant_index : constant String := get_variant_index;
+   begin
+      if not DIR.Exists (variant_index) then
+         return;
+      end if;
+
+      declare
+         fulldata  : String := FOP.get_file_contents (variant_index);
+         markers   : HT.Line_Markers;
+      begin
+         HT.initialize_markers (fulldata, markers);
+         loop
+            exit when not HT.next_line_present (fulldata, markers);
+            declare
+               line     : constant String := HT.extract_line (fulldata, markers);
+               namebase : constant String := HT.specific_field (line, 2);
+               numvar   : constant Positive := Positive'Value (HT.specific_field (line, 3));
+            begin
+               for x in 1 .. numvar loop
+                  declare
+                     variant : constant String := HT.specific_field (line, 3 + x);
+                     logname : HT.Text := HT.SUS (namebase & "___" & variant & ".log");
+                  begin
+                     if log_list.Contains (logname) then
+                        log_list.Delete (log_list.Find_Index (logname));
+                     end if;
+                  end;
+               end loop;
+            end;
+         end loop;
+      end;
+   end eliminate_current_logs;
+
 end PortScan.Scan;

@@ -1414,6 +1414,18 @@ package body Pilot is
 
 
    --------------------------------------------------------------------------------------------
+   --  purge_logs
+   --------------------------------------------------------------------------------------------
+   procedure purge_logs is
+   begin
+      PortScan.Scan.gather_list_of_build_logs;
+      PortScan.Scan.eliminate_current_logs (main_tree => True);
+      PortScan.Scan.eliminate_current_logs (main_tree => False);
+      PortScan.remove_obsolete_logs;
+   end purge_logs;
+
+
+   --------------------------------------------------------------------------------------------
    --  change_options
    --------------------------------------------------------------------------------------------
    procedure change_options

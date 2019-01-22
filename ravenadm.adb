@@ -14,7 +14,7 @@ procedure Ravenadm is
 
    type mandate_type is (unset, help, dev, build, build_everything, force, test, test_everything,
                          status, status_everything, configure, locate, purge, changeopts,
-                         checkports, portsnap, repository, list_subpackages, website);
+                         checkports, portsnap, repository, list_subpackages, website, purgelogs);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
                          repatch, sort_plist, confinfo);
 
@@ -55,6 +55,8 @@ procedure Ravenadm is
          mandate := locate;
       elsif first = "purge-distfiles" then
          mandate := purge;
+      elsif first = "purge-logs" then
+         mandate := purgelogs;
       elsif first = "set-options" then
          mandate := changeopts;
       elsif first = "check-ports" then
@@ -420,6 +422,12 @@ begin
          --  purge-distfiles
          --------------------------------
          Pilot.purge_distfiles;
+
+      when purgelogs =>
+         --------------------------------
+         --  purge-logs
+         --------------------------------
+         Pilot.purge_logs;
 
       when changeopts =>
          --------------------------------
