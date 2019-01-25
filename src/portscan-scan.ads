@@ -78,6 +78,9 @@ package PortScan.Scan is
    --  based on value of main_tree boolean.
    procedure eliminate_current_logs (main_tree : Boolean);
 
+   --  Removes the logs represented by the contents of log_list container
+   procedure remove_obsolete_logs;
+
 private
 
    package CAL renames Ada.Calendar;

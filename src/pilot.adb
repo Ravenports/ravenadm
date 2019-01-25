@@ -1421,7 +1421,7 @@ package body Pilot is
       PortScan.Scan.gather_list_of_build_logs;
       PortScan.Scan.eliminate_current_logs (main_tree => True);
       PortScan.Scan.eliminate_current_logs (main_tree => False);
-      PortScan.remove_obsolete_logs;
+      PortScan.Scan.remove_obsolete_logs;
    end purge_logs;
 
 

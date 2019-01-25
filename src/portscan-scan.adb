@@ -2744,4 +2744,29 @@ package body PortScan.Scan is
       end;
    end eliminate_current_logs;
 
+
+   --------------------------------------------------------------------------------------------
+   --  remove_obsolete_logs
+   --------------------------------------------------------------------------------------------
+   procedure remove_obsolete_logs
+   is
+      procedure delete_log (position : string_crate.Cursor);
+
+      bytes_purged : disktype := 0;
+      buildlog_dir : constant String := HT.USS (PM.configuration.dir_logs) & "/logs/";
+
+      procedure delete_log (position : string_crate.Cursor)
+      is
+         logname  : constant String := HT.USS (string_crate.Element (position));
+         fullpath : constant String := buildlog_dir & logname;
+      begin
+         bytes_purged := bytes_purged + disktype (DIR.Size (fullpath));
+         TIO.Put_Line (logname);
+      end delete_log;
+   begin
+      TIO.Put_Line ("Removed the following logs:");
+      log_list.Iterate (delete_log'Access);
+      TIO.Put_Line ("Recovered" & display_kmg (bytes_purged));
+   end remove_obsolete_logs;
+
 end PortScan.Scan;

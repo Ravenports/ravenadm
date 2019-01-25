@@ -80,9 +80,6 @@ package PortScan is
    --  Returns true if gcc7:standard or binutils:ravensys is present in stored origins
    function jail_env_port_specified return Boolean;
 
-   --  Removes the logs represented by the contents of log_list container
-   procedure remove_obsolete_logs;
-
 private
 
    package CON renames Ada.Containers;
