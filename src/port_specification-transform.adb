@@ -3007,9 +3007,7 @@ package body Port_Specification.Transform is
    is
       setting : constant String := HT.USS (Parameters.configuration.def_postgresql);
    begin
-      if setting = "9.3" then
-         return "postgresql93";
-      elsif setting = "9.4" then
+      if setting = "9.4" then
          return "postgresql94";
       elsif setting = "9.5" then
          return "postgresql95";

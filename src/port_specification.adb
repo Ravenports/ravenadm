@@ -3621,11 +3621,12 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_broken_pgsql_value (value : String) return Boolean is
    begin
-      return value = "10" or else
+      return
+        value = "11" or else
+        value = "10" or else
         value = "9.6" or else
         value = "9.5" or else
-        value = "9.4" or else
-        value = "9.3";
+        value = "9.4";
    end valid_broken_pgsql_value;
 
 
