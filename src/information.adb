@@ -86,6 +86,7 @@ package body Information is
            "ravenadm generate-website    Generate static website describing ravenports" & R &
            "ravenadm locate              <namebase> List directory location of single port" & R &
            "ravenadm purge-distfiles     Delete obsolete tarballs to reclaim disk space" & R &
+           "ravenadm purge-logs          Delete obsolete build logs of removed ports" & R &
            "ravenadm set-options         <namebase> Change port's options via dialog" & R &
            "ravenadm status              <origins> Dry-run results (build <orig> preview)" & R &
            "ravenadm status-everything   Dry-run results (build-everything preview)" & R &

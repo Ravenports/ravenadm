@@ -2663,7 +2663,7 @@ package body PortScan.Scan is
       then
          DIR.Start_Search (Search    => Log_Search,
                            Directory => buildlog_dir,
-                           Filter    => (DIR.Directory => True, others => False),
+                           Filter    => (DIR.Ordinary_File => True, others => False),
                            Pattern   => "*.log");
 
          while DIR.More_Entries (Log_Search) loop
@@ -2681,6 +2681,8 @@ package body PortScan.Scan is
    procedure eliminate_current_logs (main_tree : Boolean)
    is
       function get_variant_index return String;
+      procedure erase_filename (log_prefix : String);
+
       function get_variant_index return String
       is
          conspiracy   : constant String := HT.USS (PM.configuration.dir_conspiracy);
@@ -2693,8 +2695,26 @@ package body PortScan.Scan is
          end if;
       end get_variant_index;
 
+      procedure erase_filename (log_prefix : String)
+      is
+         logname : HT.Text := HT.SUS (log_prefix & ".log");
+      begin
+         if log_list.Contains (logname) then
+            log_list.Delete (log_list.Find_Index (logname));
+         end if;
+      end erase_filename;
+
       variant_index : constant String := get_variant_index;
    begin
+      --  Filter out the 0* logs, we never want to remove these
+      erase_filename ("00_last_results");
+      erase_filename ("01_success_list");
+      erase_filename ("02_failure_list");
+      erase_filename ("03_ignored_list");
+      erase_filename ("04_skipped_list");
+      erase_filename ("05_abnormal_command_output");
+      erase_filename ("06_obsolete_packages");
+
       if not DIR.Exists (variant_index) then
          return;
       end if;
@@ -2714,11 +2734,9 @@ package body PortScan.Scan is
                for x in 1 .. numvar loop
                   declare
                      variant : constant String := HT.specific_field (line, 3 + x);
-                     logname : HT.Text := HT.SUS (namebase & "___" & variant & ".log");
+                     prefix  : constant String := namebase & "___" & variant;
                   begin
-                     if log_list.Contains (logname) then
-                        log_list.Delete (log_list.Find_Index (logname));
-                     end if;
+                     erase_filename (prefix);
                   end;
                end loop;
             end;
