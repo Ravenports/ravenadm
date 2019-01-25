@@ -2761,7 +2761,8 @@ package body PortScan.Scan is
          fullpath : constant String := buildlog_dir & logname;
       begin
          bytes_purged := bytes_purged + disktype (DIR.Size (fullpath));
-         TIO.Put_Line (logname);
+         TIO.Put_Line ("  " & logname);
+         DIR.Delete_File (fullpath);
       end delete_log;
    begin
       TIO.Put_Line ("Removed the following logs:");

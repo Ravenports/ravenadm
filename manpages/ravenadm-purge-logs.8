@@ -1,0 +1,38 @@
+.Dd January 25, 2019
+.Dt PURGE-LOGS 8
+.Os
+.Sh NAME
+.Nm "ravenadm purge-logs"
+.Nd delete obsolete build log files
+.Sh SYNOPSIS
+.Nm
+.Sh DESCRIPTION
+.Nm
+is a useful command that will remove build logs from port variants
+that no longer exist in the ravenports tree.  The log directory for
+the active profile is scanned, and all logs that match current
+variants of present ports are retained as well as all the 0* logs
+that ravenadm produces on every build command.  Any other files ending
+in the extension ".log" are deleted.
+.Pp
+The amount of diskspace required is displayed at the end of the command,
+following a list of remove log file names.
+.Sh SEE ALSO
+.Xr ravenadm 8 ,
+.Xr ravenadm-build 8 ,
+.Xr ravenadm-build-everything 8 ,
+.Xr ravenadm-check-ports 8,
+.Xr ravenadm-configure 8 ,
+.Xr ravenadm-dev 8 ,
+.Xr ravenadm-force 8 ,
+.Xr ravenadm-generate-repository 8 ,
+.Xr ravenadm-generate-website 8 ,
+.Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-set-options 8 ,
+.Xr ravenadm-status 8 ,
+.Xr ravenadm-status-everything 8 ,
+.Xr ravenadm-subpackages 8 ,
+.Xr ravenadm-test 8 ,
+.Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-update-ports 8

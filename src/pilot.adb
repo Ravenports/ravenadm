@@ -124,6 +124,7 @@ package body Pilot is
         level2 = "configure" or else
         level2 = "locate" or else
         level2 = "purge-distfiles" or else
+        level2 = "purge-logs" or else
         level2 = "set-options" or else
         level2 = "check-ports" or else
         level2 = "update-ports" or else
