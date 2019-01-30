@@ -45,7 +45,7 @@ package Definitions is
    type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);
    type supported_arch  is (x86_64, i386, aarch64);
 
-   type cpu_range is range 1 .. 32;
+   type cpu_range is range 1 .. 64;
    type scanners  is range cpu_range'First .. cpu_range'Last;
    type builders  is range cpu_range'First .. cpu_range'Last * jobs_per_cpu;
    type count_type is (total, success, failure, ignored, skipped);

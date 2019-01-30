@@ -195,6 +195,72 @@ package body PortScan.Operations is
       builder_63 : build (builder => 63);
       builder_64 : build (builder => 64);
 
+      --  Expansion of cpu_range from 32 to 64 means 128 possible builders
+      builder_65  : build (builder => 65);
+      builder_66  : build (builder => 66);
+      builder_67  : build (builder => 67);
+      builder_68  : build (builder => 68);
+      builder_69  : build (builder => 69);
+      builder_70  : build (builder => 70);
+      builder_71  : build (builder => 71);
+      builder_72  : build (builder => 72);
+      builder_73  : build (builder => 73);
+      builder_74  : build (builder => 74);
+      builder_75  : build (builder => 75);
+      builder_76  : build (builder => 76);
+      builder_77  : build (builder => 77);
+      builder_78  : build (builder => 78);
+      builder_79  : build (builder => 79);
+      builder_80  : build (builder => 80);
+      builder_81  : build (builder => 81);
+      builder_82  : build (builder => 82);
+      builder_83  : build (builder => 83);
+      builder_84  : build (builder => 84);
+      builder_85  : build (builder => 85);
+      builder_86  : build (builder => 86);
+      builder_87  : build (builder => 87);
+      builder_88  : build (builder => 88);
+      builder_89  : build (builder => 89);
+      builder_90  : build (builder => 90);
+      builder_91  : build (builder => 91);
+      builder_92  : build (builder => 92);
+      builder_93  : build (builder => 93);
+      builder_94  : build (builder => 94);
+      builder_95  : build (builder => 95);
+      builder_96  : build (builder => 96);
+      builder_97  : build (builder => 97);
+      builder_98  : build (builder => 98);
+      builder_99  : build (builder => 99);
+      builder_100 : build (builder => 100);
+      builder_101 : build (builder => 101);
+      builder_102 : build (builder => 102);
+      builder_103 : build (builder => 103);
+      builder_104 : build (builder => 104);
+      builder_105 : build (builder => 105);
+      builder_106 : build (builder => 106);
+      builder_107 : build (builder => 107);
+      builder_108 : build (builder => 108);
+      builder_109 : build (builder => 109);
+      builder_110 : build (builder => 110);
+      builder_111 : build (builder => 111);
+      builder_112 : build (builder => 112);
+      builder_113 : build (builder => 113);
+      builder_114 : build (builder => 114);
+      builder_115 : build (builder => 115);
+      builder_116 : build (builder => 116);
+      builder_117 : build (builder => 117);
+      builder_118 : build (builder => 118);
+      builder_119 : build (builder => 119);
+      builder_120 : build (builder => 120);
+      builder_121 : build (builder => 121);
+      builder_122 : build (builder => 122);
+      builder_123 : build (builder => 123);
+      builder_124 : build (builder => 124);
+      builder_125 : build (builder => 125);
+      builder_126 : build (builder => 126);
+      builder_127 : build (builder => 127);
+      builder_128 : build (builder => 128);
+
    begin
       loop
          all_idle := True;
@@ -2336,6 +2402,41 @@ package body PortScan.Operations is
       scan_30 : scan (lot => 30);
       scan_31 : scan (lot => 31);
       scan_32 : scan (lot => 32);
+
+      --  Expansion of cpu_range from 32 to 64 means 64 possible scanners
+      scan_33 : scan (lot => 33);
+      scan_34 : scan (lot => 34);
+      scan_35 : scan (lot => 35);
+      scan_36 : scan (lot => 36);
+      scan_37 : scan (lot => 37);
+      scan_38 : scan (lot => 38);
+      scan_39 : scan (lot => 39);
+      scan_40 : scan (lot => 40);
+      scan_41 : scan (lot => 41);
+      scan_42 : scan (lot => 42);
+      scan_43 : scan (lot => 43);
+      scan_44 : scan (lot => 44);
+      scan_45 : scan (lot => 45);
+      scan_46 : scan (lot => 46);
+      scan_47 : scan (lot => 47);
+      scan_48 : scan (lot => 48);
+      scan_49 : scan (lot => 49);
+      scan_50 : scan (lot => 50);
+      scan_51 : scan (lot => 51);
+      scan_52 : scan (lot => 52);
+      scan_53 : scan (lot => 53);
+      scan_54 : scan (lot => 54);
+      scan_55 : scan (lot => 55);
+      scan_56 : scan (lot => 56);
+      scan_57 : scan (lot => 57);
+      scan_58 : scan (lot => 58);
+      scan_59 : scan (lot => 59);
+      scan_60 : scan (lot => 60);
+      scan_61 : scan (lot => 61);
+      scan_62 : scan (lot => 62);
+      scan_63 : scan (lot => 63);
+      scan_64 : scan (lot => 64);
+
    begin
       while combined_wait loop
          delay 1.0;
