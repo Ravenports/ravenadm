@@ -149,6 +149,7 @@ package body Ravenports is
         explode_tarball_into_conspiracy (latest_version)
       then
          clean_up (latest_version);
+         TIO.Put_Line ("Ravenports updated to version " & latest_version);
       end if;
    end retrieve_latest_ravenports;
 
