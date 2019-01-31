@@ -1,6 +1,9 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+--  To enable ncurses support, use sed to change Options_Dialog_Console => Options_Dialog
+--  Also change Display.Console => Display.Curses
+
 with Unix;
 with Signals;
 with Replicant;
@@ -14,7 +17,8 @@ with Specification_Parser;
 with Port_Specification.Makefile;
 with Port_Specification.Transform;
 with INI_File_Manager;
-with Options_Dialog;
+with Options_Dialog_Console;
+with Display.Console;
 
 package body PortScan.Operations is
 
@@ -28,7 +32,9 @@ package body PortScan.Operations is
    package PSM renames Port_Specification.Makefile;
    package PST renames Port_Specification.Transform;
    package IFM renames INI_File_Manager;
-   package DLG renames Options_Dialog;
+   package DLG renames Options_Dialog_Console;
+   package DPY renames Display;
+   package DPC renames Display.Console;
 
    --------------------------------------------------------------------------------------------
    --  parallel_bulk_run
@@ -382,7 +388,7 @@ package body PortScan.Operations is
                if curses_support then
                   if cntrefresh = refresh_count'Last then
                      cntrefresh := refresh_count'First;
-                     DPY.set_full_redraw_next_update;
+                     DPC.set_full_redraw_next_update;
                   else
                      cntrefresh := cntrefresh + 1;
                   end if;
@@ -396,20 +402,20 @@ package body PortScan.Operations is
                   sumdata.load      := CYC.load_core (True);
                   sumdata.pkg_hour  := LOG.hourly_build_rate;
                   sumdata.impulse   := LOG.impulse_rate;
-                  DPY.summarize (sumdata);
+                  DPC.summarize (sumdata);
 
                   for b in builders'First .. num_builders loop
                      if builder_states (b) = shutdown then
-                        DPY.update_builder (CYC.builder_status (b, True, False));
+                        DPC.update_builder (CYC.builder_status (b, True, False));
                      elsif builder_states (b) = idle then
-                        DPY.update_builder (CYC.builder_status (b, False, True));
+                        DPC.update_builder (CYC.builder_status (b, False, True));
                      else
                         CYC.set_log_lines (b);
-                        DPY.update_builder (CYC.builder_status (b));
+                        DPC.update_builder (CYC.builder_status (b));
                      end if;
                   end loop;
-                  DPY.refresh_builder_window;
-                  DPY.refresh_history_window;
+                  DPC.refresh_builder_window;
+                  DPC.refresh_history_window;
                else
                   --  text mode support, periodic status reports
                   if cntalert = alert_count'Last then
@@ -466,7 +472,7 @@ package body PortScan.Operations is
       end loop;
       if PM.configuration.avec_ncurses and then curses_support
       then
-         DPY.terminate_monitor;
+         DPC.terminate_monitor;
       end if;
       write_history_json;
       write_summary_json (active            => False,
@@ -2599,7 +2605,7 @@ package body PortScan.Operations is
    procedure initialize_display (num_builders : builders) is
    begin
       if PM.configuration.avec_ncurses then
-         curses_support := DPY.launch_monitor (num_builders);
+         curses_support := DPC.launch_monitor (num_builders);
       end if;
    end initialize_display;
 

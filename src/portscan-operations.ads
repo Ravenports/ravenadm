@@ -1,14 +1,11 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Display;
 with Port_Specification;
 
 private with Parameters;
 
 package PortScan.Operations is
-
-   package DPY renames Display;
 
    --  Call before executing sanity check.  It checks the present of build
    --  hooks at the synth_conf location and caches the results.

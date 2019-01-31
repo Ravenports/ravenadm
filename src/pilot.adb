@@ -1,6 +1,8 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+--  To enable ncurses support, use sed to change Options_Dialog_Console => Options_Dialog
+
 with Ada.Characters.Latin_1;
 with Ada.Strings.Fixed;
 with Ada.Command_Line;
@@ -26,7 +28,7 @@ with PortScan.Buildcycle;
 with PortScan.Scan;
 with PortScan.Log;
 with Package_Manifests;
-with Options_Dialog;
+with Options_Dialog_Console;
 with Ravenports;
 with Repository;
 
@@ -47,7 +49,7 @@ package body Pilot is
    package SCN renames PortScan.Scan;
    package LOG renames PortScan.Log;
    package MAN renames Package_Manifests;
-   package OPT renames Options_Dialog;
+   package OPT renames Options_Dialog_Console;
    package LAT renames Ada.Characters.Latin_1;
    package CLI renames Ada.Command_Line;
    package DIR renames Ada.Directories;

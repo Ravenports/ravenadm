@@ -1,4 +1,4 @@
-with "adacurses.gpr";
+-- with "adacurses.gpr";
 
 project Ravenadm is
 
