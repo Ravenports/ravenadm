@@ -1236,129 +1236,42 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    --  establish_package_architecture
    --------------------------------------------------------------------------------------------
-   procedure establish_package_architecture (release : String)
+   procedure establish_package_architecture (release : String; architecture : supported_arch)
    is
-      function newsuffix   (arch : filearch) return String;
-      function suffix      (arch : filearch) return String;
-      function get_major   (fileinfo : String; OS : String) return String;
-      function even        (fileinfo : String) return String;
+      function newsuffix return String;
+      function suffix    return String;
       function get_version (fileinfo : String; OS : String) return String;
-      function abi_file    return String;
       procedure craft_common_endings (release : String);
 
-      function abi_file return String is
+      function suffix return String is
       begin
-         case platform_type is
-            when sunos =>
-               return "/lib/64/libc.so.1";
-            when others =>
-               return "/bin/sh";
+         case architecture is
+            when x86_64  => return "x86:64";
+            when i386    => return "x86:32";
+            when aarch64 => return "aarch64:64";
          end case;
-      end abi_file;
-
-      sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
-      command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
-                                   "/usr/share/file/magic.mgc -b " & sysroot & abi_file;
-      status  : Integer;
-      arch    : filearch;
-      UN      : HT.Text;
-
-      function suffix (arch : filearch) return String is
-      begin
-         if arch (arch'First .. arch'First + 5) = "x86-64" or else
-           arch (arch'First .. arch'First + 4) = "AMD64"
-         then
-            return "x86:64";
-         elsif arch = "Intel 80386" then
-            return "x86:32";
-         elsif arch = "ARM aarch64" then
-            return "aarch64:64";
-         elsif arch = "ARM, EABI5 " then
-            return "armv6:32:el:eabi:softfp";
-         else
-            return "unknown:" & arch;
-         end if;
       end suffix;
 
-      function newsuffix (arch : filearch) return String is
+      function newsuffix return String is
       begin
-         if arch (arch'First .. arch'First + 5) = "x86-64" or else
-           arch (arch'First .. arch'First + 4) = "AMD64"
-         then
-            return "amd64";
-         elsif arch = "Intel 80386" then
-            return "i386";
-         elsif arch = "ARM aarch64" then
-            return "arm64";
-         elsif arch = "ARM, EABI5 " then
-            return "armv6";
-         else
-            return "unknown:" & arch;
-         end if;
+         case architecture is
+            when x86_64  => return "amd64";
+            when i386    => return "i386";
+            when aarch64 => return "arm64";
+         end case;
       end newsuffix;
 
-      function even (fileinfo : String) return String
-      is
-         --  DF  4.5-DEVELOPMENT: ... DragonFly 4.0.501
-         --  DF 4.10-RELEASE    : ... DragonFly 4.0.1000
-         --  DF 4.11-DEVELOPMENT: ... DragonFly 4.0.1102
-         --
-         --  Alternative future format (file version 2.0)
-         --  DFV 400702: ... DragonFly 4.7.2
-         --  DFV 401117: ..  DragonFly 4.11.17
-         rest  : constant String := HT.part_2 (fileinfo, "DragonFly ");
-         major : constant String := HT.specific_field (rest, 1, ".");
-         part2 : constant String := HT.specific_field (rest, 2, ".");
-         part3 : constant String := HT.part_1 (HT.specific_field (rest, 3, "."), ",");
-         minor : String (1 .. 2) := "00";
-         point : Character;
+      procedure craft_common_endings (release : String) is
       begin
-         if part2 = "0" then
-            --  version format in October 2016
-            declare
-               mvers : String (1 .. 4) := "0000";
-               lenp3 : constant Natural := part3'Length;
-            begin
-               mvers (mvers'Last - lenp3 + 1 .. mvers'Last) := part3;
-               minor := mvers (1 .. 2);
-            end;
-         else
-            --  Alternative future format (file version 2.0)
-            declare
-               lenp2 : constant Natural := part2'Length;
-            begin
-               minor (minor'Last - lenp2 + 1 .. minor'Last) := part2;
-            end;
-         end if;
-
-         point := minor (2);
-         case point is
-            when '1' => minor (2) := '2';
-            when '3' => minor (2) := '4';
-            when '5' => minor (2) := '6';
-            when '7' => minor (2) := '8';
-            when '9' => minor (2) := '0';
-                        minor (1) := Character'Val (Character'Pos (minor (1)) + 1);
-            when others => null;
-         end case;
-         if minor (1) = '0' then
-            return major & "." & minor (2);
-         else
-            return major & "." & minor (1 .. 2);
-         end if;
-
-      end even;
-
-      function get_major (fileinfo : String; OS : String) return String
-      is
-         --  FreeBSD 10.2, stripped
-         --  FreeBSD 11.0 (1100093), stripped
-         --  NetBSD 7.0.1, not stripped
-         rest  : constant String := HT.part_2 (fileinfo, OS);
-         major : constant String := HT.part_1 (rest, ".");
-      begin
-         return major;
-      end get_major;
+         HT.SU.Append (abi_formats.calculated_abi, release & ":");
+         HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
+         abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
+         abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
+         HT.SU.Append (abi_formats.calculated_abi, newsuffix);
+         HT.SU.Append (abi_formats.calculated_alt_abi, suffix);
+         HT.SU.Append (abi_formats.calc_abi_noarch, "*");
+         HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+      end craft_common_endings;
 
       function get_version (fileinfo : String; OS : String) return String
       is
@@ -1368,36 +1281,16 @@ package body PortScan.Operations is
          return HT.part_1 (rest, ",");
       end get_version;
 
-      procedure craft_common_endings (release : String) is
-      begin
-         HT.SU.Append (abi_formats.calculated_abi, release & ":");
-         HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
-         abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-         abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-         HT.SU.Append (abi_formats.calculated_abi, newsuffix (arch));
-         HT.SU.Append (abi_formats.calculated_alt_abi, suffix (arch));
-         HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-         HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
-      end craft_common_endings;
-
    begin
-      UN   := Unix.piped_command (command, status);
-      case platform_type is
-         when macos =>
-            arch := isolate_arch_from_macho_file (HT.USS (UN));
-         when others =>
-            arch := isolate_arch_from_file_type (HT.USS (UN));
-      end case;
       case platform_type is
          when dragonfly =>
             declare
-               dfly    : constant String := "dragonfly:";
-               release : constant String := even (HT.USS (UN));
+               dfly : constant String := "dragonfly:";
             begin
                abi_formats.calculated_abi := HT.SUS (dfly);
                HT.SU.Append (abi_formats.calculated_abi, release & ":");
                abi_formats.calc_abi_noarch := abi_formats.calculated_abi;
-               HT.SU.Append (abi_formats.calculated_abi, suffix (arch));
+               HT.SU.Append (abi_formats.calculated_abi, suffix);
                HT.SU.Append (abi_formats.calc_abi_noarch, "*");
                abi_formats.calculated_alt_abi  := abi_formats.calculated_abi;
                abi_formats.calc_alt_abi_noarch := abi_formats.calc_abi_noarch;
@@ -1406,7 +1299,6 @@ package body PortScan.Operations is
             declare
                fbsd1   : constant String := "FreeBSD:";
                fbsd2   : constant String := "freebsd:";
-               release : constant String := get_major (HT.USS (UN), "FreeBSD ");
             begin
                abi_formats.calculated_abi     := HT.SUS (fbsd1);
                abi_formats.calculated_alt_abi := HT.SUS (fbsd2);
@@ -1416,31 +1308,29 @@ package body PortScan.Operations is
             declare
                net1    : constant String := "NetBSD:";
                net2    : constant String := "netbsd:";
-               release : constant String := get_major (HT.USS (UN), "NetBSD ");
             begin
                abi_formats.calculated_abi     := HT.SUS (net1);
                abi_formats.calculated_alt_abi := HT.SUS (net2);
                craft_common_endings (release);
             end;
-         when linux   =>
+         when openbsd =>
             declare
-               gnu1    : constant String := "Linux:";
-               gnu2    : constant String := "linux:";
-               release : constant String := get_version (HT.USS (UN), "GNU/Linux ");
+               open1   : constant String := "OpenBSD:";
+               open2   : constant String := "openbsd:";
             begin
-               abi_formats.calculated_abi     := HT.SUS (gnu1);
-               abi_formats.calculated_alt_abi := HT.SUS (gnu2);
+               abi_formats.calculated_abi     := HT.SUS (open1);
+               abi_formats.calculated_alt_abi := HT.SUS (open2);
                craft_common_endings (release);
             end;
          when sunos   =>
             declare
                sol1    : constant String := "Solaris:";
                sol2    : constant String := "solaris:";
-               release : constant String := "10";  --  hardcoded in pkg(8)
+               solrel  : constant String := "10";  --  hardcoded in pkg(8), release=5.10
             begin
                abi_formats.calculated_abi     := HT.SUS (sol1);
                abi_formats.calculated_alt_abi := HT.SUS (sol2);
-               craft_common_endings (release);
+               craft_common_endings (solrel);
             end;
          when macos   =>
             --  Hardcode i386 for now until pkg(8) fixed to provide correct arch
@@ -1452,8 +1342,27 @@ package body PortScan.Operations is
             HT.SU.Append (abi_formats.calculated_alt_abi, "i386:32");
             HT.SU.Append (abi_formats.calc_abi_noarch, "*");
             HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
-         when openbsd => null;
+         when linux   =>
+            declare
+               sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
+               command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
+                                            "/usr/share/file/magic.mgc -b " & sysroot & "/bin/sh";
+               status  : Integer;
+               UN      : HT.Text;
+            begin
+               UN := Unix.piped_command (command, status);
+               declare
+                  gnu1   : constant String := "Linux:";
+                  gnu2   : constant String := "linux:";
+                  gnurel : constant String := get_version (HT.USS (UN), "GNU/Linux ");
+               begin
+                  abi_formats.calculated_abi     := HT.SUS (gnu1);
+                  abi_formats.calculated_alt_abi := HT.SUS (gnu2);
+                  craft_common_endings (gnurel);
+               end;
+            end;
       end case;
+
    end establish_package_architecture;
 
 
@@ -1465,7 +1374,8 @@ package body PortScan.Operations is
       dry_run          : Boolean;
       rebuild_compiler : Boolean;
       suppress_remote  : Boolean;
-      major_release    : String)
+      major_release    : String;
+      architecture     : supported_arch)
    is
       procedure prune_packages (cursor : ranking_crate.Cursor);
       procedure check_package (cursor : ranking_crate.Cursor);
@@ -1668,7 +1578,7 @@ package body PortScan.Operations is
       if Unix.env_variable_defined ("WHYFAIL") then
          activate_debugging_code;
       end if;
-      establish_package_architecture (major_release);
+      establish_package_architecture (major_release, architecture);
       original_queue_len := rank_queue.Length;
       for m in scanners'Range loop
          mq_progress (m) := 0;
