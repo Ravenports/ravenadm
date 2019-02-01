@@ -2521,8 +2521,11 @@ package body PortScan.Operations is
       blocks_used  : memtype := 0;
    begin
       if platform_type = macos then
+         --  MacOS has no limit, it will keep generating swapfiles as needed, so return 0.0
+         --  Anything divided by infinity is zero ...
          return 0.0;
       end if;
+
       comres := Unix.piped_command (command, status);
       if status /= 0 then
          return 200.0;  --  [ERROR] Signal to set swap display to "N/A"
@@ -2533,7 +2536,6 @@ package body PortScan.Operations is
       --     Linux starts with "NAME"
       --     Solaris starts with "swapfile"
       --  On FreeBSD (DragonFly too?), when multiple swap used, ignore line starting "Total"
-      --  MacOS has no limit, it will keep generating swapfiles as needed, so return 0.0
       declare
          command_result : String := HT.USS (comres);
          markers        : HT.Line_Markers;
