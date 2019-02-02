@@ -2971,10 +2971,10 @@ package body Port_Specification.Transform is
       if server then
          suffix := ":server:standard";
       end if;
-      if setting = "oracle-5.5" then
-         return "mysql55" & suffix;
-      elsif setting = "oracle-5.6" then
+      if setting = "oracle-5.6" then
          return "mysql56" & suffix;
+      elsif setting = "oracle-8.0" then
+         return "mysql80" & suffix;
       elsif setting = "mariadb-10.1" then
          return "mariadb101" & suffix;
       elsif setting = "mariadb-10.2" then

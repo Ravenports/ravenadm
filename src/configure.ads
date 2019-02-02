@@ -76,7 +76,7 @@ private
 
    version_A : constant String := default_firebird & ":3.0";
    version_B : constant String := "5.2:" & default_lua;
-   version_C : constant String := "oracle-5.5:oracle-5.6:" & default_mysql & ":" &
+   version_C : constant String := "oracle-5.6:" & default_mysql & ":oracle-8.0:" &
                                   "mariadb-10.1:mariadb-10.2:" &
                                   "percona-5.5:percona-5.6:percona-5.7:" &
                                   "galera-5.5:galera-5.6:galera-5.7";
