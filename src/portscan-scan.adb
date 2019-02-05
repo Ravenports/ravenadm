@@ -1293,13 +1293,18 @@ package body PortScan.Scan is
 
                   while DIR.More_Entries (Inner_Search) loop
                      DIR.Get_Next_Entry (Search => Inner_Search, Directory_Entry => Inner_Dirent);
-                     source (counter).Append
-                       (HT.SUS (bucket & "/" & DIR.Simple_Name (Inner_Dirent)));
-                     if counter = max_lots then
-                        counter := scanners'First;
-                     else
-                        counter := counter + 1;
-                     end if;
+                     declare
+                        dsn : constant String := DIR.Simple_Name (Inner_Dirent);
+                     begin
+                        if dsn /= "." and then dsn /= ".." then
+                           source (counter).Append (HT.SUS (bucket & "/" & dsn));
+                           if counter = max_lots then
+                              counter := scanners'First;
+                           else
+                              counter := counter + 1;
+                           end if;
+                        end if;
+                     end;
                   end loop;
                   DIR.End_Search (Inner_Search);
                end if;
@@ -1344,7 +1349,7 @@ package body PortScan.Scan is
                            aborted := True;
                         end if;
                      else
-                        TIO.Put_Line (premsg & "has no specification file.");
+                        TIO.Put_Line (premsg & "has no specification file." & "  " & specfile);
                         aborted := True;
                      end if;
 
