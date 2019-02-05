@@ -84,6 +84,7 @@ package body Port_Specification is
       specs.build_wrksrc   := HT.blank;
       specs.makefile       := HT.blank;
       specs.destdirname    := HT.blank;
+      specs.parse_error    := HT.blank;
       specs.make_env.Clear;
       specs.make_args.Clear;
       specs.build_target.Clear;
@@ -5072,6 +5073,24 @@ package body Port_Specification is
    begin
       return specs.kill_watchdog;
    end watchdog_disabled;
+
+
+   --------------------------------------------------------------------------------------------
+   --  set_parse_error
+   --------------------------------------------------------------------------------------------
+   procedure set_parse_error (specs : in out Portspecs; error : String) is
+   begin
+      specs.parse_error := HT.SUS (error);
+   end set_parse_error;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_parse_error
+   --------------------------------------------------------------------------------------------
+   function get_parse_error (specs : Portspecs) return String is
+   begin
+      return HT.USS (specs.parse_error);
+   end get_parse_error;
 
 
    --------------------------------------------------------------------------------------------

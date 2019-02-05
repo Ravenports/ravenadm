@@ -498,7 +498,7 @@ package body PortScan.Scan is
                                           sysrootver    => sysrootver);
       if not successful then
          raise bsheet_parsing
-           with calc_dossier & "-> " & PAR.get_parse_error;
+           with calc_dossier & "-> " & thespec.get_parse_error;
       end if;
 
       rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
@@ -564,7 +564,7 @@ package body PortScan.Scan is
 
       if not successful then
          raise bsheet_parsing
-           with calc_dossier & "-> " & PAR.get_parse_error;
+           with calc_dossier & "-> " & thespec.get_parse_error;
       end if;
 
       rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
@@ -1121,7 +1121,7 @@ package body PortScan.Scan is
                                        success         => successful,
                                        stop_at_targets => True);
          if not successful then
-            raise bsheet_parsing with dossier & "-> " & PAR.get_parse_error;
+            raise bsheet_parsing with dossier & "-> " & customspec.get_parse_error;
          end if;
 
          declare
@@ -1262,13 +1262,11 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  generate_all_buildsheets
    --------------------------------------------------------------------------------------------
-   procedure generate_all_buildsheets
-     (ravensource  : String;
-      architecture : supported_arch;
-      release      : String)
+   procedure generate_all_buildsheets (ravensource  : String)
    is
       max_lots : constant scanners := get_max_lots;
       consdir  : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      release  : constant String := "1";
       source   : array (scanners) of string_crate.Vector;
       counter  : scanners := scanners'First;
       aborted  : Boolean := False;
@@ -1340,14 +1338,13 @@ package body PortScan.Scan is
                           (dossier         => specfile,
                            specification   => specification,
                            opsys_focus     => platform_type,  --  unused
-                           arch_focus      => architecture,
+                           arch_focus      => x86_64,         --  irrevelevant
                            success         => successful,
                            stop_at_targets => False);
 
                         if not successful then
                            aborted := True;
-                           TIO.Put_Line (premsg & "failed to parse specification file." &
-                                        "   " & specfile);
+                           TIO.Put_Line (premsg & "failed to parse specification file.");
                         end if;
                      else
                         aborted := True;
@@ -1359,7 +1356,7 @@ package body PortScan.Scan is
                           (specs         => specification,
                            variant       => specification.get_list_item (PSP.sp_variants, 1),
                            opsys         => platform_type,
-                           arch_standard => architecture,
+                           arch_standard => x86_64,
                            osrelease     => release);
 
                         if not specification.post_transform_option_group_defaults_passes then
@@ -1780,7 +1777,7 @@ package body PortScan.Scan is
                                                       stop_at_targets => True);
                         if not successful then
                            raise bsheet_parsing
-                             with compiled_BS & buildsheet & "-> " & PAR.get_parse_error;
+                             with compiled_BS & buildsheet & "-> " & customspec.get_parse_error;
                         end if;
                         declare
                            num_dfiles  : Natural;
@@ -1875,7 +1872,8 @@ package body PortScan.Scan is
                                              success         => successful,
                                              stop_at_targets => True);
                if not successful then
-                  TIO.Put_Line (LAT.LF & "culprit: " & buildsheet & "-> " & PAR.get_parse_error);
+                  TIO.Put_Line (LAT.LF & "culprit: " & buildsheet & "-> " &
+                                  customspec.get_parse_error);
                   aborted := True;
                end if;
                declare
@@ -2795,7 +2793,7 @@ package body PortScan.Scan is
 
       if not successful then
          TIO.Put_Line ("Custom: Failed to parse " & filename);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
          return True;
       end if;
 
@@ -2859,7 +2857,7 @@ package body PortScan.Scan is
                                        success         => successful,
                                        stop_at_targets => True);
          if not successful then
-            raise bsheet_parsing with dossier & "-> " & PAR.get_parse_error;
+            raise bsheet_parsing with dossier & "-> " & customspec.get_parse_error;
          end if;
 
          declare

@@ -188,7 +188,7 @@ package body Pilot is
          specification.dump_specification;
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
       end if;
    end dump_ravensource;
 
@@ -265,7 +265,7 @@ package body Pilot is
                         output_file   => "");
       else
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
       end if;
    end generate_makefile;
 
@@ -321,7 +321,7 @@ package body Pilot is
                            devscan => True);
       else
          TIO.Put_Line (errprefix & "Failed to parse " & dossier);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
       end if;
       REP.destroy_workzone;
    end generate_webpage;
@@ -375,7 +375,7 @@ package body Pilot is
 
       if not successful then
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
          return;
       end if;
 
@@ -1175,7 +1175,7 @@ package body Pilot is
                                     extraction_dir  => portloc);
       if not successful then
          TIO.Put_Line (errprefix & "Failed to parse " & specfile);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
          goto endzone;
       end if;
       declare
@@ -1753,7 +1753,7 @@ package body Pilot is
          return;
       end if;
 
-      SCN.generate_all_buildsheets (ravensrcdir, sysrootver.arch, HT.USS (sysrootver.release));
+      SCN.generate_all_buildsheets (ravensrcdir);
    end generate_conspiracy;
 
 end Pilot;

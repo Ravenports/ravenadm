@@ -298,6 +298,12 @@ package Port_Specification is
    --  Return true if BLOCK_WATCHDOG set by specification
    function watchdog_disabled (specs : Portspecs) return Boolean;
 
+   --  store error seen during specification parsing
+   procedure set_parse_error (specs : in out Portspecs; error : String);
+
+   --  Retrieve parse error
+   function get_parse_error (specs : Portspecs) return String;
+
 private
 
    package HT  renames HelperText;
@@ -595,6 +601,7 @@ private
          used_perl      : HT.Text;
          used_ruby      : HT.Text;
          used_lua       : HT.Text;
+         parse_error    : HT.Text;
 
          opt_radio      : string_crate.Vector;
          opt_restrict   : string_crate.Vector;

@@ -2794,7 +2794,7 @@ package body PortScan.Operations is
                                     extraction_dir  => portloc);
       if not successful then
          TIO.Put_Line ("Failed to parse " & buildsheet);
-         TIO.Put_Line (PAR.get_parse_error);
+         TIO.Put_Line (specification.get_parse_error);
          return;
       end if;
 

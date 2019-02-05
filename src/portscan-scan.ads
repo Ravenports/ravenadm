@@ -47,10 +47,7 @@ package PortScan.Scan is
 
    --  Using parallel scanners, go through entire source directory and generate
    --  all possible buildsheets.  Stop on first error.
-   procedure generate_all_buildsheets
-     (ravensource  : String;
-      architecture : supported_arch;
-      release      : String);
+   procedure generate_all_buildsheets (ravensource  : String);
 
    --  List every port to be built and the final tally.
    procedure display_results_of_dry_run;

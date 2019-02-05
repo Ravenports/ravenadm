@@ -76,11 +76,11 @@ package body Specification_Parser is
                goto line_done;
             end if;
             if HT.trailing_whitespace_present (line) then
-               last_parse_error := HT.SUS (LN & "Detected trailing white space");
+               specification.set_parse_error (LN & "Detected trailing white space");
                exit;
             end if;
             if HT.trapped_space_character_present (line) then
-               last_parse_error := HT.SUS (LN & "Detected trapped space before hard tab");
+               specification.set_parse_error (LN & "Detected trapped space before hard tab");
                exit;
             end if;
             if line (line'First) = '#' then
@@ -89,12 +89,12 @@ package body Specification_Parser is
                end if;
                if not specification.port_is_generated then
                   if line'Length > 79 then
-                     last_parse_error := HT.SUS (LN & "Comment length exceeds 79 columns");
+                     specification.set_parse_error (LN & "Comment length exceeds 79 columns");
                      exit;
                   end if;
                end if;
                if line (line'First + 1) /= LAT.Space then
-                  last_parse_error := HT.SUS (LN & "Space does not follow hash in comment");
+                  specification.set_parse_error (LN & "Space does not follow hash in comment");
                   exit;
                end if;
                goto line_done;
@@ -102,7 +102,7 @@ package body Specification_Parser is
 
             line_target := determine_target (specification, line, last_seen);
             if line_target = bad_target then
-               last_parse_error := HT.SUS (LN & "Make target detected, but not recognized");
+               specification.set_parse_error (LN & "Make target detected, but not recognized");
                exit;
             end if;
 
@@ -114,7 +114,8 @@ package body Specification_Parser is
                if not line_file then
                   line_option := determine_option (line);
                   if line_option = PSP.not_supported_helper then
-                     last_parse_error := HT.SUS (LN & "Option format, but helper not recognized.");
+                     specification.set_parse_error
+                       (LN & "Option format, but helper not recognized.");
                      exit;
                   end if;
                   if line_option = PSP.not_helper_format then
@@ -125,8 +126,8 @@ package body Specification_Parser is
                            when not_singlet | catchall | diode => null;
                            when others =>
                               if seen_singlet (line_singlet) then
-                                 last_parse_error :=
-                                   HT.SUS (LN & "variable previously defined (use triple tab)");
+                                 specification.set_parse_error
+                                   (LN & "variable previously defined (use triple tab)");
                                  exit;
                               end if;
                         end case;
@@ -174,7 +175,7 @@ package body Specification_Parser is
                                          quad_tab := True;
                   end case;
                else
-                  last_parse_error := HT.SUS (LN & "Parse failed, content unrecognized.");
+                  specification.set_parse_error (LN & "Parse failed, content unrecognized.");
                   exit;
                end if;
             end if;
@@ -191,7 +192,8 @@ package body Specification_Parser is
                      case line_array is
                         when def =>
                            if seen_namebase then
-                              last_parse_error := HT.SUS (LN & "DEF can't appear after NAMEBASE");
+                              specification.set_parse_error
+                                (LN & "DEF can't appear after NAMEBASE");
                               exit;
                            end if;
                            if spec_definitions.Contains (defkey) then
@@ -212,12 +214,12 @@ package body Specification_Parser is
                            end if;
                         when sdesc =>
                            if HT.SU.Length (defvalue) > 50 then
-                              last_parse_error := HT.SUS (LN & "SDESC longer than 50 chars");
+                              specification.set_parse_error (LN & "SDESC longer than 50 chars");
                               exit;
                            end if;
                            if HT.SU.Length (defvalue) < 12 then
-                              last_parse_error := HT.SUS (LN & "SDESC does not meet " &
-                                                            "12-character length minimum");
+                              specification.set_parse_error
+                                (LN & "SDESC does not meet 12-character length minimum");
                               exit;
                            end if;
                            declare
@@ -226,20 +228,20 @@ package body Specification_Parser is
                            begin
                               onestr (1) := tvalue (tvalue'First);
                               if onestr /= HT.uppercase (onestr) then
-                                 last_parse_error := HT.SUS (LN & "SDESC does not start with " &
-                                                               "a capital letter");
+                                 specification.set_parse_error
+                                   (LN & "SDESC does not start with a capital letter");
                                  exit;
                               end if;
                               if tvalue (tvalue'Last) = LAT.Full_Stop then
-                                 last_parse_error := HT.SUS (LN & "SDESC ends in a period");
+                                 specification.set_parse_error (LN & "SDESC ends in a period");
                                  exit;
                               end if;
                               trestr := tvalue (tvalue'First .. tvalue'First + 2);
                               if trestr = "An " or else
                                 trestr (1 .. 2) = "A "
                               then
-                                 last_parse_error := HT.SUS (LN & "SDESC starts with an " &
-                                                               "indefinite article");
+                                 specification.set_parse_error
+                                   (LN & "SDESC starts with an indefinite article");
                                  exit;
                               end if;
                               if specification.variant_exists (tkey) then
@@ -248,8 +250,8 @@ package body Specification_Parser is
                                                              value => tvalue,
                                                              allow_spaces => True);
                               else
-                                 last_parse_error := HT.SUS (LN & "variant '" & tkey &
-                                                               "' was not previously defined.");
+                                 specification.set_parse_error
+                                   (LN & "variant '" & tkey & "' was not previously defined.");
                                  exit;
                               end if;
                            end;
@@ -258,22 +260,22 @@ package body Specification_Parser is
                               new_index : Integer := Integer'Value (tkey);
                            begin
                               if new_index /= last_df + 1 then
-                                 last_parse_error := HT.SUS (LN & "'" & tkey & "' index is " &
-                                                               "not in order 1,2,3,..,n");
+                                 specification.set_parse_error
+                                   (LN & "'" & tkey & "' index is not in order 1,2,3,..,n");
                                  exit;
                               end if;
                               last_df := new_index;
                            exception
                               when Constraint_Error =>
-                                 last_parse_error := HT.SUS (LN & "'" & tkey & "' index is " &
-                                                               "not an integer as required.");
+                                 specification.set_parse_error
+                                   (LN & "'" & tkey & "' index is not an integer as required.");
                                  exit;
                            end;
                            specification.append_list (PSP.sp_distfiles, tvalue);
                         when sites =>
                            if tkey = dlgroup_none then
-                              last_parse_error := HT.SUS (LN & "cannot set site group to '" &
-                                                            dlgroup_none & "'");
+                              specification.set_parse_error
+                                (LN & "cannot set site group to '" & dlgroup_none & "'");
                               exit;
                            else
                               transform_download_sites (site => defvalue);
@@ -317,9 +319,8 @@ package body Specification_Parser is
                                                 key   => tkey,
                                                 value => tvalue);
                            else
-                              last_parse_error :=
-                                HT.SUS (LN & "group '" & tkey &
-                                          "' is not valid (all, <opsys>, <arch>)");
+                              specification.set_parse_error
+                                (LN & "group '" & tkey & "' is not valid (all, <opsys>, <arch>)");
                               exit;
                            end if;
                         when broken =>
@@ -332,9 +333,8 @@ package body Specification_Parser is
                                                           value        => tvalue,
                                                           allow_spaces => True);
                            else
-                              last_parse_error :=
-                                HT.SUS (LN & "group '" & tkey &
-                                          "' is not valid (all, <opsys>, <arch>)");
+                              specification.set_parse_error
+                                (LN & "group '" & tkey & "' is not valid (all, <opsys>, <arch>)");
                               exit;
                            end if;
                         when var_opsys =>
@@ -345,13 +345,13 @@ package body Specification_Parser is
                                                              value        => tvalue,
                                                              allow_spaces => True);
                               else
-                                 last_parse_error :=
-                                   HT.SUS (LN & " VAR_OPSYS definition failed validity check.");
+                                 specification.set_parse_error
+                                   (LN & " VAR_OPSYS definition failed validity check.");
                                  exit;
                               end if;
                            else
-                              last_parse_error :=
-                                HT.SUS (LN & "group '" & tkey & "' is not a valid opsys value");
+                              specification.set_parse_error
+                                (LN & "group '" & tkey & "' is not a valid opsys value");
                               exit;
                            end if;
                         when var_arch =>
@@ -362,13 +362,13 @@ package body Specification_Parser is
                                                              value        => tvalue,
                                                              allow_spaces => True);
                               else
-                                 last_parse_error :=
-                                   HT.SUS (LN & " VAR_ARCH definition failed validity check.");
+                                 specification.set_parse_error
+                                   (LN & " VAR_ARCH definition failed validity check.");
                                  exit;
                               end if;
                            else
-                              last_parse_error :=
-                                HT.SUS (LN & "group '" & tkey & "' is not a valid arch value");
+                              specification.set_parse_error
+                                (LN & "group '" & tkey & "' is not a valid arch value");
                               exit;
                            end if;
                         when opt_descr =>
@@ -546,8 +546,8 @@ package body Specification_Parser is
                            target : String := line (line'First .. line'Last - 1);
                         begin
                            if specification.group_exists (PSP.sp_makefile_targets, target) then
-                              last_parse_error := HT.SUS (LN & "Duplicate makefile target '"
-                                                          & target & "' detected.");
+                              specification.set_parse_error
+                                (LN & "Duplicate makefile target '" & target & "' detected.");
                               exit;
                            end if;
                            specification.establish_group (PSP.sp_makefile_targets, target);
@@ -570,18 +570,17 @@ package body Specification_Parser is
                      option_name : String := extract_option_name (spec, line, last_optindex);
                   begin
                      if option_name = "" then
-                        last_parse_error :=
-                          HT.SUS (LN & "Valid helper, but option has never been defined " &
-                                    "(also seen when continuation line doesn't start with " &
-                                    "5 tabs)");
+                        specification.set_parse_error
+                          (LN & "Valid helper, but option has never been defined " &
+                             "(also seen when continuation line doesn't start with 5 tabs)");
                         exit;
                      end if;
                      if not quad_tab and then
                        not specification.option_helper_unset (field  => line_option,
                                                               option => option_name)
                      then
-                        last_parse_error :=
-                          HT.SUS (LN & "option helper previously defined (use quintuple tab)");
+                        specification.set_parse_error
+                          (LN & "option helper previously defined (use quintuple tab)");
                         exit;
                      end if;
                      build_list (specification, line_option, option_name, line);
@@ -659,64 +658,70 @@ package body Specification_Parser is
 
             exception
                when F1 : PSP.misordered =>
-                  last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F1) &
-                                                " appears out of order");
+                  specification.set_parse_error
+                    (LN & "Field " & EX.Exception_Message (F1) & " appears out of order");
                   exit;
                when F2 : PSP.contains_spaces =>
-                  last_parse_error := HT.SUS (LN & "Multiple values found");
+                  specification.set_parse_error (LN & "Multiple values found");
                   exit;
                when F3 : PSP.wrong_type =>
-                  last_parse_error := HT.SUS (LN & "Field " & EX.Exception_Message (F3) &
-                                                " DEV ISSUE: matched to wrong type");
+                  specification.set_parse_error
+                    (LN & "Field " & EX.Exception_Message (F3) &
+                       " DEV ISSUE: matched to wrong type");
                   exit;
                when F4 : PSP.wrong_value =>
-                  last_parse_error := HT.SUS (LN & EX.Exception_Message (F4));
+                  specification.set_parse_error
+                    (LN & EX.Exception_Message (F4));
                   exit;
                when F5 : mistabbed =>
-                  last_parse_error := HT.SUS (LN & "value not aligned to column-24 (tab issue)");
+                  specification.set_parse_error
+                    (LN & "value not aligned to column-24 (tab issue)");
                   exit;
                when F6 : missing_definition =>
-                  last_parse_error := HT.SUS (LN & "Variable expansion: definition missing. " &
-                                                EX.Exception_Message (F6));
+                  specification.set_parse_error
+                    (LN & "Variable expansion: definition missing. " & EX.Exception_Message (F6));
                   exit;
                when F7 : extra_spaces =>
-                  last_parse_error := HT.SUS (LN & "extra spaces detected between list items.");
+                  specification.set_parse_error
+                    (LN & "extra spaces detected between list items.");
                   exit;
                when F8 : expansion_too_long =>
-                  last_parse_error := HT.SUS (LN & "expansion exceeds 512-char maximum.");
+                  specification.set_parse_error
+                    (LN & "expansion exceeds 512-char maximum.");
                   exit;
                when F9 : duplicate_key =>
-                  last_parse_error := HT.SUS (LN & "array key '" & EX.Exception_Message (F9) &
-                                                "' duplicated.");
+                  specification.set_parse_error
+                    (LN & "array key '" & EX.Exception_Message (F9) & "' duplicated.");
                   exit;
                when FA : PSP.dupe_spec_key =>
-                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FA) &
-                                                " key duplicated.");
+                  specification.set_parse_error
+                    (LN & EX.Exception_Message (FA) & " key duplicated.");
                   exit;
                when FB : generic_format =>
-                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FB));
+                  specification.set_parse_error (LN & EX.Exception_Message (FB));
                   exit;
                when FC : PSP.missing_group =>
-                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FC) &
-                                                " group has not yet been established.");
+                  specification.set_parse_error
+                    (LN & EX.Exception_Message (FC) & " group has not yet been established.");
                when FD : PSP.dupe_list_value =>
-                  last_parse_error := HT.SUS (LN & "list item '" & EX.Exception_Message (FD) &
-                                                "' is duplicate.");
+                  specification.set_parse_error
+                    (LN & "list item '" & EX.Exception_Message (FD) & "' is duplicate.");
                   exit;
                when FE : mistabbed_40 =>
-                  last_parse_error :=
-                    HT.SUS (LN & "option value not aligned to column-40 (tab issue)");
+                  specification.set_parse_error
+                    (LN & "option value not aligned to column-40 (tab issue)");
                   exit;
                when FF : missing_file =>
-                  last_parse_error := HT.SUS (LN & EX.Exception_Message (FF));
+                  specification.set_parse_error
+                    (LN & EX.Exception_Message (FF));
                   exit;
             end;
             <<line_done>>
          end;
       end loop;
-      if HT.IsBlank (last_parse_error) then
-         last_parse_error := late_validity_check_error (specification);
-         if HT.IsBlank (last_parse_error) then
+      if specification.get_parse_error = "" then
+         specification.set_parse_error (late_validity_check_error (specification));
+         if specification.get_parse_error = "" then
             specification.adjust_defaults_port_parse;
             success := True;
          end if;
@@ -724,17 +729,8 @@ package body Specification_Parser is
    exception
       when FOP.file_handling =>
          success := False;
-         last_parse_error := HT.SUS ("Failed to dump contents of " & dossier);
+         specification.set_parse_error ("Failed to dump contents of " & dossier);
    end parse_specification_file;
-
-
-   --------------------------------------------------------------------------------------------
-   --  get_parse_error
-   --------------------------------------------------------------------------------------------
-   function get_parse_error return String is
-   begin
-      return HT.USS (last_parse_error);
-   end get_parse_error;
 
 
    --------------------------------------------------------------------------------------------
@@ -1713,34 +1709,34 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  passed_late_validity_checks
    --------------------------------------------------------------------------------------------
-   function late_validity_check_error (spec : PSP.Portspecs) return HT.Text
+   function late_validity_check_error (spec : PSP.Portspecs) return String
    is
       variant_check_result : String := spec.check_variants;
    begin
       if variant_check_result /= "" then
-         return HT.SUS ("Variant '" & HT.part_1 (variant_check_result, ":") &
-                          "' is missing the required '" & HT.part_2 (variant_check_result, ":") &
-                          "' option configuration.");
+         return "Variant '" & HT.part_1 (variant_check_result, ":") &
+           "' is missing the required '" & HT.part_2 (variant_check_result, ":") &
+           "' option configuration.";
       end if;
       if not spec.deprecation_valid then
-         return HT.SUS ("DEPRECATED and EXPIRATION must both be set.");
+         return "DEPRECATED and EXPIRATION must both be set.";
       end if;
       if spec.missing_subpackage_definition then
-         return HT.SUS ("At least one variant has no subpackages defined.");
+         return "At least one variant has no subpackages defined.";
       end if;
       if not spec.post_parse_license_check_passes then
-         return HT.SUS ("The LICENSE settings are not valid.");
+         return "The LICENSE settings are not valid.";
       end if;
       if not spec.post_parse_usergroup_check_passes then
-         return HT.SUS ("The USERGROUP_SPKG definition is required when USERS or GROUPS is set");
+         return "The USERGROUP_SPKG definition is required when USERS or GROUPS is set";
       end if;
       if not spec.post_parse_opt_desc_check_passes then
-         return HT.SUS ("Check above errors to determine which options have no descriptions");
+         return "Check above errors to determine which options have no descriptions";
       end if;
       if not spec.post_parse_option_group_size_passes then
-         return HT.SUS ("check above errors to determine which option groups are too small");
+         return "check above errors to determine which option groups are too small";
       end if;
-      return HT.blank;
+      return "";
    end late_validity_check_error;
 
 
