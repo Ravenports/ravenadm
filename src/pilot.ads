@@ -119,6 +119,10 @@ package Pilot is
    --  Generates the conspiracy_variants file at Mk/Misc of the conspiracy directory
    procedure generate_ports_index;
 
+   --  Scans the source directory and regenerates buildsheets for every single port
+   --  Works in parallel (1 per ncpu)
+   procedure generate_conspiracy (sourcedir : String);
+
    --  Call portscan procedure of the same name
    procedure display_results_of_dry_run;
 

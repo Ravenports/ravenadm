@@ -1740,4 +1740,20 @@ package body Pilot is
       end if;
    end show_config_value;
 
+
+   --------------------------------------------------------------------------------------------
+   --  generate_conspiracy
+   --------------------------------------------------------------------------------------------
+   procedure generate_conspiracy (sourcedir : String)
+   is
+      ravensrcdir   : constant String := Unix.true_path (sourcedir);
+   begin
+      if ravensrcdir = "" then
+         TIO.Put_Line (errprefix & "not a valid directory: " & sourcedir);
+         return;
+      end if;
+
+      SCN.generate_all_buildsheets (ravensrcdir, sysrootver.arch, HT.USS (sysrootver.release));
+   end generate_conspiracy;
+
 end Pilot;

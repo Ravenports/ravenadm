@@ -1260,6 +1260,156 @@ package body PortScan.Scan is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_all_buildsheets
+   --------------------------------------------------------------------------------------------
+   procedure generate_all_buildsheets
+     (ravensource  : String;
+      architecture : supported_arch;
+      release      : String)
+   is
+      max_lots : constant scanners := get_max_lots;
+      consdir  : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      source   : array (scanners) of string_crate.Vector;
+      counter  : scanners := scanners'First;
+      aborted  : Boolean := False;
+      bucket   : bucket_code;
+   begin
+      for highdigit in AF'Range loop
+         for lowdigit in AF'Range loop
+            bucket := tohex (highdigit) & tohex (lowdigit);
+            declare
+               bucket_dir   : constant String := ravensource & "/bucket_" & bucket;
+               Inner_Search : DIR.Search_Type;
+               Inner_Dirent : DIR.Directory_Entry_Type;
+               use type DIR.File_Kind;
+            begin
+               if DIR.Exists (bucket_dir) and then
+                 DIR.Kind (bucket_dir) = DIR.Directory
+               then
+                  DIR.Start_Search (Search    => Inner_Search,
+                                    Directory => bucket_dir,
+                                    Filter    => (DIR.Directory => True, others => False),
+                                    Pattern   => "*");
+
+                  while DIR.More_Entries (Inner_Search) loop
+                     DIR.Get_Next_Entry (Search => Inner_Search, Directory_Entry => Inner_Dirent);
+                     source (counter).Append
+                       (HT.SUS (bucket & "/" & DIR.Simple_Name (Inner_Dirent)));
+                     if counter = max_lots then
+                        counter := scanners'First;
+                     else
+                        counter := counter + 1;
+                     end if;
+                  end loop;
+                  DIR.End_Search (Inner_Search);
+               end if;
+            end;
+         end loop;
+      end loop;
+
+      LOG.set_scan_start_time (CAL.Clock);
+
+      declare
+         finished      : array (scanners) of Boolean := (others => False);
+         combined_wait : Boolean := True;
+
+         task type scan (lot : scanners);
+         task body scan
+         is
+            procedure make_buildsheet (cursor : string_crate.Cursor);
+            procedure make_buildsheet (cursor : string_crate.Cursor) is
+            begin
+               if not aborted then
+                  declare
+                     portname  : constant String := "bucket_" &
+                                                    HT.USS (string_crate.Element (cursor));
+                     sourcedir : constant String := ravensource & "/" & portname;
+                     specfile  : constant String := sourcedir & "/specification";
+                     premsg    : constant String := "aborted : " & portname & " ";
+
+                     specification : Port_Specification.Portspecs;
+                     successful    : Boolean;
+                  begin
+                     if DIR.Exists (specfile) then
+                        PAR.parse_specification_file
+                          (dossier         => specfile,
+                           specification   => specification,
+                           opsys_focus     => platform_type,  --  unused
+                           arch_focus      => architecture,
+                           success         => successful,
+                           stop_at_targets => False);
+
+                        if not successful then
+                           TIO.Put_Line (premsg & "failed to parse specification file.");
+                           aborted := True;
+                        end if;
+                     else
+                        TIO.Put_Line (premsg & "has no specification file.");
+                        aborted := True;
+                     end if;
+
+                     if not aborted then
+                        PST.set_option_defaults
+                          (specs         => specification,
+                           variant       => specification.get_list_item (PSP.sp_variants, 1),
+                           opsys         => platform_type,
+                           arch_standard => architecture,
+                           osrelease     => release);
+
+                        if not specification.post_transform_option_group_defaults_passes then
+                           TIO.Put_Line (premsg & "failed option transformation.");
+                           aborted := True;
+                        end if;
+                     end if;
+
+                     if not aborted then
+                        declare
+                           namebase    : String := specification.get_namebase;
+                           catport     : String := "bucket_" & UTL.bucket (palabra => namebase) &
+                                                   "/" & namebase;
+                           output_file : String := consdir & "/" & catport;
+                        begin
+                           FOP.mkdirp_from_filename (output_file);
+                           PSB.generator (specs       => specification,
+                                          ravensrcdir => sourcedir,
+                                          output_file => output_file);
+                           TIO.Put_Line (catport & " buildsheet generated");
+                        end;
+                     end if;
+                  end;
+               end if;
+            end make_buildsheet;
+         begin
+            source (lot).Iterate (make_buildsheet'Access);
+            finished (lot) := True;
+         end scan;
+
+      begin
+         while combined_wait loop
+            delay 0.1;
+            combined_wait := False;
+            for j in scanners'Range loop
+               if not finished (j) then
+                  combined_wait := True;
+                  exit;
+               end if;
+            end loop;
+            if Signals.graceful_shutdown_requested then
+               aborted := True;
+            end if;
+         end loop;
+      end;
+
+      LOG.set_scan_complete (CAL.Clock);
+      if aborted then
+         TIO.Put_Line ("Aborted after " & LOG.scan_duration);
+      else
+         TIO.Put_Line ("Conspiracy generation time: " & LOG.scan_duration);
+      end if;
+   end generate_all_buildsheets;
+
+
+   --------------------------------------------------------------------------------------------
    --  version_difference
    --------------------------------------------------------------------------------------------
    function version_difference (id : port_id; kind : out verdiff) return String

@@ -1,4 +1,4 @@
-.Dd January 25, 2019
+.Dd February 5, 2019
 .Dt DEV 8
 .Os
 .Sh NAME
@@ -62,6 +62,20 @@ that information to generate
 and
 .Pa Mk/Misc/summary.txt
 in the same Conspiracy directory.
+.It generate-conspiracy
+The
+.Em generate-conspiracy
+command systematically generates all buildsheets within the given
+directory (first argument) and places them in the conspiracy
+directory as defined by the configuration.  The given directory
+is expected to have subdirectories starting with
+.Do
+bucket_
+.Dc
+followed by a 2-digit upper case hexidecimal number.  All other
+subdirectories are ignored.  The generation is performed in parallel
+but will immediately abort upon any failure.  All generation failure
+reasons are displayed.
 .It makefile
 The
 .Em makefile

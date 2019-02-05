@@ -45,6 +45,13 @@ package PortScan.Scan is
    --  Linearly scan through entire conspiracy directory and generate a new index
    procedure generate_conspiracy_index (sysrootver : sysroot_characteristics);
 
+   --  Using parallel scanners, go through entire source directory and generate
+   --  all possible buildsheets.  Stop on first error.
+   procedure generate_all_buildsheets
+     (ravensource  : String;
+      architecture : supported_arch;
+      release      : String);
+
    --  List every port to be built and the final tally.
    procedure display_results_of_dry_run;
 

@@ -16,7 +16,7 @@ procedure Ravenadm is
                          status, status_everything, configure, locate, purge, changeopts,
                          checkports, portsnap, repository, list_subpackages, website, purgelogs);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
-                         repatch, sort_plist, confinfo);
+                         repatch, sort_plist, confinfo, genconspiracy);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -89,6 +89,8 @@ procedure Ravenadm is
          return template;
       elsif second = "generate-index" then
          return genindex;
+      elsif second = "generate-conspiracy" then
+         return genconspiracy;
       elsif second = "web" then
          return web;
       elsif second = "repatch" then
@@ -189,7 +191,8 @@ begin
             case dev_subcmd is
                when template | sort_plist | confinfo | unset =>
                   low_rights := True;
-               when dump | makefile | distinfo | buildsheet | genindex | web | repatch =>
+               when dump | makefile | distinfo | buildsheet | web | repatch |
+                  genindex | genconspiracy =>
                   if reg_user then
                      TIO.Put_Line (reg_error);
                      return;
@@ -366,6 +369,8 @@ begin
                      Pilot.print_spec_template (get_arg (3));
                   when genindex =>
                      Pilot.generate_ports_index;
+                  when genconspiracy =>
+                     Pilot.generate_conspiracy (get_arg (3));
                   when confinfo =>
                      Pilot.show_config_value (get_arg (3));
                end case;
