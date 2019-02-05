@@ -1345,12 +1345,13 @@ package body PortScan.Scan is
                            stop_at_targets => False);
 
                         if not successful then
-                           TIO.Put_Line (premsg & "failed to parse specification file.");
                            aborted := True;
+                           TIO.Put_Line (premsg & "failed to parse specification file." &
+                                        "   " & specfile);
                         end if;
                      else
-                        TIO.Put_Line (premsg & "has no specification file." & "  " & specfile);
                         aborted := True;
+                        TIO.Put_Line (premsg & "has no specification file.");
                      end if;
 
                      if not aborted then
@@ -1362,8 +1363,8 @@ package body PortScan.Scan is
                            osrelease     => release);
 
                         if not specification.post_transform_option_group_defaults_passes then
-                           TIO.Put_Line (premsg & "failed option transformation.");
                            aborted := True;
+                           TIO.Put_Line (premsg & "failed option transformation.");
                         end if;
                      end if;
 
