@@ -1115,7 +1115,7 @@ package body PortScan.Scan is
          dossier    : constant String := conspiracy & "/bucket_" & bucket & "/" & namebase;
       begin
          PAR.parse_specification_file (dossier         => dossier,
-                                       specification   => customspec,
+                                       spec            => customspec,
                                        opsys_focus     => platform_type,
                                        arch_focus      => arch_focus,
                                        success         => successful,
@@ -1336,7 +1336,7 @@ package body PortScan.Scan is
                      if DIR.Exists (specfile) then
                         PAR.parse_specification_file
                           (dossier         => specfile,
-                           specification   => specification,
+                           spec            => specification,
                            opsys_focus     => platform_type,  --  unused
                            arch_focus      => x86_64,         --  irrevelevant
                            success         => successful,
@@ -1771,7 +1771,7 @@ package body PortScan.Scan is
                         buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
                      begin
                         PAR.parse_specification_file (dossier       => compiled_BS & buildsheet,
-                                                      specification => customspec,
+                                                      spec          => customspec,
                                                       opsys_focus   => platform_type,
                                                       arch_focus    => arch_focus,
                                                       success       => successful,
@@ -1867,7 +1867,7 @@ package body PortScan.Scan is
          begin
             if not aborted then
                PAR.parse_specification_file (dossier         => conspiracy & buildsheet,
-                                             specification   => customspec,
+                                             spec            => customspec,
                                              opsys_focus     => platform_type,
                                              arch_focus      => arch_focus,
                                              success         => successful,
@@ -2786,7 +2786,7 @@ package body PortScan.Scan is
    begin
 
       PAR.parse_specification_file (dossier         => filename,
-                                    specification   => specification,
+                                    spec            => specification,
                                     opsys_focus     => platform_type,  --  unused
                                     arch_focus      => x86_64,         --  irrelevant
                                     success         => successful,
@@ -2852,7 +2852,7 @@ package body PortScan.Scan is
          dossier    : constant String := compiled_BS & "/bucket_" & bucket & "/" & namebase;
       begin
          PAR.parse_specification_file (dossier         => dossier,
-                                       specification   => customspec,
+                                       spec            => customspec,
                                        opsys_focus     => platform_type,
                                        arch_focus      => arch_focus,
                                        success         => successful,

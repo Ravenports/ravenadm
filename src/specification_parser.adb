@@ -26,15 +26,13 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure parse_specification_file
      (dossier         : String;
-      specification   : out PSP.Portspecs;
+      spec            : out PSP.Portspecs;
       success         : out Boolean;
       opsys_focus     : supported_opsys;
       arch_focus      : supported_arch;
       stop_at_targets : Boolean;
       extraction_dir  : String := "")
    is
-      spec : PSP.Portspecs renames specification;
-
       contents      : constant String  := FOP.get_file_contents (dossier);
       stop_at_files : constant Boolean := (extraction_dir = "");
       converting    : constant Boolean := not stop_at_targets and then stop_at_files;
@@ -61,8 +59,7 @@ package body Specification_Parser is
       use type PSP.spec_option;
    begin
       success := False;
-      specification.initialize;
-      spec_definitions.Clear;
+      spec.initialize;
       HT.initialize_markers (contents, markers);
       loop
          exit when not HT.next_line_present (contents, markers);
@@ -76,33 +73,33 @@ package body Specification_Parser is
                goto line_done;
             end if;
             if HT.trailing_whitespace_present (line) then
-               specification.set_parse_error (LN & "Detected trailing white space");
+               spec.set_parse_error (LN & "Detected trailing white space");
                exit;
             end if;
             if HT.trapped_space_character_present (line) then
-               specification.set_parse_error (LN & "Detected trapped space before hard tab");
+               spec.set_parse_error (LN & "Detected trapped space before hard tab");
                exit;
             end if;
             if line (line'First) = '#' then
                if line'Length = 1 then
                   goto line_done;
                end if;
-               if not specification.port_is_generated then
+               if not spec.port_is_generated then
                   if line'Length > 79 then
-                     specification.set_parse_error (LN & "Comment length exceeds 79 columns");
+                     spec.set_parse_error (LN & "Comment length exceeds 79 columns");
                      exit;
                   end if;
                end if;
                if line (line'First + 1) /= LAT.Space then
-                  specification.set_parse_error (LN & "Space does not follow hash in comment");
+                  spec.set_parse_error (LN & "Space does not follow hash in comment");
                   exit;
                end if;
                goto line_done;
             end if;
 
-            line_target := determine_target (specification, line, last_seen);
+            line_target := determine_target (spec, line, last_seen);
             if line_target = bad_target then
-               specification.set_parse_error (LN & "Make target detected, but not recognized");
+               spec.set_parse_error (LN & "Make target detected, but not recognized");
                exit;
             end if;
 
@@ -114,8 +111,7 @@ package body Specification_Parser is
                if not line_file then
                   line_option := determine_option (line);
                   if line_option = PSP.not_supported_helper then
-                     specification.set_parse_error
-                       (LN & "Option format, but helper not recognized.");
+                     spec.set_parse_error (LN & "Option format, but helper not recognized.");
                      exit;
                   end if;
                   if line_option = PSP.not_helper_format then
@@ -126,7 +122,7 @@ package body Specification_Parser is
                            when not_singlet | catchall | diode => null;
                            when others =>
                               if seen_singlet (line_singlet) then
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & "variable previously defined (use triple tab)");
                                  exit;
                               end if;
@@ -175,7 +171,7 @@ package body Specification_Parser is
                                          quad_tab := True;
                   end case;
                else
-                  specification.set_parse_error (LN & "Parse failed, content unrecognized.");
+                  spec.set_parse_error (LN & "Parse failed, content unrecognized.");
                   exit;
                end if;
             end if;
@@ -183,7 +179,7 @@ package body Specification_Parser is
             begin
                if line_array /= not_array then
                   declare
-                     tvalue   : String  := retrieve_single_value (line);
+                     tvalue   : String  := retrieve_single_value (spec, line);
                      defkey   : HT.Text := retrieve_key (line, last_index);
                      defvalue : HT.Text := HT.SUS (tvalue);
                      tkey     : String  := HT.USS (defkey);
@@ -192,33 +188,32 @@ package body Specification_Parser is
                      case line_array is
                         when def =>
                            if seen_namebase then
-                              specification.set_parse_error
-                                (LN & "DEF can't appear after NAMEBASE");
+                              spec.set_parse_error (LN & "DEF can't appear after NAMEBASE");
                               exit;
                            end if;
-                           if spec_definitions.Contains (defkey) then
-                              raise duplicate_key with HT.USS (defkey);
+                           if spec.definition_exists (tkey) then
+                              raise duplicate_key with tkey;
                            end if;
                            if HT.trails (tvalue, ")") then
                               if HT.leads (tvalue, "EXTRACT_VERSION(") then
-                                 spec_definitions.Insert
-                                   (defkey, extract_version (HT.substring (tvalue, 16, 1)));
+                                 spec.define
+                                   (tkey, extract_version (HT.substring (tvalue, 16, 1)));
                               elsif HT.leads (tvalue, "EXTRACT_INFO(") then
-                                 spec_definitions.Insert
-                                   (defkey, extract_information (HT.substring (tvalue, 13, 1)));
+                                 spec.define
+                                   (tkey, extract_information (HT.substring (tvalue, 13, 1)));
                               else
-                                 spec_definitions.Insert (defkey, defvalue);
+                                 spec.define (tkey, tvalue);
                               end if;
                            else
-                              spec_definitions.Insert (defkey, defvalue);
+                              spec.define (tkey, tvalue);
                            end if;
                         when sdesc =>
                            if HT.SU.Length (defvalue) > 50 then
-                              specification.set_parse_error (LN & "SDESC longer than 50 chars");
+                              spec.set_parse_error (LN & "SDESC longer than 50 chars");
                               exit;
                            end if;
                            if HT.SU.Length (defvalue) < 12 then
-                              specification.set_parse_error
+                              spec.set_parse_error
                                 (LN & "SDESC does not meet 12-character length minimum");
                               exit;
                            end if;
@@ -228,29 +223,29 @@ package body Specification_Parser is
                            begin
                               onestr (1) := tvalue (tvalue'First);
                               if onestr /= HT.uppercase (onestr) then
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & "SDESC does not start with a capital letter");
                                  exit;
                               end if;
                               if tvalue (tvalue'Last) = LAT.Full_Stop then
-                                 specification.set_parse_error (LN & "SDESC ends in a period");
+                                 spec.set_parse_error (LN & "SDESC ends in a period");
                                  exit;
                               end if;
                               trestr := tvalue (tvalue'First .. tvalue'First + 2);
                               if trestr = "An " or else
                                 trestr (1 .. 2) = "A "
                               then
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & "SDESC starts with an indefinite article");
                                  exit;
                               end if;
-                              if specification.variant_exists (tkey) then
-                                 specification.append_array (field => PSP.sp_taglines,
-                                                             key   => tkey,
-                                                             value => tvalue,
-                                                             allow_spaces => True);
+                              if spec.variant_exists (tkey) then
+                                 spec.append_array (field => PSP.sp_taglines,
+                                                    key   => tkey,
+                                                    value => tvalue,
+                                                    allow_spaces => True);
                               else
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & "variant '" & tkey & "' was not previously defined.");
                                  exit;
                               end if;
@@ -260,52 +255,52 @@ package body Specification_Parser is
                               new_index : Integer := Integer'Value (tkey);
                            begin
                               if new_index /= last_df + 1 then
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & "'" & tkey & "' index is not in order 1,2,3,..,n");
                                  exit;
                               end if;
                               last_df := new_index;
                            exception
                               when Constraint_Error =>
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & "'" & tkey & "' index is not an integer as required.");
                                  exit;
                            end;
-                           specification.append_list (PSP.sp_distfiles, tvalue);
+                           spec.append_list (PSP.sp_distfiles, tvalue);
                         when sites =>
                            if tkey = dlgroup_none then
-                              specification.set_parse_error
+                              spec.set_parse_error
                                 (LN & "cannot set site group to '" & dlgroup_none & "'");
                               exit;
                            else
                               transform_download_sites (site => defvalue);
-                              build_group_list (spec  => specification,
+                              build_group_list (spec  => spec,
                                                 field => PSP.sp_dl_sites,
                                                 key   => tkey,
                                                 value => HT.USS (defvalue));
                            end if;
                         when spkgs =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_subpackages,
                                              key   => tkey,
                                              value => tvalue);
                         when vopts =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_vopts,
                                              key   => tkey,
                                              value => tvalue);
                         when ext_head =>
-                           specification.append_array (field        => PSP.sp_ext_head,
-                                                       key          => tkey,
-                                                       value        => tvalue,
-                                                       allow_spaces => True);
+                           spec.append_array (field        => PSP.sp_ext_head,
+                                              key          => tkey,
+                                              value        => tvalue,
+                                              allow_spaces => True);
                         when ext_tail =>
-                           specification.append_array (field        => PSP.sp_ext_tail,
-                                                       key          => tkey,
-                                                       value        => tvalue,
-                                                       allow_spaces => True);
+                           spec.append_array (field        => PSP.sp_ext_tail,
+                                              key          => tkey,
+                                              value        => tvalue,
+                                              allow_spaces => True);
                         when extra_rundep =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_exrun,
                                              key   => tkey,
                                              value => tvalue);
@@ -314,12 +309,12 @@ package body Specification_Parser is
                              UTL.valid_lower_opsys (tkey) or else
                              UTL.valid_cpu_arch (tkey)
                            then
-                              build_group_list (spec  => specification,
+                              build_group_list (spec  => spec,
                                                 field => PSP.sp_options_on,
                                                 key   => tkey,
                                                 value => tvalue);
                            else
-                              specification.set_parse_error
+                              spec.set_parse_error
                                 (LN & "group '" & tkey & "' is not valid (all, <opsys>, <arch>)");
                               exit;
                            end if;
@@ -328,77 +323,77 @@ package body Specification_Parser is
                              UTL.valid_lower_opsys (tkey) or else
                              UTL.valid_cpu_arch (tkey)
                            then
-                              specification.append_array (field        => PSP.sp_broken,
-                                                          key          => tkey,
-                                                          value        => tvalue,
-                                                          allow_spaces => True);
+                              spec.append_array (field        => PSP.sp_broken,
+                                                 key          => tkey,
+                                                 value        => tvalue,
+                                                 allow_spaces => True);
                            else
-                              specification.set_parse_error
+                              spec.set_parse_error
                                 (LN & "group '" & tkey & "' is not valid (all, <opsys>, <arch>)");
                               exit;
                            end if;
                         when var_opsys =>
                            if UTL.valid_lower_opsys (tkey) then
                               if valid_conditional_variable (tvalue) then
-                                 specification.append_array (field        => PSP.sp_var_opsys,
-                                                             key          => tkey,
-                                                             value        => tvalue,
-                                                             allow_spaces => True);
+                                 spec.append_array (field        => PSP.sp_var_opsys,
+                                                    key          => tkey,
+                                                    value        => tvalue,
+                                                    allow_spaces => True);
                               else
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & " VAR_OPSYS definition failed validity check.");
                                  exit;
                               end if;
                            else
-                              specification.set_parse_error
+                              spec.set_parse_error
                                 (LN & "group '" & tkey & "' is not a valid opsys value");
                               exit;
                            end if;
                         when var_arch =>
                            if UTL.valid_cpu_arch (tkey) then
                               if valid_conditional_variable (tvalue) then
-                                 specification.append_array (field        => PSP.sp_var_arch,
-                                                             key          => tkey,
-                                                             value        => tvalue,
-                                                             allow_spaces => True);
+                                 spec.append_array (field        => PSP.sp_var_arch,
+                                                    key          => tkey,
+                                                    value        => tvalue,
+                                                    allow_spaces => True);
                               else
-                                 specification.set_parse_error
+                                 spec.set_parse_error
                                    (LN & " VAR_ARCH definition failed validity check.");
                                  exit;
                               end if;
                            else
-                              specification.set_parse_error
+                              spec.set_parse_error
                                 (LN & "group '" & tkey & "' is not a valid arch value");
                               exit;
                            end if;
                         when opt_descr =>
-                           specification.append_array (field        => PSP.sp_opt_descr,
-                                                       key          => tkey,
-                                                       value        => tvalue,
-                                                       allow_spaces => True);
+                           spec.append_array (field        => PSP.sp_opt_descr,
+                                              key          => tkey,
+                                              value        => tvalue,
+                                              allow_spaces => True);
                         when opt_group =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_opt_group,
                                              key   => tkey,
                                              value => tvalue);
                         when b_deps =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_os_bdep,
                                              key   => tkey,
                                              value => tvalue);
                         when r_deps =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_os_rdep,
                                              key   => tkey,
                                              value => tvalue);
                         when br_deps =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_os_brdep,
                                              key   => tkey,
                                              value => tvalue);
 
                         when c_uses =>
-                           build_group_list (spec  => specification,
+                           build_group_list (spec  => spec,
                                              field => PSP.sp_os_uses,
                                              key   => tkey,
                                              value => tvalue);
@@ -516,7 +511,8 @@ package body Specification_Parser is
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
                         if converting then
-                           verify_extra_file_exists (specfile  => dossier,
+                           verify_extra_file_exists (spec      => spec,
+                                                     specfile  => dossier,
                                                      line      => line,
                                                      is_option => False,
                                                      sub_file  => False);
@@ -524,7 +520,8 @@ package body Specification_Parser is
                      when sub_files        =>
                         build_list (spec, PSP.sp_sub_files, line);
                         if converting then
-                           verify_extra_file_exists (specfile  => dossier,
+                           verify_extra_file_exists (spec      => spec,
+                                                     specfile  => dossier,
                                                      line      => line,
                                                      is_option => False,
                                                      sub_file  => True);
@@ -545,19 +542,19 @@ package body Specification_Parser is
                         declare
                            target : String := line (line'First .. line'Last - 1);
                         begin
-                           if specification.group_exists (PSP.sp_makefile_targets, target) then
-                              specification.set_parse_error
+                           if spec.group_exists (PSP.sp_makefile_targets, target) then
+                              spec.set_parse_error
                                 (LN & "Duplicate makefile target '" & target & "' detected.");
                               exit;
                            end if;
-                           specification.establish_group (PSP.sp_makefile_targets, target);
+                           spec.establish_group (PSP.sp_makefile_targets, target);
                            last_index := HT.SUS (target);
                         end;
                      when target_body  =>
-                        specification.append_array
+                        spec.append_array
                           (field        => PSP.sp_makefile_targets,
                            key          => HT.USS (last_index),
-                           value        => transform_target_line (line, not converting),
+                           value        => transform_target_line (spec, line, not converting),
                            allow_spaces => True);
                      when bad_target   => null;
                      when not_target   => null;
@@ -570,30 +567,32 @@ package body Specification_Parser is
                      option_name : String := extract_option_name (spec, line, last_optindex);
                   begin
                      if option_name = "" then
-                        specification.set_parse_error
+                        spec.set_parse_error
                           (LN & "Valid helper, but option has never been defined " &
                              "(also seen when continuation line doesn't start with 5 tabs)");
                         exit;
                      end if;
                      if not quad_tab and then
-                       not specification.option_helper_unset (field  => line_option,
-                                                              option => option_name)
+                       not spec.option_helper_unset (field  => line_option,
+                                                     option => option_name)
                      then
-                        specification.set_parse_error
+                        spec.set_parse_error
                           (LN & "option helper previously defined (use quintuple tab)");
                         exit;
                      end if;
-                     build_list (specification, line_option, option_name, line);
+                     build_list (spec, line_option, option_name, line);
                      last_optindex := HT.SUS (option_name);
                      if converting then
                         if line_option = PSP.extra_patches_on then
-                           verify_extra_file_exists (specfile  => dossier,
+                           verify_extra_file_exists (spec      => spec,
+                                                     specfile  => dossier,
                                                      line      => line,
                                                      is_option => True,
                                                      sub_file  => False);
                         end if;
                         if line_option = PSP.sub_files_on then
-                           verify_extra_file_exists (specfile  => dossier,
+                           verify_extra_file_exists (spec      => spec,
+                                                     specfile  => dossier,
                                                      line      => line,
                                                      is_option => True,
                                                      sub_file  => True);
@@ -658,85 +657,78 @@ package body Specification_Parser is
 
             exception
                when F1 : PSP.misordered =>
-                  specification.set_parse_error
+                  spec.set_parse_error
                     (LN & "Field " & EX.Exception_Message (F1) & " appears out of order");
                   exit;
                when F2 : PSP.contains_spaces =>
-                  specification.set_parse_error (LN & "Multiple values found");
+                  spec.set_parse_error (LN & "Multiple values found");
                   exit;
                when F3 : PSP.wrong_type =>
-                  specification.set_parse_error
+                  spec.set_parse_error
                     (LN & "Field " & EX.Exception_Message (F3) &
                        " DEV ISSUE: matched to wrong type");
                   exit;
                when F4 : PSP.wrong_value =>
-                  specification.set_parse_error
-                    (LN & EX.Exception_Message (F4));
+                  spec.set_parse_error (LN & EX.Exception_Message (F4));
                   exit;
                when F5 : mistabbed =>
-                  specification.set_parse_error
-                    (LN & "value not aligned to column-24 (tab issue)");
+                  spec.set_parse_error (LN & "value not aligned to column-24 (tab issue)");
                   exit;
                when F6 : missing_definition =>
-                  specification.set_parse_error
+                  spec.set_parse_error
                     (LN & "Variable expansion: definition missing. " & EX.Exception_Message (F6));
                   exit;
                when F7 : extra_spaces =>
-                  specification.set_parse_error
-                    (LN & "extra spaces detected between list items.");
+                  spec.set_parse_error (LN & "extra spaces detected between list items.");
                   exit;
                when F8 : expansion_too_long =>
-                  specification.set_parse_error
-                    (LN & "expansion exceeds 512-char maximum.");
+                  spec.set_parse_error (LN & "expansion exceeds 512-char maximum.");
                   exit;
                when F9 : duplicate_key =>
-                  specification.set_parse_error
+                  spec.set_parse_error
                     (LN & "array key '" & EX.Exception_Message (F9) & "' duplicated.");
                   exit;
                when FA : PSP.dupe_spec_key =>
-                  specification.set_parse_error
-                    (LN & EX.Exception_Message (FA) & " key duplicated.");
+                  spec.set_parse_error (LN & EX.Exception_Message (FA) & " key duplicated.");
                   exit;
                when FB : generic_format =>
-                  specification.set_parse_error (LN & EX.Exception_Message (FB));
+                  spec.set_parse_error (LN & EX.Exception_Message (FB));
                   exit;
                when FC : PSP.missing_group =>
-                  specification.set_parse_error
+                  spec.set_parse_error
                     (LN & EX.Exception_Message (FC) & " group has not yet been established.");
                when FD : PSP.dupe_list_value =>
-                  specification.set_parse_error
+                  spec.set_parse_error
                     (LN & "list item '" & EX.Exception_Message (FD) & "' is duplicate.");
                   exit;
                when FE : mistabbed_40 =>
-                  specification.set_parse_error
-                    (LN & "option value not aligned to column-40 (tab issue)");
+                  spec.set_parse_error (LN & "option value not aligned to column-40 (tab issue)");
                   exit;
                when FF : missing_file =>
-                  specification.set_parse_error
-                    (LN & EX.Exception_Message (FF));
+                  spec.set_parse_error (LN & EX.Exception_Message (FF));
                   exit;
             end;
             <<line_done>>
          end;
       end loop;
-      if specification.get_parse_error = "" then
-         specification.set_parse_error (late_validity_check_error (specification));
-         if specification.get_parse_error = "" then
-            specification.adjust_defaults_port_parse;
+      if spec.get_parse_error = "" then
+         spec.set_parse_error (late_validity_check_error (spec));
+         if spec.get_parse_error = "" then
+            spec.adjust_defaults_port_parse;
             success := True;
          end if;
       end if;
    exception
       when FOP.file_handling =>
          success := False;
-         specification.set_parse_error ("Failed to dump contents of " & dossier);
+         spec.set_parse_error ("Failed to dump contents of " & dossier);
    end parse_specification_file;
 
 
    --------------------------------------------------------------------------------------------
    --  expand_value
    --------------------------------------------------------------------------------------------
-   function expand_value (value : String) return String
+   function expand_value (specification : PSP.Portspecs; value : String) return String
    is
       function translate (variable : String) return String;
       function will_fit  (CL, CR : Natural; new_text : String) return Boolean;
@@ -799,12 +791,16 @@ package body Specification_Parser is
             basename := HT.SUS (variable (variable'First .. colon_pos - 1));
          end if;
 
-         if spec_definitions.Contains (basename) then
-            result := spec_definitions.Element (basename);
-         else
-            trans_error := 1;  -- missing_definition
-            return "";
-         end if;
+         declare
+            tbasename : constant String := HT.USS (basename);
+         begin
+            if specification.definition_exists (tbasename) then
+               result := HT.SUS (specification.definition (tbasename));
+            else
+               trans_error := 1;  -- missing_definition
+               return "";
+            end if;
+         end;
 
          loop
             exit when colon_pos = 0;
@@ -1430,7 +1426,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  retrieve_single_value
    --------------------------------------------------------------------------------------------
-   function retrieve_single_value (line : String) return String
+   function retrieve_single_value (spec : PSP.Portspecs; line : String) return String
    is
       wrkstr : String (1 .. line'Length) := line;
       equals : Natural := AS.Fixed.Index (wrkstr, LAT.Equals_Sign & LAT.HT);
@@ -1473,7 +1469,7 @@ package body Specification_Parser is
          then
             raise mistabbed;
          end if;
-         return expand_value (rest (rest'First + contig_tabs .. rest'Last));
+         return expand_value (spec, rest (rest'First + contig_tabs .. rest'Last));
       end;
    end retrieve_single_value;
 
@@ -1481,10 +1477,10 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  retrieve_single_integer
    --------------------------------------------------------------------------------------------
-   function retrieve_single_integer (line : String) return Natural
+   function retrieve_single_integer (spec : PSP.Portspecs; line : String) return Natural
    is
       result   : Natural;
-      strvalue : constant String := retrieve_single_value (line);
+      strvalue : constant String := retrieve_single_value (spec, line);
       --  let any exceptions cascade
    begin
       result := Integer'Value (strvalue);
@@ -1523,7 +1519,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure set_boolean (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String)
    is
-      value : String := retrieve_single_value (line);
+      value : String := retrieve_single_value (spec, line);
    begin
       if value = boolean_yes then
          spec.set_boolean (field, True);
@@ -1539,7 +1535,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure set_natural (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String) is
    begin
-       spec.set_natural_integer (field, retrieve_single_integer (line));
+       spec.set_natural_integer (field, retrieve_single_integer (spec, line));
    end set_natural;
 
 
@@ -1548,7 +1544,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    procedure build_string (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String) is
    begin
-      spec.set_single_string (field, retrieve_single_value (line));
+      spec.set_single_string (field, retrieve_single_value (spec, line));
    end build_string;
 
 
@@ -1559,7 +1555,7 @@ package body Specification_Parser is
    is
       function getkey return String;
 
-      strvalue : constant String := retrieve_single_value (line);
+      strvalue : constant String := retrieve_single_value (spec, line);
 
       function getkey return String is
       begin
@@ -1599,7 +1595,7 @@ package body Specification_Parser is
 
       arrow      : Natural;
       word_start : Natural;
-      strvalue   : constant String := retrieve_single_value (line);
+      strvalue   : constant String := retrieve_single_value (spec, line);
       --  let any exceptions cascade
 
       procedure insert_item (data : String) is
@@ -1944,7 +1940,7 @@ package body Specification_Parser is
 
       arrow      : Natural;
       word_start : Natural;
-      strvalue   : constant String := retrieve_single_option_value (line);
+      strvalue   : constant String := retrieve_single_option_value (spec, line);
       --  let any exceptions cascade
 
       procedure insert_item (data : String) is
@@ -1999,7 +1995,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  retrieve_single_option_value
    --------------------------------------------------------------------------------------------
-   function retrieve_single_option_value (line : String) return String
+   function retrieve_single_option_value (spec : PSP.Portspecs; line : String) return String
    is
       wrkstr : String (1 .. line'Length) := line;
       equals : Natural := AS.Fixed.Index (wrkstr, LAT.Equals_Sign & LAT.HT);
@@ -2045,7 +2041,7 @@ package body Specification_Parser is
          then
             raise mistabbed_40;
          end if;
-         return expand_value (rest (rest'First + contig_tabs .. rest'Last));
+         return expand_value (spec, rest (rest'First + contig_tabs .. rest'Last));
       end;
    end retrieve_single_option_value;
 
@@ -2181,7 +2177,10 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  transform_target_line
    --------------------------------------------------------------------------------------------
-   function transform_target_line (line : String; skip_transform : Boolean) return String
+   function transform_target_line
+     (spec : PSP.Portspecs;
+      line : String;
+      skip_transform : Boolean) return String
    is
       arrow1      : Natural := 0;
       arrow2      : Natural := 0;
@@ -2190,7 +2189,7 @@ package body Specification_Parser is
 
    begin
       if skip_transform or else
-        spec_definitions.Is_Empty or else
+        spec.no_definitions or else
         line = ""
       then
          return line;
@@ -2220,7 +2219,7 @@ package body Specification_Parser is
          if arrow2 - 1 > arrow1 + 2 then
             begin
                declare
-                  newval : HT.Text := HT.SUS (expand_value (line (arrow1 .. arrow2)));
+                  newval : HT.Text := HT.SUS (expand_value (spec, line (arrow1 .. arrow2)));
                begin
                   UTL.apply_cbc_string (newval);
                   HT.SU.Append (canvas, newval);
@@ -2245,7 +2244,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  extract_version
    --------------------------------------------------------------------------------------------
-   function extract_version (varname : String) return HT.Text
+   function extract_version (varname : String) return String
    is
       consdir : String := HT.USS (Parameters.configuration.dir_conspiracy);
       extmake : String := HT.USS (Parameters.configuration.dir_sysroot) & "/usr/bin/make -m " &
@@ -2254,14 +2253,14 @@ package body Specification_Parser is
       status  : Integer;
       result  : HT.Text := Unix.piped_command (command, status);
    begin
-      return HT.SUS (HT.first_line (HT.USS (result)));
+      return HT.first_line (HT.USS (result));
    end extract_version;
 
 
    --------------------------------------------------------------------------------------------
    --  extract_information
    --------------------------------------------------------------------------------------------
-   function extract_information (varname : String) return HT.Text
+   function extract_information (varname : String) return String
    is
       consdir : String := HT.USS (Parameters.configuration.dir_conspiracy);
       extmake : String := HT.USS (Parameters.configuration.dir_sysroot) & "/usr/bin/make -m " &
@@ -2270,7 +2269,7 @@ package body Specification_Parser is
       status  : Integer;
       result  : HT.Text := Unix.piped_command (command, status);
    begin
-      return HT.SUS (HT.first_line (HT.USS (result)));
+      return HT.first_line (HT.USS (result));
    end extract_information;
 
 
@@ -2278,7 +2277,8 @@ package body Specification_Parser is
    --  verify_extra_file_exists
    --------------------------------------------------------------------------------------------
    procedure verify_extra_file_exists
-     (specfile  : String;
+     (spec      : PSP.Portspecs;
+      specfile  : String;
       line      : String;
       is_option : Boolean;
       sub_file  : Boolean)
@@ -2294,9 +2294,9 @@ package body Specification_Parser is
       function get_payload return String is
       begin
          if is_option then
-            return retrieve_single_option_value (line);
+            return retrieve_single_option_value (spec, line);
          else
-            return retrieve_single_value (line);
+            return retrieve_single_value (spec, line);
          end if;
       end get_payload;
 

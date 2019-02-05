@@ -22,6 +22,8 @@ package body Port_Specification is
    is
       unset : HT.Text := HT.SUS ("unset");
    begin
+      specs.definitions.Clear;
+
       specs.namebase     := HT.blank;
       specs.version      := HT.blank;
       specs.revision     := 0;
@@ -5091,6 +5093,44 @@ package body Port_Specification is
    begin
       return HT.USS (specs.parse_error);
    end get_parse_error;
+
+
+   --------------------------------------------------------------------------------------------
+   --  get_parse_error
+   --------------------------------------------------------------------------------------------
+   function definition_exists (specs : Portspecs; variable : String) return Boolean
+   is
+   begin
+      return specs.definitions.Contains (HT.SUS (variable));
+   end definition_exists;
+
+
+   --------------------------------------------------------------------------------------------
+   --  define
+   --------------------------------------------------------------------------------------------
+   procedure define (specs : in out Portspecs; variable : String; value : String) is
+   begin
+      specs.definitions.Insert (HT.SUS (variable), HT.SUS (value));
+   end define;
+
+
+   --------------------------------------------------------------------------------------------
+   --  definition
+   --------------------------------------------------------------------------------------------
+   function definition (specs : Portspecs; variable : String) return String is
+   begin
+      return HT.USS (specs.definitions.Element (HT.SUS (variable)));
+   end definition;
+
+
+   --------------------------------------------------------------------------------------------
+   --  no_definitions
+   --------------------------------------------------------------------------------------------
+   function no_definitions (specs : Portspecs) return Boolean
+   is
+   begin
+      return specs.definitions.Is_Empty;
+   end no_definitions;
 
 
    --------------------------------------------------------------------------------------------

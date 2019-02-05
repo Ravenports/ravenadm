@@ -15,7 +15,7 @@ package Specification_Parser is
    --  Parse the port specification file and extract the data into the specification record.
    procedure parse_specification_file
      (dossier         : String;
-      specification   : out PSP.Portspecs;
+      spec            : out PSP.Portspecs;
       success         : out Boolean;
       opsys_focus     : supported_opsys;
       arch_focus      : supported_arch;
@@ -26,13 +26,6 @@ private
 
    package HT  renames HelperText;
    package CON renames Ada.Containers;
-
-   package def_crate is new CON.Hashed_Maps
-        (Key_Type        => HT.Text,
-         Element_Type    => HT.Text,
-         Hash            => HT.hash,
-         Equivalent_Keys => HT.equivalent,
-         "="             => HT.SU."=");
 
    type spec_array   is (not_array, def, sdesc, sites, distfile, spkgs, vopts, ext_head,
                          ext_tail, option_on, broken, var_opsys, var_arch, extra_rundep,
@@ -59,8 +52,6 @@ private
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
 
-   spec_definitions   : def_crate.Map;
-
    missing_definition : exception;
    bad_modifier       : exception;
    expansion_too_long : exception;
@@ -79,7 +70,7 @@ private
    --  exception is thrown.  Upon cycle, repeat until no more patterns found, then return
    --  final expanded value.  If the length of the expanded value exceeds 512 bytes, the
    --  expansion_too_long exception is thrown.
-   function expand_value (value : String) return String;
+   function expand_value (specification : PSP.Portspecs; value : String) return String;
 
    --  If the line represents a recognized array type, indicate which one,
    --  otherwise return "not_array"
@@ -120,14 +111,14 @@ private
 
    --  Returns everything following the tab(s) until end of line.  If last tab doesn't align
    --  text with column 24, the mistabbed exception is thrown.
-   function retrieve_single_value (line : String) return String;
+   function retrieve_single_value (spec : PSP.Portspecs; line : String) return String;
 
    --  Returns everything following the tab(s) until end of line.  If last tab doesn't align
    --  text with column 40, the mistabbed exception is thrown.
-   function retrieve_single_option_value (line : String) return String;
+   function retrieve_single_option_value (spec : PSP.Portspecs; line : String) return String;
 
    --  Calls retrieve_single_value and tries to convert to a natural number.
-   function retrieve_single_integer (line : String) return Natural;
+   function retrieve_single_integer (spec : PSP.Portspecs; line : String) return Natural;
 
    --  Returns the key for array item definition lines.
    function retrieve_key (line : String; previous_index : HT.Text) return HT.Text;
@@ -186,17 +177,21 @@ private
    --  not be any transformation.  The logic is that that is done only on the final buildsheet
    --  which already has had the transformation done on it, so avoid a lot of calculations that
    --  result in no change.
-   function transform_target_line (line : String; skip_transform : Boolean)  return String;
+   function transform_target_line
+     (spec : PSP.Portspecs;
+      line : String;
+      skip_transform : Boolean) return String;
 
    --  loads raven.versions.mk and returns result of "make -V <varname>"
-   function extract_version (varname : String) return HT.Text;
+   function extract_version (varname : String) return String;
 
    --  loads raven.information.mk and returns result of "make -V <varname>"
-   function extract_information (varname : String) return HT.Text;
+   function extract_information (varname : String) return String;
 
    --  Throws missing_file exception if the indicated patch file or sub file does not exist
    procedure verify_extra_file_exists
-     (specfile  : String;
+     (spec      : PSP.Portspecs;
+      specfile  : String;
       line      : String;
       is_option : Boolean;
       sub_file  : Boolean);

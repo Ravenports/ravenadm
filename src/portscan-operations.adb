@@ -2786,7 +2786,7 @@ package body PortScan.Operations is
       end launch_and_read;
    begin
       PAR.parse_specification_file (dossier         => buildsheet,
-                                    specification   => specification,
+                                    spec            => specification,
                                     opsys_focus     => platform_type,
                                     arch_focus      => sysrootver.arch,
                                     success         => successful,

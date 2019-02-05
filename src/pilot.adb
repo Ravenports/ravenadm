@@ -161,7 +161,7 @@ package body Pilot is
          begin
             if DIR.Exists (filename) then
                PAR.parse_specification_file (dossier         => filename,
-                                             specification   => specification,
+                                             spec            => specification,
                                              opsys_focus     => platform_type,
                                              arch_focus      => sysrootver.arch,
                                              success         => successful,
@@ -174,7 +174,7 @@ package body Pilot is
       else
          if DIR.Exists (specfile) then
             PAR.parse_specification_file (dossier         => specfile,
-                                          specification   => specification,
+                                          spec            => specification,
                                           opsys_focus     => platform_type,
                                           arch_focus      => sysrootver.arch,
                                           success         => successful,
@@ -363,7 +363,7 @@ package body Pilot is
 
       if DIR.Exists (filename) then
          PAR.parse_specification_file (dossier         => filename,
-                                       specification   => specification,
+                                       spec            => specification,
                                        opsys_focus     => platform_type,  --  unused
                                        arch_focus      => sysrootver.arch,
                                        success         => successful,
@@ -1167,7 +1167,7 @@ package body Pilot is
       REP.initialize (testmode  => False);
       REP.launch_slave (scan_slave);
       PAR.parse_specification_file (dossier         => specfile,
-                                    specification   => specification,
+                                    spec            => specification,
                                     opsys_focus     => platform_type,
                                     arch_focus      => x86_64,
                                     success         => successful,
@@ -1596,7 +1596,7 @@ package body Pilot is
          end if;
          if DIR.Exists (HT.USS (dossier_text)) then
             PAR.parse_specification_file (dossier         => HT.USS (dossier_text),
-                                          specification   => prespec,
+                                          spec            => prespec,
                                           opsys_focus     => platform_type,
                                           arch_focus      => x86_64,
                                           success         => presuccess,

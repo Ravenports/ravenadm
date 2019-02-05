@@ -304,6 +304,18 @@ package Port_Specification is
    --  Retrieve parse error
    function get_parse_error (specs : Portspecs) return String;
 
+   --  Insert new variable definition
+   procedure define (specs : in out Portspecs; variable : String; value : String);
+
+   --  Returns true if variable already defined
+   function definition_exists (specs : Portspecs; variable : String) return Boolean;
+
+   --  Returns value of defined variable
+   function definition (specs : Portspecs; variable : String) return String;
+
+   --  Return true if no definition are defined
+   function no_definitions (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -472,6 +484,8 @@ private
 
    type Portspecs is tagged
       record
+         definitions    : def_crate.Map;
+
          namebase       : HT.Text;
          version        : HT.Text;
          revision       : Natural;
