@@ -1344,7 +1344,8 @@ package body PortScan.Scan is
 
                         if not successful then
                            aborted := True;
-                           TIO.Put_Line (premsg & "failed to parse specification file.");
+                           TIO.Put_Line (premsg & "failed to parse specification file."
+                                        & "  " & specification.get_parse_error);
                         end if;
                      else
                         aborted := True;
