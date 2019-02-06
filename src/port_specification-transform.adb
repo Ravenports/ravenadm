@@ -319,7 +319,8 @@ package body Port_Specification.Transform is
       apply_php_module (specs);
       apply_png_module (specs);
       apply_gem_module (specs);
-      apply_ccache (specs);
+      apply_cargo_module (specs);
+      apply_ccache_module (specs);
       apply_schemas_module (specs);
       apply_firebird_module (specs);
       apply_desktop_utils_module (specs);
@@ -1291,7 +1292,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  apply_ccache
    --------------------------------------------------------------------------------------------
-   procedure apply_ccache (specs : in out Portspecs)
+   procedure apply_ccache_module (specs : in out Portspecs)
    is
       dependency : String := "ccache:primary:standard";
    begin
@@ -1302,7 +1303,7 @@ package body Port_Specification.Transform is
          return;
       end if;
       add_build_depends (specs, dependency);
-   end apply_ccache;
+   end apply_ccache_module;
 
 
    --------------------------------------------------------------------------------------------

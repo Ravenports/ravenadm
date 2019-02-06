@@ -83,7 +83,7 @@ private
    procedure apply_libtool_module   (specs : in out Portspecs);
    procedure apply_libiconv_module  (specs : in out Portspecs);
    procedure apply_info_presence    (specs : in out Portspecs);
-   procedure apply_ccache           (specs : in out Portspecs);
+   procedure apply_ccache_module    (specs : in out Portspecs);
    procedure apply_pkgconfig_module (specs : in out Portspecs);
    procedure apply_gprbuild_module  (specs : in out Portspecs);
    procedure apply_ncurses_module   (specs : in out Portspecs);
