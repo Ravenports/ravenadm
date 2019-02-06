@@ -2232,6 +2232,9 @@ package body Port_Specification is
       if specs.debugging_on then
          specs.optimizer_lvl := 0;
       end if;
+      if specs.uses_base.Contains (HT.SUS ("cargo")) then
+         specs.set_single_string (sp_distsubdir, "rust/crates");
+      end if;
    end adjust_defaults_port_parse;
 
 

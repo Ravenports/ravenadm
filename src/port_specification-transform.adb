@@ -877,9 +877,6 @@ package body Port_Specification.Transform is
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, dependency);
-
-         --  Set dist_subdir automatically
-         specs.set_single_string (sp_distsubdir, "rust/crates");
       end if;
    end apply_cargo_module;
 
