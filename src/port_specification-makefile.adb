@@ -1086,11 +1086,10 @@ package body Port_Specification.Makefile is
          pload : String := HT.USS (string_crate.Element (position));
       begin
          declare
-            group      : String := HT.part_2 (pload, ":");
-            dlsite     : String := HT.USS (specs.dl_sites.Element
-                                           (HT.SUS (group)).list.First_Element);
-            url_args   : String := HT.part_2 (dlsite, "/");
-            crate      : constant String := HT.replace_char (group, ':', "-");
+            group      : HT.Text := HT.SUS (HT.part_2 (pload, ":"));
+            dlsite     : String  := HT.USS (specs.dl_sites.Element (group).list.First_Element);
+            url_args   : String  := HT.part_2 (dlsite, "/");
+            crate      : constant String := HT.replace_char (url_args, ':', "-");
             num_colons : constant Natural := HT.count_char (url_args, LAT.Colon);
          begin
             if not HT.leads (dlsite, "CRATES/") then
@@ -1107,7 +1106,7 @@ package body Port_Specification.Makefile is
                        " ===>  Moving crates to ${CARGO_VENDOR_DIR}" & LAT.Quotation);
                send (LAT.HT & "@${MKDIR} ${CARGO_VENDOR_DIR}");
             end if;
-            send (LAT.LF & LAT.HT & "# relocate " & group & " crate");
+            send (LAT.LF & LAT.HT & "# relocate " & crate & " crate");
             send (LAT.HT & "@${MV} ${WRKDIR}/" & crate & " ${CARGO_VENDOR_DIR}/" & crate);
             send (LAT.HT & "@${PRINTF} '{" &
                     LAT.Quotation & "package" & LAT.Quotation & ":" &
