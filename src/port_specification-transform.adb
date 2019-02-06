@@ -868,6 +868,20 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_cargo_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_cargo_module (specs : in out Portspecs)
+   is
+      module     : String := "cargo";
+      dependency : String := "rust:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dependency);
+      end if;
+   end apply_cargo_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_ninja_module
    --------------------------------------------------------------------------------------------
    procedure apply_ninja_module (specs : in out Portspecs)
