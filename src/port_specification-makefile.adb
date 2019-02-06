@@ -258,6 +258,9 @@ package body Port_Specification.Makefile is
                elsif HT.leads (dlsite, "GITLAB/") then
                   send (NDX & generate_gitlab_distfile (dlsite) & ":" & group);
                   return;
+               elsif HT.leads (dlsite, "CRATES/") then
+                  send (NDX & generate_crates_distfile (dlsite) & ":" & group);
+                  return;
                else
                   --  seems like a mistake, fall through
                   null;
@@ -1001,8 +1004,7 @@ package body Port_Specification.Makefile is
             if not HT.leads (dlsite, "GITHUB/") and then
               not HT.leads (dlsite, "GITHUB_PRIVATE/") and then
               not HT.leads (dlsite, "GHPRIV/") and then
-              not HT.leads (dlsite, "GITLAB/") and then
-              not HT.leads (dlsite, "CRATES/")
+              not HT.leads (dlsite, "GITLAB/")
             then
                return;
             end if;
