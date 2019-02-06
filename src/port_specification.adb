@@ -4076,7 +4076,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 70;
+      total_keywords : constant Positive := 71;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -4134,6 +4134,7 @@ package body Port_Specification is
          "raven        ",
          "ruby         ",
          "russian      ",
+         "rust         ",
          "scheme       ",
          "science      ",
          "security     ",
