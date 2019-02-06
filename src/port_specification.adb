@@ -2195,6 +2195,7 @@ package body Port_Specification is
       procedure grow (Key : HT.Text; Element : in out group_list);
 
       empty_comment : HT.Text := HT.SUS ("# empty");
+      rust_crates   : HT.Text := HT.SUS ("rust/crates");
 
       procedure grow (Key : HT.Text; Element : in out group_list) is
       begin
@@ -2233,10 +2234,11 @@ package body Port_Specification is
          specs.optimizer_lvl := 0;
       end if;
       if specs.uses_base.Contains (HT.SUS ("cargo")) then
-         if not HT.IsBlank (specs.dist_subdir) then
+         if HT.IsBlank (specs.dist_subdir) then
+            specs.dist_subdir := rust_crates;
+         elsif not HT.equivalent (specs.dist_subdir, rust_crates) then
             raise dupe_spec_key with "DIST_SUBDIR set with USE=cargo";
          end if;
-         specs.dist_subdir := HT.SUS ("rust/crates");
       end if;
    end adjust_defaults_port_parse;
 
