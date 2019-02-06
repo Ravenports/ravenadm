@@ -972,12 +972,16 @@ package body Port_Specification.Makefile is
    procedure handle_github_relocations (specs : Portspecs; makefile : TIO.File_Type)
    is
       procedure send (data : String);
+      procedure filter_to_generated (position : string_crate.Cursor);
       procedure check_for_generated (position : string_crate.Cursor);
       procedure check_for_generated_shift (position : string_crate.Cursor);
+      procedure check_for_generated_crate (position : string_crate.Cursor);
 
       target_set    : Boolean := False;
       shift_tgt_set : Boolean := False;
+      crate_tgt_set : Boolean := False;
       write_to_file : Boolean := (TIO.Is_Open (makefile));
+      genfile_list  : string_crate.Vector;
 
       procedure send (data : String) is
       begin
@@ -992,9 +996,6 @@ package body Port_Specification.Makefile is
       is
          pload : String := HT.USS (string_crate.Element (position));
       begin
-         if not HT.leads (pload, "generated:") then
-            return;
-         end if;
          declare
             group   : HT.Text := HT.SUS (HT.part_2 (pload, ":"));
             dlsite  : String  := HT.USS (specs.dl_sites.Element (group).list.First_Element);
@@ -1041,22 +1042,19 @@ package body Port_Specification.Makefile is
       is
          pload : String := HT.USS (string_crate.Element (position));
       begin
-         if not HT.leads (pload, "generated:") then
-            return;
-         end if;
          declare
             group   : HT.Text := HT.SUS (HT.part_2 (pload, ":"));
             dlsite  : String  := HT.USS (specs.dl_sites.Element (group).list.First_Element);
             gh_args : String  := HT.part_2 (dlsite, "/");
             num_colons : constant Natural := HT.count_char (gh_args, LAT.Colon);
          begin
-            if num_colons < 2 then
-               return;
-            end if;
             if not HT.leads (dlsite, "GITHUB_PRIVATE/") and then
               not HT.leads (dlsite, "GHPRIV/") and then
               not HT.leads (dlsite, "GITLAB/")
             then
+               return;
+            end if;
+            if num_colons < 2 then
                return;
             end if;
             --  Gitlab and github private use full hashes in the tarball regardless of the
@@ -1082,9 +1080,58 @@ package body Port_Specification.Makefile is
             end;
          end;
       end check_for_generated_shift;
+
+      procedure check_for_generated_crate (position : string_crate.Cursor)
+      is
+         pload : String := HT.USS (string_crate.Element (position));
+      begin
+         declare
+            group      : String := HT.part_2 (pload, ":");
+            dlsite     : String := HT.USS (specs.dl_sites.Element
+                                           (HT.SUS (group)).list.First_Element);
+            url_args   : String := HT.part_2 (dlsite, "/");
+            crate      : constant String := HT.replace_char (group, ':', "-");
+            num_colons : constant Natural := HT.count_char (url_args, LAT.Colon);
+         begin
+            if not HT.leads (dlsite, "CRATES/") then
+               return;
+            end if;
+            if num_colons < 1 then
+               return;
+            end if;
+
+            if not crate_tgt_set then
+               crate_tgt_set := True;
+               send (LAT.LF & "crate_relocation:");
+               send (LAT.HT & "@${ECHO_MSG} " & LAT.Quotation &
+                       " ===>  Moving crates to ${CARGO_VENDOR_DIR}" & LAT.Quotation);
+               send (LAT.HT & "@${MKDIR} ${CARGO_VENDOR_DIR}");
+            end if;
+            send (LAT.LF & LAT.HT & "# relocate " & group & " crate");
+            send (LAT.HT & "@${MV} ${WRKDIR}/" & crate & " ${CARGO_VENDOR_DIR}/" & crate);
+            send (LAT.HT & "@${PRINTF} '{" &
+                    LAT.Quotation & "package" & LAT.Quotation & ":" &
+                    LAT.Quotation & "%s" & LAT.Quotation & "," &
+                    LAT.Quotation & "files" & LAT.Quotation &
+                    ":{}}' $$(${SHA256} -q ${DISTDIR}/${DIST_SUBDIR}/" &
+                    crate & ".tar.gz) > ${CARGO_VENDOR_DIR}/" &
+                    crate & "/.cargo-checksum.json");
+         end;
+      end check_for_generated_crate;
+
+      procedure filter_to_generated (position : string_crate.Cursor)
+      is
+         pload : HT.Text renames string_crate.Element (position);
+      begin
+         if HT.leads (pload, "generated:") then
+            genfile_list.Append (pload);
+         end if;
+      end filter_to_generated;
    begin
-      specs.distfiles.Iterate (check_for_generated'Access);
-      specs.distfiles.Iterate (check_for_generated_shift'Access);
+      specs.distfiles.Iterate (filter_to_generated'Access);
+      genfile_list.Iterate (check_for_generated'Access);
+      genfile_list.Iterate (check_for_generated_shift'Access);
+      genfile_list.Iterate (check_for_generated_crate'Access);
    end handle_github_relocations;
 
 
