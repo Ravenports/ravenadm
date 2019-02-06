@@ -212,7 +212,6 @@ package body Port_Specification.Makefile is
            module = "makeinfo" or else
            module = "pkgconfig" or else
            module = "gprbuild" or else
-           module = "gettext-runtime" or else
            module = "gettext-tools" or else
            module = "bison" or else
            module = "zlib" or else
@@ -287,6 +286,8 @@ package body Port_Specification.Makefile is
                   send ("DISTNAME", generate_github_distname (first_dlsite));
                elsif HT.leads (first_dlsite, "GITLAB/") then
                   send ("DISTNAME", generate_gitlab_distname (first_dlsite));
+               elsif HT.leads (first_dlsite, "CRATES/") then
+                  send ("DISTNAME", generate_crates_distname (first_dlsite));
                end if;
             end;
          end if;
@@ -942,6 +943,27 @@ package body Port_Specification.Makefile is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_crates_distname
+   --------------------------------------------------------------------------------------------
+   function generate_crates_distname (download_site : String) return String
+   is
+      url_args   : constant String  := HT.part_2 (download_site, "/");
+      num_colons : constant Natural := HT.count_char (url_args, LAT.Colon);
+   begin
+      if num_colons < 1 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return url_args;
+      end if;
+      declare
+         proj : constant String := HT.specific_field (url_args, 1, ":");
+         vers : constant String := HT.specific_field (url_args, 2, ":");
+      begin
+         return proj & LAT.Hyphen & vers;
+      end;
+   end generate_crates_distname;
+
+
+   --------------------------------------------------------------------------------------------
    --  handle_github_relocations
    --------------------------------------------------------------------------------------------
    procedure handle_github_relocations (specs : Portspecs; makefile : TIO.File_Type)
@@ -979,7 +1001,8 @@ package body Port_Specification.Makefile is
             if not HT.leads (dlsite, "GITHUB/") and then
               not HT.leads (dlsite, "GITHUB_PRIVATE/") and then
               not HT.leads (dlsite, "GHPRIV/") and then
-              not HT.leads (dlsite, "GITLAB/")
+              not HT.leads (dlsite, "GITLAB/") and then
+              not HT.leads (dlsite, "CRATES/")
             then
                return;
             end if;

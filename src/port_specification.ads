@@ -716,6 +716,9 @@ private
    --  Like generate_github_distfile, but doesn't filter/modify out leading v's and plus signs
    function generate_gitlab_distfile (download_site : String) return String;
 
+   --  Given a string XXXX/project:version return a standard
+   function generate_crates_distfile (download_site : String) return String;
+
    --  Returns True if a given option already present in radio, restricted or unlimited group
    function option_already_in_group (specs : Portspecs; option_name : String) return Boolean;
 

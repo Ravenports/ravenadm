@@ -3031,7 +3031,9 @@ package body Port_Specification is
             if HT.leads (dlsite, "GITHUB/") then
                return generate_github_distfile (dlsite);
             elsif HT.leads (dlsite, "GITLAB/") then
-              return generate_gitlab_distfile (dlsite);
+               return generate_gitlab_distfile (dlsite);
+            elsif HT.leads (dlsite, "CRATES/") then
+               return generate_crates_distfile (dlsite);
             else
                --  future generations
               return "implement me: " & distfile;
@@ -4923,7 +4925,7 @@ package body Port_Specification is
    function generate_gitlab_distfile (download_site : String) return String
    is
       lab_args    : constant String  := HT.part_2 (download_site, "/");
-      num_colons : constant Natural := HT.count_char (lab_args, LAT.Colon);
+      num_colons  : constant Natural := HT.count_char (lab_args, LAT.Colon);
       lab_ext     : constant String  := ".tar.gz";
    begin
       if num_colons < 2 then
@@ -4938,6 +4940,28 @@ package body Port_Specification is
          return acct & LAT.Hyphen & proj & LAT.Hyphen & vers & lab_ext;
       end;
    end generate_gitlab_distfile;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_crates_distfile
+   --------------------------------------------------------------------------------------------
+   function generate_crates_distfile (download_site : String) return String
+   is
+      url_args    : constant String  := HT.part_2 (download_site, "/");
+      num_colons  : constant Natural := HT.count_char (url_args, LAT.Colon);
+      file_ext    : constant String  := ".tar.gz";
+   begin
+      if num_colons < 1 then
+         --  NOT EXPECTED!!!  give garbage so maintainer notices and fixes it
+         return url_args & file_ext;
+      end if;
+      declare
+         proj : constant String := HT.specific_field (url_args, 1, ":");
+         vers : constant String := HT.specific_field (url_args, 2, ":");
+      begin
+         return proj & LAT.Hyphen & vers & file_ext;
+      end;
+   end generate_crates_distfile;
 
 
    --------------------------------------------------------------------------------------------

@@ -33,6 +33,9 @@ private
    --  Rare characters in account/project may have to be URL encoded
    function generate_gitlab_distname (download_site : String) return String;
 
+   --  Given a string CRATES/project:version return a standard distname.
+   function generate_crates_distname (download_site : String) return String;
+
    --  Used for non-custom (and not invalid) licenses, returns the full license name
    function standard_license_names (license : license_type) return String;
 
