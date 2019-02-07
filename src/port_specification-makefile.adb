@@ -1117,7 +1117,7 @@ package body Port_Specification.Makefile is
                crate_tgt_set := True;
                send (LAT.LF & "crate-relocation:");
                send (LAT.HT & "@${ECHO_MSG} " & LAT.Quotation &
-                       " ===>  Moving crates to ${CARGO_VENDOR_DIR}" & LAT.Quotation);
+                       "===>  Moving crates to ${CARGO_VENDOR_DIR}" & LAT.Quotation);
                send (LAT.HT & "@${MKDIR} ${CARGO_VENDOR_DIR}");
             end if;
             send (LAT.LF & LAT.HT & "# relocate " & crate & " crate");
