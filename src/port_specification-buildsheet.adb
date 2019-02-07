@@ -754,9 +754,9 @@ package body Port_Specification.Buildsheet is
       send ("TEST_ENV",             specs.test_env, 1);
       send ("VAR_OPSYS",            specs.var_opsys, 4);
       send ("VAR_ARCH",             specs.var_arch, 4);
-      send ("CARGO_CONFIGURE",      specs.cgo_configure, False);
-      send ("CARGO_BUILD",          specs.cgo_build, False);
-      send ("CARGO_INSTALL",        specs.cgo_install, False);
+      send ("CARGO_SKIP_CONFIGURE", specs.cgo_skip_conf, True);
+      send ("CARGO_SKIP_BUILD",     specs.cgo_skip_build, True);
+      send ("CARGO_SKIP_INSTALL",   specs.cgo_skip_inst, True);
       send ("CARGO_CONFIG_ARGS",    specs.cgo_conf_args, 2);
       send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, 2);
       send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, 2);

@@ -619,9 +619,9 @@ private
          used_lua       : HT.Text;
          parse_error    : HT.Text;
 
-         cgo_configure  : Boolean;
-         cgo_build      : Boolean;
-         cgo_install    : Boolean;
+         cgo_skip_conf  : Boolean;
+         cgo_skip_build : Boolean;
+         cgo_skip_inst  : Boolean;
          cgo_cargolock  : HT.Text;
          cgo_cargotoml  : HT.Text;
          cgo_cargo_bin  : HT.Text;

@@ -165,9 +165,9 @@ package body Port_Specification is
       specs.last_set := so_initialized;
 
       --  To support cargo module
-      specs.cgo_configure  := True;
-      specs.cgo_build      := True;
-      specs.cgo_install    := True;
+      specs.cgo_skip_conf  := False;
+      specs.cgo_skip_build := False;
+      specs.cgo_skip_inst  := False;
       specs.cgo_cargolock  := HT.blank;
       specs.cgo_cargotoml  := HT.blank;
       specs.cgo_cargo_bin  := HT.blank;
@@ -1624,11 +1624,11 @@ package body Port_Specification is
          when sp_killdog =>
             specs.kill_watchdog := value;
          when sp_cgo_conf =>
-            specs.cgo_configure := value;
+            specs.cgo_skip_conf := value;
          when sp_cgo_build =>
-            specs.cgo_build := value;
+            specs.cgo_skip_build := value;
          when sp_cgo_inst =>
-            specs.cgo_install := value;
+            specs.cgo_skip_inst := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -5618,9 +5618,9 @@ package body Port_Specification is
             when sp_generated      => TIO.Put_Line (specs.generated'Img);
             when sp_repsucks       => TIO.Put_Line (specs.repology_sucks'Img);
             when sp_killdog        => TIO.Put_Line (specs.kill_watchdog'Img);
-            when sp_cgo_conf       => TIO.Put_Line (specs.cgo_configure'Img);
-            when sp_cgo_build      => TIO.Put_Line (specs.cgo_build'Img);
-            when sp_cgo_inst       => TIO.Put_Line (specs.cgo_install'Img);
+            when sp_cgo_conf       => TIO.Put_Line (specs.cgo_skip_conf'Img);
+            when sp_cgo_build      => TIO.Put_Line (specs.cgo_skip_build'Img);
+            when sp_cgo_inst       => TIO.Put_Line (specs.cgo_skip_inst'Img);
             when others => null;
          end case;
       end print_boolean;

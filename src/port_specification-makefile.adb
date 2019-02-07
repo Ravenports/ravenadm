@@ -830,6 +830,20 @@ package body Port_Specification.Makefile is
       send ("TEST_ENV",         specs.test_env, 1);
       send ("GENERATED",        specs.generated, True);
       send ("PHP_EXTENSIONS",   specs.php_extensions, 1);
+
+      send ("CARGO_SKIP_CONFIGURE", specs.cgo_skip_conf, True);
+      send ("CARGO_SKIP_BUILD",     specs.cgo_skip_build, True);
+      send ("CARGO_SKIP_INSTALL",   specs.cgo_skip_inst, True);
+      send ("CARGO_CONFIG_ARGS",    specs.cgo_conf_args, 1);
+      send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, 1);
+      send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, 1);
+      send ("CARGO_FEATURES",       specs.cgo_features, 1);
+      send ("CARGO_CARGOLOCK",      specs.cgo_cargolock);
+      send ("CARGO_CARGOTOML",      specs.cgo_cargotoml);
+      send ("CARGO_CARGO_BIN",      specs.cgo_cargo_bin);
+      send ("CARGO_TARGET_DIR",     specs.cgo_target_dir);
+      send ("CARGO_VENDOR_DIR",     specs.cgo_vendor_dir);
+
       if specs.job_limit > 0 and then
          specs.job_limit < Natural (PM.configuration.jobs_limit)
       then
