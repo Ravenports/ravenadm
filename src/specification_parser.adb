@@ -446,6 +446,9 @@ package body Specification_Parser is
                      when generated        => set_boolean (spec, PSP.sp_generated, line);
                      when repsucks         => set_boolean (spec, PSP.sp_repsucks, line);
                      when killdog          => set_boolean (spec, PSP.sp_killdog, line);
+                     when cgo_conf         => set_boolean (spec, PSP.sp_cgo_conf, line);
+                     when cgo_build        => set_boolean (spec, PSP.sp_cgo_build, line);
+                     when cgo_inst         => set_boolean (spec, PSP.sp_cgo_inst, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -507,6 +510,10 @@ package body Specification_Parser is
                      when og_radio         => build_list (spec, PSP.sp_og_radio, line);
                      when og_restrict      => build_list (spec, PSP.sp_og_restrict, line);
                      when og_unlimited     => build_list (spec, PSP.sp_og_unlimited, line);
+                     when cgo_cargs        => build_list (spec, PSP.sp_cgo_cargs, line);
+                     when cgo_bargs        => build_list (spec, PSP.sp_cgo_bargs, line);
+                     when cgo_iargs        => build_list (spec, PSP.sp_cgo_iargs, line);
+                     when cgo_feat         => build_list (spec, PSP.sp_cgo_feat, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -1056,7 +1063,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 174;
+      total_singlets : constant Positive := 186;
 
       type singlet_pair is
          record
@@ -1076,6 +1083,18 @@ package body Specification_Parser is
          ("BUILD_DEPENDS         ", 13, build_deps),
          ("BUILD_TARGET          ", 12, build_target),
          ("BUILD_WRKSRC          ", 12, build_wrksrc),
+         ("CARGO_BUILD           ", 11, cgo_build),
+         ("CARGO_BUILD_ARGS      ", 16, cgo_bargs),
+         ("CARGO_CARGOLOCK       ", 15, catchall),
+         ("CARGO_CARGOTOML       ", 15, catchall),
+         ("CARGO_CARGO_BIN       ", 15, catchall),
+         ("CARGO_CONFIGURE       ", 15, cgo_conf),
+         ("CARGO_CONFIG_ARGS     ", 17, cgo_cargs),
+         ("CARGO_FEATURES        ", 14, cgo_feat),
+         ("CARGO_INSTALL         ", 13, cgo_inst),
+         ("CARGO_INSTALL_ARGS    ", 18, cgo_iargs),
+         ("CARGO_TARGET_DIR      ", 16, catchall),
+         ("CARGO_VENDOR_DIR      ", 16, catchall),
          ("CC                    ",  2, catchall),
          ("CFLAGS                ",  6, cflags),
          ("CHARSETFIX_MAKEFILEIN ", 21, catchall),

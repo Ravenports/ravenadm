@@ -163,6 +163,20 @@ package body Port_Specification is
       specs.fatal_rpath := True;
 
       specs.last_set := so_initialized;
+
+      --  To support cargo module
+      specs.cgo_configure  := True;
+      specs.cgo_build      := True;
+      specs.cgo_install    := True;
+      specs.cgo_cargolock  := HT.blank;
+      specs.cgo_cargotoml  := HT.blank;
+      specs.cgo_cargo_bin  := HT.blank;
+      specs.cgo_target_dir := HT.blank;
+      specs.cgo_vendor_dir := HT.blank;
+      specs.cgo_build_args.Clear;
+      specs.cgo_conf_args.Clear;
+      specs.cgo_inst_args.Clear;
+      specs.cgo_features.Clear;
    end initialize;
 
 
@@ -1050,6 +1064,18 @@ package body Port_Specification is
             else
                raise wrong_value with "invalid BROKEN_PGSQL setting '" & value & "'";
             end if;
+         when sp_cgo_cargs =>
+            verify_entry_is_post_options;
+            specs.cgo_conf_args.Append (text_value);
+         when sp_cgo_bargs =>
+            verify_entry_is_post_options;
+            specs.cgo_build_args.Append (text_value);
+         when sp_cgo_iargs =>
+            verify_entry_is_post_options;
+            specs.cgo_inst_args.Append (text_value);
+         when sp_cgo_feat =>
+            verify_entry_is_post_options;
+            specs.cgo_features.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -1597,6 +1623,12 @@ package body Port_Specification is
             specs.repology_sucks := value;
          when sp_killdog =>
             specs.kill_watchdog := value;
+         when sp_cgo_conf =>
+            specs.cgo_configure := value;
+         when sp_cgo_build =>
+            specs.cgo_build := value;
+         when sp_cgo_inst =>
+            specs.cgo_install := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -5487,6 +5519,10 @@ package body Port_Specification is
             when sp_og_radio      => specs.opt_radio.Iterate (print_item'Access);
             when sp_og_restrict   => specs.opt_restrict.Iterate (print_item'Access);
             when sp_og_unlimited  => specs.opt_unlimited.Iterate (print_item'Access);
+            when sp_cgo_cargs     => specs.cgo_conf_args.Iterate (print_item'Access);
+            when sp_cgo_bargs     => specs.cgo_build_args.Iterate (print_item'Access);
+            when sp_cgo_iargs     => specs.cgo_inst_args.Iterate (print_item'Access);
+            when sp_cgo_feat      => specs.cgo_features.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
@@ -5582,6 +5618,9 @@ package body Port_Specification is
             when sp_generated      => TIO.Put_Line (specs.generated'Img);
             when sp_repsucks       => TIO.Put_Line (specs.repology_sucks'Img);
             when sp_killdog        => TIO.Put_Line (specs.kill_watchdog'Img);
+            when sp_cgo_conf       => TIO.Put_Line (specs.cgo_configure'Img);
+            when sp_cgo_build      => TIO.Put_Line (specs.cgo_build'Img);
+            when sp_cgo_inst       => TIO.Put_Line (specs.cgo_install'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -5720,6 +5759,14 @@ package body Port_Specification is
       print_single      ("MAKE_JOBS_NUMBER_LIMIT", sp_job_limit);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
+
+      print_boolean     ("CARGO_CONFIGURE", sp_cgo_conf);
+      print_boolean     ("CARGO_BUILD", sp_cgo_build);
+      print_boolean     ("CARGO_INSTALL", sp_cgo_inst);
+      print_vector_list ("CARGO_CONFIG_ARGS", sp_cgo_cargs);
+      print_vector_list ("CARGO_BUILD_ARGS", sp_cgo_bargs);
+      print_vector_list ("CARGO_INSTALL_ARGS", sp_cgo_iargs);
+      print_vector_list ("CARGO_FEATURES", sp_cgo_feat);
 
    end dump_specification;
 

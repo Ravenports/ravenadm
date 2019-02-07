@@ -45,7 +45,9 @@ package Port_Specification is
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
                        sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
                        sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
-                       sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks, sp_killdog);
+                       sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks, sp_killdog,
+                       sp_cgo_conf, sp_cgo_build, sp_cgo_inst, sp_cgo_cargs, sp_cgo_bargs,
+                       sp_cgo_iargs, sp_cgo_feat);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -616,6 +618,19 @@ private
          used_ruby      : HT.Text;
          used_lua       : HT.Text;
          parse_error    : HT.Text;
+
+         cgo_configure  : Boolean;
+         cgo_build      : Boolean;
+         cgo_install    : Boolean;
+         cgo_cargolock  : HT.Text;
+         cgo_cargotoml  : HT.Text;
+         cgo_cargo_bin  : HT.Text;
+         cgo_target_dir : HT.Text;
+         cgo_vendor_dir : HT.Text;
+         cgo_build_args : string_crate.Vector;
+         cgo_conf_args  : string_crate.Vector;
+         cgo_inst_args  : string_crate.Vector;
+         cgo_features   : string_crate.Vector;
 
          opt_radio      : string_crate.Vector;
          opt_restrict   : string_crate.Vector;
