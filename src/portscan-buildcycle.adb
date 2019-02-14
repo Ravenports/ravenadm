@@ -1114,6 +1114,14 @@ package body PortScan.Buildcycle is
             when sunos =>
                return generic_system_command (sol);
          end case;
+      exception
+         when others =>
+            case platform_type is
+               when dragonfly | freebsd | macos => return "vm.loadavg: { 0.00 0.00 0.00 }";
+               when netbsd | openbsd            => return "vm.loadavg: 0.00 0.00 0.00";
+               when linux                       => return "0.00 0.00 0.00";
+               when sunos                       => return "load average: 0.00, 0.00, 0.00";
+            end case;
       end probe_load;
 
       comres : constant String := probe_load;
