@@ -112,8 +112,18 @@ package body PortScan.Operations is
                if builder_states (builder) = tasked then
                   builder_states (builder) := busy;
                   need_procfs := all_ports (instructions (builder)).use_procfs;
-                  REP.launch_slave (builder, need_procfs);
-                  build_result := build_subpackages (builder, instructions (builder), sysrootver);
+                  begin
+                     REP.launch_slave (builder, need_procfs);
+                     build_result := build_subpackages (builder,
+                                                        instructions (builder),
+                                                        sysrootver);
+                  exception
+                     when tremor : others =>
+                        build_result := False;
+                        LOG.scribe (total, LOG.elapsed_now &
+                                      " TASK" & builder'Img & " EXCEPTION: " &
+                                      EX.Exception_Information (tremor), False);
+                  end;
                   REP.destroy_slave (builder, need_procfs);
                   if build_result then
                      builder_states (builder) := done_success;

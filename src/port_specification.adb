@@ -3310,7 +3310,7 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  keyword_is_valid
+   --  invalid_namebase
    --------------------------------------------------------------------------------------------
    function invalid_namebase (value : String; allow_comma : Boolean) return Boolean is
    begin

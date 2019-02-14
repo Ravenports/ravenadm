@@ -10,9 +10,11 @@ with PortScan.Packager;
 with File_Operations;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
+with Ada.Exceptions;
 
 package body PortScan.Buildcycle is
 
+   package EX  renames Ada.Exceptions;
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package FOP renames File_Operations;
@@ -58,9 +60,10 @@ package body PortScan.Buildcycle is
                            trackers (id).tail_time);
          return False;
       end if;
-      for phase in phases'Range loop
-         phase_trackers (id) := phase;
-         case phase is
+      begin
+         for phase in phases'Range loop
+            phase_trackers (id) := phase;
+            case phase is
             when blr_depends =>
                R := exec_phase_depends (specification => specification,
                                         phase_name    => phase2str (phase),
@@ -128,10 +131,15 @@ package body PortScan.Buildcycle is
                if testing then
                   R := exec_phase_deinstall (id, pkgversion);
                end if;
-         end case;
-         exit when R = False;
-         exit when interactive and then phase = break_phase;
-      end loop;
+            end case;
+            exit when R = False;
+            exit when interactive and then phase = break_phase;
+         end loop;
+      exception
+         when crash : others =>
+            TIO.Put_Line (trackers (id).log_handle, "!!!! CRASH !!!! " &
+                            EX.Exception_Information (crash));
+      end;
       LOG.finalize_log (trackers (id).log_handle,
                         trackers (id).head_time,
                         trackers (id).tail_time);
