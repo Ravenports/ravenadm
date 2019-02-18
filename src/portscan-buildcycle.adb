@@ -38,7 +38,8 @@ package body PortScan.Buildcycle is
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
       pkgversion   : constant String := HT.USS (all_ports (sequence_id).pkgversion);
       sslv         : constant String := HT.USS (PM.configuration.def_ssl);
-      environ      : constant String := environment_override (id, sslv);
+      environ      : constant String := environment_override (True, sslv);
+      env_nochain  : constant String := environment_override (False, sslv);
       port_prefix  : constant String := get_port_prefix (id, environ);
       variant      : constant String := HT.USS (all_ports (sequence_id).port_variant);
    begin
@@ -90,9 +91,9 @@ package body PortScan.Buildcycle is
 
             when stage =>
                if testing then
-                  mark_file_system (id, "prestage", environ);
+                  mark_file_system (id, "prestage", env_nochain);
                end if;
-               R := exec_phase_generic (id, phase, environ);
+               R := exec_phase_generic (id, phase, env_nochain);
 
             when test =>
                if testing and run_selftest then
@@ -100,9 +101,9 @@ package body PortScan.Buildcycle is
                end if;
                REP.unhook_toolchain (id);
                if R and then testing then
-                  R := deinstall_all_packages (id, sslv);
+                  R := deinstall_all_packages (id, env_nochain);
                   if R then
-                     R := install_run_depends (specification, id, sslv);
+                     R := install_run_depends (specification, id, env_nochain);
                   end if;
                end if;
 
@@ -117,7 +118,7 @@ package body PortScan.Buildcycle is
 
             when install =>
                if testing then
-                  R := exec_phase_install (id, pkgversion, environ);
+                  R := exec_phase_install (id, pkgversion, env_nochain);
                end if;
 
             when check_plist =>
@@ -132,7 +133,7 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
-                  R := exec_phase_deinstall (id, pkgversion, environ);
+                  R := exec_phase_deinstall (id, pkgversion, env_nochain);
                end if;
             end case;
             exit when R = False;
@@ -609,7 +610,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  environment_override
    --------------------------------------------------------------------------------------------
-   function  environment_override (id          : builders;
+   function  environment_override (toolchain   : Boolean;
                                    ssl_variant : String;
                                    enable_tty  : Boolean := False) return String
    is
@@ -632,8 +633,7 @@ package body PortScan.Buildcycle is
 
       function toolchain_path return String is
       begin
-         if phases'Pos (phase_trackers (id)) < phases'Pos (stage)
-           or else phase_trackers (id) = test
+         if toolchain
          then
             return localbase & "/toolchain/" & default_compiler & "/bin:";
          else
@@ -1328,7 +1328,7 @@ package body PortScan.Buildcycle is
       end shell;
 
       command : String := PM.chroot_cmd & root &
-                          environment_override (id, ssl_variant, True) & shell;
+                          environment_override (True, ssl_variant, True) & shell;
    begin
       TIO.Put_Line ("Entering interactive test mode at the builder root directory.");
       TIO.Put_Line ("Type 'exit' when done exploring.");
@@ -1718,8 +1718,9 @@ package body PortScan.Buildcycle is
    is
       root     : constant String := get_root (id);
       distinfo : constant String := root & "/port/distinfo";
-      command  : constant String := PM.chroot_cmd & root & environment_override (id, ssl_variant)
-                                    & chroot_make_program & " -C /port makesum";
+      environ  : constant String := environment_override (False, ssl_variant);
+      command  : constant String := PM.chroot_cmd & root & environ &
+                                    chroot_make_program & " -C /port makesum";
       content : HT.Text;
       status  : Integer;
    begin
@@ -1752,8 +1753,9 @@ package body PortScan.Buildcycle is
       procedure copy_files (subdir : String; pattern : String);
 
       root     : constant String := get_root (id);
-      premake  : constant String := PM.chroot_cmd & root & environment_override (id, ssl_variant)
-                                    & chroot_make_program & " -C /port ";
+      environ  : constant String := environment_override (False, ssl_variant);
+      premake  : constant String := PM.chroot_cmd & root & environ &
+                                    chroot_make_program & " -C /port ";
       cextract : constant String := premake & "extract";
       cpatch   : constant String := premake & "do-patch";
 
