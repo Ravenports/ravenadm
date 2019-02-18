@@ -37,7 +37,9 @@ package body PortScan.Buildcycle is
       break_phase  : constant phases := valid_test_phase (interphase);
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
       pkgversion   : constant String := HT.USS (all_ports (sequence_id).pkgversion);
-      port_prefix  : constant String := get_port_prefix (id);
+      sslv         : constant String := HT.USS (PM.configuration.def_ssl);
+      environ      : constant String := environment_override (id, sslv);
+      port_prefix  : constant String := get_port_prefix (id, environ);
       variant      : constant String := HT.USS (all_ports (sequence_id).port_variant);
    begin
       trackers (id).seq_id := sequence_id;
@@ -50,9 +52,9 @@ package body PortScan.Buildcycle is
                                  seq_id     => trackers (id).seq_id,
                                  slave_root => get_root (id),
                                  UNAME      => HT.USS (uname_mrv),
-                                 BENV       => get_environment (id),
+                                 BENV       => get_environment (id, environ),
                                  COPTS      => specification.options_summary (variant),
-                                 PTVAR      => get_port_variables (id),
+                                 PTVAR      => get_port_variables (id, environ),
                                  block_dog  => trackers (id).disable_dog)
       then
          LOG.finalize_log (trackers (id).log_handle,
@@ -67,39 +69,40 @@ package body PortScan.Buildcycle is
             when blr_depends =>
                R := exec_phase_depends (specification => specification,
                                         phase_name    => phase2str (phase),
-                                        id            => id);
+                                        id            => id,
+                                        environ       => environ);
 
             when  fetch =>
                REP.hook_toolchain (id);
-               R := exec_phase_generic (id, phase);
+               R := exec_phase_generic (id, phase, environ);
 
             when  extract | patch =>
-               R := exec_phase_generic (id, phase);
+               R := exec_phase_generic (id, phase, environ);
 
             when configure =>
                if testing then
-                  mark_file_system (id, "preconfig");
+                  mark_file_system (id, "preconfig", environ);
                end if;
-               R := exec_phase_generic (id, phase);
+               R := exec_phase_generic (id, phase, environ);
 
             when build =>
-               R := exec_phase_build (id);
+               R := exec_phase_build (id, environ);
 
             when stage =>
                if testing then
-                  mark_file_system (id, "prestage");
+                  mark_file_system (id, "prestage", environ);
                end if;
-               R := exec_phase_generic (id, phase);
+               R := exec_phase_generic (id, phase, environ);
 
             when test =>
                if testing and run_selftest then
-                  R := exec_phase_generic (id, phase);
+                  R := exec_phase_generic (id, phase, environ);
                end if;
                REP.unhook_toolchain (id);
                if R and then testing then
-                  R := deinstall_all_packages (id);
+                  R := deinstall_all_packages (id, sslv);
                   if R then
-                     R := install_run_depends (specification, id);
+                     R := install_run_depends (specification, id, sslv);
                   end if;
                end if;
 
@@ -114,7 +117,7 @@ package body PortScan.Buildcycle is
 
             when install =>
                if testing then
-                  R := exec_phase_install (id, pkgversion);
+                  R := exec_phase_install (id, pkgversion, environ);
                end if;
 
             when check_plist =>
@@ -129,7 +132,7 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
-                  R := exec_phase_deinstall (id, pkgversion);
+                  R := exec_phase_deinstall (id, pkgversion, environ);
                end if;
             end case;
             exit when R = False;
@@ -144,7 +147,7 @@ package body PortScan.Buildcycle is
                         trackers (id).head_time,
                         trackers (id).tail_time);
       if interactive then
-         interact_with_builder (id);
+         interact_with_builder (id, sslv);
       end if;
       return R;
    end build_package;
@@ -259,18 +262,26 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  exec_phase_generic
    --------------------------------------------------------------------------------------------
-   function exec_phase_generic (id : builders; phase : phases) return Boolean
+   function  exec_phase_generic
+     (id            : builders;
+      phase         : phases;
+      environ       : String) return Boolean
    is
       time_limit : execution_limit := max_time_without_output (phase);
    begin
-      return exec_phase (id => id, phase => phase, time_limit => time_limit);
+      return exec_phase (id         => id,
+                         phase      => phase,
+                         time_limit => time_limit,
+                         environ    => environ);
    end exec_phase_generic;
 
 
    --------------------------------------------------------------------------------------------
    --  exec_phase_build
    --------------------------------------------------------------------------------------------
-   function exec_phase_build (id : builders) return Boolean
+   function  exec_phase_build
+     (id            : builders;
+      environ       : String) return Boolean
    is
       time_limit : execution_limit := max_time_without_output (build);
       passed : Boolean;
@@ -279,9 +290,13 @@ package body PortScan.Buildcycle is
                             phase       => build,
                             time_limit  => time_limit,
                             skip_header => False,
-                            skip_footer => True);
+                            skip_footer => True,
+                            environ     => environ);
       if testing and then passed then
-         passed := detect_leftovers_and_MIA (id, "preconfig", "between port configure and build");
+         passed := detect_leftovers_and_MIA (id          => id,
+                                             action      => "preconfig",
+                                             description => "between port configure and build",
+                                             environ     => environ);
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return passed;
@@ -330,10 +345,10 @@ package body PortScan.Buildcycle is
    function  exec_phase_depends
      (specification : PSP.Portspecs;
       phase_name    : String;
-      id            : builders) return Boolean
+      id            : builders;
+      environ       : String) return Boolean
    is
       root       : constant String := get_root (id);
-      env_vars   : constant String := environment_override (id);
       still_good : Boolean := True;
       markers    : HT.Line_Markers;
       block      : constant String :=
@@ -348,7 +363,7 @@ package body PortScan.Buildcycle is
          declare
             line : constant String  := HT.extract_line (block, markers);
          begin
-            still_good := pkg_install_subroutine (id, root, env_vars, line);
+            still_good := pkg_install_subroutine (id, root, environ, line);
          end;
       end loop;
       LOG.log_phase_end (trackers (id).log_handle);
@@ -361,11 +376,11 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    function  install_run_depends
      (specification : PSP.Portspecs;
-      id            : builders) return Boolean
+      id            : builders;
+      environ       : String) return Boolean
    is
       phase_name : constant String := "test / install run dependencies";
       root       : constant String := get_root (id);
-      env_vars   : constant String := environment_override (id);
       still_good : Boolean := True;
       markers    : HT.Line_Markers;
       block      : constant String :=
@@ -380,7 +395,7 @@ package body PortScan.Buildcycle is
          declare
             line : constant String  := HT.extract_line (block, markers);
          begin
-            still_good := pkg_install_subroutine (id, root, env_vars, line);
+            still_good := pkg_install_subroutine (id, root, environ, line);
          end;
       end loop;
       LOG.log_phase_end (trackers (id).log_handle);
@@ -391,14 +406,15 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  deinstall_all_packages
    --------------------------------------------------------------------------------------------
-   function deinstall_all_packages (id : builders) return Boolean
+   function  deinstall_all_packages
+     (id         : builders;
+      environ    : String) return Boolean
    is
       time_limit : execution_limit := max_time_without_output (test);
       root       : constant String := get_root (id);
       phase_name : constant String := "test / deinstall all packages";
       PKG_RM_ALL : constant String := "/usr/bin/pkg-static delete -a -y ";
-      command    : constant String := PM.chroot_cmd & root & environment_override (id) &
-                                      PKG_RM_ALL;
+      command    : constant String := PM.chroot_cmd & root & environ & PKG_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
    begin
@@ -417,7 +433,10 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  exec_phase_install
    --------------------------------------------------------------------------------------------
-   function exec_phase_install (id : builders; pkgversion : String) return Boolean
+   function  exec_phase_install
+     (id            : builders;
+      pkgversion    : String;
+      environ       : String) return Boolean
    is
       procedure install_it (position : subpackage_crate.Cursor);
 
@@ -434,8 +453,7 @@ package body PortScan.Buildcycle is
          subpackage : constant String :=  HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          PKG_FILE   : constant String := "/packages/All/" & pkgname & arc_ext;
-         command    : constant String := PM.chroot_cmd & root & environment_override (id) &
-                                         PKG_ADD & PKG_FILE;
+         command    : constant String := PM.chroot_cmd & root & environ & PKG_ADD & PKG_FILE;
       begin
          if still_good then
             TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
@@ -463,6 +481,7 @@ package body PortScan.Buildcycle is
    function exec_phase (id            : builders;
                         phase         : phases;
                         time_limit    : execution_limit;
+                        environ       : String;
                         phaseenv      : String := "";
                         depends_phase : Boolean := False;
                         skip_header   : Boolean := False;
@@ -485,7 +504,7 @@ package body PortScan.Buildcycle is
       TIO.Close (trackers (id).log_handle);
 
       declare
-         command : constant String := PM.chroot_cmd & root & environment_override (id) &
+         command : constant String := PM.chroot_cmd & root & environ &
            phaseenv & chroot_make_program & " -C /port " & phase2str (phase);
       begin
          result := generic_execute (id, command, timed_out, time_limit);
@@ -511,12 +530,12 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  get_port_variables
    --------------------------------------------------------------------------------------------
-   function get_port_variables (id : builders) return String
+   function get_port_variables (id : builders; environ : String) return String
    is
       root    : constant String := get_root (id);
-      command : constant String := PM.chroot_cmd & root & environment_override (id) &
-        chroot_make_program & " -C /port -VCONFIGURE_ENV -VCONFIGURE_ARGS" &
-                              " -VMAKE_ENV -VMAKE_ARGS -VPLIST_SUB -VSUB_LIST";
+      command : constant String := PM.chroot_cmd & root & environ & chroot_make_program &
+        " -C /port -VCONFIGURE_ENV -VCONFIGURE_ARGS" &
+        " -VMAKE_ENV -VMAKE_ARGS -VPLIST_SUB -VSUB_LIST";
    begin
       return generic_system_command (command);
    exception
@@ -575,10 +594,10 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  get_environment
    --------------------------------------------------------------------------------------------
-   function get_environment (id : builders) return String
+   function get_environment (id : builders; environ : String) return String
    is
       root    : constant String := get_root (id);
-      command : constant String := PM.chroot_cmd & root & environment_override (id);
+      command : constant String := PM.chroot_cmd & root & environ;
    begin
       return generic_system_command (command);
    exception
@@ -590,7 +609,9 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  environment_override
    --------------------------------------------------------------------------------------------
-   function environment_override (id : builders; enable_tty : Boolean := False) return String
+   function  environment_override (id          : builders;
+                                   ssl_variant : String;
+                                   enable_tty  : Boolean := False) return String
    is
       function set_terminal (enable_tty : Boolean) return String;
       function toolchain_path return String;
@@ -641,13 +662,14 @@ package body PortScan.Buildcycle is
       LANG : constant String := "LANG=C ";
       SHLL : constant String := "SHELL=/bin/sh ";
       RAVN : constant String := "RAVENADM=building ";
+      SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
       PKG8 : constant String := "PKG_DBDIR=/var/db/pkg8 " &
                                 "PKG_CACHEDIR=/var/cache/pkg8 ";
       CENV : constant String := HT.USS (customenv);
       DYLD : constant String := dyld_fallback;
    begin
       return " /usr/bin/env -i " &
-        CENV & LANG & TERM & SHLL & USER & HOME & RAVN & PKG8 & DYLD & PATH;
+        CENV & LANG & TERM & SHLL & USER & HOME & RAVN & SSLV & PKG8 & DYLD & PATH;
    end environment_override;
 
 
@@ -708,7 +730,10 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------
-   function exec_phase_deinstall (id : builders; pkgversion : String) return Boolean
+   function  exec_phase_deinstall
+     (id            : builders;
+      pkgversion    : String;
+      environ       : String) return Boolean
    is
       procedure deinstall_it (position : subpackage_crate.Cursor);
 
@@ -725,8 +750,7 @@ package body PortScan.Buildcycle is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := PM.chroot_cmd & root & environment_override (id) &
-                                         PKG_DELETE & pkgname;
+         command    : constant String := PM.chroot_cmd & root & environ & PKG_DELETE & pkgname;
       begin
          if still_good then
             TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
@@ -742,11 +766,14 @@ package body PortScan.Buildcycle is
       end deinstall_it;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
-      dyn_good := log_linked_libraries (id, pkgversion);
+      dyn_good := log_linked_libraries (id, pkgversion, environ);
       all_ports (trackers (id).seq_id).subpackages.Iterate (deinstall_it'Access);
       if still_good then
          still_good := detect_leftovers_and_MIA
-           (id, "prestage", "between staging and package deinstallation");
+           (id          => id,
+            action      => "prestage",
+            description => "between staging and package deinstallation",
+            environ     => environ);
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good and then dyn_good;
@@ -756,9 +783,13 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  stack_linked_libraries
    --------------------------------------------------------------------------------------------
-   procedure stack_linked_libraries (id : builders; base, filename : String)
+   procedure stack_linked_libraries
+     (id            : builders;
+      base          : String;
+      filename      : String;
+      environ       : String)
    is
-      command : String := PM.chroot_cmd & base & environment_override (id) &
+      command : String := PM.chroot_cmd & base & environ &
                           "/usr/bin/objdump-sysroot -p " & filename;
    begin
       declare
@@ -818,7 +849,10 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  log_linked_libraries
    --------------------------------------------------------------------------------------------
-   function log_linked_libraries (id : builders; pkgversion : String) return Boolean
+   function  log_linked_libraries
+     (id            : builders;
+      pkgversion    : String;
+      environ       : String) return Boolean
    is
       procedure log_dump (position : string_crate.Cursor);
       procedure check_package (position : subpackage_crate.Cursor);
@@ -839,7 +873,7 @@ package body PortScan.Buildcycle is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := PM.chroot_cmd & root & environment_override (id) &
+         command    : constant String := PM.chroot_cmd & root & environ &
                                          "/usr/bin/pkg-static query %Fp " & pkgname;
          comres     : String :=  generic_system_command (command);
          markers    : HT.Line_Markers;
@@ -860,7 +894,7 @@ package body PortScan.Buildcycle is
                                       strip_check => trackers (id).check_strip,
                                       unstripped  => unstripped)
                then
-                  stack_linked_libraries (id, root, filename);
+                  stack_linked_libraries (id, root, filename, environ);
                   if not passed_runpath_check (id) then
                      result := False;
                   end if;
@@ -1238,7 +1272,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  mark_file_system
    --------------------------------------------------------------------------------------------
-   procedure mark_file_system (id : builders; action : String)
+   procedure mark_file_system (id : builders; action : String; environ : String)
    is
       function attributes (action : String) return String;
 
@@ -1257,7 +1291,7 @@ package body PortScan.Buildcycle is
          end if;
       end attributes;
 
-      command  : constant String := PM.chroot_cmd & root & environment_override (id) &
+      command  : constant String := PM.chroot_cmd & root & environ &
                  " /usr/bin/mtree -X " & mtfile & " -cn -k " & attributes (action) & " -p /";
       filename : constant String := root & "/tmp/mtree." & action;
 
@@ -1276,7 +1310,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  interact_with_builder
    --------------------------------------------------------------------------------------------
-   procedure interact_with_builder (id : builders)
+   procedure interact_with_builder (id : builders; ssl_variant : String)
    is
       function shell return String;
 
@@ -1293,7 +1327,8 @@ package body PortScan.Buildcycle is
          end case;
       end shell;
 
-      command : String := PM.chroot_cmd & root & environment_override (id, True) & shell;
+      command : String := PM.chroot_cmd & root &
+                          environment_override (id, ssl_variant, True) & shell;
    begin
       TIO.Put_Line ("Entering interactive test mode at the builder root directory.");
       TIO.Put_Line ("Type 'exit' when done exploring.");
@@ -1304,9 +1339,11 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  detect_leftovers_and_MIA
    --------------------------------------------------------------------------------------------
-   function detect_leftovers_and_MIA (id : builders;
-                                      action : String;
-                                      description : String) return Boolean
+   function  detect_leftovers_and_MIA
+     (id            : builders;
+      action        : String;
+      description   : String;
+      environ       : String) return Boolean
    is
       package crate is new CON.Vectors (Index_Type   => Positive,
                                        Element_Type => HT.Text,
@@ -1319,7 +1356,7 @@ package body PortScan.Buildcycle is
       root      : constant String := get_root (id);
       mtfile    : constant String := "/etc/mtree." & action & ".exclude";
       filename  : constant String := root & "/tmp/mtree." & action;
-      command   : constant String := PM.chroot_cmd & root & environment_override (id) &
+      command   : constant String := PM.chroot_cmd & root & environ &
                   "/usr/bin/mtree -X " & mtfile & " -f " & filename & " -p /";
       lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
       lbase     : constant String := lbasewrk (lbasewrk'First + 1 .. lbasewrk'Last);
@@ -1677,12 +1714,12 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  run_makesum
    --------------------------------------------------------------------------------------------
-   procedure run_makesum (id : builders)
+   procedure run_makesum (id : builders; ssl_variant : String)
    is
       root     : constant String := get_root (id);
       distinfo : constant String := root & "/port/distinfo";
-      command  : constant String := PM.chroot_cmd & root & environment_override (id) &
-                                    chroot_make_program & " -C /port makesum";
+      command  : constant String := PM.chroot_cmd & root & environment_override (id, ssl_variant)
+                                    & chroot_make_program & " -C /port makesum";
       content : HT.Text;
       status  : Integer;
    begin
@@ -1708,15 +1745,15 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  run_patch_regen
    --------------------------------------------------------------------------------------------
-   procedure run_patch_regen (id : builders; sourceloc : String)
+   procedure run_patch_regen (id : builders; sourceloc : String; ssl_variant : String)
    is
       function get_wrksrc return String;
       function get_strip_component return String;
       procedure copy_files (subdir : String; pattern : String);
 
       root     : constant String := get_root (id);
-      premake  : constant String := PM.chroot_cmd & root & environment_override (id) &
-                                    chroot_make_program & " -C /port ";
+      premake  : constant String := PM.chroot_cmd & root & environment_override (id, ssl_variant)
+                                    & chroot_make_program & " -C /port ";
       cextract : constant String := premake & "extract";
       cpatch   : constant String := premake & "do-patch";
 
@@ -1790,10 +1827,10 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  get_port_prefix
    --------------------------------------------------------------------------------------------
-   function get_port_prefix (id : builders) return String
+   function get_port_prefix (id : builders; environ : String) return String
    is
       root     : constant String := get_root (id);
-      command  : constant String := PM.chroot_cmd & root & environment_override (id) &
+      command  : constant String := PM.chroot_cmd & root & environ &
                                     chroot_make_program & " -C /port -V PREFIX";
       result   : constant String := generic_system_command (command);
    begin

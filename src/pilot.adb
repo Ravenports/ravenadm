@@ -1157,6 +1157,7 @@ package body Pilot is
    is
       portloc  : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
       makefile : String := portloc & "/Makefile";
+      sslv     : String := HT.USS (PM.configuration.def_ssl);
       successful    : Boolean;
       specification : Port_Specification.Portspecs;
    begin
@@ -1188,7 +1189,7 @@ package body Pilot is
                         output_file => makefile);
       end;
 
-      CYC.run_makesum (scan_slave);
+      CYC.run_makesum (scan_slave, sslv);
       <<endzone>>
       REP.destroy_slave (scan_slave);
       REP.finalize;
@@ -1571,6 +1572,7 @@ package body Pilot is
       successful : Boolean;
 
       portloc       : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
+      sslv          : String := HT.USS (PM.configuration.def_ssl);
       specification : Port_Specification.Portspecs;
       spec_found    : Boolean := False;
 
@@ -1642,7 +1644,9 @@ package body Pilot is
                                              avoid_dialog  => True,
                                              for_webpage   => False,
                                              sysrootver    => sysrootver);
-         CYC.run_patch_regen (id => scan_slave, sourceloc => optional_directory);
+         CYC.run_patch_regen (id          => scan_slave,
+                              sourceloc   => optional_directory,
+                              ssl_variant => sslv);
          REP.destroy_slave (scan_slave);
          REP.finalize;
       end if;

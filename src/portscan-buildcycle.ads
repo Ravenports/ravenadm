@@ -41,13 +41,13 @@ package PortScan.Buildcycle is
    function elapsed_build (id : builders) return String;
 
    --  Run make -C /port/ makesum (used by developer to generate distinfo)
-   procedure run_makesum (id : builders);
+   procedure run_makesum (id : builders; ssl_variant : String);
 
    --  Exposed for Pilot to determine validity of test build request
    function valid_test_phase (afterphase : String) return Boolean;
 
    --  Exposed for Pilot to regenerate patches (Names and content are maintained)
-   procedure run_patch_regen (id : builders; sourceloc : String);
+   procedure run_patch_regen (id : builders; sourceloc : String; ssl_variant : String);
 
 private
 
@@ -95,58 +95,95 @@ private
 
    function  exec_phase (id : builders; phase : phases;
                          time_limit    : execution_limit;
+                         environ       : String;
                          phaseenv      : String := "";
                          depends_phase : Boolean := False;
                          skip_header   : Boolean := False;
                          skip_footer   : Boolean := False)
                          return Boolean;
 
-   procedure mark_file_system (id : builders; action : String);
-   procedure interact_with_builder (id : builders);
+   procedure mark_file_system (id : builders; action : String; environ : String);
+   procedure interact_with_builder (id : builders; ssl_variant : String);
    procedure set_uname_mrv;
    procedure obtain_custom_environment;
-   procedure stack_linked_libraries (id : builders; base, filename : String);
-   function  log_linked_libraries (id : builders; pkgversion : String) return Boolean;
-   function  exec_phase_generic   (id : builders; phase : phases) return Boolean;
-   function  exec_phase_deinstall (id : builders; pkgversion : String) return Boolean;
-   function  exec_phase_install   (id : builders; pkgversion : String) return Boolean;
-   function  exec_phase_build (id : builders) return Boolean;
    function  phase2str (phase : phases) return String;
    function  max_time_without_output (phase : phases) return execution_limit;
    function  timeout_multiplier_x10 return Positive;
-   function  detect_leftovers_and_MIA (id : builders; action : String;
-                                       description : String) return Boolean;
-   function  get_environment (id : builders) return String;
-   function  get_port_variables (id : builders) return String;
+   function  get_environment (id : builders; environ : String) return String;
+   function  get_port_variables (id : builders; environ : String) return String;
    function  generic_system_command (command : String) return String;
    function  get_root (id : builders) return String;
-   function  environment_override (id : builders; enable_tty : Boolean := False) return String;
    function  passed_runpath_check (id : builders) return Boolean;
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
-   function  get_port_prefix (id : builders) return String;
-   function  deinstall_all_packages (id : builders) return Boolean;
+   function  get_port_prefix (id : builders; environ : String) return String;
    function  pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean;
+
+   function  environment_override (id          : builders;
+                                   ssl_variant : String;
+                                   enable_tty  : Boolean := False) return String;
+
+   function  exec_phase_generic
+     (id            : builders;
+      phase         : phases;
+      environ       : String) return Boolean;
+
+   function  exec_phase_build
+     (id            : builders;
+      environ       : String) return Boolean;
+
+   function  exec_phase_install
+     (id            : builders;
+      pkgversion    : String;
+      environ       : String) return Boolean;
+
+   function  exec_phase_deinstall
+     (id            : builders;
+      pkgversion    : String;
+      environ       : String) return Boolean;
+
+   function  deinstall_all_packages
+     (id            : builders;
+      environ       : String) return Boolean;
 
    function  install_run_depends
      (specification : PSP.Portspecs;
-      id            : builders) return Boolean;
+      id            : builders;
+      environ       : String) return Boolean;
 
    function  generic_execute
-     (id         : builders;
-      command    : String;
-      dogbite    : out Boolean;
-      time_limit : execution_limit) return Boolean;
+     (id            : builders;
+      command       : String;
+      dogbite       : out Boolean;
+      time_limit    : execution_limit) return Boolean;
 
    function  exec_phase_depends
      (specification : PSP.Portspecs;
       phase_name    : String;
-      id            : builders) return Boolean;
+      id            : builders;
+      environ       : String) return Boolean;
 
    function  dynamically_linked
-     (base        : String;
-      filename    : String;
-      strip_check : Boolean;
-      unstripped  : out Boolean) return Boolean;
+     (base          : String;
+      filename      : String;
+      strip_check   : Boolean;
+      unstripped    : out Boolean) return Boolean;
+
+   function  log_linked_libraries
+     (id            : builders;
+      pkgversion    : String;
+      environ       : String) return Boolean;
+
+   procedure stack_linked_libraries
+     (id            : builders;
+      base          : String;
+      filename      : String;
+      environ       : String);
+
+   function  detect_leftovers_and_MIA
+     (id            : builders;
+      action        : String;
+      description   : String;
+      environ       : String) return Boolean;
 
 end PortScan.Buildcycle;
