@@ -37,7 +37,8 @@ package body PortScan.Buildcycle is
       break_phase  : constant phases := valid_test_phase (interphase);
       run_selftest : constant Boolean := Unix.env_variable_defined (selftest);
       pkgversion   : constant String := HT.USS (all_ports (sequence_id).pkgversion);
-      sslv         : constant String := PM.ssl_selection (PM.configuration);
+      normsslv     : constant String := PM.ssl_selection (PM.configuration);
+      sslv         : constant String := specification.get_ssl_variant (normsslv);
       environ      : constant String := environment_override (True, sslv);
       env_nochain  : constant String := environment_override (False, sslv);
       port_prefix  : constant String := get_port_prefix (id, environ);

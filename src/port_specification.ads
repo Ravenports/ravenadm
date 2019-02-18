@@ -318,6 +318,9 @@ package Port_Specification is
    --  Return true if no definition are defined
    function no_definitions (specs : Portspecs) return Boolean;
 
+   --  Detects SSL variant override by checking module arguments
+   function get_ssl_variant (specs : Portspecs; normal_variant : String) return String;
+
 private
 
    package HT  renames HelperText;

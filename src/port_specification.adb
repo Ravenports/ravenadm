@@ -5255,6 +5255,61 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  get_ssl_variant
+   --------------------------------------------------------------------------------------------
+   function get_ssl_variant (specs : Portspecs; normal_variant : String) return String
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      modname    : constant String := "ssl";
+      ssl_module : HT.Text := HT.SUS (modname);
+      result     : HT.Text := HT.SUS (normal_variant);
+      found      : Boolean := False;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         value_text : HT.Text renames string_crate.Element (position);
+         value      : String := HT.USS (value_text);
+      begin
+         if not found then
+            declare
+               modulestr : String := HT.part_1 (value, ":");
+            begin
+               if modulestr = modname then
+                  found := True;
+                  if HT.count_char (value, LAT.Colon) = 1 then
+                     declare
+                        argv : String := HT.part_2 (value, ":");
+                        OSS1 : String := "openssl";
+                        OSS2 : String := "openssl-devel";
+                        LSS1 : String := "libressl";
+                        LSS2 : String := "libressl-devel";
+                     begin
+                        if argv = OSS1 or else
+                          argv = OSS2 or else
+                          argv = LSS1 or else
+                          argv = LSS2
+                        then
+                           result := HT.SUS (argv);
+                        end if;
+                     end;
+                  end if;
+               end if;
+            end;
+         end if;
+      end scan;
+
+   begin
+      if not specs.uses_base.Contains (ssl_module)
+      then
+         return normal_variant;
+      end if;
+      specs.uses.Iterate (scan'Access);
+      return HT.USS (result);
+   end get_ssl_variant;
+
+
+   --------------------------------------------------------------------------------------------
    --  last_catchall_key
    --------------------------------------------------------------------------------------------
    function option_already_in_group (specs : Portspecs; option_name : String) return Boolean

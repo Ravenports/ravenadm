@@ -1966,9 +1966,7 @@ package body Port_Specification.Transform is
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
-      module     : String := "ssl";
-      dependency : String := Parameters.ssl_selection (Parameters.configuration) &
-                             ":single:standard";
+      module     : constant String := "ssl";
 
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
@@ -1988,13 +1986,18 @@ package body Port_Specification.Transform is
          end if;
       end if;
 
-      if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
-      elsif hit_build then
-         add_build_depends (specs, dependency);
-      else
-         add_run_depends (specs, dependency);
-      end if;
+      declare
+         normvar    : constant String := Parameters.ssl_selection (Parameters.configuration);
+         dependency : constant String := specs.get_ssl_variant (normvar) & ":single:standard";
+      begin
+         if hit_both or else (hit_build and hit_run) then
+            add_buildrun_depends (specs, dependency);
+         elsif hit_build then
+            add_build_depends (specs, dependency);
+         else
+            add_run_depends (specs, dependency);
+         end if;
+      end;
    end apply_ssl_module;
 
 
