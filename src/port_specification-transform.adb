@@ -1963,26 +1963,12 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ssl_module (specs : in out Portspecs)
    is
-      function ssl_dependency return String;
-
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
       module     : String := "ssl";
-
-      function ssl_dependency return String
-      is
-         nbase   : String := HT.USS (Parameters.configuration.def_ssl);
-         suffix  : String := ":single:standard";
-      begin
-         if nbase = ports_default then
-            return default_ssl & suffix;
-         else
-            return nbase & suffix;
-         end if;
-      end ssl_dependency;
-
-      dependency : String := ssl_dependency;
+      dependency : String := Parameters.ssl_selection (Parameters.configuration) &
+                             ":single:standard";
 
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then

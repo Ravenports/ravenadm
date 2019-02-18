@@ -1157,7 +1157,7 @@ package body Pilot is
    is
       portloc  : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
       makefile : String := portloc & "/Makefile";
-      sslv     : String := HT.USS (PM.configuration.def_ssl);
+      sslv     : String := PM.ssl_selection (PM.configuration);
       successful    : Boolean;
       specification : Port_Specification.Portspecs;
    begin
@@ -1572,7 +1572,7 @@ package body Pilot is
       successful : Boolean;
 
       portloc       : String := HT.USS (PM.configuration.dir_buildbase) & ss_base & "/port";
-      sslv          : String := HT.USS (PM.configuration.def_ssl);
+      sslv          : String := PM.ssl_selection (PM.configuration);
       specification : Port_Specification.Portspecs;
       spec_found    : Boolean := False;
 

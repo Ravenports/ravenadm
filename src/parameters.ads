@@ -103,6 +103,9 @@ package Parameters is
    --  Updates master section with new profile name and initiates a transfer
    procedure switch_profile (to_profile : String);
 
+   --  Returns SSL selection (converts "floating" to default)
+   function ssl_selection (confrec : in configuration_record) return String;
+
 private
 
    package UTL renames Utilities;

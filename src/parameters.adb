@@ -848,4 +848,19 @@ package body Parameters is
       end if;
    end set_chroot;
 
+
+   --------------------------------------------------------------------------------------------
+   --  ssl_selection
+   --------------------------------------------------------------------------------------------
+   function ssl_selection (confrec : in configuration_record) return String
+   is
+      nbase : String := HT.USS (confrec.def_ssl);
+   begin
+      if nbase = ports_default then
+         return default_ssl;
+      else
+         return nbase;
+      end if;
+   end ssl_selection;
+
 end Parameters;
