@@ -38,7 +38,7 @@ package Definitions is
    compiler_version  : constant String := "8.3.0";
    previous_compiler : constant String := "8.2.0";
    binutils_version  : constant String := "2.32";
-   previous_binutils : constant String := "2.30";
+   previous_binutils : constant String := "2.31.1";
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
 
