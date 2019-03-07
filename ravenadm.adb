@@ -131,9 +131,14 @@ begin
    --  Validation block start
    --------------------------------------------------------------------------------------------
 
-   if Pilot.already_running then
-      return;
-   end if;
+   case mandate is
+      when help | locate | list_subpackages =>
+         low_rights := True;
+      when others =>
+         if Pilot.already_running then
+            return;
+         end if;
+   end case;
 
    reg_user := Pilot.insufficient_privileges;
 
@@ -179,8 +184,8 @@ begin
    end case;
 
    case mandate is
-      when help | locate | list_subpackages => null;
-         low_rights := True;
+      when help | locate | list_subpackages =>
+         null;
       when dev =>
          declare
             dev_subcmd : dev_mandate := unset;
@@ -206,20 +211,22 @@ begin
          end if;
    end case;
 
-   if Pilot.previous_run_mounts_detected and then
-     not Pilot.old_mounts_successfully_removed
-   then
-      return;
-   end if;
+   if not low_rights then
+      if Pilot.previous_run_mounts_detected and then
+        not Pilot.old_mounts_successfully_removed
+      then
+         return;
+      end if;
 
-   if Pilot.previous_realfs_work_detected and then
-     not Pilot.old_realfs_work_successfully_removed
-   then
-      return;
-   end if;
+      if Pilot.previous_realfs_work_detected and then
+        not Pilot.old_realfs_work_successfully_removed
+      then
+         return;
+      end if;
 
-   if Pilot.ravenexec_missing then
-      return;
+      if Pilot.ravenexec_missing then
+         return;
+      end if;
    end if;
 
    case mandate is
