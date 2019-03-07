@@ -294,6 +294,9 @@ package body Pilot is
          end if;
       end get_variant;
    begin
+      --  make sure ccache isn't added to deps
+      PM.configuration.dir_ccache := HT.SUS (PM.no_ccache);
+
       if DIR.Exists (dossier) then
          REP.launch_workzone;
          OPS.parse_and_transform_buildsheet (specification => specification,
@@ -1548,6 +1551,9 @@ package body Pilot is
    is
       www_site : constant String := HT.USS (PM.configuration.dir_profile) & "/www";
    begin
+      --  make sure ccache isn't added to deps
+      PM.configuration.dir_ccache := HT.SUS (PM.no_ccache);
+
       if not DIR.Exists (www_site) then
          DIR.Create_Path (www_site);
       end if;
