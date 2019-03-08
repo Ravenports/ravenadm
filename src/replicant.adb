@@ -1108,7 +1108,7 @@ package body Replicant is
       end case;
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd =>
-            unmount (location (slave_base, libexec));
+            null;  --  libexec is copied now
          when linux =>
             unmount (location (slave_base, lib));
             unmount (location (slave_base, lib64));
