@@ -5260,6 +5260,7 @@ package body Port_Specification is
    function get_ssl_variant (specs : Portspecs; normal_variant : String) return String
    is
       procedure scan (position : string_crate.Cursor);
+      function known_ssl_variant (candidate : String) return Boolean;
 
       modname    : constant String := "ssl";
       ssl_module : HT.Text := HT.SUS (modname);
@@ -5279,18 +5280,24 @@ package body Port_Specification is
                   found := True;
                   if HT.count_char (value, LAT.Colon) = 1 then
                      declare
-                        argv : String := HT.part_2 (value, ":");
-                        OSS1 : String := "openssl";
-                        OSS2 : String := "openssl-devel";
-                        LSS1 : String := "libressl";
-                        LSS2 : String := "libressl-devel";
+                        argv       : constant String := HT.part_2 (value, ":");
+                        num_commas : Natural := HT.count_char (argv, LAT.Comma);
                      begin
-                        if argv = OSS1 or else
-                          argv = OSS2 or else
-                          argv = LSS1 or else
-                          argv = LSS2
-                        then
-                           result := HT.SUS (argv);
+                        if num_commas = 0 then
+                           if known_ssl_variant (argv) then
+                              result := HT.SUS (argv);
+                           end if;
+                        else
+                           for x in 1 .. num_commas + 1 loop
+                              declare
+                                 ax : constant String := HT.specific_field (argv, x, ",");
+                              begin
+                                 if known_ssl_variant (ax) then
+                                    result := HT.SUS (ax);
+                                    exit;
+                                 end if;
+                              end;
+                           end loop;
                         end if;
                      end;
                   end if;
@@ -5298,6 +5305,19 @@ package body Port_Specification is
             end;
          end if;
       end scan;
+
+      function known_ssl_variant (candidate : String) return Boolean
+      is
+         OSS1 : constant String := "openssl";
+         OSS2 : constant String := "openssl-devel";
+         LSS1 : constant String := "libressl";
+         LSS2 : constant String := "libressl-devel";
+      begin
+         return candidate = OSS1 or else
+           candidate = OSS2 or else
+           candidate = LSS1 or else
+           candidate = LSS2;
+      end known_ssl_variant;
 
    begin
       if not specs.uses_base.Contains (ssl_module)
