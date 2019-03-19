@@ -47,7 +47,7 @@ package Port_Specification is
                        sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
                        sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks, sp_killdog,
                        sp_cgo_conf, sp_cgo_build, sp_cgo_inst, sp_cgo_cargs, sp_cgo_bargs,
-                       sp_cgo_iargs, sp_cgo_feat, sp_solfunc);
+                       sp_cgo_iargs, sp_cgo_feat);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -609,7 +609,6 @@ private
          broken_ssl     : string_crate.Vector;
          broken_mysql   : string_crate.Vector;
          broken_pgsql   : string_crate.Vector;
-         sol_functions  : string_crate.Vector;
          catch_all      : list_crate.Map;
          pkg_notes      : def_crate.Map;
          var_opsys      : list_crate.Map;

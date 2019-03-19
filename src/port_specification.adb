@@ -159,7 +159,6 @@ package body Port_Specification is
       specs.subr_scripts.Clear;
       specs.broken_mysql.Clear;
       specs.broken_pgsql.Clear;
-      specs.sol_functions.Clear;
 
       specs.fatal_rpath := True;
 
@@ -1077,9 +1076,6 @@ package body Port_Specification is
          when sp_cgo_feat =>
             verify_entry_is_post_options;
             specs.cgo_features.Append (text_value);
-         when sp_solfunc =>
-            verify_entry_is_post_options;
-            specs.sol_functions.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;

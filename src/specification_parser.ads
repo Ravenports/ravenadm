@@ -48,7 +48,7 @@ private
                          broken_pgsql, og_radio, og_restrict, og_unlimited, ext_deb, test_env,
                          generated, xorg_comp, sdl_comp, phpext, job_limit, so_version,
                          lic_terms, lic_awk, lic_source, repsucks, killdog, cgo_conf, cgo_build,
-                         cgo_inst, cgo_cargs, cgo_bargs, cgo_iargs, cgo_feat, solfunc);
+                         cgo_inst, cgo_cargs, cgo_bargs, cgo_iargs, cgo_feat);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);
    type type_category is (cat_none, cat_array, cat_singlet, cat_target, cat_option, cat_file);
