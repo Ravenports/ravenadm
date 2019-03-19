@@ -514,6 +514,7 @@ package body Specification_Parser is
                      when cgo_bargs        => build_list (spec, PSP.sp_cgo_bargs, line);
                      when cgo_iargs        => build_list (spec, PSP.sp_cgo_iargs, line);
                      when cgo_feat         => build_list (spec, PSP.sp_cgo_feat, line);
+                     when solfunc          => build_list (spec, PSP.sp_solfunc, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -1063,7 +1064,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 186;
+      total_singlets : constant Positive := 187;
 
       type singlet_pair is
          record
@@ -1249,6 +1250,7 @@ package body Specification_Parser is
          ("SKIP_BUILD            ", 10, skip_build),
          ("SKIP_CCACHE           ", 11, skip_ccache),
          ("SKIP_INSTALL          ", 12, skip_install),
+         ("SOL_FUNCTIONS         ", 13, solfunc),
          ("SOVERSION             ",  9, so_version),
          ("SUB_FILES             ",  9, sub_files),
          ("SUB_LIST              ",  8, sub_list),

@@ -159,6 +159,7 @@ package body Port_Specification is
       specs.subr_scripts.Clear;
       specs.broken_mysql.Clear;
       specs.broken_pgsql.Clear;
+      specs.sol_functions.Clear;
 
       specs.fatal_rpath := True;
 
@@ -1076,6 +1077,9 @@ package body Port_Specification is
          when sp_cgo_feat =>
             verify_entry_is_post_options;
             specs.cgo_features.Append (text_value);
+         when sp_solfunc =>
+            verify_entry_is_post_options;
+            specs.sol_functions.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3497,7 +3501,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 59;
+      total_modules : constant Positive := 60;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3558,6 +3562,7 @@ package body Port_Specification is
          "schemas        ",
          "scons          ",
          "sqlite         ",
+         "solaris-funcs  ",
          "solfix         ",
          "ssl            ",
          "tcl            ",
