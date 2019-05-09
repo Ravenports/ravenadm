@@ -1382,6 +1382,11 @@ package body PortScan.Scan is
                      end if;
                   end;
                end if;
+            exception
+               when uhoh : others =>
+                  TIO.Put ("Error with bucket_" & HT.USS (string_crate.Element (cursor)) & ": ");
+                  TIO.Put_Line (EX.Exception_Information (uhoh));
+                  aborted := True;
             end make_buildsheet;
          begin
             source (lot).Iterate (make_buildsheet'Access);
