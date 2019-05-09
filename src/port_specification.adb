@@ -3328,7 +3328,7 @@ package body Port_Specification is
          end case;
       end loop;
       --  namebases can contain dots, but not as first character
-      if value (value'First) = '.' then
+      if value'Length > 0 and then value (value'First) = '.' then
          return True;
       end if;
       return False;
@@ -5177,6 +5177,9 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    procedure define (specs : in out Portspecs; variable : String; value : String) is
    begin
+      if value = "" then
+         raise missing_extract with "variable " & variable & " evaluates to a blank string";
+      end if;
       specs.definitions.Insert (HT.SUS (variable), HT.SUS (value));
    end define;
 

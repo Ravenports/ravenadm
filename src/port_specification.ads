@@ -20,6 +20,7 @@ package Port_Specification is
    dupe_list_value : exception;
    missing_group   : exception;
    invalid_option  : exception;
+   missing_extract : exception;
 
    type spec_field is (sp_namebase, sp_version, sp_revision, sp_epoch, sp_keywords,
                        sp_variants, sp_taglines, sp_homepage, sp_contacts, sp_dl_groups,

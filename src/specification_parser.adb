@@ -714,6 +714,9 @@ package body Specification_Parser is
                when FF : missing_file =>
                   spec.set_parse_error (LN & EX.Exception_Message (FF));
                   exit;
+               when F10 : PSP.missing_extract =>
+                  spec.set_parse_error (LN & EX.Exception_Message (F10));
+                  exit;
             end;
             <<line_done>>
          end;
