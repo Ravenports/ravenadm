@@ -3702,7 +3702,7 @@ package body Port_Specification is
    is
       total_keywords : constant Positive := gnome_type'Pos (gnome_type'Last) + 1;
 
-      subtype keyword_string is String (1 .. 21);
+      subtype keyword_string is String (1 .. 18);
 
       type keyword_pair is
          record
