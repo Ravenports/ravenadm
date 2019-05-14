@@ -3702,7 +3702,7 @@ package body Port_Specification is
    is
       total_keywords : constant Positive := gnome_type'Pos (gnome_type'Last) + 1;
 
-      subtype keyword_string is String (1 .. 18);
+      subtype keyword_string is String (1 .. 21);
 
       type keyword_pair is
          record
@@ -3721,6 +3721,7 @@ package body Port_Specification is
          ("gconf             ", gconf),
          ("gdkpixbuf         ", gdkpixbuf),
          ("glib              ", glib),
+         ("glibmm            ", glibmm),
          ("gtk2              ", gtk2),
          ("gtk3              ", gtk3),
          ("gtksourceview3    ", gtksourceview3),
@@ -3731,6 +3732,8 @@ package body Port_Specification is
          ("libgsf            ", libgsf),
          ("libidl            ", libidl),
          ("librsvg           ", librsvg),
+         ("libsigc++20       ", libsigcxx2),
+         ("libxml++26        ", libxmlxx2),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
          ("orbit2            ", orbit2),
@@ -3748,7 +3751,6 @@ package body Port_Specification is
 --  evolutionserver
 --  gconfmm26
 --  gdkpixbuf2
---  glibmm
 --  gnomecontrolcenter
 --  gnomedesktop
 --  gnomedocutils
@@ -3783,9 +3785,7 @@ package body Port_Specification is
 --  libgtkhtml
 --  libgtksourceviewmm
 --  libsigc++12
---  libsigc++20
 --  libwnck
---  libxml++26
 --  metacity
 --  nautilus3
 --  pangomm

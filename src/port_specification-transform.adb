@@ -2714,120 +2714,174 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gnome_components_dependencies (specs : in out Portspecs)
    is
-      procedure import (position : string_crate.Cursor);
+      --  May require several iterations
+      --  First pass: set top-level requirements
+      --  repeat subsequent passes on "components" until no changes made
+      --  Use "component" array to define gnome component imports
 
-      defpy         : constant String := "py" & HT.replace_char (default_python3, '.', "");
-      ss            : constant String := ":single:standard";
-      ps            : constant String := ":primary:standard";
-      port_libxml2  : constant String := "libxml2";
-      port_libxslt  : constant String := "libxslt";
-      port_gettext  : constant String := "gettext:runtime:standard";
-      port_cairo    : constant String := "cairo";
-      port_atk      : constant String := "atk";
-      port_gtk2     : constant String := "gtk2";
-      port_gtk3     : constant String := "gtk3";
-      port_pango    : constant String := "pango";
-      port_gobspec  : constant String := "gobject-introspection";
-      port_intltool : constant String := "intltool";
-      port_gsview3  : constant String := "gtksourceview3";
-      port_libidl   : constant String := "libIDL";
-      port_orbit2   : constant String := "ORBit2";
-      port_dconf    : constant String := "dconf";
-      port_gconf    : constant String := "gconf";
-      port_libglade : constant String := "libglade:single:py27";
-      port_pygtk2   : constant String := "python-gtk2:primary:py27";
-      port_pygobj2  : constant String := "python-pygobject2:single:py27";
-      port_pygobjcm : constant String := "python-pygobject:common:" & defpy;
-      port_pygobj   : constant String := "python-pygobject:primary:" & defpy;
+      procedure initial_setup (position : string_crate. Cursor);
+      procedure implicate (comp : gnome_type);
+      procedure import (comp : gnome_type);
+      procedure implies (comp : gnome_type);
 
+      defpy     : constant String := "py" & HT.replace_char (default_python3, '.', "");
+      ss        : constant String := ":single:standard";
+      ps        : constant String := ":primary:standard";
+      component : array (gnome_type) of Boolean := (others => False);
+      new_data  : Boolean;
 
+      procedure implies (comp : gnome_type) is
+      begin
+         if not component (comp) then
+            component (comp) := True;
+            new_data := True;
+         end if;
+      end implies;
 
-      procedure import (position : string_crate.Cursor)
+      procedure initial_setup (position : string_crate. Cursor)
       is
          component_text : HT.Text renames string_crate.Element (position);
          comp : gnome_type := determine_gnome_component (HT.USS (component_text));
       begin
+         component (comp) := True;
+      end initial_setup;
+
+      procedure implicate (comp : gnome_type) is
+      begin
+         case comp is
+            when atk =>
+               implies (glib);
+            when dconf =>
+               implies (glib);
+            when gdkpixbuf =>
+               implies (glib);
+            when glibmm =>
+               implies (glib);
+               implies (libsigcxx2);
+            when gtk2 =>
+               implies (atk);
+               implies (pango);
+            when gtk3 =>
+               implies (atk);
+               implies (pango);
+            when gtksourceview3 =>
+               implies (gtk3);
+               implies (libxml2);
+            when introspection =>
+               implies (glib);
+            when libglade =>
+               implies (libxml2);
+               implies (gtk2);
+            when libgsf =>
+               implies (glib);
+               implies (libxml2);
+            when libidl =>
+               implies (glib);
+            when librsvg =>
+               implies (libgsf);
+               implies (gdkpixbuf);
+               implies (pango);
+            when libxmlxx2 =>
+               implies (glibmm);
+               implies (libxml2);
+            when libxslt =>
+               implies (libxml2);
+            when orbit2 =>
+               implies (libidl);
+            when pygobj2 =>
+               implies (glib);
+            when pygobject =>
+               implies (glib);
+            when pygtk2 =>
+               implies (libglade);
+               implies (pygobj2);
+            when vte =>
+               implies (gtk3);
+            when others => null;
+         end case;
+      end implicate;
+
+      procedure import (comp : gnome_type) is
+      begin
          case comp is
             when invalid_component => null;  --  should be impossible
-            when glib      => null;
-            when libglade  => null;
-            when libxml2   => null;
-            when gtk2      => null;
-            when gtk3      => null;
-            when orbit2    => null;
-            when dconf     => add_buildrun_depends (specs, port_dconf & ps);
-            when libxslt   => add_buildrun_depends (specs, port_libxslt & ss);
-            when libidl    => add_buildrun_depends (specs, port_libidl & ss);
-            when atk       => add_buildrun_depends (specs, port_atk & ss);
-            when cairo     => add_buildrun_depends (specs, port_cairo & ss);
-            when pango     => add_buildrun_depends (specs, port_pango & ps);
-            when intltool  => add_build_depends    (specs, port_intltool & ss);
-            when gdkpixbuf => add_buildrun_depends (specs, "gdk-pixbuf" & ps);
-            when libgsf    => add_buildrun_depends (specs, "libgsf" & ps);
-            when libcroco  => add_buildrun_depends (specs, "libcroco" & ps);
-            when librsvg   => add_buildrun_depends (specs, "librsvg" & ps);
-            when vte       => add_buildrun_depends (specs, "vte" & ps);
-            when pygobject => add_buildrun_depends (specs, port_pygobj);
-                              add_buildrun_depends (specs, port_pygobjcm);
-            when pygobj2   => add_buildrun_depends (specs, port_pygobj2);
-            when pygtk2    => add_buildrun_depends (specs, port_pygtk2);
-                              add_buildrun_depends (specs, port_pygobj2);
-            when gtksourceview3 =>
-                              add_buildrun_depends (specs, port_gsview3 & ps);
-            when introspection =>
-                              add_build_depends (specs, port_gobspec & ss);
-                              add_build_depends (specs, PYTHON27);
-                              specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
-                              specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
-            when gconf     => add_buildrun_depends (specs, port_gconf & ps);
-
-         end case;
-         --  These components imply gtk3
-         case comp is
-            when gtk3 | gtksourceview3 | vte =>
-               add_buildrun_depends (specs, port_gtk3 & ss);
-               add_buildrun_depends (specs, port_atk & ss);
-               add_buildrun_depends (specs, port_pango & ps);
-            when others => null;
-         end case;
-         --  These components imply glib
-         case comp is
-            when introspection | glib | atk | pango | gdkpixbuf | pygobject | pygobj2 | pygtk2 |
-               libidl | orbit2 | dconf =>
+            when atk       =>
+               add_buildrun_depends (specs, "atk" & ss);
+            when cairo     =>
+               add_buildrun_depends (specs, "cairo" & ss);
+            when dconf     =>
+               add_buildrun_depends (specs, "dconf" & ps);
+            when gconf     =>
+               add_buildrun_depends (specs, "gconf" & ps);
+            when gdkpixbuf =>
+               add_buildrun_depends (specs, "gdk-pixbuf" & ps);
+            when glib      =>
                add_buildrun_depends (specs, GNOMELIB);
-               add_buildrun_depends (specs, port_gettext);
-            when others => null;
-         end case;
-         --  These components imply orbit2 (which implies libidl)
-         case comp is
-            when orbit2 | gconf =>
-               add_buildrun_depends (specs, port_orbit2 & ps);
-               add_buildrun_depends (specs, port_libidl & ss);
-            when others => null;
-         end case;
-         --  These components imply libglade (which implies libxml2 and gtk2)
-         case comp is
-            when libglade | pygtk2 =>
-               add_buildrun_depends (specs, port_libglade);
-            when others => null;
-         end case;
-         --  These components imply gtk2
-         case comp is
-            when gtk2 | gconf | libglade | pygtk2 =>
-               add_buildrun_depends (specs, port_gtk2 & ss);
-               add_buildrun_depends (specs, port_atk & ss);
-               add_buildrun_depends (specs, port_pango & ps);
-            when others => null;
-         end case;
-         --  These components imply libxml2
-         case comp is
-            when libxml2 | libxslt | libglade | pygtk2 | gconf | gtksourceview3 =>
-               add_buildrun_depends (specs, port_libxml2 & ss);
-            when others => null;
+               add_buildrun_depends (specs, "gettext:runtime:standard");
+            when glibmm =>
+               add_buildrun_depends (specs, "glibmm" & ss);
+            when gtk2 =>
+               add_buildrun_depends (specs, "gtk2" & ss);
+            when gtk3 =>
+               add_buildrun_depends (specs, "gtk3" & ss);
+            when gtksourceview3 =>
+               add_buildrun_depends (specs, "gtksourceview3" & ps);
+            when intltool  =>
+               add_build_depends    (specs, "intltool" & ss);
+            when introspection =>
+               add_build_depends    (specs, "gobject-introspection" & ss);
+               add_build_depends    (specs, PYTHON27);
+               specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
+               specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
+            when libcroco  =>
+               add_buildrun_depends (specs, "libcroco" & ps);
+            when libglade  =>
+               add_buildrun_depends (specs, "libglade:single:py27");
+            when libgsf    =>
+               add_buildrun_depends (specs, "libgsf" & ps);
+            when libidl    =>
+               add_buildrun_depends (specs, "libIDL" & ss);
+            when librsvg   =>
+               add_buildrun_depends (specs, "librsvg" & ps);
+            when libsigcxx2     =>
+               add_buildrun_depends (specs, "libsigcxx" & ps);
+            when libxmlxx2 =>
+               add_buildrun_depends (specs, "libxmlxx2" & ss);
+            when libxml2   =>
+               add_buildrun_depends (specs, "libxml2" & ss);
+            when libxslt   =>
+               add_buildrun_depends (specs, "libxslt" & ss);
+            when orbit2    =>
+               add_buildrun_depends (specs, "ORBit2" & ps);
+            when pango     =>
+               add_buildrun_depends (specs, "pango" & ps);
+            when pygobj2   =>
+               add_buildrun_depends (specs, "python-pygobject2:single:py27");
+            when pygobject =>
+               add_buildrun_depends (specs, "python-pygobject:primary:" & defpy);
+               add_buildrun_depends (specs, "python-pygobject:common:" & defpy);
+            when pygtk2    =>
+               add_buildrun_depends (specs, "python-gtk2:primary:py27");
+            when vte       =>
+               add_buildrun_depends (specs, "vte" & ps);
          end case;
       end import;
    begin
-      specs.gnome_comps.Iterate (import'Access);
+      specs.gnome_comps.Iterate (initial_setup'Access);
+      loop
+         new_data := False;
+         for x in gnome_type'Range loop
+            if component (x) then
+               implicate (x);
+            end if;
+         end loop;
+         exit when not new_data;
+      end loop;
+      for x in gnome_type'Range loop
+         if component (x) then
+            import (x);
+         end if;
+      end loop;
    end apply_gnome_components_dependencies;
 
 
