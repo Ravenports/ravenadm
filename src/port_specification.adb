@@ -3726,6 +3726,8 @@ package body Port_Specification is
          ("glibmm            ", glibmm),
          ("gtk2              ", gtk2),
          ("gtk3              ", gtk3),
+         ("gtkmm24           ", gtkmm24),
+         ("gtkmm30           ", gtkmm30),
          ("gtksourceview3    ", gtksourceview3),
          ("intltool          ", intltool),
          ("introspection     ", introspection),
@@ -3740,19 +3742,17 @@ package body Port_Specification is
          ("libxslt           ", libxslt),
          ("orbit2            ", orbit2),
          ("pango             ", pango),
+         ("pangomm           ", pangomm),
          ("pygobj2           ", pygobj2),
          ("pygobject         ", pygobject),
          ("pygtk2            ", pygtk2),
          ("vte               ", vte)
         );
 
---  atkmm
 --  atspi
---  cairomm
 --  esound
 --  evolutionserver
 --  gconfmm26
---  gdkpixbuf2
 --  gnomecontrolcenter
 --  gnomedesktop
 --  gnomedocutils
@@ -3767,8 +3767,6 @@ package body Port_Specification is
 --  gtkhtml3
 --  gtkhtml4
 --  gtkmm20
---  gtkmm24
---  gtkmm30
 --  gtksharp20
 --  gtksourceview
 --  gtksourceviewmm
@@ -3790,7 +3788,6 @@ package body Port_Specification is
 --  libwnck
 --  metacity
 --  nautilus3
---  pangomm
 --  pangox-compat
 --  pygnome2
 --  pygtksourceview

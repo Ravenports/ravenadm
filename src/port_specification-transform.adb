@@ -2763,6 +2763,18 @@ package body Port_Specification.Transform is
             when gtk3 =>
                implies (atk);
                implies (pango);
+            when gtkmm24 =>
+               implies (glibmm);
+               implies (cairomm);
+               implies (atkmm);
+               implies (pangomm);
+               implies (gtk2);
+            when gtkmm30 =>
+               implies (glibmm);
+               implies (cairomm);
+               implies (atkmm);
+               implies (pangomm);
+               implies (gtk3);
             when gtksourceview3 =>
                implies (gtk3);
                implies (libxml2);
@@ -2824,6 +2836,10 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "gtk2" & ss);
             when gtk3 =>
                add_buildrun_depends (specs, "gtk3" & ss);
+            when gtkmm24 =>
+               add_buildrun_depends (specs, "gtkmm24" & ss);
+            when gtkmm30 =>
+               add_buildrun_depends (specs, "gtkmm30" & ss);
             when gtksourceview3 =>
                add_buildrun_depends (specs, "gtksourceview3" & ps);
             when intltool =>
@@ -2855,6 +2871,8 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "ORBit2" & ps);
             when pango =>
                add_buildrun_depends (specs, "pango" & ps);
+            when pangomm =>
+               add_buildrun_depends (specs, "pangomm" & ss);
             when pygobj2 =>
                add_buildrun_depends (specs, "python-pygobject2:single:py27");
             when pygobject =>
