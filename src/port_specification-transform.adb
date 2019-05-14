@@ -2757,7 +2757,6 @@ package body Port_Specification.Transform is
                implies (glib);
             when glibmm =>
                implies (glib);
-               implies (libsigcxx2);
             when gtk2 =>
                implies (atk);
                implies (pango);
@@ -2781,9 +2780,6 @@ package body Port_Specification.Transform is
                implies (libgsf);
                implies (gdkpixbuf);
                implies (pango);
-            when libxmlxx2 =>
-               implies (glibmm);
-               implies (libxml2);
             when libxslt =>
                implies (libxml2);
             when orbit2 =>
