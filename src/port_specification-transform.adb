@@ -2801,17 +2801,21 @@ package body Port_Specification.Transform is
       begin
          case comp is
             when invalid_component => null;  --  should be impossible
-            when atk       =>
+            when atk =>
                add_buildrun_depends (specs, "atk" & ss);
-            when cairo     =>
+            when atkmm =>
+               add_buildrun_depends (specs, "atkmm" & ss);
+            when cairo =>
                add_buildrun_depends (specs, "cairo" & ss);
-            when dconf     =>
+            when cairomm =>
+               add_buildrun_depends (specs, "cairomm" & ss);
+            when dconf =>
                add_buildrun_depends (specs, "dconf" & ps);
-            when gconf     =>
+            when gconf =>
                add_buildrun_depends (specs, "gconf" & ps);
             when gdkpixbuf =>
                add_buildrun_depends (specs, "gdk-pixbuf" & ps);
-            when glib      =>
+            when glib =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, "gettext:runtime:standard");
             when glibmm =>
@@ -2822,43 +2826,43 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "gtk3" & ss);
             when gtksourceview3 =>
                add_buildrun_depends (specs, "gtksourceview3" & ps);
-            when intltool  =>
+            when intltool =>
                add_build_depends    (specs, "intltool" & ss);
             when introspection =>
                add_build_depends    (specs, "gobject-introspection" & ss);
                add_build_depends    (specs, PYTHON27);
                specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
-            when libcroco  =>
+            when libcroco =>
                add_buildrun_depends (specs, "libcroco" & ps);
-            when libglade  =>
+            when libglade =>
                add_buildrun_depends (specs, "libglade:single:py27");
-            when libgsf    =>
+            when libgsf =>
                add_buildrun_depends (specs, "libgsf" & ps);
-            when libidl    =>
+            when libidl =>
                add_buildrun_depends (specs, "libIDL" & ss);
-            when librsvg   =>
+            when librsvg =>
                add_buildrun_depends (specs, "librsvg" & ps);
-            when libsigcxx2     =>
+            when libsigcxx2 =>
                add_buildrun_depends (specs, "libsigcxx" & ps);
             when libxmlxx2 =>
                add_buildrun_depends (specs, "libxmlxx2" & ss);
-            when libxml2   =>
+            when libxml2 =>
                add_buildrun_depends (specs, "libxml2" & ss);
-            when libxslt   =>
+            when libxslt =>
                add_buildrun_depends (specs, "libxslt" & ss);
-            when orbit2    =>
+            when orbit2 =>
                add_buildrun_depends (specs, "ORBit2" & ps);
-            when pango     =>
+            when pango =>
                add_buildrun_depends (specs, "pango" & ps);
-            when pygobj2   =>
+            when pygobj2 =>
                add_buildrun_depends (specs, "python-pygobject2:single:py27");
             when pygobject =>
                add_buildrun_depends (specs, "python-pygobject:primary:" & defpy);
                add_buildrun_depends (specs, "python-pygobject:common:" & defpy);
-            when pygtk2    =>
+            when pygtk2 =>
                add_buildrun_depends (specs, "python-gtk2:primary:py27");
-            when vte       =>
+            when vte =>
                add_buildrun_depends (specs, "vte" & ps);
          end case;
       end import;

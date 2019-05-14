@@ -3716,7 +3716,9 @@ package body Port_Specification is
         (
          ("INVALID           ", invalid_component),
          ("atk               ", atk),
+         ("atkmm             ", atkmm),
          ("cairo             ", cairo),
+         ("cairomm           ", cairomm),
          ("dconf             ", dconf),
          ("gconf             ", gconf),
          ("gdkpixbuf         ", gdkpixbuf),
