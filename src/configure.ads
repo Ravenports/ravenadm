@@ -80,7 +80,7 @@ private
                                   "mariadb-10.1:mariadb-10.2:" &
                                   "percona-5.5:percona-5.6:percona-5.7:" &
                                   "galera-5.5:galera-5.6:galera-5.7";
-   version_D : constant String := "5.26:" & default_perl;
+   version_D : constant String := "5.28:" & default_perl;
    version_E : constant String := "7.1:" & default_php & ":7.3";
    version_F : constant String := "9.4:9.5:9.6:" & default_pgsql & ":11";
    version_G : constant String := "3.6:" & default_python3;
