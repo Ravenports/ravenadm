@@ -1096,7 +1096,7 @@ package body Replicant is
       unmount (location (slave_base, distfiles), retry1min);
       unmount (location (slave_base, packages), retry1min);
 
-      if DIR.Exists (location (slave_base, toolchain) & "/bin") then
+      if DIR.Exists (location (slave_base, toolchain) & "/forged") then
          unhook_toolchain (id);
       end if;
 
@@ -1167,6 +1167,7 @@ package body Replicant is
          when others =>
             mount_nullfs (mount_target (toolchain), tc_path);
       end case;
+      forge_directory (tc_path & "/forged");
    end hook_toolchain;
 
 
