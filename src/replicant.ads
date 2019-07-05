@@ -71,6 +71,7 @@ private
    failed_unmount : exception;
 
    abnormal_cmd_logname : constant String := "05_abnormal_command_output.log";
+   toolchain_tag        : constant String := ".toolchain_mounted";
 
    type mount_mode is (readonly, readwrite);
    type folder_operation is (lock, unlock);

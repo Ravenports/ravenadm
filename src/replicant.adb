@@ -1096,7 +1096,7 @@ package body Replicant is
       unmount (location (slave_base, distfiles), retry1min);
       unmount (location (slave_base, packages), retry1min);
 
-      if DIR.Exists (location (slave_base, toolchain) & "/mounted") then
+      if DIR.Exists (slave_base & toolchain_tag) then
          unhook_toolchain (id);
       end if;
 
@@ -1171,7 +1171,7 @@ package body Replicant is
 
       TIO.Create (File => forged,
                   Mode => TIO.Out_File,
-                  Name => tc_path & "/mounted");
+                  Name => slave_base & toolchain_tag);
       TIO.Close (forged);
 
    end hook_toolchain;
@@ -1193,6 +1193,7 @@ package body Replicant is
          when others =>
             unmount (tc_path);
       end case;
+      DIR.Delete_File (slave_base & toolchain_tag);
    end unhook_toolchain;
 
 
