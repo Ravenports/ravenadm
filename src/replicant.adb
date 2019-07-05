@@ -1096,7 +1096,7 @@ package body Replicant is
       unmount (location (slave_base, distfiles), retry1min);
       unmount (location (slave_base, packages), retry1min);
 
-      if DIR.Exists (location (slave_base, toolchain) & "/forged") then
+      if DIR.Exists (location (slave_base, toolchain) & "/mounted") then
          unhook_toolchain (id);
       end if;
 
@@ -1152,6 +1152,7 @@ package body Replicant is
       use type DIR.File_Kind;
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
+      forged     : TIO.File_Type;
    begin
       --  When hook_toolchain is called, there very well may be installed packages that
       --  brought in gcc libs and installed them at /raven/toolchain.
@@ -1167,7 +1168,12 @@ package body Replicant is
          when others =>
             mount_nullfs (mount_target (toolchain), tc_path);
       end case;
-      forge_directory (tc_path & "/forged");
+
+      TIO.Create (File => forged,
+                  Mode => TIO.Out_File,
+                  Name => tc_path & "/mounted");
+      TIO.Close (forged);
+
    end hook_toolchain;
 
 
