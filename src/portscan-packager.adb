@@ -367,6 +367,9 @@ package body PortScan.Packager is
       TIO.Put_Line (file_handle, "}");
       TIO.Put_Line (file_handle, "options: {"  & spec.get_options_list (variant) & " }");
       write_package_annotations (spec, file_handle);
+
+      --  Closing Curly Brace for manifest
+      TIO.Put_Line (file_handle, "}");
       TIO.Close (file_handle);
 
    exception
