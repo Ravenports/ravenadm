@@ -188,7 +188,7 @@ private
    --  copy host's /etc/resolv.conf to slave
    procedure copy_resolv_conf (path_to_etc : String);
 
-   --  copy ldconfig hints to /var/run (for pkg-static)
+   --  copy ldconfig hints to /var/run (for ravensw (for now))
    procedure copy_ldconfig_hints (path_to_varrun : String);
 
    --  If existing, copy unkindness GID and UID definitions to /construction

@@ -312,7 +312,7 @@ package body PortScan.Buildcycle is
    is
       timed_out  : Boolean;
       time_limit : execution_limit  := max_time_without_output (install);
-      PKG_ADD    : constant String  := "/usr/bin/pkg-static add ";
+      PKG_ADD    : constant String  := "/usr/bin/ravensw add ";
       portkey    : constant String  := convert_depend_origin_to_portkey (line);
       ptid       : constant port_id := ports_keys (HT.SUS (portkey));
       pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
@@ -415,7 +415,7 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (test);
       root       : constant String := get_root (id);
       phase_name : constant String := "test / deinstall all packages";
-      PKG_RM_ALL : constant String := "/usr/bin/pkg-static delete -a -y ";
+      PKG_RM_ALL : constant String := "/usr/bin/ravensw delete -a -y ";
       command    : constant String := PM.chroot_cmd & root & environ & PKG_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
@@ -445,7 +445,7 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (install);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_ADD    : constant String := "/usr/bin/pkg-static add ";
+      PKG_ADD    : constant String := "/usr/bin/ravensw add ";
       still_good : Boolean := True;
       timed_out  : Boolean;
 
@@ -661,8 +661,8 @@ package body PortScan.Buildcycle is
       SHLL : constant String := "SHELL=/bin/sh ";
       RAVN : constant String := "RAVENADM=building ";
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
-      PKG8 : constant String := "PKG_DBDIR=/var/db/pkg8 " &
-                                "PKG_CACHEDIR=/var/cache/pkg8 ";
+      PKG8 : constant String := "RAVENSW_DBDIR=/var/db/pkg8 " &
+                                "RAVENSW_CACHEDIR=/var/cache/pkg8 ";
       CENV : constant String := HT.USS (customenv);
       DYLD : constant String := dyld_fallback;
    begin
@@ -738,7 +738,7 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (deinstall);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_DELETE : constant String := "/usr/bin/pkg-static delete -f -y ";
+      PKG_DELETE : constant String := "/usr/bin/ravensw delete -f -y ";
       still_good : Boolean := True;
       dyn_good   : Boolean;
       timed_out  : Boolean;
@@ -872,7 +872,7 @@ package body PortScan.Buildcycle is
          subpackage : constant String := HT.USS (rec.subpackage);
          pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := PM.chroot_cmd & root & environ &
-                                         "/usr/bin/pkg-static query %Fp " & pkgname;
+                                         "/usr/bin/ravensw query %Fp " & pkgname;
          comres     : String :=  generic_system_command (command);
          markers    : HT.Line_Markers;
       begin

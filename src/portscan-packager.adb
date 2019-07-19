@@ -132,14 +132,13 @@ package body PortScan.Packager is
            "load-octave-pkg ocamlfind update-desktop-database update-mime-database " &
            "gdk-pixbuf-query-loaders catalog.ports glib-compile-schemas ccache-update-links";
          MORE_ENV : constant String :=
-           " PKG_DBDIR=/var/db/pkg8" &
+           " RAVENSW_DBDIR=/var/db/pkg8" &
            " PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
-         PKG_CREATE : constant String := "/usr/bin/pkg-static create";
+         PKG_CREATE : constant String := "/usr/bin/ravensw create";
          PKG_CREATE_ARGS : constant String :=
            " --root-dir " & stagedir &
            " --metadata " & chspkgdir & subpackage &
            " --plist " & package_list &
-           " --format tzst" &
            " --out-dir " & newpkgdir &
            " --verbose ";
          namebase : constant String := specification.get_namebase;

@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "1";
-   raven_version_minor : constant String := "32";
+   raven_version_minor : constant String := "33";
    copyright_years     : constant String := "2015-2019";
 
    raven_tool        : constant String := "ravenadm";
@@ -54,7 +54,7 @@ package Definitions is
    platform_type  : constant supported_opsys := dragonfly;
    host_localbase : constant String := "/raven";
    raven_var      : constant String := "/var/ravenports";
-   host_pkg8      : constant String := host_localbase & "/sbin/pkg-static";
+   host_pkg8      : constant String := host_localbase & "/sbin/ravensw";
    ravenexec      : constant String := host_localbase & "/libexec/ravenexec";
 
 end Definitions;
