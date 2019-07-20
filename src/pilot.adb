@@ -1463,7 +1463,7 @@ package body Pilot is
                                                 sysrootver    => sysrootver);
             if not specification.standard_options_present then
                HT.SU.Append (issues, "User error: The " & specification.get_namebase &
-                               " has no options to configure." & LAT.LF);
+                               " port has no options to configure." & LAT.LF);
             else
                exit when not OPT.launch_dialog (specification);
             end if;
