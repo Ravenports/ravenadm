@@ -53,8 +53,8 @@ private
    RUN      : constant String := "run";
 
    PYTHON27 : constant String := "python27:single:standard";
-   PYTHON36 : constant String := "python36:single:standard";
    PYTHON37 : constant String := "python37:single:standard";
+   PYTHON38 : constant String := "python38:single:standard";
    TCL85    : constant String := "tcl85:complete:standard";
    TCL86    : constant String := "tcl86:complete:standard";
    RUBY24   : constant String := "ruby24:primary:standard";

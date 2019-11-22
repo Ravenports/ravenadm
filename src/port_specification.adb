@@ -3669,11 +3669,11 @@ package body Port_Specification is
    function valid_broken_pgsql_value (value : String) return Boolean is
    begin
       return
+        value = "12" or else
         value = "11" or else
         value = "10" or else
         value = "9.6" or else
-        value = "9.5" or else
-        value = "9.4";
+        value = "9.5";
    end valid_broken_pgsql_value;
 
 
@@ -4382,8 +4382,9 @@ package body Port_Specification is
          ("PNG           ", PNG),
          ("PULSEAUDIO    ", PULSEAUDIO),
          ("PY27          ", PY27),
-         ("PY36          ", PY36),
+         ("PY36          ", PY36),   --  REMOVE after 1 DEC 2019
          ("PY37          ", PY37),
+         ("PY38          ", PY38),
          ("READLINE      ", READLINE),
          ("RUBY24        ", RUBY24),
          ("RUBY25        ", RUBY25),
@@ -4468,6 +4469,7 @@ package body Port_Specification is
          when PY27         => return "Build using Python 2.7";
          when PY36         => return "Build using Python 3.6";
          when PY37         => return "Build using Python 3.7";
+         when PY38         => return "Build using Python 3.8";
          when READLINE     => return "Command line editing via libreadline";
          when RUBY24       => return "Build using Ruby version 2.4";
          when RUBY25       => return "Build using Ruby version 2.5";

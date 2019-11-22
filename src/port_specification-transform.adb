@@ -1312,7 +1312,7 @@ package body Port_Specification.Transform is
    procedure apply_pkgconfig_module (specs : in out Portspecs)
    is
       module     : String := "pkgconfig";
-      dependency : String := "pkgconfig:single:standard";
+      dependency : String := "pkgconf:single:standard";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1544,8 +1544,8 @@ package body Port_Specification.Transform is
       module     : constant String := "python";
       SETUPTOOLS : constant String := "python-setuptools:single:";
       PY27       : constant String := "py27";
-      PY36       : constant String := "py36";
       PY37       : constant String := "py37";
+      PY38       : constant String := "py38";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1556,10 +1556,10 @@ package body Port_Specification.Transform is
             add_build_depends (specs, PYTHON27);
             add_build_depends (specs, SETUPTOOLS & PY27);
             specs.used_python := HT.SUS (PY27);
-         elsif argument_present (specs, module, PY36) then
-            add_build_depends (specs, PYTHON36);
-            add_build_depends (specs, SETUPTOOLS & PY36);
-            specs.used_python := HT.SUS (PY36);
+         elsif argument_present (specs, module, PY38) then
+            add_build_depends (specs, PYTHON38);
+            add_build_depends (specs, SETUPTOOLS & PY38);
+            specs.used_python := HT.SUS (PY38);
          else -- default to py37
             add_build_depends (specs, PYTHON37);
             add_build_depends (specs, SETUPTOOLS & PY37);
@@ -1570,10 +1570,10 @@ package body Port_Specification.Transform is
             add_buildrun_depends (specs, PYTHON27);
             add_buildrun_depends (specs, SETUPTOOLS & PY27);
             specs.used_python := HT.SUS (PY27);
-         elsif argument_present (specs, module, PY36) then
-            add_buildrun_depends (specs, PYTHON36);
-            add_buildrun_depends (specs, SETUPTOOLS & PY36);
-            specs.used_python := HT.SUS (PY36);
+         elsif argument_present (specs, module, PY38) then
+            add_buildrun_depends (specs, PYTHON38);
+            add_buildrun_depends (specs, SETUPTOOLS & PY38);
+            specs.used_python := HT.SUS (PY38);
          else -- default to py37
             add_buildrun_depends (specs, PYTHON37);
             add_buildrun_depends (specs, SETUPTOOLS & PY37);
@@ -2007,11 +2007,12 @@ package body Port_Specification.Transform is
    is
       module       : String  := "bdb";
       dep_static_5 : String  := "db5:static:standard";
-      dep_static_6 : String  := "db6:static:standard";
       dep_shared_5 : String  := "db5:shared:standard";
+      dep_static_6 : String  := "db6:static:standard";
       dep_shared_6 : String  := "db6:shared:standard";
+      dep_static_7 : String  := "db18:static:standard";
+      dep_shared_7 : String  := "db18:shared:standard";
       need_static  : Boolean := False;
-      need_six     : Boolean := False;
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -2019,19 +2020,20 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "static") then
          need_static := True;
       end if;
-      if argument_present (specs, module, "6") then
-         need_six := True;
-      end if;
 
-      if need_six then
+      if argument_present (specs, module, "6") then
          add_build_depends (specs, dep_static_6);
+         if not need_static then
+            add_buildrun_depends (specs, dep_shared_6);
+         end if;
+      elsif argument_present (specs, module, "18") then
+         add_build_depends (specs, dep_static_7);
+         if not need_static then
+            add_buildrun_depends (specs, dep_shared_7);
+         end if;
       else
          add_build_depends (specs, dep_static_5);
-      end if;
-      if not need_static then
-         if need_six then
-            add_buildrun_depends (specs, dep_shared_6);
-         else
+         if not need_static then
             add_buildrun_depends (specs, dep_shared_5);
          end if;
       end if;
@@ -2490,8 +2492,8 @@ package body Port_Specification.Transform is
          elsif exrundep = "python" then
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
                Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON36)) then
-               Element := HT.SUS (PYTHON36);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON38)) then
+               Element := HT.SUS (PYTHON38);
             else
               Element := HT.SUS (PYTHON37);
             end if;
@@ -2601,7 +2603,7 @@ package body Port_Specification.Transform is
             if setting = ports_default or else setting = default_python3 then
                return name_subpackage & "py37";
             else
-               return name_subpackage & "py36";
+               return name_subpackage & "py38";
             end if;
          end;
       elsif trailer = "perl_default" then
@@ -3082,19 +3084,19 @@ package body Port_Specification.Transform is
    is
       setting : constant String := HT.USS (Parameters.configuration.def_postgresql);
    begin
-      if setting = "9.4" then
-         return "postgresql94";
-      elsif setting = "9.5" then
+      if setting = "9.5" then
          return "postgresql95";
       elsif setting = "9.6" then
          return "postgresql96";
-      elsif setting = "11" then
-         return "postgresql11";
+      elsif setting = "10" then
+         return "postgresql10";
+      elsif setting = "12" then
+         return "postgresql12";
       else
          --  case: setting = ports_default
-         --  case: setting = default_pgsql (10 right now)
+         --  case: setting = default_pgsql (11 right now)
          --  case: setting = invalid value
-         return "postgresql10";
+         return "postgresql11";
       end if;
    end determine_pgsql_namebase;
 
