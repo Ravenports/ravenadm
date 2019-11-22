@@ -37,8 +37,8 @@ package Definitions is
    default_compiler  : constant String := "gcc8";
    compiler_version  : constant String := "8.3.0";
    previous_compiler : constant String := "8.2.0";
-   binutils_version  : constant String := "2.32";
-   previous_binutils : constant String := "2.31.1";
+   binutils_version  : constant String := "2.33.1";
+   previous_binutils : constant String := "2.32";
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
 
