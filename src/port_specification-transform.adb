@@ -2987,7 +2987,7 @@ package body Port_Specification.Transform is
       specs.xorg_comps.Iterate (import'Access);
       if uses_xorg and then not HT.trails (specs.get_namebase, "proto") then
          add_build_depends (specs, "xorg-macros" & ss);
-         add_build_depends (specs, "pkgconfig" & ss);
+         add_build_depends (specs, "pkgconf" & ss);
       end if;
    end apply_xorg_components_dependencies;
 
