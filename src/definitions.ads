@@ -35,6 +35,7 @@ package Definitions is
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
    default_compiler  : constant String := "gcc9";
+   previous_default  : constant String := "gcc8";
    compiler_version  : constant String := "9.2.0";
    previous_compiler : constant String := "8.3.0";
    binutils_version  : constant String := "2.33.1";

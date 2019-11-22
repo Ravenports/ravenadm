@@ -633,7 +633,8 @@ package body PortScan.Buildcycle is
       begin
          if toolchain
          then
-            return localbase & "/toolchain/" & default_compiler & "/bin:";
+            return localbase & "/toolchain/" & default_compiler & "/bin:" &
+              localbase & "/toolchain/" & previous_default & "/bin:"
          else
             return "";
          end if;
