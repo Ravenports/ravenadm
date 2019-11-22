@@ -34,9 +34,9 @@ package Definitions is
    default_ruby      : constant String := "2.5";
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
-   default_compiler  : constant String := "gcc8";
-   compiler_version  : constant String := "8.3.0";
-   previous_compiler : constant String := "8.2.0";
+   default_compiler  : constant String := "gcc9";
+   compiler_version  : constant String := "9.2.0";
+   previous_compiler : constant String := "8.3.0";
    binutils_version  : constant String := "2.33.1";
    previous_binutils : constant String := "2.32";
    arc_ext           : constant String := ".tzst";
