@@ -1276,7 +1276,7 @@ package body Pilot is
       function get_package_name (subpackage : String; use_prev, xz_pkg : Boolean) return String
       is
          function pkg_format return String;
-         function pkg_name (vsn_binutils, vsn_compiler : String) return String;
+         function pkg_name (cname, vsn_binutils, vsn_compiler : String) return String;
 
          function pkg_format return String is
          begin
@@ -1287,20 +1287,20 @@ package body Pilot is
             end if;
          end pkg_format;
 
-         function pkg_name (vsn_binutils, vsn_compiler : String) return String is
+         function pkg_name (cname, vsn_binutils, vsn_compiler : String) return String is
          begin
             if subpackage = binutils then
                return "binutils-single-ravensys-" & vsn_binutils & pkg_format;
             else
-               return default_compiler & LAT.Hyphen & subpackage & LAT.Hyphen &
+               return cname & LAT.Hyphen & subpackage & LAT.Hyphen &
                  variant_standard & LAT.Hyphen & vsn_compiler & pkg_format;
             end if;
          end pkg_name;
       begin
          if use_prev then
-            return pkg_name (previous_binutils, previous_compiler);
+            return pkg_name (previous_compiler, previous_binutils, previous_compiler);
          else
-            return pkg_name (binutils_version, compiler_version);
+            return pkg_name (default_compiler, binutils_version, compiler_version);
          end if;
       end get_package_name;
 
