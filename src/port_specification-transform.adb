@@ -2850,7 +2850,6 @@ package body Port_Specification.Transform is
                add_build_depends    (specs, "intltool" & ss);
             when introspection =>
                add_build_depends    (specs, "gobject-introspection" & ss);
-               add_build_depends    (specs, PYTHON27);
                specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
             when libcroco =>
