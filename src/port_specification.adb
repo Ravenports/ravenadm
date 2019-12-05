@@ -3745,7 +3745,6 @@ package body Port_Specification is
          ("pangomm           ", pangomm),
          ("pygobj2           ", pygobj2),
          ("pygobject         ", pygobject),
-         ("pygtk2            ", pygtk2),
          ("vte               ", vte)
         );
 

@@ -2804,9 +2804,6 @@ package body Port_Specification.Transform is
                implies (glib);
             when pygobject =>
                implies (glib);
-            when pygtk2 =>
-               implies (libglade);
-               implies (pygobj2);
             when vte =>
                implies (gtk3);
             when others => null;
@@ -2881,8 +2878,6 @@ package body Port_Specification.Transform is
             when pygobject =>
                add_buildrun_depends (specs, "python-pygobject:primary:" & defpy);
                add_buildrun_depends (specs, "python-pygobject:common:" & defpy);
-            when pygtk2 =>
-               add_buildrun_depends (specs, "python-gtk2:primary:py27");
             when vte =>
                add_buildrun_depends (specs, "vte" & ps);
          end case;
