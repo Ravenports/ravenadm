@@ -1589,9 +1589,9 @@ package body Port_Specification.Transform is
    procedure apply_ruby_module (specs : in out Portspecs)
    is
       module     : constant String := "ruby";
-      v24        : constant String := "v24";
       v25        : constant String := "v25";
       v26        : constant String := "v26";
+      v27        : constant String := "v27";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) or else
         argument_present (specs, module, "interp")
@@ -1603,23 +1603,23 @@ package body Port_Specification.Transform is
          if argument_present (specs, module, v26) then
             add_build_depends (specs, RUBY26);
             specs.used_ruby := HT.SUS (RUBY26);
-         elsif argument_present (specs, module, v24) then
-            add_build_depends (specs, RUBY24);
-            specs.used_ruby := HT.SUS (RUBY24);
-         else -- default to current default
+         elsif argument_present (specs, module, v25) then
             add_build_depends (specs, RUBY25);
             specs.used_ruby := HT.SUS (RUBY25);
+         else -- default to current default
+            add_build_depends (specs, RUBY27);
+            specs.used_ruby := HT.SUS (RUBY27);
          end if;
       else
          if argument_present (specs, module, v26) then
             add_buildrun_depends (specs, RUBY26);
             specs.used_ruby := HT.SUS (RUBY26);
-         elsif argument_present (specs, module, v24) then
-            add_buildrun_depends (specs, RUBY24);
-            specs.used_ruby := HT.SUS (RUBY24);
-         else -- default to current default
+         elsif argument_present (specs, module, v25) then
             add_buildrun_depends (specs, RUBY25);
             specs.used_ruby := HT.SUS (RUBY25);
+         else -- default to current default
+            add_buildrun_depends (specs, RUBY27);
+            specs.used_ruby := HT.SUS (RUBY27);
          end if;
       end if;
    end apply_ruby_module;

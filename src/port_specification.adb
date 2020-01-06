@@ -4381,13 +4381,12 @@ package body Port_Specification is
          ("PNG           ", PNG),
          ("PULSEAUDIO    ", PULSEAUDIO),
          ("PY27          ", PY27),
-         ("PY36          ", PY36),   --  REMOVE after 1 DEC 2019
          ("PY37          ", PY37),
          ("PY38          ", PY38),
          ("READLINE      ", READLINE),
-         ("RUBY24        ", RUBY24),
          ("RUBY25        ", RUBY25),
          ("RUBY26        ", RUBY26),
+         ("RUBY27        ", RUBY27),
          ("SNDIO         ", SNDIO),
          ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
@@ -4466,13 +4465,12 @@ package body Port_Specification is
          when PNG          => return "PNG image format support";
          when PULSEAUDIO   => return "PulseAudio sound server support";
          when PY27         => return "Build using Python 2.7";
-         when PY36         => return "Build using Python 3.6";
          when PY37         => return "Build using Python 3.7";
          when PY38         => return "Build using Python 3.8";
          when READLINE     => return "Command line editing via libreadline";
-         when RUBY24       => return "Build using Ruby version 2.4";
          when RUBY25       => return "Build using Ruby version 2.5";
          when RUBY26       => return "Build using Ruby version 2.6";
+         when RUBY27       => return "Build using Ruby version 2.7";
          when SNDIO        => return "Sndio audio support";
          when SOUND        => return "Sound (audio) support";
          when SQLITE       => return "SQLite database support";

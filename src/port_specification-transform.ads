@@ -57,9 +57,9 @@ private
    PYTHON38 : constant String := "python38:single:standard";
    TCL85    : constant String := "tcl85:complete:standard";
    TCL86    : constant String := "tcl86:complete:standard";
-   RUBY24   : constant String := "ruby24:primary:standard";
    RUBY25   : constant String := "ruby25:primary:standard";
    RUBY26   : constant String := "ruby26:primary:standard";
+   RUBY27   : constant String := "ruby27:primary:standard";
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:single:standard";
 
@@ -148,7 +148,7 @@ private
    procedure add_run_depends      (specs : in out Portspecs; dependency : String);
    procedure add_exrun_depends    (specs : in out Portspecs; dependency, subpackage : String);
 
-   --  Convert e.g. python_default to py36/py37 depending on current defaults.
+   --  Convert e.g. python_default to py3X depending on current defaults.
    --  True for all defaults as they get formed
    function transform_defaults (dep, pyx, plx, lux, rbx : String) return String;
 
