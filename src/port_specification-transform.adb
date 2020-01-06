@@ -1783,8 +1783,8 @@ package body Port_Specification.Transform is
          if not no_arguments_present (specs, module) then
             if argument_present (specs, module, "v26") then
                flavor := "v26";
-            elsif argument_present (specs, module, "v24") then
-               flavor := "v24";
+            elsif argument_present (specs, module, "v27") then
+               flavor := "v27";
             elsif argument_present (specs, module, "v25") then
                flavor := "v25";
             end if;
@@ -2631,11 +2631,11 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_ruby);
          begin
             if setting = ports_default or else setting = default_ruby then
-               return name_subpackage & "v25";
+               return name_subpackage & "v27";
             elsif setting = "2.6" then
                return name_subpackage & "v26";
             else
-               return name_subpackage & "v24";
+               return name_subpackage & "v25";
             end if;
          end;
       elsif trailer = "python_used" then
