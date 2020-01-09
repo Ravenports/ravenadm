@@ -352,9 +352,10 @@ package body PortScan is
    --------------------------------------------------------------------------------------------
    procedure dump_stack
    is
-      trace : TRC.Tracebacks_Array (1 .. 1_000);
+      trace : TRC.Tracebacks_Array (1 .. 2_000);
       trlen : Natural;
    begin
+      TIO.Put_Line ("Dump of stack:");
       TRC.Call_Chain (trace, trlen);
       TIO.Put_Line (TRC.Symbolic.Symbolic_Traceback (trace (1 .. trlen)));
    end dump_stack;
