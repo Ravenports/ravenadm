@@ -142,6 +142,7 @@ package body PortScan.Buildcycle is
          end loop;
       exception
          when crash : others =>
+            R := False;
             TIO.Put_Line (trackers (id).log_handle, "!!!! CRASH !!!! " &
                             EX.Exception_Information (crash));
       end;
