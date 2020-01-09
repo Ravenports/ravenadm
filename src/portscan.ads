@@ -224,6 +224,6 @@ private
    function get_port_variant (PR : port_record) return String;
    function scan_progress return String;
    procedure wipe_make_queue;
-   procedure dump_stack;
+   procedure dump_stack (media : TIO.File_Type);
 
 end PortScan;
