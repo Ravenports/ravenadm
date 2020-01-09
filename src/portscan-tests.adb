@@ -81,6 +81,12 @@ package body PortScan.Tests is
 
       LOG.log_phase_end (log_handle);
       return passed_check;
+   exception
+      when surprise : others =>
+         TIO.Put_Line (log_handle, "exec_check_plist function: " &
+                         EX.Exception_Information (surprise));
+         dump_stack (log_handle);
+         return False;
    end exec_check_plist;
 
 
