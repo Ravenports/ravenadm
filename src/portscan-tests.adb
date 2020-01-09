@@ -37,43 +37,78 @@ package body PortScan.Tests is
       LOG.log_phase_begin (log_handle, phase_name);
       TIO.Put_Line (log_handle, "====> Checking for package manifest issues");
 
-      if not ingest_manifests (specification  => specification,
-                               log_handle     => log_handle,
-                               directory_list => directory_list,
-                               dossier_list   => dossier_list,
-                               seq_id         => seq_id,
-                               namebase       => namebase,
-                               port_prefix    => port_prefix,
-                               rootdir        => rootdir)
-      then
-         passed_check := False;
-      end if;
+      begin
+         if not ingest_manifests (specification  => specification,
+                                  log_handle     => log_handle,
+                                  directory_list => directory_list,
+                                  dossier_list   => dossier_list,
+                                  seq_id         => seq_id,
+                                  namebase       => namebase,
+                                  port_prefix    => port_prefix,
+                                  rootdir        => rootdir)
+         then
+            passed_check := False;
+         end if;
+      exception
+         when surprise : others =>
+            TIO.Put_Line (log_handle, "exec_check_plist/ingest_manifests: " &
+                            EX.Exception_Information (surprise));
+            passed_check := False;
+      end;
 
-      if orphaned_directories_detected (log_handle     => log_handle,
-                                        directory_list => directory_list,
-                                        namebase       => namebase,
-                                        port_prefix    => port_prefix,
-                                        rootdir        => rootdir)
-      then
-         passed_check := False;
-      end if;
+      begin
+         if orphaned_directories_detected (log_handle     => log_handle,
+                                           directory_list => directory_list,
+                                           namebase       => namebase,
+                                           port_prefix    => port_prefix,
+                                           rootdir        => rootdir)
+         then
+            passed_check := False;
+         end if;
+      exception
+         when surprise : others =>
+            TIO.Put_Line (log_handle, "exec_check_plist/orphaned_directories_detected: " &
+                            EX.Exception_Information (surprise));
+            passed_check := False;
+      end;
 
-      if missing_directories_detected (log_handle, directory_list) then
-         passed_check := False;
-      end if;
+      begin
+         if missing_directories_detected (log_handle, directory_list) then
+            passed_check := False;
+         end if;
+      exception
+         when surprise : others =>
+            TIO.Put_Line (log_handle, "exec_check_plist/missing_directories_detected: " &
+                            EX.Exception_Information (surprise));
+            passed_check := False;
+      end;
 
-      if orphaned_files_detected (log_handle   => log_handle,
-                                  dossier_list => dossier_list,
-                                  namebase     => namebase,
-                                  port_prefix  => port_prefix,
-                                  rootdir      => rootdir)
-      then
-         passed_check := False;
-      end if;
+      begin
+         if orphaned_files_detected (log_handle   => log_handle,
+                                     dossier_list => dossier_list,
+                                     namebase     => namebase,
+                                     port_prefix  => port_prefix,
+                                     rootdir      => rootdir)
+         then
+            passed_check := False;
+         end if;
+      exception
+         when surprise : others =>
+            TIO.Put_Line (log_handle, "exec_check_plist/orphaned_files_detected: " &
+                            EX.Exception_Information (surprise));
+            passed_check := False;
+      end;
 
-      if missing_files_detected (log_handle, dossier_list) then
-         passed_check := False;
-      end if;
+      begin
+         if missing_files_detected (log_handle, dossier_list) then
+            passed_check := False;
+         end if;
+      exception
+         when surprise : others =>
+            TIO.Put_Line (log_handle, "exec_check_plist/missing_files_detected: " &
+                            EX.Exception_Information (surprise));
+            passed_check := False;
+      end;
 
       if passed_check then
          TIO.Put_Line (log_handle, "====> No manifest issues found");
@@ -81,12 +116,6 @@ package body PortScan.Tests is
 
       LOG.log_phase_end (log_handle);
       return passed_check;
-   exception
-      when surprise : others =>
-         TIO.Put_Line (log_handle, "exec_check_plist function: " &
-                         EX.Exception_Information (surprise));
-         dump_stack (log_handle);
-         return False;
    end exec_check_plist;
 
 
