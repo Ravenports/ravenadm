@@ -174,6 +174,7 @@ package body PortScan.Tests is
                line_text : HT.Text := HT.SUS (line);
                new_rec   : entry_record := (subpackage, False);
             begin
+               TIO.Put_Line (log_handle, "trace: " & line);
                if HT.leads (line, "@comment ") or else
                  HT.leads (line, "@desktop-file-utils") or else
                  HT.leads (line, "@terminfo") or else
