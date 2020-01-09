@@ -1,7 +1,6 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with File_Operations;
 with PortScan.Log;
 with Parameters;
 with Unix;
@@ -11,7 +10,6 @@ with Ada.Exceptions;
 
 package body PortScan.Tests is
 
-   package FOP renames File_Operations;
    package LOG renames PortScan.Log;
    package PM  renames Parameters;
    package LAT renames Ada.Characters.Latin_1;
@@ -159,20 +157,22 @@ package body PortScan.Tests is
 
       procedure eat_plist (position : subpackage_crate.Cursor)
       is
+         --  We cannot confidently use File_operations.get_file_contents because that function
+         --  allocates on the stack and attempting to read sufficiently large manifests result
+         --  in a Storage_Error during allocation
+
          subpackage    : HT.Text renames subpackage_crate.Element (position).subpackage;
          manifest_file : String := "/construction/" & namebase & "/.manifest." &
                          HT.USS (subpackage) & ".mktmp";
-         contents      : String := FOP.get_file_contents (rootdir & manifest_file);
+         handle        : TIO.File_Type;
          identifier    : constant String := HT.USS (subpackage) & " manifest: ";
-         markers       : HT.Line_Markers;
       begin
-         HT.initialize_markers (contents, markers);
+         TIO.Open (handle, TIO.In_File, rootdir & manifest_file);
          loop
-            exit when not HT.next_line_present (contents, markers);
+            exit when TIO.End_Of_File (handle);
             declare
-               line      : constant String := HT.extract_line (contents, markers);
-               line_text : HT.Text := HT.SUS (line);
-               new_rec   : entry_record := (subpackage, False);
+               line    : constant String := TIO.Get_Line (handle);
+               new_rec : entry_record := (subpackage, False);
             begin
                if HT.leads (line, "@comment ") or else
                  HT.leads (line, "@desktop-file-utils") or else
@@ -258,8 +258,12 @@ package body PortScan.Tests is
                end if;
             end;
          end loop;
+         TIO.Close (handle);
       exception
          when issue : others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
             TIO.Put_Line
               (log_handle,
                identifier & "check-plist error: " & EX.Exception_Message (issue));
