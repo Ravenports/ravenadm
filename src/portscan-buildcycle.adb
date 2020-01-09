@@ -145,6 +145,7 @@ package body PortScan.Buildcycle is
             R := False;
             TIO.Put_Line (trackers (id).log_handle, "!!!! CRASH !!!! " &
                             EX.Exception_Information (crash));
+            dump_stack;
       end;
       LOG.finalize_log (trackers (id).log_handle,
                         trackers (id).head_time,
