@@ -159,7 +159,7 @@ package body PortScan.Tests is
 
       procedure eat_plist (position : subpackage_crate.Cursor)
       is
-         subpackage    : HT.Text := subpackage_crate.Element (position).subpackage;
+         subpackage    : HT.Text renames subpackage_crate.Element (position).subpackage;
          manifest_file : String := "/construction/" & namebase & "/.manifest." &
                          HT.USS (subpackage) & ".mktmp";
          contents      : String := FOP.get_file_contents (rootdir & manifest_file);
@@ -260,7 +260,9 @@ package body PortScan.Tests is
          end loop;
       exception
          when issue : others =>
-            TIO.Put_Line (log_handle, "check-plist error: " & EX.Exception_Message (issue));
+            TIO.Put_Line
+              (log_handle,
+               identifier & "check-plist error: " & EX.Exception_Message (issue));
       end eat_plist;
    begin
       all_ports (seq_id).subpackages.Iterate (eat_plist'Access);
