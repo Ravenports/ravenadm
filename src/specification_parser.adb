@@ -335,7 +335,7 @@ package body Specification_Parser is
                         when var_opsys =>
                            if UTL.valid_lower_opsys (tkey) then
                               if valid_conditional_variable (tvalue) then
-                                 if HT.leads (tvalue, "MAKEFILE=") then
+                                 if HT.leads (tvalue, "MAKEFILE_LINE=") then
                                     spec.append_list (PSP.sp_verbatim, HT.part_2 (tvalue, "="));
                                  else
                                     spec.append_array (field        => PSP.sp_var_opsys,
@@ -356,7 +356,7 @@ package body Specification_Parser is
                         when var_arch =>
                            if UTL.valid_cpu_arch (tkey) then
                               if valid_conditional_variable (tvalue) then
-                                 if HT.leads (tvalue, "MAKEFILE=") then
+                                 if HT.leads (tvalue, "MAKEFILE_LINE=") then
                                     spec.append_list (PSP.sp_verbatim, HT.part_2 (tvalue, "="));
                                  else
                                     spec.append_array (field        => PSP.sp_var_arch,
@@ -2184,7 +2184,7 @@ package body Specification_Parser is
                        part_name = "VAR2" or else
                        part_name = "VAR3" or else
                        part_name = "VAR4" or else
-                       part_name = "MAKEFILE")
+                       part_name = "MAKEFILE_LINE")
                then
                   return False;
                end if;
