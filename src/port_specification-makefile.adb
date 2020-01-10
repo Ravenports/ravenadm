@@ -617,7 +617,11 @@ package body Port_Specification.Makefile is
             varname : String := HT.part_1 (full, "=");
             varval  : String := HT.part_2 (full, "=");
          begin
-            send (varname & "+=" & varval);
+            if varname = "MAKEFILE_LINE" then
+               send (varval);
+            else
+               send (varname & "+=" & varval);
+            end if;
          end print_var;
       begin
          if specs.var_opsys.Contains (key_opsys) then
