@@ -354,6 +354,8 @@ package body Port_Specification.Buildsheet is
          dump_helper (name, rec.PATCHFILES_ON, "PATCHFILES_ON");
          dump_helper (name, rec.PLIST_SUB_OFF, "PLIST_SUB_OFF");
          dump_helper (name, rec.PLIST_SUB_ON, "PLIST_SUB_ON");
+         dump_helper (name, rec.PHP_EXTENSIONS_OFF, "PHP_EXTENSIONS_OFF");
+         dump_helper (name, rec.PHP_EXTENSIONS_ON, "PHP_EXTENSIONS_ON");
          dump_helper (name, rec.PREVENTS_ON, "PREVENTS_ON");
          dump_helper (name, rec.QMAKE_ARGS_OFF, "QMAKE_ARGS_OFF");
          dump_helper (name, rec.QMAKE_ARGS_ON, "QMAKE_ARGS_ON");

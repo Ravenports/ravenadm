@@ -335,10 +335,14 @@ package body Specification_Parser is
                         when var_opsys =>
                            if UTL.valid_lower_opsys (tkey) then
                               if valid_conditional_variable (tvalue) then
-                                 spec.append_array (field        => PSP.sp_var_opsys,
-                                                    key          => tkey,
-                                                    value        => tvalue,
-                                                    allow_spaces => True);
+                                 if HT.leads (tvalue, "MAKEFILE=") then
+                                    spec.append_list (PSP.sp_verbatim, HT.part_2 (tvalue, "="));
+                                 else
+                                    spec.append_array (field        => PSP.sp_var_opsys,
+                                                       key          => tkey,
+                                                       value        => tvalue,
+                                                       allow_spaces => True);
+                                 end if;
                               else
                                  spec.set_parse_error
                                    (LN & " VAR_OPSYS definition failed validity check.");
@@ -352,10 +356,14 @@ package body Specification_Parser is
                         when var_arch =>
                            if UTL.valid_cpu_arch (tkey) then
                               if valid_conditional_variable (tvalue) then
-                                 spec.append_array (field        => PSP.sp_var_arch,
-                                                    key          => tkey,
-                                                    value        => tvalue,
-                                                    allow_spaces => True);
+                                 if HT.leads (tvalue, "MAKEFILE=") then
+                                    spec.append_list (PSP.sp_verbatim, HT.part_2 (tvalue, "="));
+                                 else
+                                    spec.append_array (field        => PSP.sp_var_arch,
+                                                       key          => tkey,
+                                                       value        => tvalue,
+                                                       allow_spaces => True);
+                                 end if;
                               else
                                  spec.set_parse_error
                                    (LN & " VAR_ARCH definition failed validity check.");
@@ -2175,7 +2183,8 @@ package body Specification_Parser is
                if not (part_name = "VAR1" or else
                        part_name = "VAR2" or else
                        part_name = "VAR3" or else
-                       part_name = "VAR4")
+                       part_name = "VAR4" or else
+                       part_name = "MAKEFILE")
                then
                   return False;
                end if;

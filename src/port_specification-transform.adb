@@ -64,6 +64,7 @@ package body Port_Specification.Transform is
                      when make_env_on         => specs.make_env.Append (item);
                      when patchfiles_on       => specs.patchfiles.Append (item);
                      when plist_sub_on        => specs.plist_sub.Append (item);
+                     when php_ext_on          => specs.php_extensions.Append (item);
                      when qmake_args_on       => specs.qmake_args.Append (item);
                      when run_depends_on      => specs.run_deps.Append (item);
                      when sub_files_on        => specs.sub_files.Append (item);
@@ -122,6 +123,7 @@ package body Port_Specification.Transform is
                      when make_env_off         => specs.make_env.Append (item);
                      when patchfiles_off       => specs.patchfiles.Append (item);
                      when plist_sub_off        => specs.plist_sub.Append (item);
+                     when php_ext_off          => specs.php_extensions.Append (item);
                      when qmake_args_off       => specs.qmake_args.Append (item);
                      when sub_files_off        => specs.sub_files.Append (item);
                      when sub_list_off         => specs.sub_list.Append (item);
@@ -227,6 +229,7 @@ package body Port_Specification.Transform is
             augment (only_for_opsys_on,    rec.ONLY_FOR_OPSYS_ON);
             augment (patchfiles_on,        rec.PATCHFILES_ON);
             augment (plist_sub_on,         rec.PLIST_SUB_ON);
+            augment (php_ext_on,           rec.PHP_EXTENSIONS_ON);
             augment (qmake_args_on,        rec.QMAKE_ARGS_ON);
             augment (run_depends_on,       rec.RUN_DEPENDS_ON);
             augment (sub_files_on,         rec.SUB_FILES_ON);
@@ -257,6 +260,7 @@ package body Port_Specification.Transform is
             augment (make_env_off,         rec.MAKE_ENV_OFF);
             augment (patchfiles_off,       rec.PATCHFILES_OFF);
             augment (plist_sub_off,        rec.PLIST_SUB_OFF);
+            augment (php_ext_off,          rec.PHP_EXTENSIONS_OFF);
             augment (qmake_args_off,       rec.QMAKE_ARGS_OFF);
             augment (run_depends_off,      rec.RUN_DEPENDS_OFF);
             augment (sub_files_off,        rec.SUB_FILES_OFF);
@@ -1820,8 +1824,6 @@ package body Port_Specification.Transform is
             flavor := "php73";
          elsif argument_present (specs, module, "72") then
             flavor := "php72";
-         elsif argument_present (specs, module, "71") then  --  to be removed 1 DEC 2019
-            flavor := "php71";
          end if;
          hit_build   := argument_present (specs, module, BUILD);
          hit_phpsize := argument_present (specs, module, "phpsize");
@@ -3021,8 +3023,6 @@ package body Port_Specification.Transform is
             flavor := "php73";
          elsif argument_present (specs, php_module, "72") then
             flavor := "php72";
-         elsif argument_present (specs, php_module, "71") then  -- to be removed 1 DEC 2019
-            flavor := "php71";
          end if;
       end if;
       hit_build := argument_present (specs, php_module, BUILD);

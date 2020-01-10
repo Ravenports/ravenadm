@@ -710,6 +710,9 @@ package body Port_Specification is
          when sp_qmake_args =>
             verify_entry_is_post_options;
             specs.qmake_args.Append (text_value);
+         when sp_verbatim =>
+            verify_entry_is_post_options;
+            specs.mk_verbatim.Append (text_value);
          when sp_build_deps | sp_buildrun_deps | sp_run_deps =>
             verify_entry_is_post_options;
             if not valid_dependency_format (value) then
@@ -1788,6 +1791,10 @@ package body Port_Specification is
                Element.XORG_COMPONENTS_OFF.Append (value_text);
             when xorg_comp_on =>
                Element.XORG_COMPONENTS_ON.Append (value_text);
+            when php_ext_off =>
+               Element.PHP_EXTENSIONS_OFF.Append (value_text);
+            when php_ext_on =>
+               Element.PHP_EXTENSIONS_ON.Append (value_text);
             when not_helper_format | not_supported_helper =>
                null;
          end case;
@@ -1844,6 +1851,10 @@ package body Port_Specification is
          when gnome_comp_on | gnome_comp_off =>
             if determine_gnome_component (value) = invalid_component then
                raise wrong_value with "gnome component '" & value & "' is not valid";
+            end if;
+         when php_ext_on | php_ext_off =>
+            if determine_php_extension (value) = invalid_extension then
+               raise wrong_value with "php extension '" & value & "' is not valid";
             end if;
          when df_index_off =>
             if not specs.dist_index_is_valid (value) then
@@ -2023,6 +2034,8 @@ package body Port_Specification is
             when patchfiles_on         => return rec.PATCHFILES_ON.Is_Empty;
             when plist_sub_off         => return rec.PLIST_SUB_OFF.Is_Empty;
             when plist_sub_on          => return rec.PLIST_SUB_ON.Is_Empty;
+            when php_ext_off           => return rec.PHP_EXTENSIONS_OFF.Is_Empty;
+            when php_ext_on            => return rec.PHP_EXTENSIONS_ON.Is_Empty;
             when prevents_on           => return rec.PREVENTS_ON.Is_Empty;
             when qmake_args_off        => return rec.QMAKE_ARGS_OFF.Is_Empty;
             when qmake_args_on         => return rec.QMAKE_ARGS_ON.Is_Empty;
@@ -4020,6 +4033,7 @@ package body Port_Specification is
          ("dom         ", dom),
          ("enchant     ", enchant),
          ("exif        ", exif),
+         ("ffi         ", ffi),
          ("fileinfo    ", fileinfo),
          ("filter      ", filter),
          ("ftp         ", ftp),
@@ -4065,6 +4079,7 @@ package body Port_Specification is
          ("snmp        ", snmp),
          ("soap        ", soap),
          ("sockets     ", sockets),
+         ("sodium      ", sodium),
          ("sqlite3     ", sqlite3),
          ("sysvmsg     ", sysvmsg),
          ("sysvsem     ", sysvsem),

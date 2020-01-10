@@ -48,7 +48,7 @@ package Port_Specification is
                        sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
                        sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks, sp_killdog,
                        sp_cgo_conf, sp_cgo_build, sp_cgo_inst, sp_cgo_cargs, sp_cgo_bargs,
-                       sp_cgo_iargs, sp_cgo_feat);
+                       sp_cgo_iargs, sp_cgo_feat, sp_verbatim);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -69,7 +69,7 @@ package Port_Specification is
                          test_target_off, test_target_on,
                          uses_off, uses_on, makefile_off, makefile_on, description,
                          only_for_opsys_on, xorg_comp_off, xorg_comp_on,
-                         gnome_comp_off, gnome_comp_on);
+                         gnome_comp_off, gnome_comp_on, php_ext_off, php_ext_on);
 
    --  Initialize specification data
    procedure initialize (specs : out Portspecs);
@@ -380,7 +380,7 @@ private
       pdo_dblib, pdo_firebird, pdo_mysql, pdo_odbc, pdo_pgsql, pdo_sqlite, pgsql, phar, posix,
       pspell, radius, readline, recode, redis, session, shmop, simplexml, snmp, soap, sockets,
       sqlite3, sysvmsg, sysvsem, sysvshm, tidy, tokenizer, wddx, xml, xmlreader, xmlrpc,
-      xmlwriter, xsl, zip, zlib, invalid_extension);
+      xmlwriter, xsl, zip, zlib, ffi, sodium, invalid_extension);
 
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
@@ -481,6 +481,8 @@ private
          XORG_COMPONENTS_ON    : string_crate.Vector;
          GNOME_COMPONENTS_OFF  : string_crate.Vector;
          GNOME_COMPONENTS_ON   : string_crate.Vector;
+         PHP_EXTENSIONS_OFF    : string_crate.Vector;
+         PHP_EXTENSIONS_ON     : string_crate.Vector;
       end record;
 
    package option_crate is new CON.Hashed_Maps
