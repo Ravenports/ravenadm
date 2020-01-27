@@ -3756,7 +3756,6 @@ package body Port_Specification is
          ("orbit2            ", orbit2),
          ("pango             ", pango),
          ("pangomm           ", pangomm),
-         ("pygobj2           ", pygobj2),
          ("pygobject         ", pygobject),
          ("vte               ", vte)
         );

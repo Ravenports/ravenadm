@@ -2802,8 +2802,6 @@ package body Port_Specification.Transform is
                implies (libxml2);
             when orbit2 =>
                implies (libidl);
-            when pygobj2 =>
-               implies (glib);
             when pygobject =>
                implies (glib);
             when vte =>
@@ -2875,8 +2873,6 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "pango" & ps);
             when pangomm =>
                add_buildrun_depends (specs, "pangomm" & ss);
-            when pygobj2 =>
-               add_buildrun_depends (specs, "python-pygobject2:single:py27");
             when pygobject =>
                add_buildrun_depends (specs, "python-pygobject:primary:" & defpy);
                add_buildrun_depends (specs, "python-pygobject:common:" & defpy);

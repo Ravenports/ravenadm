@@ -355,7 +355,7 @@ private
 
    type gnome_type is
      (atk, cairo, glib, gtk2, gtk3, gtksourceview3, gdkpixbuf, intltool, introspection, pango,
-      pygobject, pygobj2, libcroco, libglade, libgsf, librsvg, libxml2, libxslt,
+      pygobject, libcroco, libglade, libgsf, librsvg, libxml2, libxslt,
       dconf, gconf, libidl, orbit2, vte, libxmlxx2, libsigcxx2, glibmm, cairomm, atkmm,
       pangomm, gtkmm24, gtkmm30,
       invalid_component);
