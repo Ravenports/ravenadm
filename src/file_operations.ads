@@ -5,8 +5,13 @@ package File_Operations is
 
    file_handling    : exception;
 
-      --  Generic function to scan a text file and convert to a string
+   --  Generic function to scan a text file and convert to a string
    function get_file_contents (dossier : String) return String;
+
+   --  Another generic function to scan a text file and convert it to a string
+   --  However, this version will not suffer a storage error exception when the
+   --  source file is very large
+   function memory_safe_slurp (dossier : String) return String;
 
    --  Generic procedure to convert a string to a new text file
    --  exception thrown on failures

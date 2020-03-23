@@ -44,7 +44,7 @@ package body File_Operations is
             exception
                when File_String_IO.Status_Error | File_String_IO.Use_Error =>
                   if attempts = 5 then
-                     raise file_handling with "get_file_contents: remained open: " & dossier;
+                     raise file_handling with "get_file_contents: failed open: " & dossier;
                   end if;
                   attempts := attempts + 1;
                   delay 0.1;
@@ -62,9 +62,69 @@ package body File_Operations is
       end;
    exception
       when Storage_Error =>
-         raise file_handling with "get_file_contents(" & dossier & ") failed to allocate memory";
+         return memory_safe_slurp (dossier);
 
    end get_file_contents;
+
+
+   --------------------------------------------------------------------------------------------
+   --  memory_safe_slurp
+   --------------------------------------------------------------------------------------------
+   function memory_safe_slurp (dossier : String) return String
+   is
+      File_Size : constant Natural := Natural (DIR.Size (dossier));
+   begin
+      if File_Size = 0 then
+         return "";
+      end if;
+
+      declare
+         subtype File_String is String (1 .. File_Size);
+
+         contents  : File_String;
+         handle    : TIO.File_Type;
+         attempts  : Natural := 0;
+         arrow     : Natural := File_String'First;
+      begin
+         --  Handle the case that the same file is already being read by another task.
+         --  Make 5 attempts separated by 0.1 seconds
+         loop
+            begin
+               TIO.Open (handle, TIO.In_File, dossier);
+               exit;
+            exception
+               when TIO.Use_Error | TIO.Status_Error =>
+                  if attempts = 5 then
+                     raise file_handling with "memory_safe_slurp: failed open: " & dossier;
+                  end if;
+                  attempts := attempts + 1;
+                  delay 0.1;
+            end;
+         end loop;
+         loop
+            exit when TIO.End_Of_File (handle);
+            declare
+               line : constant String := TIO.Get_Line (handle);
+               feed : constant Natural := arrow + line'Length;
+            begin
+               contents (arrow .. feed - 1) := line;
+               contents (feed) := ASCII.LF;
+               arrow := feed + 1;
+            end;
+         end loop;
+         TIO.Close (handle);
+         return contents;
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
+            raise file_handling with "memory_safe_slurp(" & dossier & ") failed";
+      end;
+   exception
+      when Storage_Error =>
+         raise file_handling with "memory_safe_slurp(" & dossier & ") failed to allocate memory";
+   end memory_safe_slurp;
 
 
    --------------------------------------------------------------------------------------------
