@@ -6,6 +6,7 @@ with Definitions; use Definitions;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Text_IO;
+with Ada.Exceptions;
 with Package_Manifests;
 with File_Operations;
 with Utilities;
@@ -18,6 +19,7 @@ package body Port_Specification.Buildsheet is
    package MAN renames Package_Manifests;
    package FOP renames File_Operations;
    package UTL renames Utilities;
+   package EX  renames Ada.Exceptions;
 
    --------------------------------------------------------------------------------------------
    --  generator
@@ -545,7 +547,7 @@ package body Port_Specification.Buildsheet is
       is
          --  Manifests are subpackage-based
          --  Not having a subpackage manifest is ok.
-         --  Subpackaegs typically missing: docs, examples, complete (Metaport)
+         --  Subpackages typically missing: docs, examples, complete (Metaport)
       begin
          specs.variants.Iterate (Process => dump_manifest'Access);
          temp_storage.Clear;
@@ -780,10 +782,12 @@ package body Port_Specification.Buildsheet is
          TIO.Close (makefile_handle);
       end if;
    exception
-      when others =>
+      when issue : others =>
          if TIO.Is_Open (makefile_handle) then
             TIO.Close (makefile_handle);
          end if;
+         TIO.Put_Line ("PROBLEM: Buildsheet generation aborted");
+         TIO.Put_Line (EX.Exception_Information (issue));
 
    end generator;
 
