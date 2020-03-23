@@ -641,18 +641,20 @@ is
       --   ------------------------------------------------
 
 
-      contents : String := FOP.get_file_contents (String (old_manifest));
+      --  We cannot confidently use File_operations.get_file_contents because that function
+      --  allocates on the stack and attempting to read sufficiently large manifests result
+      --  in a Storage_Error during allocation
+
+      handle : TIO.File_Type;
 
    begin
       --  Go through each line and put in the correct storage buckets
-      declare
-         markers : HT.Line_Markers;
       begin
-         HT.initialize_markers (contents, markers);
+         TIO.Open (handle, TIO.In_File, String (old_manifest));
          loop
-            exit when not HT.next_line_present (contents, markers);
+            exit when TIO.End_Of_File (handle);
             declare
-               line  : constant String := HT.extract_line (contents, markers);
+               line  : constant String := TIO.Get_Line (handle);
                perms : manifest_file;
             begin
                if HT.leads (line, "@mode") then
@@ -692,6 +694,12 @@ is
                end if;
             end;
          end loop;
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
       end;
 
       --  Sort keywords and folders
