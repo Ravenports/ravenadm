@@ -11,7 +11,7 @@ with Ada.Calendar;
 with Ada.Text_IO;
 with Ada.Exceptions;
 with Specification_Parser;
-with File_Operations;
+with File_Operations.Heap;
 with Information;
 with Parameters;
 with Replicant;
@@ -1014,20 +1014,25 @@ package body Pilot is
 
       function variant_valid (fileloc : String; variant : String) return Boolean
       is
-         contents    : String := FOP.get_file_contents (fileloc);
+         package FOPH is new FOP.Heap (Natural (DIR.Size (fileloc)));
+
+         variantsvar : Natural;
          variants    : constant String := "VARIANTS=" & LAT.HT & LAT.HT;
-         single_LF   : constant String (1 .. 1) := (1 => LAT.LF);
-         variantsvar : Natural := AS.Fixed.Index (contents, variants);
       begin
+         FOPH.slurp_file (fileloc);
+         variantsvar := AS.Fixed.Index (FOPH.file_contents.all, variants);
+
          if variantsvar = 0 then
             return False;
          end if;
+
          declare
-            nextlf : Natural := AS.Fixed.Index (Source  => contents,
+            single_LF   : constant String (1 .. 1) := (1 => LAT.LF);
+            nextlf : Natural := AS.Fixed.Index (Source  => FOPH.file_contents.all,
                                                 Pattern => single_LF,
                                                 From    => variantsvar);
-            special : String :=
-              HT.strip_excessive_spaces (contents (variantsvar + variants'Length .. nextlf - 1));
+            special : String := HT.strip_excessive_spaces
+              (FOPH.file_contents.all (variantsvar + variants'Length .. nextlf - 1));
          begin
             if nextlf = 0 then
                return False;
