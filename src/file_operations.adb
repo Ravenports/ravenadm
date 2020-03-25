@@ -88,11 +88,18 @@ package body File_Operations is
                              Item => contents);
       File_String_IO.Close  (file_handle);
    exception
+      when Storage_Error =>
+         if File_String_IO.Is_Open (file_handle) then
+            File_String_IO.Close (file_handle);
+         end if;
+         raise file_handling
+           with "dump_contents_to_file(" & dossier & ") failed to allocate memory";
       when others =>
          if File_String_IO.Is_Open (file_handle) then
             File_String_IO.Close (file_handle);
          end if;
-         raise file_handling;
+         raise file_handling
+           with "dump_contents_to_file(" & dossier & ") error";
    end dump_contents_to_file;
 
 

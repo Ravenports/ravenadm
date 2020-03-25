@@ -734,9 +734,9 @@ package body Specification_Parser is
          end if;
       end if;
    exception
-      when FOP.file_handling =>
+      when FX : FOP.file_handling =>
          success := False;
-         spec.set_parse_error ("Failed to dump contents of " & dossier);
+         spec.set_parse_error (EX.Exception_Message (FX));
    end parse_specification_file;
 
 
