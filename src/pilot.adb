@@ -187,7 +187,7 @@ package body Pilot is
       if successful then
          specification.dump_specification;
       else
-         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line ("dump_ravensource < " & errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (specification.get_parse_error);
       end if;
    end dump_ravensource;
@@ -264,7 +264,7 @@ package body Pilot is
                         arch          => sysrootver.arch,
                         output_file   => "");
       else
-         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line ("generate_makefile < " & errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (specification.get_parse_error);
       end if;
    end generate_makefile;
@@ -323,7 +323,7 @@ package body Pilot is
                            changed => bogustime,
                            devscan => True);
       else
-         TIO.Put_Line (errprefix & "Failed to parse " & dossier);
+         TIO.Put_Line ("generate_webpage < " & errprefix & "Failed to parse " & dossier);
          TIO.Put_Line (specification.get_parse_error);
       end if;
       REP.destroy_workzone;
@@ -377,7 +377,7 @@ package body Pilot is
       end if;
 
       if not successful then
-         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line ("generate_buildsheet < " & errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (specification.get_parse_error);
          return;
       end if;
@@ -1183,7 +1183,7 @@ package body Pilot is
                                     stop_at_targets => True,
                                     extraction_dir  => portloc);
       if not successful then
-         TIO.Put_Line (errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line ("generate_distinfo < " & errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (specification.get_parse_error);
          goto endzone;
       end if;
