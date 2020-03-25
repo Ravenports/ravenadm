@@ -42,158 +42,171 @@ is
          Hash            => HT.hash,
          Equivalent_Keys => HT.equivalent);
 
-      function next_line return Boolean;
-      function last_slash return Natural;
+      package output_crate is new CON.Vectors
+        (Element_Type => HT.Text,
+         Index_Type   => Positive,
+         "="          => HT.SU."=");
+
       procedure increment (Key : HT.Text; Element : in out Natural);
+      function last_slash_index (line : String) return Natural;
       procedure save_line (line : String);
+      procedure count_files_per_directory;
+      procedure compress;
 
-      back_marker   : Natural;
-      back_marker2  : Natural := 0;
-      front_marker  : Natural;
-      front_marker2 : Natural := 0;
-      contents      : String := FOP.get_file_contents (String (manifest));
-      canvas        : String (1 .. contents'Length);
-      dircount      : crate.Map;
-      new_key       : HT.Text;
-      last_key      : HT.Text;
-      spos          : Natural;
-      empty_plist   : constant String := "@comment manifest is empty, mistake??";
-
-      function next_line return Boolean
-      is
-         checkstart : Boolean := True;
-      begin
-         if front_marker > 1 and then
-           front_marker + 2 > contents'Last
-         then
-            --  lines are at least one character long
-            return False;
-         end if;
-
-         if front_marker > contents'First then
-            back_marker  := front_marker + 2;
-            front_marker := back_marker;
-         end if;
-
-         --  Any manifest with 2 consecutive line feeds will break the logic, so just
-         --  truncate immediately if as soon as this is detected
-         if contents (front_marker) = ASCII.LF then
-            return False;
-         end if;
-
-         loop
-            exit when front_marker = contents'Last;
-            exit when contents (front_marker + 1) = ASCII.LF;
-            front_marker := front_marker + 1;
-            if checkstart then
-               if contents (back_marker) = ' ' then
-                  --  Remove leading spaces
-                  back_marker := back_marker + 1;
-               else
-                  checkstart := False;
-               end if;
-            end if;
-         end loop;
-         --  Return True as long as least one non-space character is on this line
-         return not checkstart;
-      end next_line;
-
-      function last_slash return Natural
-      is
-         marker : Natural := front_marker;
-      begin
-         if contents (front_marker) = '/' then
-            return 0;  --  Unexpected, probably plist error
-         end if;
-         loop
-            marker := marker - 1;
-            exit when marker < back_marker;
-            if contents (marker) = '/' then
-               return marker;
-            end if;
-         end loop;
-         return 0;
-      end last_slash;
+      dircount    : crate.Map;
+      results     : output_crate.Vector;
+      total_lines : Natural := 0;
+      total_chars : Natural := 0;
 
       procedure increment (Key : HT.Text; Element : in out Natural) is
       begin
          Element := Element + 1;
       end increment;
 
+      function last_slash_index (line : String) return Natural
+      is
+         marker : Natural := line'Last;
+      begin
+         --  It's unexpected if line ends with "/", it's a user error.  Return 0 in this case
+         if line (marker) /= '/' then
+            loop
+               marker := marker - 1;
+               exit when marker < line'First;
+               if line (marker) = '/' then
+                  return marker;
+               end if;
+            end loop;
+         end if;
+         return 0;
+      end last_slash_index;
+
       procedure save_line (line : String) is
       begin
-         if line'Length > 0 then
-            back_marker2 := front_marker2 + 1;
-            front_marker2 := front_marker2 + line'Length;
-            canvas (back_marker2 .. front_marker2) := line;
-            front_marker2 := front_marker2 + 1;
-            canvas (front_marker2) := ASCII.LF;
+         if total_lines = 0 then
+            total_chars := line'Length;
+         else
+            total_chars := total_chars + 1 + line'Length;
          end if;
+         total_lines := total_lines + 1;
+         results.Append (HT.SUS (line));
       end save_line;
 
-   begin
-      if contents'Length < 2 then
-         return empty_plist;
-      end if;
-      back_marker  := contents'First;
-      front_marker := contents'First;
-      loop
-         exit when not next_line;
-         if not (contents (back_marker) = ASCII.At_Sign) then
-            spos := last_slash;
-            if spos > 1 then
-               new_key := HT.SUS (contents (back_marker .. spos - 1));
-               if dircount.Contains (new_key) then
-                  dircount.Update_Element (Position => dircount.Find (new_key),
-                                           Process => increment'Access);
-               else
-                  dircount.Insert (new_key, 1);
-               end if;
-            end if;
-         end if;
-      end loop;
-      back_marker  := contents'First;
-      front_marker := contents'First;
-      loop
-         exit when not next_line;
-         if contents (back_marker) = ASCII.At_Sign then
-            save_line (contents (back_marker .. front_marker));
-         else
-            spos := last_slash;
-            if spos > 1 then
-               new_key := HT.SUS (contents (back_marker .. spos - 1));
-               if crate.Element (dircount.Find (new_key)) = 1 then
-                  --  Directory only has one file, so just them together
-                  save_line (contents (back_marker .. front_marker));
-               else
-                  if not HT.equivalent (last_key, new_key) then
-                     declare
-                        folder : String := contents (back_marker .. spos - 1) & "/";
-                     begin
-                        save_line (folder);
-                     end;
+      procedure count_files_per_directory
+      is
+         handle : TIO.File_Type;
+         key    : HT.Text;
+      begin
+         TIO.Open (handle, TIO.In_File, String (manifest));
+         loop
+            exit when TIO.End_Of_File (handle);
+            declare
+               line : constant String := HT.trim (TIO.Get_Line (handle));
+               spos : Natural;
+            begin
+               if line (line'First) /= ASCII.At_Sign then
+                  spos := last_slash_index (line);
+
+                  --  Don't count single-slash files starting with "/" (root files)
+                  if spos > line'First then
+                     key := HT.SUS (line (line'First .. spos - 1));
+                     if dircount.Contains (key) then
+                        dircount.Update_Element (Position => dircount.Find (key),
+                                                 Process => increment'Access);
+                     else
+                        dircount.Insert (key, 1);
+                     end if;
                   end if;
-                  declare
-                     single_file : String := " " & contents (spos + 1 .. front_marker);
-                  begin
-                     save_line (single_file);
-                  end;
-                  last_key := new_key;
                end if;
-            else
-               --  Likely a file in $PREFIX directory
-               --  Otherwise, something unexpected so just keep it in any case
-               save_line (contents (back_marker .. front_marker));
+            end;
+         end loop;
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
             end if;
-         end if;
-      end loop;
-      if front_marker2 = 0 then
-         return empty_plist;
+            raise compress_issue
+              with "compress_manifest.count_files_per_directory(" & String (manifest) & ")";
+      end count_files_per_directory;
+
+      procedure compress
+      is
+         handle   : TIO.File_Type;
+         new_key  : HT.Text;
+         last_key : HT.Text;
+      begin
+         TIO.Open (handle, TIO.In_File, String (manifest));
+         loop
+            exit when TIO.End_Of_File (handle);
+            declare
+               line : constant String := HT.trim (TIO.Get_Line (handle));
+               spos : Natural;
+            begin
+               if line (line'First) = ASCII.At_Sign then
+                  save_line (line);
+               else
+                  spos := last_slash_index (line);
+
+                  if spos > line'First then
+                     new_key := HT.SUS (line (line'First .. spos - 1));
+                     if crate.Element (dircount.Find (new_key)) = 1 then
+                        --  Directory only has one file, so just keep it with the folder
+                        save_line (line);
+                     else
+                        if not HT.equivalent (last_key, new_key) then
+                           --  Folder changed, send it
+                           save_line (line (line'First .. spos - 1) & "/");
+                        end if;
+                        --  Send the base filename
+                        save_line (" " & line (spos + 1 .. line'Last));
+                        last_key := new_key;
+                     end if;
+                  else
+                     --  Likely a file in $PREFIX directory (single-slash file starting with "/")
+                     --  Otherwise, something unexpected so just keep it in any case
+                     save_line (line);
+                  end if;
+               end if;
+            end;
+         end loop;
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
+            raise compress_issue
+              with "compress_manifest.compress(" & String (manifest) & ")";
+      end compress;
+
+   begin
+      count_files_per_directory;
+      compress;
+      if total_lines = 0 then
+         return "@comment manifest is empty, mistake??";
       else
-         return canvas (canvas'First .. front_marker2);
+         declare
+            procedure write_to_canvas (position : output_crate.Cursor);
+
+            result : String (1 .. total_chars);
+            index  : Positive := result'First;
+
+            procedure write_to_canvas (position : output_crate.Cursor)
+            is
+               line : String := HT.USS (output_crate.Element (position));
+            begin
+               if index > result'First then
+                  result (index) := ASCII.LF;
+                  index := index + 1;
+               end if;
+               result (index .. index + line'Length - 1) := line;
+               index := index + line'Length;
+            end write_to_canvas;
+         begin
+            results.Iterate (write_to_canvas'Access);
+            return result;
+         end;
       end if;
-   exception
-      when file_handling => raise compress_issue;
    end compress_manifest;
 
 
