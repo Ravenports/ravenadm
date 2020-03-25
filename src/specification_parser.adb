@@ -4,7 +4,7 @@
 with Unix;
 with Utilities;
 with Parameters;
-with File_Operations;
+with File_Operations.Heap;
 with Package_Manifests;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
@@ -33,7 +33,8 @@ package body Specification_Parser is
       stop_at_targets : Boolean;
       extraction_dir  : String := "")
    is
-      contents      : constant String  := FOP.get_file_contents (dossier);
+      package FOPH is new FOP.Heap (Natural (DIR.Size (dossier)));
+
       stop_at_files : constant Boolean := (extraction_dir = "");
       converting    : constant Boolean := not stop_at_targets and then stop_at_files;
       match_opsys   : constant String  := UTL.lower_opsys (opsys_focus);
@@ -58,15 +59,17 @@ package body Specification_Parser is
 
       use type PSP.spec_option;
    begin
+      FOPH.slurp_file (dossier);
+
       success := False;
       spec.initialize;
-      HT.initialize_markers (contents, markers);
+      HT.initialize_markers (FOPH.file_contents.all, markers);
       loop
-         exit when not HT.next_line_present (contents, markers);
+         exit when not HT.next_line_present (FOPH.file_contents.all, markers);
          quad_tab := False;
          linenum := linenum + 1;
          declare
-            line : constant String := HT.extract_line (contents, markers);
+            line : constant String := HT.extract_line (FOPH.file_contents.all, markers);
             LN   : constant String := "Line" & linenum'Img & ": ";
          begin
             if HT.IsBlank (line) then
@@ -617,7 +620,9 @@ package body Specification_Parser is
                   declare
                      filename : String  := retrieve_file_name (line);
                      filesize : Natural := retrieve_file_size (line);
-                     fileguts : String  := HT.extract_file (contents, markers, filesize);
+                     fileguts : String  := HT.extract_file (FOPH.file_contents.all,
+                                                            markers,
+                                                            filesize);
                      subdir   : String  := HT.partial_search (filename, 0, "/");
                      --  only acceptable subdir:
                      --     1. ""
