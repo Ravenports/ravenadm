@@ -342,7 +342,10 @@ package body PortScan.Scan is
       combined_wait : Boolean := True;
       aborted : Boolean := False;
 
-      task type scan (lot : scanners);
+      task type scan (lot : scanners) is
+         pragma Storage_Size (task_stack_limit);
+      end scan;
+
       task body scan
       is
          procedure populate (cursor : subqueue.Cursor);
@@ -1316,7 +1319,10 @@ package body PortScan.Scan is
          finished      : array (scanners) of Boolean := (others => False);
          combined_wait : Boolean := True;
 
-         task type scan (lot : scanners);
+         task type scan (lot : scanners) is
+            pragma Storage_Size (task_stack_limit);
+         end scan;
+
          task body scan
          is
             procedure make_buildsheet (cursor : string_crate.Cursor);
@@ -1833,7 +1839,10 @@ package body PortScan.Scan is
          end if;
       end combine;
 
-      task type scan (lot : scanners);
+      task type scan (lot : scanners) is
+         pragma Storage_Size (task_stack_limit);
+      end scan;
+
       task body scan
       is
          procedure populate (cursor : subqueue.Cursor);
