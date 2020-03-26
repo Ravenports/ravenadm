@@ -1,9 +1,11 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Ada.Direct_IO;
+with Ada.Text_IO;
 
 package body File_Operations.Heap is
+
+   package TIO renames Ada.Text_IO;
 
    procedure slurp_file (dossier : String) is
    begin
@@ -14,22 +16,19 @@ package body File_Operations.Heap is
       end if;
 
       declare
-         package File_String_IO is new Ada.Direct_IO (HM_File_String);
-
-         file_handle : File_String_IO.File_Type;
-         attempts    : Natural := 0;
+         handle   : TIO.File_Type;
+         attempts : Natural := 0;
+         arrow    : Natural := file_contents'First;
       begin
          --  The introduction of variants causes a buildsheet to be scanned once per variant.
          --  It's possible (even common) for simultaneous requests to scan the same buildsheet to
          --  occur.  Thus, if the file is already open, wait and try again (up to 5 times)
          loop
             begin
-               File_String_IO.Open  (File => file_handle,
-                                     Mode => File_String_IO.In_File,
-                                     Name => dossier);
+               TIO.Open (handle, TIO.In_File, dossier);
                exit;
             exception
-               when File_String_IO.Status_Error | File_String_IO.Use_Error =>
+               when TIO.Use_Error | TIO.Status_Error =>
                   if attempts = 5 then
                      raise file_handling with "slurp_file: failed open: " & dossier;
                   end if;
@@ -37,12 +36,28 @@ package body File_Operations.Heap is
                   delay 0.1;
             end;
          end loop;
-         File_String_IO.Read  (File => file_handle, Item => file_contents.all);
-         File_String_IO.Close (file_handle);
+         loop
+            exit when TIO.End_Of_File (handle);
+            declare
+               line : constant String := TIO.Get_Line (handle);
+               feed : constant Natural := arrow + line'Length;
+            begin
+               file_contents.all (arrow .. feed - 1) := line;
+               file_contents.all (feed) := ASCII.LF;
+               arrow := feed + 1;
+            end;
+         end loop;
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
+            raise file_handling with "slurp_file(" & dossier & ") failed";
       end;
    exception
       when Storage_Error =>
-         raise file_handling with "failed to allocate memory on heap";
+         raise file_handling with "slurp_file: failed to allocate memory on heap";
    end slurp_file;
 
 end File_Operations.Heap;
