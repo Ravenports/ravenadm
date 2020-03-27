@@ -233,17 +233,10 @@ is
      (compressed_string : String;
       save_to_file      : Filename)
    is
-      --  Like the compress routine, decompress requires two passes.
-      --  Pass 1 to calculate how long the result will be and
-      --  Pass 2 to write the result after allocation
-
       function next_line return Boolean;
 
       back_marker   : Natural;
       front_marker  : Natural;
-      line_size     : Natural;
-      out_size      : Natural := 0;
-      folder_size   : Natural := 0;
 
       function next_line return Boolean is
       begin
@@ -265,74 +258,40 @@ is
       if compressed_string'Length < 2 then
          raise decompress_issue;
       end if;
-      back_marker  := compressed_string'First;
-      front_marker := compressed_string'First;
-      loop
-         exit when not next_line;
-         line_size := (front_marker - back_marker) + 2;  --  includes LF
-         if compressed_string (back_marker) = ASCII.At_Sign then
-            out_size := out_size + line_size;
-         else
-            if compressed_string (back_marker) = ' ' then
-               if folder_size = 0 then
-                  raise decompress_issue;
-               end if;
-               out_size := out_size + folder_size + line_size - 1;
-            else
-               if compressed_string (front_marker) = '/' then
-                  --  Folder, don't count yet, but note size minus LF
-                  folder_size := line_size - 1;
-               else
-                  --  Should be folder/file single entry; take it all
-                  out_size := out_size + line_size;
-               end if;
-            end if;
-         end if;
-      end loop;
 
       back_marker  := compressed_string'First;
       front_marker := compressed_string'First;
       declare
-         procedure save_line (line : String);
-
-         result        : String (1 .. out_size);
-         back_marker2  : Natural := 0;
-         front_marker2 : Natural := 0;
          last_folder   : HT.Text;
-
-         procedure save_line (line : String) is
-         begin
-            if line'Length > 0 then
-               back_marker2 := front_marker2 + 1;
-               front_marker2 := front_marker2 + line'Length;
-               result (back_marker2 .. front_marker2) := line;
-               front_marker2 := front_marker2 + 1;
-               result (front_marker2) := ASCII.LF;
-            end if;
-         end save_line;
+         handle : TIO.File_Type;
       begin
+         TIO.Open (File => handle,
+                   Mode => TIO.Out_File,
+                   Name => String (save_to_file));
          loop
             exit when not next_line;
             if compressed_string (back_marker) = ASCII.At_Sign then
-               save_line (compressed_string (back_marker .. front_marker));
+               TIO.Put_Line (handle, compressed_string (back_marker .. front_marker));
             else
                if compressed_string (back_marker) = ' ' then
-                  save_line (HT.USS (last_folder) &
-                               compressed_string (back_marker + 1 .. front_marker));
+                  TIO.Put_Line (handle, HT.USS (last_folder) &
+                                  compressed_string (back_marker + 1 .. front_marker));
                else
                   if compressed_string (front_marker) = '/' then
                      last_folder := HT.SUS (compressed_string (back_marker .. front_marker));
                   else
-                     save_line (compressed_string (back_marker .. front_marker));
+                     TIO.Put_Line (handle, compressed_string (back_marker .. front_marker));
                   end if;
                end if;
             end if;
          end loop;
-
-         FOP.dump_contents_to_file (contents => result,
-                                    dossier  => String (save_to_file));
+         TIO.Close (handle);
       exception
-         when file_handling => raise decompress_issue;
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
+            raise decompress_issue;
       end;
 
    end decompress_manifest;
