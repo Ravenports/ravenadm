@@ -1,11 +1,12 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Ada.Text_IO;
+with Ada.Text_IO.Text_Streams;
 
 package body File_Operations.Heap is
 
    package TIO renames Ada.Text_IO;
+   package STR renames Ada.Text_IO.Text_Streams;
 
    procedure slurp_file (dossier : String) is
    begin
@@ -18,7 +19,6 @@ package body File_Operations.Heap is
       declare
          handle   : TIO.File_Type;
          attempts : Natural := 0;
-         arrow    : Natural := file_contents'First;
       begin
          --  The introduction of variants causes a buildsheet to be scanned once per variant.
          --  It's possible (even common) for simultaneous requests to scan the same buildsheet to
@@ -36,21 +36,8 @@ package body File_Operations.Heap is
                   delay 0.1;
             end;
          end loop;
-         loop
-            --  Don't use EOF check.
-            --  If text file ends with two LF, EOF will trigger after the first
-            exit when arrow > File_Size;
-            declare
-               line : constant String := TIO.Get_Line (handle);
-               feed : constant Natural := arrow + line'Length;
-            begin
-               file_contents.all (arrow .. feed - 1) := line;
-               --  handle case where last line is not terminated
-               if feed <= File_Size then
-                  file_contents.all (feed) := ASCII.LF;
-               end if;
-               arrow := feed + 1;
-            end;
+         for arrow in file_contents'Range loop
+            file_contents (arrow) := Character'Input (STR.Stream (handle));
          end loop;
          TIO.Close (handle);
       exception
