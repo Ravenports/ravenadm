@@ -84,11 +84,7 @@ is
 
       procedure save_line (line : String) is
       begin
-         if total_lines = 0 then
-            total_chars := line'Length;
-         else
-            total_chars := total_chars + 1 + line'Length;
-         end if;
+         total_chars := total_chars + line'Length + 1;
          total_lines := total_lines + 1;
          results.Append (HT.SUS (line));
       end save_line;
@@ -197,12 +193,8 @@ is
             is
                line : String := HT.USS (output_crate.Element (position));
             begin
-               if index > result'First then
-                  result (index) := ASCII.LF;
-                  index := index + 1;
-               end if;
-               result (index .. index + line'Length - 1) := line;
-               index := index + line'Length;
+               result (index .. index + line'Length) := line & ASCII.LF;
+               index := index + line'Length + 1;
             end write_to_canvas;
          begin
             results.Iterate (write_to_canvas'Access);
