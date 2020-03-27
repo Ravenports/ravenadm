@@ -268,9 +268,9 @@ is
          last_folder : HT.Text;
          handle      : TIO.File_Type;
       begin
-         TIO.Open (File => handle,
-                   Mode => TIO.Out_File,
-                   Name => String (save_to_file));
+         TIO.Create (File => handle,
+                     Mode => TIO.Out_File,
+                     Name => String (save_to_file));
          loop
             exit when not next_line;
             if compressed_string (back_marker) = ASCII.At_Sign then
