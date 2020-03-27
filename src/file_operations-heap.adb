@@ -37,13 +37,18 @@ package body File_Operations.Heap is
             end;
          end loop;
          loop
-            exit when TIO.End_Of_File (handle);
+            --  Don't use EOF check.
+            --  If text file ends with two LF, EOF will trigger after the first
+            exit when arrow > File_Size;
             declare
                line : constant String := TIO.Get_Line (handle);
                feed : constant Natural := arrow + line'Length;
             begin
                file_contents.all (arrow .. feed - 1) := line;
-               file_contents.all (feed) := ASCII.LF;
+               --  handle case where last line is not terminated
+               if feed <= File_Size then
+                  file_contents.all (feed) := ASCII.LF;
+               end if;
                arrow := feed + 1;
             end;
          end loop;
