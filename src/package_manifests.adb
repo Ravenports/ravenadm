@@ -4,6 +4,7 @@
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 with Ada.Directories;
+with Ada.Exceptions;
 with Ada.Text_IO;
 with File_Operations;
 with HelperText;
@@ -13,6 +14,7 @@ is
    package DIR renames Ada.Directories;
    package CON renames Ada.Containers;
    package TIO renames Ada.Text_IO;
+   package EX  renames Ada.Exceptions;
    package FOP renames File_Operations;
    package HT  renames HelperText;
 
@@ -256,14 +258,15 @@ is
       end next_line;
    begin
       if compressed_string'Length < 2 then
-         raise decompress_issue;
+         raise decompress_issue
+           with "compressed_string is too short";
       end if;
 
       back_marker  := compressed_string'First;
       front_marker := compressed_string'First;
       declare
-         last_folder   : HT.Text;
-         handle : TIO.File_Type;
+         last_folder : HT.Text;
+         handle      : TIO.File_Type;
       begin
          TIO.Open (File => handle,
                    Mode => TIO.Out_File,
@@ -287,11 +290,11 @@ is
          end loop;
          TIO.Close (handle);
       exception
-         when others =>
+         when unknown : others =>
             if TIO.Is_Open (handle) then
                TIO.Close (handle);
             end if;
-            raise decompress_issue;
+            raise decompress_issue with EX.Exception_Message (unknown);
       end;
 
    end decompress_manifest;
