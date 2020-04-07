@@ -596,6 +596,7 @@ package body PortScan.Scan is
             if subpackage /= spkg_complete and then
               subpackage /= spkg_examples and then
               subpackage /= spkg_docs and then
+              subpackage /= spkg_nls and then
               HT.IsBlank (prime_pkg)
             then
                prime_pkg := newrec.subpackage;

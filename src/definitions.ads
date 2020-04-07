@@ -23,6 +23,7 @@ package Definitions is
    spkg_complete     : constant String := "complete";
    spkg_docs         : constant String := "docs";
    spkg_examples     : constant String := "examples";
+   spkg_nls          : constant String := "nls";
    ports_default     : constant String := "floating";
    default_ssl       : constant String := "libressl";
    default_mysql     : constant String := "oracle-5.7";

@@ -1081,6 +1081,7 @@ package body Port_Specification.Transform is
             if not primary_found and then
               subpackage /= spkg_complete and then
               subpackage /= spkg_examples and then
+              subpackage /= spkg_nls and then
               subpackage /= spkg_docs
             then
                prime_pkg := HT.SUS (subpackage);
