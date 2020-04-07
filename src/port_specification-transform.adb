@@ -3081,13 +3081,13 @@ package body Port_Specification.Transform is
          return "postgresql96";
       elsif setting = "10" then
          return "postgresql10";
-      elsif setting = "12" then
-         return "postgresql12";
+      elsif setting = "11" then
+         return "postgresql11";
       else
          --  case: setting = ports_default
-         --  case: setting = default_pgsql (11 right now)
+         --  case: setting = default_pgsql (12 right now)
          --  case: setting = invalid value
-         return "postgresql11";
+         return "postgresql12";
       end if;
    end determine_pgsql_namebase;
 
