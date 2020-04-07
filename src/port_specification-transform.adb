@@ -3051,18 +3051,16 @@ package body Port_Specification.Transform is
          return "mariadb104" & suffix;
       elsif setting = "mariadb-10.5" then
          return "mariadb105" & suffix;
-      elsif setting = "percona-5.5" then
-         return "percona55" & suffix;
       elsif setting = "percona-5.6" then
          return "percona56" & suffix;
       elsif setting = "percona-5.7" then
          return "percona57" & suffix;
-      elsif setting = "galera-5.5" then
-         return "percona55" & suffix;
-      elsif setting = "galera-5.6" then
-         return "percona56" & suffix;
-      elsif setting = "galera-5.7" then
-         return "percona57" & suffix;
+      elsif setting = "percona-8.0" then
+         return "percona80" & suffix;
+      elsif setting = "galera-25" then
+         return "percona25" & suffix;
+      elsif setting = "galera-26" then
+         return "percona26" & suffix;
       else
          --  case: setting = ports_default
          --  case: setting = default_mysql
