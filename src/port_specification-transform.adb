@@ -2604,9 +2604,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & "py37";
-            else
                return name_subpackage & "py38";
+            else
+               return name_subpackage & "py37";
             end if;
          end;
       elsif trailer = "perl_default" then
