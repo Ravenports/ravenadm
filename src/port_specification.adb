@@ -3657,22 +3657,17 @@ package body Port_Specification is
         or else
           (
            HT.leads (value, "percona-") and then
-             (value = "percona-5.5" or else
-              value = "percona-5.6" or else
-              value = "percona-5.7")
+             (value = "percona-5.6" or else
+              value = "percona-5.7" or else
+              value = "percona-8.0")
           )
           or else
-            (
-             HT.leads (value, "galera-") and then
-               (value = "galera-5.5" or else
-                value = "galera-5.6" or else
-                value = "galera-5.7")
-            )
-            or else
-              (HT.leads (value, "mariadb-") and then
-                 (value = "mariadb-10.1" or else
-                  value = "mariadb-10.2")
-              );
+            (HT.leads (value, "mariadb-") and then
+               (value = "mariadb-10.2" or else
+                value = "mariadb-10.3" or else
+                value = "mariadb-10.4" or else
+                value = "mariadb-10.5")
+            );
    end valid_broken_mysql_value;
 
 

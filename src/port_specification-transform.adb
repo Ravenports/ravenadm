@@ -3057,10 +3057,6 @@ package body Port_Specification.Transform is
          return "percona57" & suffix;
       elsif setting = "percona-8.0" then
          return "percona80" & suffix;
-      elsif setting = "galera-25" then
-         return "percona25" & suffix;
-      elsif setting = "galera-26" then
-         return "percona26" & suffix;
       else
          --  case: setting = ports_default
          --  case: setting = default_mysql
