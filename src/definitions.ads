@@ -26,7 +26,7 @@ package Definitions is
    spkg_nls          : constant String := "nls";
    ports_default     : constant String := "floating";
    default_ssl       : constant String := "libressl";
-   default_mysql     : constant String := "oracle-5.7";
+   default_mysql     : constant String := "oracle-8.0";
    default_lua       : constant String := "5.3";
    default_perl      : constant String := "5.30";
    default_pgsql     : constant String := "12";
