@@ -148,9 +148,9 @@ package body PortScan.Packager is
            LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
            PKG_CREATE & PKG_CREATE_ARGS & pkgname;
          move_cmd : constant String := PM.chroot_cmd & rootdir & " /bin/mv " & newpkgdir & "/" &
-           pkgname & ".tzst /packages/All/";
+           pkgname & arc_ext & " /packages/All/";
          link_cmd : constant String := PM.chroot_cmd & rootdir & " /bin/ln -sf /packages/All/" &
-           pkgname & ".tzst /packages/Latest/" & pkgname & ".tzst";
+           pkgname & arc_ext & " /packages/Latest/" & pkgname & arc_ext;
       begin
          if still_good then
             if DIR.Exists (spkgdir & subpackage & display) then

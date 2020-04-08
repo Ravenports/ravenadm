@@ -786,10 +786,11 @@ package body Pilot is
      (delete_first : Boolean := False;
       dry_run      : Boolean := False) return Boolean
    is
-      ptid              : PortScan.port_id;
-      num_skipped       : Natural;
-      block_remote      : Boolean := True;
-      explicit_ravensys : Boolean := False;
+      ptid         : PortScan.port_id;
+      num_skipped  : Natural;
+      block_remote : Boolean := True;
+      force_compiler_build : Boolean := False;
+      force_binutils_build : Boolean := False;
       update_external_repo : constant String := host_pkg8 & " update --quiet --repository ";
       no_packages : constant String := "No prebuilt packages will be used as a result.";
 
@@ -822,13 +823,15 @@ package body Pilot is
       end if;
 
       if delete_first then
-         explicit_ravensys := PortScan.jail_env_port_specified;
+         force_compiler_build := PortScan.jail_port_compiler_specified;
+         force_binutils_build := PortScan.jail_port_binutils_specified;
       end if;
 
       OPS.run_start_hook;
       OPS.limited_sanity_check (repository       => HT.USS (PM.configuration.dir_repository),
                                 dry_run          => dry_run,
-                                rebuild_compiler => explicit_ravensys,
+                                rebuild_compiler => force_compiler_build,
+                                rebuild_binutils => force_binutils_build,
                                 suppress_remote  => block_remote,
                                 major_release    => HT.USS (sysrootver.major),
                                 architecture     => sysrootver.arch);
@@ -1272,33 +1275,22 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function install_compiler_packages return Boolean
    is
-      function get_package_name (subpackage : String; use_prev, xz_pkg : Boolean) return String;
+      function get_package_name (subpackage : String; use_prev : Boolean) return String;
       function package_copy (subpackage : String) return Boolean;
       function dupe_archive (origin, destino : String) return Boolean;
 
       binutils : constant String := "binutils";
 
-      function get_package_name (subpackage : String; use_prev, xz_pkg : Boolean) return String
+      function get_package_name (subpackage : String; use_prev : Boolean) return String
       is
-         function pkg_format return String;
          function pkg_name (cname, vsn_binutils, vsn_compiler : String) return String;
-
-         function pkg_format return String is
-         begin
-            if xz_pkg then
-               return ".txz";
-            else
-               return ".tzst";
-            end if;
-         end pkg_format;
-
          function pkg_name (cname, vsn_binutils, vsn_compiler : String) return String is
          begin
             if subpackage = binutils then
-               return "binutils-single-ravensys-" & vsn_binutils & pkg_format;
+               return "binutils-single-ravensys-" & vsn_binutils & arc_ext;
             else
                return cname & LAT.Hyphen & subpackage & LAT.Hyphen &
-                 variant_standard & LAT.Hyphen & vsn_compiler & pkg_format;
+                 variant_standard & LAT.Hyphen & vsn_compiler & arc_ext;
             end if;
          end pkg_name;
       begin
@@ -1321,7 +1313,7 @@ package body Pilot is
 
       function package_copy (subpackage : String) return Boolean
       is
-         pkgname   : constant String := get_package_name (subpackage, False, False);
+         pkgname   : constant String := get_package_name (subpackage, False);
          tool_path : constant String := HT.USS (PM.configuration.dir_toolchain) & "/share/";
          src_path  : constant String := tool_path & pkgname;
          dest_dir  : constant String := HT.USS (PM.configuration.dir_repository);
@@ -1346,33 +1338,22 @@ package body Pilot is
             if DIR.Exists (src_path) then
                return dupe_archive (origin => src_path, destino => dest_path);
             else
-               --  We didn't find the current binutils or compiler in the system root storage.
+               --  We didn't find the ports binutils or compiler in the system root storage.
                --  It's likely that we're in a transition with a new version of binutils or
                --  gcc available, and a new system root needs to be generated.  Assuming this,
                --  try to copy the previously known compiler/binutils under the new name so
                --  that package building doesn't break.
-               --  Also try the "current" binutils but with the old ".txz" format.
                declare
-                  old_pkg  : constant String := get_package_name (subpackage, True, False);
+                  old_pkg  : constant String := get_package_name (subpackage, True);
                   old_path : constant String := tool_path & old_pkg;
                begin
                   if DIR.Exists (old_path) then
                      return dupe_archive (origin => old_path, destino => dest_path);
                   else
-                     declare
-                        txz_pkg  : constant String := get_package_name (subpackage, False, True);
-                        txz_path : constant String := tool_path & txz_pkg;
-                     begin
-                        if DIR.Exists (txz_path) then
-                           return dupe_archive (origin => txz_path, destino => dest_path);
-                        else
-                           TIO.Put_Line ("None of the following compiler packages were found:");
-                           TIO.Put_Line (src_path);
-                           TIO.Put_Line (old_path);
-                           TIO.Put_Line (txz_path);
-                           return False;
-                        end if;
-                     end;
+                     TIO.Put_Line ("Neither of the following compiler packages were found:");
+                     TIO.Put_Line (src_path);
+                     TIO.Put_Line (old_path);
+                     return False;
                   end if;
                end;
             end if;

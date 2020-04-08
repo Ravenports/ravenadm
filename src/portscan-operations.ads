@@ -66,6 +66,7 @@ package PortScan.Operations is
      (repository       : String;
       dry_run          : Boolean;
       rebuild_compiler : Boolean;
+      rebuild_binutils : Boolean;
       suppress_remote  : Boolean;
       major_release    : String;
       architecture     : supported_arch);

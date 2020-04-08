@@ -77,8 +77,13 @@ package PortScan is
    --  Given an index, returns a buildsheet location wrt unkindness
    function get_buildsheet_from_origin_list (index : Positive) return String;
 
-   --  Returns true if gcc7:standard or binutils:ravensys is present in stored origins
-   function jail_env_port_specified return Boolean;
+   --  Returns true if ports binutils (binutils:ravensys) is present in stored origins
+   --  The pkg version also has to match $binutilsversion
+   function jail_port_binutils_specified return Boolean;
+
+   --  Returns true if ports compiler (gcc9:standard) is present in stored origins
+   --  The pkg version also has to match $compiler_version
+   function jail_port_compiler_specified return Boolean;
 
 private
 

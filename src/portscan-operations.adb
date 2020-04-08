@@ -1389,6 +1389,7 @@ package body PortScan.Operations is
      (repository       : String;
       dry_run          : Boolean;
       rebuild_compiler : Boolean;
+      rebuild_binutils : Boolean;
       suppress_remote  : Boolean;
       major_release    : String;
       architecture     : supported_arch)
@@ -1451,10 +1452,14 @@ package body PortScan.Operations is
                                         query_result => rec.pkg_dep_query,
                                         id           => target)
             then
-               if not rebuild_compiler or else
-                 (target /= compiler and then target /= binutils) or else
-                 (target = compiler and then not portlist.Contains (compkey)) or else
-                 (target = binutils and then not portlist.Contains (bukey))
+               if not
+                 (
+                    (rebuild_binutils and then
+                     target = binutils)
+                  or else
+                    (rebuild_compiler and then
+                     target = compiler)
+                 )
                then
                   already_built.Append (New_Item => newrec);
                   if rec.remote_pkg then

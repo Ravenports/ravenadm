@@ -284,14 +284,27 @@ package body PortScan is
 
 
    --------------------------------------------------------------------------------------------
-   --  jail_env_port_specified
+   --  jail_port_binutils_specified
    --------------------------------------------------------------------------------------------
-   function jail_env_port_specified return Boolean is
+   function jail_port_binutils_specified return Boolean
+   is
+      bukey : HT.Text := HT.SUS ("binutils:ravensys");
+      buver : constant String := HT.USS (all_ports (ports_keys.Element (bukey)).pkgversion);
    begin
-      return
-        portlist.Contains (HT.SUS (default_compiler & ":standard")) or else
-        portlist.Contains (HT.SUS ("binutils:ravensys"));
-   end jail_env_port_specified;
+      return portlist.Contains (bukey) and then buver = binutils_version;
+   end jail_port_binutils_specified;
+
+
+   --------------------------------------------------------------------------------------------
+   --  jail_port_compiler_specified
+   --------------------------------------------------------------------------------------------
+   function jail_port_compiler_specified return Boolean
+   is
+      compkey : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      compver : constant String := HT.USS (all_ports (ports_keys.Element (compkey)).pkgversion);
+   begin
+      return portlist.Contains (compkey) and then compver = compiler_version;
+   end jail_port_compiler_specified;
 
 
    --------------------------------------------------------------------------------------------
