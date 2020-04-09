@@ -640,6 +640,7 @@ package body PortScan.Operations is
 
       compkey  : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
       compiler : constant port_index := ports_keys.Element (compkey);
+      binutils : constant port_index := ports_keys.Element (HT.SUS (default_binutils));
 
       procedure force_delete (plcursor : string_crate.Cursor)
       is
@@ -656,8 +657,8 @@ package body PortScan.Operations is
             tball      : constant String := repo &
                          PortScan.calculate_package_name (pndx, subpackage) & arc_ext;
          begin
-            --  Never delete the port compiler's packages
-            if pndx /= compiler then
+            --  Never delete the port binutils or compiler's packages
+            if pndx /= compiler and then pndx /= binutils then
                if DIR.Exists (tball) then
                   DIR.Delete_File (tball);
                end if;
@@ -1405,7 +1406,7 @@ package body PortScan.Operations is
       procedure kill_remote (Element : in out subpackage_record);
 
       compkey       : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
-      bukey         : HT.Text := HT.SUS ("binutils:ravensys");
+      bukey         : HT.Text := HT.SUS (default_binutils);
       compiler      : constant port_index := ports_keys.Element (compkey);
       binutils      : constant port_index := ports_keys.Element (bukey);
       already_built : subpackage_queue.Vector;

@@ -35,6 +35,7 @@ package Definitions is
    default_ruby      : constant String := "2.7";
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
+   default_binutils  : constant String := "binutils:ravensys";
    default_compiler  : constant String := "gcc9";
    previous_default  : constant String := "gcc8";
    compiler_version  : constant String := "9.3.0";

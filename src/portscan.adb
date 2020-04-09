@@ -288,7 +288,7 @@ package body PortScan is
    --------------------------------------------------------------------------------------------
    function jail_port_binutils_specified return Boolean
    is
-      bukey : HT.Text := HT.SUS ("binutils:ravensys");
+      bukey : HT.Text := HT.SUS (default_binutils);
       buver : constant String := HT.USS (all_ports (ports_keys.Element (bukey)).pkgversion);
    begin
       return portlist.Contains (bukey) and then buver = binutils_version;
