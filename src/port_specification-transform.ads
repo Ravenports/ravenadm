@@ -105,6 +105,7 @@ private
    procedure apply_mysql_module     (specs : in out Portspecs);
    procedure apply_pgsql_module     (specs : in out Portspecs);
    procedure apply_sqlite_module    (specs : in out Portspecs);
+   procedure apply_gtkdoc_module    (specs : in out Portspecs);
    procedure apply_display_module   (specs : in out Portspecs);
    procedure apply_schemas_module   (specs : in out Portspecs);
    procedure apply_firebird_module  (specs : in out Portspecs);

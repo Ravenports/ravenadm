@@ -324,6 +324,7 @@ package body Port_Specification.Transform is
       apply_png_module (specs);
       apply_gem_module (specs);
       apply_cargo_module (specs);
+      apply_gtkdoc_module (specs);
       apply_ccache_module (specs);
       apply_schemas_module (specs);
       apply_firebird_module (specs);
@@ -1039,6 +1040,20 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_gtkdoc_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gtkdoc_module (specs : in out Portspecs)
+   is
+      module     : String := "gtk-doc";
+      dependency : String := "gtk-doc:single:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+           add_build_depends (specs, dependency);
+      end if;
+   end apply_gtkdoc_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_gcc_run_module
    --------------------------------------------------------------------------------------------
    procedure apply_gcc_run_module (specs : in out Portspecs;
@@ -1248,7 +1263,7 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_gmake_module
+   --  apply_libtool_module
    --------------------------------------------------------------------------------------------
    procedure apply_libtool_module (specs : in out Portspecs)
    is

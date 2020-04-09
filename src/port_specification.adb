@@ -3510,7 +3510,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 60;
+      total_modules : constant Positive := 61;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3543,6 +3543,7 @@ package body Port_Specification is
          "gmake          ",
          "gnome-icons    ",
          "gprbuild       ",
+         "gtk-doc        ",
          "iconv          ",
          "imake          ",
          "intltoolfix    ",
