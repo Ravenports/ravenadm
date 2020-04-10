@@ -37,7 +37,7 @@ package Definitions is
    default_firebird  : constant String := "2.5";
    default_binutils  : constant String := "binutils:ravensys";
    default_compiler  : constant String := "gcc9";
-   previous_default  : constant String := "gcc8";
+   previous_default  : constant String := "gcc9";
    compiler_version  : constant String := "9.3.0";
    previous_compiler : constant String := "9.2.0";
    binutils_version  : constant String := "2.34";
