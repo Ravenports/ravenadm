@@ -1576,14 +1576,14 @@ package body Port_Specification.Transform is
             add_build_depends (specs, PYTHON27);
             add_build_depends (specs, SETUPTOOLS & PY27);
             specs.used_python := HT.SUS (PY27);
-         elsif argument_present (specs, module, PY38) then
-            add_build_depends (specs, PYTHON38);
-            add_build_depends (specs, SETUPTOOLS & PY38);
-            specs.used_python := HT.SUS (PY38);
-         else -- default to py37
+         elsif argument_present (specs, module, PY37) then
             add_build_depends (specs, PYTHON37);
             add_build_depends (specs, SETUPTOOLS & PY37);
             specs.used_python := HT.SUS (PY37);
+         else -- default to py38
+            add_build_depends (specs, PYTHON38);
+            add_build_depends (specs, SETUPTOOLS & PY38);
+            specs.used_python := HT.SUS (PY38);
          end if;
       else
          if argument_present (specs, module, PY27) then
