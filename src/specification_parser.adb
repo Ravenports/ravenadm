@@ -1071,7 +1071,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 187;
+      total_singlets : constant Positive := 189;
 
       type singlet_pair is
          record
@@ -1165,6 +1165,8 @@ package body Specification_Parser is
          ("GNOME_COMPONENTS      ", 16, gnome_comp),
          ("GNU_CONFIGURE_PREFIX  ", 20, gnu_cfg_prefix),
          ("GROUPS                ",  6, groups),
+         ("GTKDOC_OUTPUT_BASEDIR ", 21, catchall),
+         ("GTKDOC_INTERMED_DIR   ", 19, catchall),
          ("HOMEPAGE              ",  8, homepage),
          ("INFO                  ",  4, info),
          ("INFO_PATH             ",  9, catchall),
