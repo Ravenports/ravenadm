@@ -2711,7 +2711,7 @@ package body PortScan.Scan is
                   DIR.Start_Search (Search    => Inner_Search,
                                     Directory => bucket_dir,
                                     Filter    => (DIR.Directory => True, others => False),
-                                    Pattern   => "[a-zA-Z0-9_\-][a-zA-Z0-9._\-]*");
+                                    Pattern   => "[a-zA-Z0-9_\-]*");
 
                   while DIR.More_Entries (Inner_Search) loop
                      DIR.Get_Next_Entry (Inner_Search, Inner_Dirent);
