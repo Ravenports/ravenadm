@@ -1923,14 +1923,16 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_tcl_module (specs : in out Portspecs)
    is
-      function pick_tcl return String;
+      function pick_tcl (actually_tk : Boolean) return String;
+      procedure install_package (dependency : String);
 
       module     : String := "tcl";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
+      install_tk : Boolean;
 
-      function pick_tcl return String
+      function pick_tcl (actually_tk : Boolean) return String
       is
          def_setting : String := HT.USS (Parameters.configuration.def_tcl_tk);
       begin
@@ -1940,38 +1942,58 @@ package body Port_Specification.Transform is
            def_setting = ports_default or else
            def_setting = "8.6"
          then
-            return TCL86;
+            if actually_tk then
+               return TK86;
+            else
+               return TCL86;
+            end if;
          else
-            return TCL85;
+            if actually_tk then
+               return TK85;
+            else
+               return TCL85;
+            end if;
          end if;
       end pick_tcl;
 
-      dependency : String := pick_tcl;
+      procedure install_package (dependency : String) is
+      begin
+         if hit_both or else (hit_build and hit_run) then
+            add_buildrun_depends (specs, dependency);
+         elsif hit_build then
+            add_build_depends (specs, dependency);
+         else
+            add_run_depends (specs, dependency);
+         end if;
+      end install_package;
+
+      tcl_package : String := pick_tcl (actually_tk => False);
+      tk_package  : String := pick_tcl (actually_tk => True);
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
       if no_arguments_present (specs, module) then
-         hit_build := False;
-         hit_both  := True;
-         hit_run   := False;
+         hit_build  := False;
+         hit_both   := True;
+         hit_run    := False;
+         install_tk := False;
       else
-         hit_build := argument_present (specs, module, BUILD);
-         hit_both  := argument_present (specs, module, BUILDRUN);
-         hit_run   := argument_present (specs, module, RUN);
+         hit_build  := argument_present (specs, module, BUILD);
+         hit_both   := argument_present (specs, module, BUILDRUN);
+         hit_run    := argument_present (specs, module, RUN);
+         install_tk := argument_present (specs, module, "tk");
 
          if not (hit_build or else hit_both or else hit_run) then
             hit_both := True;
          end if;
       end if;
 
-      if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
-      elsif hit_build then
-         add_build_depends (specs, dependency);
-      else
-         add_run_depends (specs, dependency);
+      install_package (tcl_package);
+      if install_tk then
+         install_package (tk_package);
       end if;
+
    end apply_tcl_module;
 
 
