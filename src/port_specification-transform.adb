@@ -314,6 +314,7 @@ package body Port_Specification.Transform is
       apply_ninja_module (specs);
       apply_fonts_module (specs);
       apply_python_module (specs);
+      apply_cran_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
       apply_mesa_module (specs);
@@ -1051,6 +1052,20 @@ package body Port_Specification.Transform is
            add_build_depends (specs, dependency);
       end if;
    end apply_gtkdoc_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_cran_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_cran_module (specs : in out Portspecs)
+   is
+      module     : String := "cran";
+      dependency : String := "R:primary:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end apply_cran_module;
 
 
    --------------------------------------------------------------------------------------------
