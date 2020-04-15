@@ -4126,7 +4126,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function keyword_is_valid (keyword : String) return Boolean
    is
-      total_keywords : constant Positive := 71;
+      total_keywords : constant Positive := 72;
 
       subtype keyword_string is String (1 .. 13);
 
@@ -4146,6 +4146,7 @@ package body Port_Specification is
          "chinese      ",
          "comms        ",
          "converters   ",
+         "cran         ",
          "csharp       ",
          "databases    ",
          "deskutils    ",
