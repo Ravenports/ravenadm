@@ -1071,7 +1071,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 189;
+      total_singlets : constant Positive := 190;
 
       type singlet_pair is
          record
@@ -1231,6 +1231,7 @@ package body Specification_Parser is
          ("RUN_DEPENDS           ", 11, run_deps),
          ("SDL_COMPONENTS        ", 14, sdl_comp),
          ("SET_DEBUGGING_ON      ", 16, debugging),
+         ("SHEBANG_ADD_SH        ", 14, catchall),
          ("SHEBANG_FILES         ", 13, catchall),
          ("SHEBANG_GLOB          ", 12, catchall),
          ("SHEBANG_LANG          ", 12, catchall),
