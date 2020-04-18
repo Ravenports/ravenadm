@@ -3886,7 +3886,6 @@ package body Port_Specification is
          ("xkbfile           ", xkbfile),
          ("xmu               ", xmu),
          ("xorgproto         ", xorgproto),
-         ("xp                ", xp),
          ("xpm               ", xpm),
          ("xprop             ", xprop),
          ("xrandr            ", xrandr),
@@ -3901,7 +3900,6 @@ package body Port_Specification is
          ("xv                ", xv),
          ("xvmc              ", xvmc),
          ("xxf86dga          ", xxf86dga),
-         ("xxf86misc         ", xxf86misc),
          ("xxf86vm           ", xxf86vm)
         );
 
