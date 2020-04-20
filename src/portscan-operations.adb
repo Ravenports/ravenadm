@@ -10,7 +10,6 @@ with Replicant;
 with Ada.Exceptions;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
-with Ada.Numerics.Discrete_Random;
 with PortScan.Log;
 with PortScan.Buildcycle;
 with Specification_Parser;
@@ -97,9 +96,6 @@ package body PortScan.Operations is
       task type build (builder : builders);
       task body build
       is
-         type Rand_Draw is range 1 .. 20;
-         package Rand20 is new Ada.Numerics.Discrete_Random (Rand_Draw);
-         seed : Rand20.Generator;
          build_result : Boolean;
          need_procfs  : Boolean;
       begin
