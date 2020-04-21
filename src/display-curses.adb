@@ -7,12 +7,13 @@ with HelperText;
 with Signals;
 with Unix;
 with PortScan.Log;
+with Display.Log;
 
 package body Display.Curses is
 
-   package  HT renames HelperText;
    package SIG renames Signals;
    package TIO renames Ada.Text_IO;
+   package HT  renames HelperText;
    package EX  renames Ada.Exceptions;
 
    ----------------------
@@ -32,6 +33,7 @@ package body Display.Curses is
          TIO.Put_Line ("Falling back to text mode.");
          return False;
       end if;
+      Display.Log.start_logging;
       begin
          TIC.Set_Echo_Mode (False);
          TIC.Set_Raw_Mode (True);
@@ -75,7 +77,8 @@ package body Display.Curses is
          TIC.Delete (Win => zone_builders);
          TIC.Delete (Win => zone_actions);
       exception
-         when TIC.Curses_Exception => ok := False;
+         when TIC.Curses_Exception =>
+            ok := False;
       end;
       if ok then
          Return_To_Text_Mode;
@@ -88,6 +91,7 @@ package body Display.Curses is
    -----------------------------------
    procedure set_full_redraw_next_update is
    begin
+      Display.Log.scribe ("Request a full redraw at next update");
       draw_static_summary_zone;
       draw_static_builders_zone;
       for zone in zones'Range loop
@@ -135,6 +139,7 @@ package body Display.Curses is
                         attribute => bright,
                         pen_color => c_sumlabel);
    begin
+      Display.Log.scribe ("Draw static summary zone");
       Scrawl (summary, line1, 0);
       Scrawl (summary, line2, 1);
    end draw_static_summary_zone;
@@ -177,6 +182,7 @@ package body Display.Curses is
            attribute => normal,
            pen_color => c_tableheader);
    begin
+      Display.Log.scribe ("Draw static builders zone");
       Scrawl (builder, dashes, 0);
       Scrawl (builder, dashes, 2);
       Scrawl (builder, dashes, lastrow);
@@ -283,6 +289,7 @@ package body Display.Curses is
       L2F5 : constant String := pad (HT.int2str (data.impulse), 4);
 
    begin
+      Display.Log.scribe ("Summarize");
       if data.swap = 100.0 then
          L2F4 := " 100%";
       elsif data.swap > 100.0 then
@@ -348,7 +355,9 @@ package body Display.Curses is
          Scrawl (builder, info, row, col);
       end colorado;
    begin
+      Display.log.log_builder_update (BR);
       if SIG.graceful_shutdown_requested then
+         Display.Log.scribe ("Act on shutdown message");
          Scrawl (builder, shutdown_message, 1);
       end if;
       print_id;
@@ -605,6 +614,7 @@ package body Display.Curses is
    procedure Return_To_Text_Mode is
    begin
       TIC.End_Windows;
+      Display.Log.stop_logging;
    exception
       when TIC.Curses_Exception => null;
    end Return_To_Text_Mode;
@@ -615,6 +625,7 @@ package body Display.Curses is
    ------------------------------------------------------------------------
    procedure Refresh_Zone (zone : zones) is
    begin
+      Display.Log.scribe ("Redraw " & zone'Img & " zone");
       TIC.Refresh (Win => zone_window (zone));
    exception
       when TIC.Curses_Exception => null;

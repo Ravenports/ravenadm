@@ -137,7 +137,7 @@ package body PortScan.Log is
    begin
       if www_format then
          return daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
-           "," & CFM.Image (hack)(11 .. 19) & " UTC";
+           ", " & CFM.Image (hack)(11 .. 19) & " UTC";
       end if;
 
       return WKDAY (hack) & "," & daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
