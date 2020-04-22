@@ -1174,12 +1174,12 @@ package body PortScan.Operations is
             begin
                if inspect then
                   if len > 7 and then
-                    line (1 .. 2) = "  " and then
-                    line (len - 3 .. len) = ": { " and then
-                    line (3 .. len - 4) /= "ravenadm"
+                    line (line'First .. line'First + 1) = "  " and then
+                    line (line'Last - 3 .. line'Last) = ": { " and then
+                    line (line'First + 2 .. line'Last - 4) /= "ravenadm"
                   then
                      found := True;
-                     external_repository := HT.SUS (line (3 .. len - 4));
+                     external_repository := HT.SUS (line (line'First + 2 .. line'Last - 4));
                      exit;
                   end if;
                else
