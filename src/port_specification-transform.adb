@@ -1842,7 +1842,7 @@ package body Port_Specification.Transform is
       defver : String (1 .. 2) := default_php (default_php'First) & default_php (default_php'Last);
       flavor : String := "php" & defver;
       hit_build   : Boolean := False;
-      hit_phpsize : Boolean := False;
+      hit_phpize  : Boolean := False;
       hit_ext     : Boolean := False;
       hit_zend    : Boolean := False;
    begin
@@ -1859,16 +1859,16 @@ package body Port_Specification.Transform is
             flavor := "php72";
          end if;
          hit_build   := argument_present (specs, module, BUILD);
-         hit_phpsize := argument_present (specs, module, "phpsize");
+         hit_phpize  := argument_present (specs, module, "phpize");
          hit_ext     := argument_present (specs, module, "ext");
          hit_zend    := argument_present (specs, module, "zend");
       end if;
-      if hit_build or else hit_phpsize or else hit_ext or else hit_zend then
+      if hit_build or else hit_phpize or else hit_ext or else hit_zend then
          add_buildrun_depends (specs, flavor & std_suffix);
       else
          add_run_depends (specs, flavor & std_suffix);
       end if;
-      if hit_phpsize or else hit_ext or else hit_zend then
+      if hit_phpize or else hit_ext or else hit_zend then
          add_build_depends (specs, "autoconf" & std_suffix);
       end if;
 
