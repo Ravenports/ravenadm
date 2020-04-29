@@ -374,6 +374,8 @@ package body Port_Specification.Web is
             return "This is the documents subpackage of the " & id2 & " port.";
          elsif subpackage = "examples" then
             return "This is the examples subpackage of the " & id2 & " port.";
+         elsif subpackage = "nls" then
+            return "This is the native language support subpackage of the " & id2 & " port.";
          elsif subpackage = "complete" then
             return
               "This is the " & id2 & " metapackage." & LAT.LF &
