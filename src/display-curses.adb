@@ -355,7 +355,7 @@ package body Display.Curses is
          Scrawl (builder, info, row, col);
       end colorado;
    begin
-      Display.log.log_builder_update (BR);
+      Display.Log.log_builder_update (BR);
       if SIG.graceful_shutdown_requested then
          Display.Log.scribe ("Act on shutdown message");
          Scrawl (builder, shutdown_message, 1);
