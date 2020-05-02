@@ -588,7 +588,7 @@ package body PortScan.Operations is
       status  : Integer;
       sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
       command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
-                                   "/usr/share/file/magic.mgc -b " & sysroot & "/bin/sh";
+                                   "/usr/share/file/magic.mgc -b " & filename;
       cmdout  : String := HT.USS (Unix.piped_command (command, status));
    begin
       if status = 0 then

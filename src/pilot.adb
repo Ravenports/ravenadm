@@ -827,7 +827,6 @@ package body Pilot is
          force_binutils_build := PortScan.jail_port_binutils_specified;
       end if;
 
-      OPS.run_start_hook;
       OPS.limited_sanity_check (repository       => HT.USS (PM.configuration.dir_repository),
                                 dry_run          => dry_run,
                                 rebuild_compiler => force_compiler_build,
@@ -853,6 +852,8 @@ package body Pilot is
       LOG.start_logging (PortScan.success);
       LOG.start_logging (PortScan.failure);
 
+      --  Need to initialize hooks next because ignore hook is embedded in OPS.next_ignored_port;
+      OPS.initialize_hooks;
       loop
          ptid := OPS.next_ignored_port;
          exit when not PortScan.valid_port_id (ptid);
@@ -906,11 +907,13 @@ package body Pilot is
          TIO.Put_Line ("require rebuilding; the task is therefore complete.");
          show_tally := False;
       else
+         OPS.run_start_hook;
          REP.initialize (testmode);
          CYC.initialize (testmode);
          OPS.initialize_web_report (num_builders);
          OPS.initialize_display (num_builders);
          OPS.parallel_bulk_run (num_builders, sysrootver);
+         --  The parallel_bulk_run contains the end_hook activation
          REP.finalize;
       end if;
       LOG.set_overall_complete (CAL.Clock);
