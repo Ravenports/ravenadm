@@ -1,4 +1,4 @@
-build/*
+build/[a-ln-z]*
 external
 
 # Object file
