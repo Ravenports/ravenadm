@@ -517,7 +517,7 @@ package body PortScan.Operations is
       function nvpair (name : String; value : HT.Text) return String is
       begin
          return
-           name & LAT.Equals_Sign & HT.replace_char (HT.USS (value), LAT.Space, "\ ");
+           name & LAT.Equals_Sign & HT.replace_char (HT.USS (value), LAT.Space, "\ ") & LAT.Space;
       end nvpair;
       common_env : constant String :=
         nvpair ("PROFILE", PM.configuration.profile) &
