@@ -703,7 +703,7 @@ package body Pilot is
 
       function cd (rport : String) return String is
       begin
-         return "cd '" & HT.replace_char (rport, LAT.Space, "\ ") & "'";
+         return "cd '" & HT.replace_char (rport, LAT.Space, "\ ") & "' && pwd";
       end cd;
 
       function negative (rport : String) return String is
@@ -756,7 +756,7 @@ package body Pilot is
                if not HT.IsBlank (top) and then DIR.Exists (HT.USS (top) & suffix) then
                   TIO.Put_Line (cd (HT.USS (top) & suffix));
                else
-                  TIO.Put_Line (negative (suffix));
+                  TIO.Put_Line (negative (candidate));
                end if;
             end;
          end if;
