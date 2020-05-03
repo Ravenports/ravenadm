@@ -119,17 +119,15 @@ which represents the results of the build.
 This hook is fired whenever a builder successfully packages a port. In
 addition to the common definitions, it defines
 .Ev RESULT=success ,
-.Ev ORIGIN ,
 and
-.Ev PKGNAME
+.Ev ORIGIN
 in the environment.
 .It hook_pkg_failure
 This hook is fired whenever a builder fails to package a port. In addition
 to the common definitions, it defines
 .Ev RESULT=failure ,
-.Ev ORIGIN ,
 and
-.Ev PKGNAME
+.Ev ORIGIN
 in the environment.
 .It hook_pkg_ignored
 This hook is fired prior to the start of a build when ravenadm
@@ -137,9 +135,8 @@ prescans the queue for ports that are to be ignored according to the ports
 tree. Once the build has started, this hook is never fired again. In
 addition to the common definitions, it defines
 .Ev RESULT=ignored ,
-.Ev ORIGIN ,
 and
-.Ev PKGNAME
+.Ev ORIGIN
 in the environment.
 .It hook_pkg_skipped
 This hook is fired whenever a package gets ignored or fails which in turns
@@ -148,9 +145,8 @@ the dependency's failure. This may fire before the build starts due to
 ignored prescanning, or any time during the build. In addition to the common
 definitions, it defines
 .Ev RESULT=skipped ,
-.Ev ORIGIN ,
 and
-.Ev PKGNAME
+.Ev ORIGIN
 in the environment.
 .El
 .Sh EXAMPLES
