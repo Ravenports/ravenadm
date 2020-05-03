@@ -1,4 +1,4 @@
-.Dd February 5, 2019
+.Dd May 3, 2020
 .Dt DEV 8
 .Os
 .Sh NAME
@@ -12,12 +12,12 @@
 .Sh DESCRIPTION
 The
 .Nm
-command requires a subcommand.  These subcommands are only used by ports
-developers.
+command requires a subcommand.
+These subcommands are only used by ports developers.
 .Bl -tag -width buildsheet
 .It buildsheet
-This subcommand takes up to two arguments.  The first is mandatory and it
-is a path to a Ravensource port directory (relative paths may be used).
+This subcommand takes up to two arguments.
+The first is mandatory and it is a path to a Ravensource port directory (relative paths may be used).
 The second is optional, but if it's used, it must be equal to
 .Do
 save
@@ -26,8 +26,8 @@ save
 The purpose of the
 .Em buildsheet
 subcommand is to compile the buildsheet from the Ravensource port materials.
-Without the second argument, the buildsheet is sent to the terminal.  With
-the valid second argument of
+Without the second argument, the buildsheet is sent to the terminal.
+With the valid second argument of
 .Do
 save
 .Dc ,
@@ -42,15 +42,16 @@ is executed after this command to enable ravenadm to build the new port.
 The purpose of the
 .Em distinfo
 subcommand is create the distinfo file, downloading all distribution files
-and patches as necessary.  It is executed when the current working directory
+and patches as necessary.
+It is executed when the current working directory
 contains the Ravensource port that requires the new distinfo file.
 .It dump
 The
 .Em dump
-command is primarily a diagnostic tool for the ravenadm author.  It scans
-the specification file in the current working directory and dumps the
-contents of the structure that stores its contents after parsing.  If
-an argument is provided and it's an existing directory, the command will
+command is primarily a diagnostic tool for the ravenadm author.
+It scans the specification file in the current working directory and dumps the
+contents of the structure that stores its contents after parsing.
+If an argument is provided and it's an existing directory, the command will
 search that directory for a specification file.
 .It generate-index
 The
@@ -67,46 +68,46 @@ The
 .Em generate-conspiracy
 command systematically generates all buildsheets within the given
 directory (first argument) and places them in the conspiracy
-directory as defined by the configuration.  The given directory
-is expected to have subdirectories starting with
+directory as defined by the configuration.
+The given directory is expected to have subdirectories starting with
 .Do
 bucket_
 .Dc
-followed by a 2-digit upper case hexidecimal number.  All other
-subdirectories are ignored.  The generation is performed in parallel
-but will immediately abort upon any failure.  All generation failure
-reasons are displayed.
+followed by a 2-digit upper case hexidecimal number.
+All other subdirectories are ignored.
+The generation is performed in parallel but will immediately abort upon any failure.
+All generation failure reasons are displayed.
 .It makefile
 The
 .Em makefile
 subcommand parses the local specification file and generates the port
-makefile to the terminal.  If provided, the first argument represents the
-directory containing the specification file (instead of the current working
-directory).  The second argument specifies the variant, which affects the
-makefile generation.  In the absence of the second argument, the value of
+makefile to the terminal.
+If provided, the first argument represents the directory containing the specification file
+(instead of the current working directory).
+The second argument specifies the variant, which affects the makefile generation.
+In the absence of the second argument, the value of
 .Do
 standard
 .Dc
-is assumed for the variant.  This functionality is primarily used by the
-Ravenports makefile framework authors to detect breakage.  Regular port
-developers may find it of limited use as it illustrates the makefile
+is assumed for the variant.
+This functionality is primarily used by the Ravenports makefile framework authors to detect breakage.
+Regular port developers may find it of limited use as it illustrates the makefile
 generated for BSD make during the port build.
 .It repatch
 The
 .Em repatch
-subcommand is used to regenerate patches to eliminate fuzzy application
-and hunk offsets.  It should only be used when the existing patches
-successfully apply, otherwise the skipped hunks will be omitted on the
-new patches.  The patch file names are maintained, and aggregate patches
-are maintained (meaning if a patch file contains 4 individually patches, the
-regenerated file will also contain the same set of patches).  Finally,
-the first comment will be be retained (lines between the top of the patch
-file and the first line starting with "---").
+subcommand is used to regenerate patches to eliminate fuzzy application and hunk offsets.
+It should only be used when the existing patches successfully apply,
+otherwise the skipped hunks will be omitted on the new patches.
+The patch file names are maintained, and aggregate patches are maintained
+(meaning if a patch file contains 4 individually patches, the regenerated file will
+also contain the same set of patches).  Finally, the first comment will be be retained
+(lines between the top of the patch file and the first line starting with "---").
 .It template
 The
 .Em template
-subcommand prints a skeleton specification to the terminal.  If there's an
-argument and its value is
+subcommand prints a skeleton specification to the terminal.
+If there's an argument and its value is
 .Do
 save
 .Dc ,
@@ -119,11 +120,12 @@ It is useful to quickly create a Ravensource port from scratch.
 .It web
 The
 .Em web
-subcommand displays the html summary of the port.  This is primarily used
-to help design the standard web page format of the port description.  The
-first argument is required; it is the namebase of port.  This requires the
-buildsheet to be generated first.  The second argument is optional and
-represents the variant.  If unspecified, the "standard" variant is assumed.
+subcommand displays the html summary of the port.
+This is primarily used to help design the standard web page format of the port description.
+The first argument is required; it is the namebase of port.
+This requires the buildsheet to be generated first.
+The second argument is optional and represents the variant.
+If unspecified, the "standard" variant is assumed.
 .It sort
 The
 .Em sort
@@ -132,24 +134,38 @@ subdirectory groups, and rewrites the manifests.
 .It info
 The
 .Em info
-subcommand displays the value of configuration items.  The next argument
-must be a single character ranging from 'A' to 'Q'.  That character
-corresponds to the main configuration menu options.  For example,
-"ravenadm info A" prints out the System root directory for the given
-profile.
+subcommand displays the value of configuration items.
+The next argument must be a single character ranging from 'A' to 'Q'.
+That character corresponds to the main configuration menu options.
+For example, "ravenadm info A" prints out the System root directory for the given profile.
+.It jump
+The
+.Em jump
+subcommand accepts a single argument representing the namebase of an existing port.
+First the custom ports directory is searched (if defined) and then tree of the
+current working directory.
+If the corresponding directory is found, the appropriate change directory command is
+displayed, which is suitable for the shell's eval command.
+If the cwd is not located in a ravenports source tree, or if the directory does not exist, an echo
+command stating an error will be output instead.
+The purpose of this subcommand is to reduce the number of commands needed to get to a port
+directory for editoring purposes.
+Example of use:
+.Do eval `ravenadm dev jump libreoffice`
+.Dc
 .El
 .Sh SEE ALSO
 .Xr ravenadm 8 ,
 .Xr ravenadm-build 8 ,
 .Xr ravenadm-build-everything 8 ,
-.Xr ravenadm-check-ports 8,
+.Xr ravenadm-check-ports 8 ,
 .Xr ravenadm-configure 8 ,
 .Xr ravenadm-force 8 ,
 .Xr ravenadm-generate-repository 8 ,
 .Xr ravenadm-generate-website 8 ,
 .Xr ravenadm-locate 8 ,
 .Xr ravenadm-purge-distfiles 8 ,
-.Xr ravenadm-purge-logs 8,
+.Xr ravenadm-purge-logs 8 ,
 .Xr ravenadm-set-options 8 ,
 .Xr ravenadm-status 8 ,
 .Xr ravenadm-status-everything 8 ,

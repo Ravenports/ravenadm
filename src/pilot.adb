@@ -671,20 +671,22 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    procedure locate (candidate : String)
    is
+      --  These are *buildsheet* locations
       suffix    : String := "/bucket_" & UTL.bucket (candidate) & LAT.Solidus & candidate;
       should_be : String := HT.USS (PM.configuration.dir_conspiracy) & suffix;
-      customloc : String := HT.USS (PM.configuration.dir_unkindness) & suffix;
+      customloc : String := HT.USS (PM.configuration.dir_profile) & "/unkindness" & suffix;
    begin
       if candidate = "" then
          TIO.Put_Line ("The locate command requires the port's name base as an argument");
          return;
       end if;
-      if DIR.Exists (should_be) then
-         TIO.Put_Line ("Found at " & should_be);
-      elsif not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) and then
+
+      if not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) and then
         DIR.Exists (customloc)
       then
          TIO.Put_Line ("Custom port found at " & customloc);
+      elsif DIR.Exists (should_be) then
+         TIO.Put_Line ("Found at " & should_be);
       else
          TIO.Put_Line ("Does not exist at " & should_be);
       end if;
@@ -692,7 +694,78 @@ package body Pilot is
 
 
    --------------------------------------------------------------------------------------------
-   --  locate
+   --  jump
+   --------------------------------------------------------------------------------------------
+   procedure jump (candidate : String)
+   is
+      function cd (rport : String) return String;
+      function negative (rport : String) return String;
+
+      function cd (rport : String) return String is
+      begin
+         return "cd '" & HT.replace_char (rport, LAT.Space, "\ ") & "'";
+      end cd;
+
+      function negative (rport : String) return String is
+      begin
+         return "echo Sorry, the " & rport & " port was not found.";
+      end negative;
+   begin
+      if candidate = "" then
+         TIO.Put_Line ("echo You must provide a namebase for this command.");
+      end if;
+
+      declare
+         --  These are *source port* locations
+         canbucket : String := "/bucket_" & UTL.bucket (candidate);
+         suffix    : String := canbucket & LAT.Solidus & candidate;
+         customloc : String := HT.USS (PM.configuration.dir_unkindness) & suffix;
+      begin
+         if not HT.equivalent (PM.configuration.dir_unkindness, PM.no_unkindness) and then
+           DIR.Exists (customloc)
+         then
+            TIO.Put_Line (cd (customloc));
+         else
+            --  We can find ravensource if we are located:
+            --  A) within top directory of ravensource tree
+            --  B) within a bucket directory
+            --  C) within a bucket directory's subdirectory (some port)
+            --  D) within a ports subdirectory (e.g. manifests)
+            --  E) within the ravensource's Scripts directory
+            declare
+               cwd    : constant String := DIR.Current_Directory;
+               parent : constant String := HT.head (cwd, "/");
+               gramps : constant String := HT.head (parent, "/");
+               super  : constant String := HT.head (gramps, "/");
+               top    : HT.Text;
+            begin
+               if DIR.Exists (cwd & canbucket) then
+                  --  Found (A) scenario
+                  top := HT.SUS (cwd);
+               elsif parent /= cwd and then DIR.Exists (parent & canbucket) then
+                  --  Found (B) scenario or (E) Scripts
+                  top := HT.SUS (parent);
+               elsif gramps /= parent and then DIR.Exists (gramps & canbucket) then
+                  --  Found (C) scenario or (E) Scripts/subdir
+                  top := HT.SUS (gramps);
+               elsif super /= gramps and then DIR.Exists (super & canbucket) then
+                  --  Found (D) scenario or (E) e.g. Scripts/Ravenports_Mk/Uses/
+                  top := HT.SUS (super);
+               end if;
+
+               if not HT.IsBlank (top) and then DIR.Exists (HT.USS (top) & suffix) then
+                  TIO.Put_Line (cd (HT.USS (top) & suffix));
+               else
+                  TIO.Put_Line (negative (suffix));
+               end if;
+            end;
+         end if;
+      end;
+   end jump;
+
+
+   --------------------------------------------------------------------------------------------
+   --  slave_platform_determined
    --------------------------------------------------------------------------------------------
    function slave_platform_determined return Boolean
    is

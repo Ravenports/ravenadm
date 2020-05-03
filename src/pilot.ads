@@ -71,6 +71,12 @@ package Pilot is
    --  buildsheet exists or not.
    procedure locate (candidate : String);
 
+   --  Searches the customsource first (if active) then ravensource for a match of candidate
+   --  to a ravenport's namebase.  If found, returns "cd full-path-to-ravensource-port otherwise
+   --  returns "echo <candidate> port not found".  This is suitable for shell's eval statement
+   --  to allow quick jumping to directory for editing.
+   procedure jump (candidate : String);
+
    --  Scan sysroot to get exact OS versions, return False if anything fails
    function slave_platform_determined return Boolean;
 

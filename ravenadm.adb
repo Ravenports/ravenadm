@@ -16,7 +16,7 @@ procedure Ravenadm is
                          status, status_everything, configure, locate, purge, changeopts,
                          checkports, portsnap, repository, list_subpackages, website, purgelogs);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
-                         repatch, sort_plist, confinfo, genconspiracy);
+                         repatch, sort_plist, confinfo, genconspiracy, jump);
 
    procedure scan_first_command_word;
    function scan_dev_command_word return dev_mandate;
@@ -99,6 +99,8 @@ procedure Ravenadm is
          return sort_plist;
       elsif second = "info" then
          return confinfo;
+      elsif second = "jump" then
+         return jump;
       else
          return unset;
       end if;
@@ -194,7 +196,7 @@ begin
                dev_subcmd := scan_dev_command_word;
             end if;
             case dev_subcmd is
-               when template | sort_plist | confinfo | unset =>
+               when template | sort_plist | confinfo | jump | unset =>
                   low_rights := True;
                when dump | makefile | distinfo | buildsheet | web | repatch |
                   genindex | genconspiracy =>
@@ -380,6 +382,8 @@ begin
                      Pilot.generate_conspiracy (get_arg (3));
                   when confinfo =>
                      Pilot.show_config_value (get_arg (3));
+                  when jump =>
+                     Pilot.jump (get_arg (3));
                end case;
             end;
          else
