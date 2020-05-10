@@ -200,8 +200,8 @@ package body Port_Specification.Json is
          data1 : String := UTL.json_nvpair_string ("product", product, 1, 0);  -- trailing LF
          data2 : String := UTL.json_nvpair_string ("vendor", vendor, 1, 0);    -- trailing LF
       begin
-         return "{ " & data1 (data1'First .. data1'Last - 1) & ", "
-                     & data2 (data2'First .. data2'Last - 1) & "}";
+         return "{" & data1 (data1'First .. data1'Last - 1) & LAT.Comma
+                     & data2 (data2'First .. data2'Last - 1) & " }";
       end form_object;
    begin
       if not specs.uses.Contains (HT.SUS ("cpe")) then
