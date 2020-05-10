@@ -32,6 +32,7 @@ package body Port_Specification.Json is
            UTL.json_nvpair_complex ("keywords", describe_keywords (specs), 3, pad) &
            UTL.json_nvpair_complex ("distfile", describe_distfiles (specs), 3, pad) &
            specs.get_json_contacts &
+           describe_Common_Platform_Enumeration (specs) &
            UTL.json_name_complex   ("variants", 4, pad) &
            UTL.json_array (True, pad + 1)
         );
@@ -173,5 +174,46 @@ package body Port_Specification.Json is
       end if;
       return UTL.json_nvpair_string  ("homepage", specs.get_field_value (sp_homepage), 3, pad);
    end homepage_line;
+
+
+   --------------------------------------------------------------------------------------------
+   --  describe_Common_Platform_Enumeration
+   --------------------------------------------------------------------------------------------
+   function describe_Common_Platform_Enumeration (specs : Portspecs) return String
+   is
+      function retrieve (key : String; default_value : String) return String;
+      function form_object (product, vendor : String) return String;
+
+      function retrieve (key : String; default_value : String) return String
+      is
+         key_text : HT.Text := HT.SUS (key);
+      begin
+         if specs.catch_all.Contains (key_text) then
+            return HT.USS (specs.catch_all.Element (key_text).list.First_Element);
+         else
+            return default_value;
+         end if;
+      end retrieve;
+
+      function form_object (product, vendor : String) return String
+      is
+         data1 : String := UTL.json_nvpair_string ("product", product, 1, 0);  -- trailing LF
+         data2 : String := UTL.json_nvpair_string ("vendor", vendor, 1, 0);    -- trailing LF
+      begin
+         return "{ " & data1 (data1'First .. data1'Last - 1) & ", "
+                     & data2 (data2'First .. data2'Last - 1) & "}";
+      end form_object;
+   begin
+      if not specs.uses.Contains (HT.SUS ("cpe")) then
+         return "";
+      end if;
+
+      declare
+         cpe_product : String := retrieve ("CPE_PRODUCT", HT.lowercase (specs.get_namebase));
+         cpe_vendor  : String := retrieve ("CPE_VENDOR", cpe_product);
+      begin
+         return UTL.json_nvpair_complex ("cpe", form_object (cpe_product, cpe_vendor), 3, pad);
+      end;
+   end describe_Common_Platform_Enumeration;
 
 end Port_Specification.Json;

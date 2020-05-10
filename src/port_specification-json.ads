@@ -38,4 +38,7 @@ private
    --  When the homepage is set to "none", return an empty string, otherwise return a json string
    function homepage_line (specs : Portspecs) return String;
 
+   --  If USES=cpe set, push CPE_VENDOR and CPE_PRODUCT values
+   function describe_Common_Platform_Enumeration (specs : Portspecs) return String;
+
 end Port_Specification.Json;
