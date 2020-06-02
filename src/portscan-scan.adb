@@ -5,6 +5,7 @@ with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Exceptions;
 with Ada.Calendar;
+with Ada.Text_IO;
 with File_Operations;
 with Port_Specification.Buildsheet;
 with Port_Specification.Transform;
@@ -35,6 +36,7 @@ package body PortScan.Scan is
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package EX  renames Ada.Exceptions;
+   package TIO renames Ada.Text_IO;
 
    --------------------------------------------------------------------------------------------
    --  scan_entire_ports_tree
@@ -63,6 +65,16 @@ package body PortScan.Scan is
       LOG.set_scan_complete (CAL.Clock);
 
       return good_scan;
+
+   exception
+      when badscan : bad_index_data =>
+         TIO.Put_Line ("Index scan failed: " & EX.Exception_Message (badscan));
+         return False;
+      when unknown : others =>
+         TIO.Put_Line ("scan_entire_ports_tree failed for unknown reason:");
+         TIO.Put_Line (EX.Exception_Information (unknown));
+         return False;
+
    end scan_entire_ports_tree;
 
 
