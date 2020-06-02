@@ -111,6 +111,16 @@ package body PortScan.Scan is
                                    sysrootver => sysrootver,
                                    success    => good_operation);
       return good_operation;
+
+   exception
+      when badscan : bad_index_data =>
+         TIO.Put_Line ("Index scan failed: " & EX.Exception_Message (badscan));
+         return False;
+      when unknown : others =>
+         TIO.Put_Line ("scan_entire_ports_tree failed for unknown reason:");
+         TIO.Put_Line (EX.Exception_Information (unknown));
+         return False;
+
    end generate_entire_website;
 
 
@@ -860,8 +870,18 @@ package body PortScan.Scan is
    begin
       fatal := False;
       if not prescanned then
-         prescan_ports_tree (conspiracy, unkindness, sysrootver);
-         prescan_unkindness (unkindness, compiled_BS);
+         begin
+            prescan_ports_tree (conspiracy, unkindness, sysrootver);
+            prescan_unkindness (unkindness, compiled_BS);
+         exception
+            when badscan : bad_index_data =>
+               TIO.Put_Line ("Index scan failed: " & EX.Exception_Message (badscan));
+               return False;
+            when unknown : others =>
+               TIO.Put_Line ("scan_entire_ports_tree failed for unknown reason:");
+               TIO.Put_Line (EX.Exception_Information (unknown));
+               return False;
+         end;
       end if;
       if ports_keys.Contains (portkey) then
          target := ports_keys.Element (portkey);
