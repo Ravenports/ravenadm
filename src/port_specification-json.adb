@@ -3,11 +3,13 @@
 
 with Utilities;
 with Ada.Characters.Latin_1;
+with HelperText;
 
 package body Port_Specification.Json is
 
-   package UTL renames Utilities;
    package LAT renames Ada.Characters.Latin_1;
+   package UTL renames Utilities;
+   package HT  renames HelperText;
 
    --------------------------------------------------------------------------------------------
    --  describe_port
@@ -182,7 +184,11 @@ package body Port_Specification.Json is
    function describe_Common_Platform_Enumeration (specs : Portspecs) return String
    is
       function retrieve (key : String; default_value : String) return String;
-      function form_object (product, vendor : String) return String;
+      function form_object return String;
+      procedure maybe_push (json_key, cpe_key, default_value : String);
+      procedure always_push (json_key, value : String);
+
+      pairs : string_crate.Vector;
 
       function retrieve (key : String; default_value : String) return String
       is
@@ -195,25 +201,75 @@ package body Port_Specification.Json is
          end if;
       end retrieve;
 
-      function form_object (product, vendor : String) return String
-      is
-         data1 : String := UTL.json_nvpair_string ("product", product, 1, 0);  -- trailing LF
-         data2 : String := UTL.json_nvpair_string ("vendor", vendor, 1, 0);    -- trailing LF
+      procedure always_push (json_key, value : String) is
       begin
-         return "{" & data1 (data1'First .. data1'Last - 1) & LAT.Comma
-                     & data2 (data2'First .. data2'Last - 1) & " }";
+         pairs.Append (HT.SUS (json_key & "=" & value));
+      end always_push;
+
+      procedure maybe_push (json_key, cpe_key, default_value : String)
+      is
+         cpe_key_text : HT.Text := HT.SUS (cpe_key);
+         cpe_value    : HT.Text;
+      begin
+         if specs.catch_all.Contains (cpe_key_text) then
+            cpe_value := specs.catch_all.Element (cpe_key_text).list.First_Element;
+            if not HT.equivalent (cpe_value, default_value) then
+               pairs.Append (HT.SUS (json_key & "=" & HT.USS (cpe_value)));
+            end if;
+         end if;
+      end maybe_push;
+
+      function form_object return String
+      is
+         procedure dump (position : string_crate.Cursor);
+
+         tracker : Natural := 0;
+         guts    : HT.Text;
+
+         procedure dump (position : string_crate.Cursor)
+         is
+            both  : String := HT.USS (string_crate.Element (position));
+            key   : String := HT.part_1 (both, "=");
+            value : String := HT.part_2 (both, "=");
+            data  : String := UTL.json_nvpair_string (key, value, 1, 0);  -- trailing LF
+         begin
+            tracker := tracker + 1;
+            if tracker > 1 then
+               HT.SU.Append (guts, LAT.Comma);
+            end if;
+            HT.SU.Append (guts, data (data'First .. data'Last - 1));
+         end dump;
+      begin
+         pairs.Iterate (dump'Access);
+         return "{" & HT.USS (guts) & " }";
       end form_object;
    begin
       if not specs.uses.Contains (HT.SUS ("cpe")) then
          return "";
       end if;
 
+      maybe_push  ("part", "CPE_PART", "a");
+
       declare
          cpe_product : String := retrieve ("CPE_PRODUCT", HT.lowercase (specs.get_namebase));
          cpe_vendor  : String := retrieve ("CPE_VENDOR", cpe_product);
       begin
-         return UTL.json_nvpair_complex ("cpe", form_object (cpe_product, cpe_vendor), 3, pad);
+         --  probably should be vendor then product, but this was the original order
+         --  of repology json.  Maintain order to avoid massive diff.
+         always_push ("product", cpe_product);
+         always_push ("vendor", cpe_vendor);
       end;
+
+      maybe_push ("version", "CPE_VERSION", HT.USS (specs.version));
+      maybe_push ("update", "CPE_UPDATE", "");
+      maybe_push ("edition", "CPE_EDITION", "");
+      maybe_push ("lang", "CPE_LANG", "");
+      maybe_push ("sw_edition", "CPE_SW_EDITION", "");
+      maybe_push ("target_sw", "CPE_TARGET_SW", "take-anything");
+      maybe_push ("target_hw", "CPE_TARGET_HW", "x86-x86-arm64");
+      maybe_push ("other", "CPE_OTHER",  HT.USS (specs.version));
+
+      return UTL.json_nvpair_complex ("cpe", form_object, 3, pad);
    end describe_Common_Platform_Enumeration;
 
 end Port_Specification.Json;
