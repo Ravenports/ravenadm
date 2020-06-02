@@ -168,11 +168,11 @@ package body PortScan.Scan is
                exception
                   when others =>
                      raise bad_index_data
-                       with conspindex & ", numvariant fields not an integer" & linestr;
+                       with conspindex & ", numvariant field is not an integer" & linestr;
                end;
                if not DIR.Exists (conspiracy & bsheet) then
                   raise bad_index_data
-                    with conspindex & bsheet & " buildsheet does not exist" & linestr;
+                    with bsheet & " buildsheet does not exist" & linestr;
                end if;
                if custom_avail and then DIR.Exists (unkindness & bsheet) then
                   --  postpone custom port scan (done prescan_unkindness)
