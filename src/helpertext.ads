@@ -156,6 +156,9 @@ package HelperText is
    --  Replaces 2 or more consecutive spaces with a single space
    function strip_excessive_spaces (S : String) return String;
 
+   --  Escape certain characters per json specification
+   function json_escape (S : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);

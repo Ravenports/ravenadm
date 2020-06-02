@@ -780,4 +780,67 @@ package body HelperText is
       return result (1 .. front_marker);
    end strip_excessive_spaces;
 
+
+   --------------------------------------------------------------------------------------------
+   --  json_escape
+   --------------------------------------------------------------------------------------------
+   function json_escape (S : String) return String
+   is
+      --  The following characters must be escaped:
+      --    Backspace
+      --    Form Feed
+      --    Line Feed
+      --    Carriage Return
+      --    Tab
+      --    Double Quote
+      --    Backslash
+      new_length : Natural := 0;
+   begin
+      for x in S'Range loop
+         case S (x) is
+            when LAT.BS | LAT.FF | LAT.LF | LAT.CR | LAT.HT
+               | LAT.Quotation
+               | LAT.Reverse_Solidus =>
+               new_length := new_length + 2;
+            when others =>
+               new_length := new_length + 1;
+         end case;
+      end loop;
+      if new_length = S'Length then
+         --  No special characters found, return original string
+         return S;
+      end if;
+      declare
+         result : String (1 .. new_length);
+         index  : Natural := result'First;
+      begin
+         for x in S'Range loop
+            case S (x) is
+               when LAT.BS =>
+                  result (index .. index + 1) := "\b";
+                  index := index + 2;
+               when LAT.FF =>
+                  result (index .. index + 1) := "\f";
+                  index := index + 2;
+               when LAT.LF =>
+                  result (index .. index + 1) := "\n";
+                  index := index + 2;
+               when LAT.HT =>
+                  result (index .. index + 1) := "\t";
+                  index := index + 2;
+               when LAT.Quotation =>
+                  result (index .. index + 1) := LAT.Reverse_Solidus & LAT.Quotation;
+                  index := index + 2;
+               when LAT.Reverse_Solidus =>
+                  result (index .. index + 1) := "\\";
+                  index := index + 2;
+            when others =>
+               result (index) := S (x);
+               index := index + 1;
+            end case;
+         end loop;
+         return result;
+      end;
+   end json_escape;
+
 end HelperText;

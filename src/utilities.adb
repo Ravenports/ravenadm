@@ -214,7 +214,7 @@ package body Utilities is
          pad (pad'Last) := LAT.Comma;
       end if;
       return pad & LAT.Quotation & name & LAT.Quotation & ": " &
-        LAT.Quotation & value & LAT.Quotation & LAT.LF;
+        LAT.Quotation & HT.json_escape (value) & LAT.Quotation & LAT.LF;
    end json_nvpair_string;
 
 
