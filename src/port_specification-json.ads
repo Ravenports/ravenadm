@@ -32,9 +32,6 @@ private
    --  return array of subpackages
    function describe_subpackages (specs : Portspecs; variant : String) return String;
 
-   --  Escape certain characters to result in valid json
-   function escape_tagline (raw : String) return String;
-
    --  When the homepage is set to "none", return an empty string, otherwise return a json string
    function homepage_line (specs : Portspecs) return String;
 
