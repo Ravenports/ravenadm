@@ -42,7 +42,7 @@ package body Port_Specification.Json is
            );
       exception
          when problem : others =>
-            TIO.Put_Line ("Failed json description main text, " & bucket & specs.get_namebase);
+            TIO.Put_Line ("Failed json description main text, " & HT.DQ (specs.get_namebase));
             return;
       end;
       for x in 1 .. nvar loop
@@ -61,7 +61,7 @@ package body Port_Specification.Json is
               );
          exception
             when others =>
-               TIO.Put_Line ("Failed json description variants, " & bucket & specs.get_namebase);
+               TIO.Put_Line ("Failed json description variants, " & HT.DQ (specs.get_namebase));
                return;
          end;
       end loop;
@@ -252,6 +252,10 @@ package body Port_Specification.Json is
       maybe_push ("other", "CPE_OTHER",  HT.USS (specs.version));
 
       return UTL.json_nvpair_complex ("cpe", form_object, 3, pad);
+   exception
+      when others =>
+         TIO.Put_Line ("Failed json CPE enum, " & HT.DQ (specs.get_namebase));
+         return "";
    end describe_Common_Platform_Enumeration;
 
 end Port_Specification.Json;
