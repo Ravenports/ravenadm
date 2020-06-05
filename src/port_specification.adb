@@ -3106,6 +3106,9 @@ package body Port_Specification is
       tarball : constant String := translate_distfile (specs, distfile);
       group   : constant String := HT.part_2 (distfile, ":");
    begin
+      if not specs.dl_sites.Contains (HT.SUS (group)) then
+         return "missing_site_definition://" & tarball;
+      end if;
       declare
          dlsite  : String := HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
       begin
