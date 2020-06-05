@@ -686,16 +686,16 @@ package body Specification_Parser is
                when F5 : mistabbed =>
                   spec.set_parse_error (LN & "value not aligned to column-24 (tab issue)");
                   exit;
-               when F6 : missing_definition =>
+               when F6 : missing_definition
+                  | expansion_too_long
+                  | bad_modifier =>
                   spec.set_parse_error
-                    (LN & "Variable expansion: definition missing. " & EX.Exception_Message (F6));
+                    (LN & "Variable expansion: " & EX.Exception_Message (F6));
                   exit;
                when F7 : extra_spaces =>
                   spec.set_parse_error (LN & "extra spaces detected between list items.");
                   exit;
-               when F8 : expansion_too_long =>
-                  spec.set_parse_error (LN & "expansion exceeds 512-char maximum.");
-                  exit;
+                  --  F8 merged to F6
                when F9 : duplicate_key =>
                   spec.set_parse_error
                     (LN & "array key '" & EX.Exception_Message (F9) & "' duplicated.");
@@ -964,18 +964,22 @@ package body Specification_Parser is
                raise missing_definition with "zero-length variable name";
             end if;
             declare
-               expanded : String := translate (canvas (curly_left + 2 .. curly_right - 1));
+               varname  : String := canvas (curly_left + 2 .. curly_right - 1);
+               expanded : String := translate (varname);
             begin
                if trans_error = 0 then
                   if will_fit (curly_left, curly_right, expanded) then
                      exchange (curly_left, curly_right, expanded);
                   else
-                     raise expansion_too_long;
+                     raise expansion_too_long
+                       with HT.DQ (varname) & " expansion exceeds 512-char maximum.";
                   end if;
                elsif trans_error = 1 then
-                  raise missing_definition;
+                  raise missing_definition
+                    with HT.DQ (varname) & " variable undefined.";
                elsif trans_error = 2 then
-                  raise bad_modifier;
+                  raise bad_modifier
+                    with HT.DQ (varname) & " variable has unrecognized modifier.";
                end if;
             end;
          end if;

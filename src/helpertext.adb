@@ -843,4 +843,23 @@ package body HelperText is
       end;
    end json_escape;
 
+
+   --------------------------------------------------------------------
+   --  DQ
+   --------------------------------------------------------------------
+   function DQ (txt : String) return String is
+   begin
+      return LAT.Quotation & txt & LAT.Quotation;
+   end DQ;
+
+
+   --------------------------------------------------------------------
+   --  DQ
+   --------------------------------------------------------------------
+   function SQ (txt : String) return String is
+   begin
+      return LAT.Apostrophe & txt & LAT.Apostrophe;
+   end SQ;
+
+
 end HelperText;

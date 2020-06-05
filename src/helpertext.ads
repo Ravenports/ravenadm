@@ -159,6 +159,12 @@ package HelperText is
    --  Escape certain characters per json specification
    function json_escape (S : String) return String;
 
+   --  Return input surrounded by double quotation marks
+   function DQ (txt : String) return String;
+
+   --  Return input surrounded by single quotation marks
+   function SQ (txt : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);
