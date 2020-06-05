@@ -1291,7 +1291,7 @@ package body PortScan.Scan is
          if TIO.Is_Open (repofile) then
             TIO.Close (repofile);
          end if;
-         TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
+         TIO.Put_Line ("generate_conspiracy_index failure: " & EX.Exception_Message (issue));
    end generate_conspiracy_index;
 
 
@@ -2978,7 +2978,7 @@ package body PortScan.Scan is
          if TIO.Is_Open (indexfile) then
             TIO.Close (indexfile);
          end if;
-         TIO.Put_Line ("Failure encountered: " & EX.Exception_Message (issue));
+         TIO.Put_Line ("generate_unkindness_index failure: " & EX.Exception_Message (issue));
          return False;
    end generate_unkindness_index;
 
