@@ -5223,6 +5223,9 @@ package body Port_Specification is
          result := specs.catch_all.Element (key).list.First_Element;
       end if;
       return HT.USS (result);
+   exception
+      when others =>
+         return "equivalent_fpc_port/error";
    end equivalent_fpc_port;
 
 
