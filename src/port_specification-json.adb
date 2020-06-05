@@ -20,24 +20,31 @@ package body Port_Specification.Json is
       bucket  : String;
       index   : Positive)
    is
-      fpcval : constant String := fpc_value (specs.generated, specs.equivalent_fpc_port);
-      nvar   : constant Natural := specs.get_number_of_variants;
+      nvar : constant Natural := specs.get_number_of_variants;
    begin
-      TIO.Put
-        (dossier,
-           UTL.json_object (True, 3, index) &
-           UTL.json_nvpair_string  ("bucket",   bucket, 1, pad) &
-           UTL.json_nvpair_string  ("namebase", specs.get_namebase, 2, pad) &
-           UTL.json_nvpair_string  ("version",  specs.get_field_value (sp_version), 3, pad) &
-           homepage_line (specs) &
-           UTL.json_nvpair_string  ("FPC",      fpcval, 3, pad) &
-           UTL.json_nvpair_complex ("keywords", describe_keywords (specs), 3, pad) &
-           UTL.json_nvpair_complex ("distfile", describe_distfiles (specs), 3, pad) &
-           specs.get_json_contacts &
-           describe_Common_Platform_Enumeration (specs) &
-           UTL.json_name_complex   ("variants", 4, pad) &
-           UTL.json_array (True, pad + 1)
-        );
+      declare
+         fpcval : constant String := fpc_value (specs.generated, specs.equivalent_fpc_port);
+      begin
+         TIO.Put
+           (dossier,
+            UTL.json_object (True, 3, index) &
+              UTL.json_nvpair_string  ("bucket",   bucket, 1, pad) &
+              UTL.json_nvpair_string  ("namebase", specs.get_namebase, 2, pad) &
+              UTL.json_nvpair_string  ("version",  specs.get_field_value (sp_version), 3, pad) &
+              homepage_line (specs) &
+              UTL.json_nvpair_string  ("FPC",      fpcval, 3, pad) &
+              UTL.json_nvpair_complex ("keywords", describe_keywords (specs), 3, pad) &
+              UTL.json_nvpair_complex ("distfile", describe_distfiles (specs), 3, pad) &
+              specs.get_json_contacts &
+              describe_Common_Platform_Enumeration (specs) &
+              UTL.json_name_complex   ("variants", 4, pad) &
+              UTL.json_array (True, pad + 1)
+           );
+      exception
+         when problem : others =>
+            TIO.Put_Line ("Failed json description main text, " & bucket & specs.get_namebase);
+            return;
+      end;
       for x in 1 .. nvar loop
          declare
             varstr : constant String := specs.get_list_item (Port_Specification.sp_variants, x);
@@ -52,6 +59,10 @@ package body Port_Specification.Json is
                  UTL.json_nvpair_complex ("spkgs", spray, 3, pad + 3) &
                  UTL.json_object (False, pad + 2, x)
               );
+         exception
+            when others =>
+               TIO.Put_Line ("Failed json description variants, " & bucket & specs.get_namebase);
+               return;
          end;
       end loop;
       TIO.Put
@@ -59,6 +70,10 @@ package body Port_Specification.Json is
            UTL.json_array (False, pad + 1) &
            UTL.json_object (False, 3, index)
         );
+   exception
+      when others =>
+         TIO.Put_Line ("Failed json description declaration, " & bucket & specs.get_namebase);
+         return;
 
    end describe_port;
 
