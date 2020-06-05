@@ -3105,13 +3105,21 @@ package body Port_Specification is
    is
       tarball : constant String := translate_distfile (specs, distfile);
       group   : constant String := HT.part_2 (distfile, ":");
-      dlsite  : String := HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
    begin
-      if HT.contains (dlsite, "://") then
-         return dlsite & tarball;
-      else
-         return "mirror://" & dlsite & "/" & tarball;
-      end if;
+      declare
+         dlsite  : String := HT.USS (specs.dl_sites.Element (HT.SUS (group)).list.First_Element);
+      begin
+         if HT.contains (dlsite, "://") then
+            return dlsite & tarball;
+         else
+            return "mirror://" & dlsite & "/" & tarball;
+         end if;
+      end;
+   exception
+      when others =>
+         TIO.Put_Line ("failed repology_distfile for " & HT.DQ (specs.get_namebase)
+                       & ", group=" & group);
+         return "parse error: " & tarball;
    end repology_distfile;
 
 
