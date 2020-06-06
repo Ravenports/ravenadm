@@ -465,10 +465,20 @@ package body Port_Specification is
             if not HT.contains (value, ":") then
                raise wrong_value with "No download group prefix present in distfile";
             end if;
-            if not specs.dl_sites.Contains (HT.SUS (HT.part_2 (value, ":"))) then
-               raise wrong_value with
-                 "Download group '" & HT.part_2 (value, ":") & "' hasn't been defined yet.";
-            end if;
+            declare
+               group : String  := HT.part_2 (value, ":");
+               key   : HT.Text := HT.SUS (group);
+            begin
+               if not specs.dl_sites.Contains (key) then
+                  raise missing_group with
+                    "Download group " & HT.SQ (group) & " hasn't been defined yet.";
+               end if;
+               if specs.dl_sites.Element (key).list.Is_Empty then
+                  raise missing_group with
+                    "download group " & HT.SQ (group) & " referenced, but SITES[" & group
+                    & "] has not been defined.";
+               end if;
+            end;
             specs.distfiles.Append (text_value);
             specs.last_set := so_distfiles;
             declare
