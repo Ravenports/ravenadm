@@ -377,7 +377,7 @@ package body Pilot is
       end if;
 
       if not successful then
-         TIO.Put_Line ("generate_buildsheet < " & errprefix & "Failed to parse " & specfile);
+         TIO.Put_Line (errprefix & "Failed to parse " & specfile & " (generate_buildsheet)");
          TIO.Put_Line (specification.get_parse_error);
          return;
       end if;

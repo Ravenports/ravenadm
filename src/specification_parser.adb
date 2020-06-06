@@ -680,9 +680,7 @@ package body Specification_Parser is
                     (LN & "Field " & EX.Exception_Message (F3) &
                        " DEV ISSUE: matched to wrong type");
                   exit;
-               when F4 : PSP.wrong_value =>
-                  spec.set_parse_error (LN & EX.Exception_Message (F4));
-                  exit;
+                  --  F4 merged to FF
                when F5 : mistabbed =>
                   spec.set_parse_error (LN & "value not aligned to column-24 (tab issue)");
                   exit;
@@ -703,9 +701,7 @@ package body Specification_Parser is
                when FA : PSP.dupe_spec_key =>
                   spec.set_parse_error (LN & EX.Exception_Message (FA) & " key duplicated.");
                   exit;
-               when FB : generic_format =>
-                  spec.set_parse_error (LN & EX.Exception_Message (FB));
-                  exit;
+                  --  FB merged to FF
                when FC : PSP.missing_group =>
                   spec.set_parse_error
                     (LN & EX.Exception_Message (FC) & " group has not yet been established.");
@@ -716,11 +712,12 @@ package body Specification_Parser is
                when FE : mistabbed_40 =>
                   spec.set_parse_error (LN & "option value not aligned to column-40 (tab issue)");
                   exit;
-               when FF : missing_file =>
+               when FF : missing_file
+                  | generic_format
+                  | PSP.wrong_value
+                  | PSP.missing_extract
+                  | PSP.missing_require =>
                   spec.set_parse_error (LN & EX.Exception_Message (FF));
-                  exit;
-               when F10 : PSP.missing_extract =>
-                  spec.set_parse_error (LN & EX.Exception_Message (F10));
                   exit;
             end;
             <<line_done>>

@@ -463,18 +463,18 @@ package body Port_Specification is
                raise dupe_list_value with value;
             end if;
             if not HT.contains (value, ":") then
-               raise wrong_value with "No download group prefix present in distfile";
+               raise missing_require with "No download group prefix present in distfile";
             end if;
             declare
                group : String  := HT.part_2 (value, ":");
                key   : HT.Text := HT.SUS (group);
             begin
                if not specs.dl_sites.Contains (key) then
-                  raise missing_group with
+                  raise missing_require with
                     "Download group " & HT.SQ (group) & " hasn't been defined yet.";
                end if;
                if specs.dl_sites.Element (key).list.Is_Empty then
-                  raise missing_group with
+                  raise missing_require with
                     "download group " & HT.SQ (group) & " referenced, but SITES[" & group
                     & "] has not been defined.";
                end if;
