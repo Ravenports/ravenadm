@@ -984,17 +984,14 @@ package body Replicant is
       --  Save a null mount on all platforms (all keeps /xports to the bare minimum)
       declare
          mk_directory : constant String := mount_target (xports) & "/Mk";
+         slave_mk     : constant String := location (slave_base, xports) & "/Mk";
       begin
          if PM.configuration.avoid_tmpfs then
-            mount_hardlink (mk_directory,
-                            location (slave_base, xports) & "/Mk",
-                            dir_system);
+            mount_hardlink (mk_directory, slave_mk, dir_system);
          else
-            mount_fullcopy (mk_directory,
-                            location (slave_base, xports) & "/Mk",
-                            dir_system);
+            mount_fullcopy (mk_directory, slave_mk, dir_system);
          end if;
-         process_keyword_files (mk_directory, lbase);
+         process_keyword_files (slave_mk, lbase);
       end;
 
       case platform_type is
@@ -1649,13 +1646,13 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  process keyword files
    --------------------------------------------------------------------------------------------
-   procedure process_keyword_files (mount_mk : String; localbase : String)
+   procedure process_keyword_files (slave_mk : String; localbase : String)
    is
       procedure process_file (keyfile : String);
 
       Search  : DIR.Search_Type;
       Dir_Ent : DIR.Directory_Entry_Type;
-      keydir  : constant String := mount_mk & "/Keywords";
+      keydir  : constant String := slave_mk & "/Keywords";
 
       procedure process_file (keyfile : String)
       is
