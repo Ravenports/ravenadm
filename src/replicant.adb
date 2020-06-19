@@ -5,6 +5,7 @@ with Ada.Exceptions;
 with Ada.Directories;
 with Ada.Containers.Vectors;
 with Ada.Characters.Latin_1;
+with File_Operations;
 with Parameters;
 with Signals;
 with Unix;
@@ -16,6 +17,7 @@ package body Replicant is
    package CON renames Ada.Containers;
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
+   package FOP renames File_Operations;
 
    --------------------------------------------------------------------------------------------
    --  initialize
@@ -400,9 +402,9 @@ package body Replicant is
       end if;
       --  SLXX may be present if tmpfs is avoided
       DIR.Start_Search (Search    => Search,
-                       Directory => buildbase,
-                       Filter    => (DIR.Directory => True, others => False),
-                       Pattern   => "SL*");
+                        Directory => buildbase,
+                        Filter    => (DIR.Directory => True, others => False),
+                        Pattern   => "SL*");
       while DIR.More_Entries (Search => Search) loop
          DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
          declare
@@ -980,15 +982,20 @@ package body Replicant is
       end loop;
 
       --  Save a null mount on all platforms (all keeps /xports to the bare minimum)
-      if PM.configuration.avoid_tmpfs then
-         mount_hardlink (mount_target (xports) & "/Mk",
-                         location (slave_base, xports) & "/Mk",
-                         dir_system);
-      else
-         mount_fullcopy (mount_target (xports) & "/Mk",
-                         location (slave_base, xports) & "/Mk",
-                         dir_system);
-      end if;
+      declare
+         mk_directory : constant String := mount_target (xports) & "/Mk";
+      begin
+         if PM.configuration.avoid_tmpfs then
+            mount_hardlink (mk_directory,
+                            location (slave_base, xports) & "/Mk",
+                            dir_system);
+         else
+            mount_fullcopy (mk_directory,
+                            location (slave_base, xports) & "/Mk",
+                            dir_system);
+         end if;
+         process_keyword_files (mk_directory, lbase);
+      end;
 
       case platform_type is
          when macos | openbsd =>
@@ -1637,5 +1644,51 @@ package body Replicant is
       TIO.Close (sun_file);
 
    end create_sun_files;
+
+
+   --------------------------------------------------------------------------------------------
+   --  process keyword files
+   --------------------------------------------------------------------------------------------
+   procedure process_keyword_files (mount_mk : String; localbase : String)
+   is
+      procedure process_file (keyfile : String);
+
+      Search  : DIR.Search_Type;
+      Dir_Ent : DIR.Directory_Entry_Type;
+      keydir  : constant String := mount_mk & "/Keywords";
+
+      procedure process_file (keyfile : String)
+      is
+         contents : constant String := FOP.get_file_contents (keyfile);
+         lpattern : constant String := "%LOCALBASE%";
+         modified : Boolean := False;
+         finaltxt : HT.Text := HT.SUS (contents);
+      begin
+         loop
+            exit when not HT.contains (finaltxt, lpattern);
+            modified := True;
+            finaltxt := HT.replace_substring (finaltxt, lpattern, localbase);
+         end loop;
+         if modified then
+            DIR.Delete_File (keyfile);
+            FOP.dump_contents_to_file (HT.USS (finaltxt), keyfile);
+         end if;
+      end process_file;
+   begin
+      DIR.Start_Search (Search    => Search,
+                        Directory => keydir,
+                        Filter    => (DIR.Ordinary_File => True, others => False),
+                        Pattern   => "*.ucl");
+      while DIR.More_Entries (Search => Search) loop
+         DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
+         declare
+            kfile : constant String := keydir & "/" & DIR.Simple_Name (Dir_Ent);
+         begin
+            process_file (kfile);
+         end;
+      end loop;
+      DIR.End_Search (Search);
+   end process_keyword_files;
+
 
 end Replicant;

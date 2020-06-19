@@ -224,4 +224,7 @@ private
    --  Returns true if mount point has a nullfs or tmpfs mount on it.
    function specific_mount_exists (mount_point : String) return Boolean;
 
+   --  Search keywork ucl files for %LOCALBASE% pattern and replace it with configure localbase
+   procedure process_keyword_files (mount_mk : String; localbase : String);
+
 end Replicant;
