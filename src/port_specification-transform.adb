@@ -1893,18 +1893,28 @@ package body Port_Specification.Transform is
       is
          LUA52 : String := "lua52:single:standard";
          LUA53 : String := "lua53:single:standard";
+         LUA54 : String := "lua54:single:standard";
          def_setting : String := HT.USS (Parameters.configuration.def_lua);
       begin
          if argument_present (specs, module, "5.2") then
             return LUA52;
-         elsif argument_present (specs, module, "5.3") or else
-           def_setting = ports_default or else
-           def_setting = "5.3"
-         then
+         elsif argument_present (specs, module, "5.3") then
             return LUA53;
-         else
-            return LUA52;
+         elsif argument_present (specs, module, "5.4") then
+            return LUA54;
          end if;
+
+         --  No valid argument present, use configured setting
+
+         if def_setting = "5.2" then
+            return LUA52;
+         elsif def_setting = "5.4" then
+            return LUA54;
+         else
+            --  current default: lua53
+            return LUA53;
+         end if;
+
       end pick_lua;
 
       dependency : String := pick_lua;
@@ -2112,7 +2122,7 @@ package body Port_Specification.Transform is
       pmodbuild     : constant String := "perl-Module-Build:single:";
       pmodbuildtiny : constant String := "perl-Module-Build-Tiny:single:";
       perl_530      : constant String := "530";
-      perl_528      : constant String := "528";
+      perl_532      : constant String := "532";
       dep_suffix    : String := "   ";
       hit_run       : Boolean;
       hit_build     : Boolean;
@@ -2128,9 +2138,9 @@ package body Port_Specification.Transform is
          def_setting   : String := HT.USS (Parameters.configuration.def_perl);
          override_dep  : String := "perl-" & def_setting;
       begin
-         if argument_present (specs, module, perl_528) then
-            dep_suffix := perl_528;
-            return "perl-5.28" & suffix;
+         if argument_present (specs, module, perl_532) then
+            dep_suffix := perl_532;
+            return "perl-5.32" & suffix;
          elsif argument_present (specs, module, perl_530) then
             dep_suffix := perl_530;
             return "perl-5.30" & suffix;
@@ -2681,10 +2691,13 @@ package body Port_Specification.Transform is
          declare
             setting : String := HT.USS (Parameters.configuration.def_lua);
          begin
-            if setting = ports_default or else setting = default_lua then
-               return name_subpackage & "lua53";
-            else
+            if setting = "5.2" then
                return name_subpackage & "lua52";
+            elsif setting = "5.4" then
+               return name_subpackage & "lua54";
+            else
+               --  ports_default or default_lua ("5.3")
+               return name_subpackage & "lua53";
             end if;
          end;
       elsif trailer = "ruby_default" then

@@ -75,11 +75,11 @@ private
    dupe   : PM.configuration_record;
 
    version_A : constant String := default_firebird & ":3.0";
-   version_B : constant String := "5.2:" & default_lua;
+   version_B : constant String := "5.2:" & default_lua & ":5.4";
    version_C : constant String := "oracle-5.6:oracle-5.7:" & default_mysql & ":" &
                                   "mariadb-10.2:mariadb-10.3:mariadb-10.4:mariadb-10.5:" &
                                   "percona-5.6:percona-5.7:percona-8.0";
-   version_D : constant String := "5.28:" & default_perl;
+   version_D : constant String := default_perl & ":5.32";
    version_E : constant String := "7.2:7.3:" & default_php;
    version_F : constant String := "9.5:9.6:10:11:" & default_pgsql;
    version_G : constant String := "3.7:" & default_python3;
