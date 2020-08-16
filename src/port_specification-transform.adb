@@ -1588,6 +1588,8 @@ package body Port_Specification.Transform is
          return;
       end if;
 
+      --  When changing python defaults, don't forget to alter convert_exrun_versions() too.
+
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, PY27) then
             add_build_depends (specs, PYTHON27);
@@ -1948,6 +1950,8 @@ package body Port_Specification.Transform is
       hit_build  : Boolean;
       hit_both   : Boolean;
       install_tk : Boolean;
+
+      --  When changing tcl defaults, don't forget to alter convert_exrun_versions() too.
 
       function pick_tcl (actually_tk : Boolean) return String
       is
@@ -2549,10 +2553,10 @@ package body Port_Specification.Transform is
          elsif exrundep = "python" then
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
                Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON38)) then
-               Element := HT.SUS (PYTHON38);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON37)) then
+               Element := HT.SUS (PYTHON37);
             else
-              Element := HT.SUS (PYTHON37);
+              Element := HT.SUS (PYTHON38);
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
