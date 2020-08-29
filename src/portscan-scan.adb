@@ -597,14 +597,19 @@ package body PortScan.Scan is
       rec.ignored       := not HT.IsBlank (rec.ignore_reason);
       rec.scanned       := True;
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
-         populate_set_depends (target, thespec.get_list_item (PSP.sp_build_deps, item), build);
+         populate_set_depends (target,
+                               thespec.get_list_item (PSP.sp_build_deps, item),
+                               build);
       end loop;
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_buildrun_deps) loop
-         populate_set_depends (target, thespec.get_list_item (PSP.sp_buildrun_deps, item),
+         populate_set_depends (target,
+                               thespec.get_list_item (PSP.sp_buildrun_deps, item),
                                buildrun);
       end loop;
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_run_deps) loop
-         populate_set_depends (target, thespec.get_list_item (PSP.sp_run_deps, item), runtime);
+         populate_set_depends (target,
+                               thespec.get_list_item (PSP.sp_run_deps, item),
+                               runtime);
       end loop;
       for item in Positive range 1 .. thespec.get_subpackage_length (variant) loop
          declare
@@ -1645,7 +1650,7 @@ package body PortScan.Scan is
               LAT.LF & " Ports scanned :" & last_port'Img &
               LAT.LF & "  Elapsed time : " & elapsed &
               LAT.LF & "   Parallelism :" & max_lots'Img & " scanners" &
-              "          ncpu :" & Parameters.configuration.number_cores'Img);
+              LAT.LF & "          ncpu :" & Parameters.configuration.number_cores'Img);
          TIO.Close (listlog);
          TIO.Put_Line ("The complete build list can also be found at:"
                        & LAT.LF & filename);
