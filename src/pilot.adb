@@ -812,7 +812,7 @@ package body Pilot is
       end if;
       successful := SCN.scan_entire_ports_tree (sysrootver);
       if successful then
-         SCN.set_build_priority;
+         SCN.set_build_priority (eliminate_orphan_depends => False);
          if PortScan.queue_is_empty then
             successful := False;
             TIO.Put_Line ("There are no valid ports to build." & bailing);
@@ -838,7 +838,7 @@ package body Pilot is
       --  unkindness index generated at store_origins routine (can't get this far if failed)
       successful := SCN.scan_provided_list_of_ports (always_build, sysrootver);
       if successful then
-         SCN.set_build_priority;
+         SCN.set_build_priority (eliminate_orphan_depends => True);
          if PortScan.queue_is_empty then
             successful := False;
             TIO.Put_Line ("There are no valid ports to build." & bailing);

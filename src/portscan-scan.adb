@@ -912,6 +912,7 @@ package body PortScan.Scan is
                             LAT.LF & "  => " & EX.Exception_Message (issue));
             return False;
       end;
+      all_ports (target).top_level   := True;
       all_ports (target).scan_locked := True;
       all_ports (target).blocked_by.Iterate (dig'Access);
       all_ports (target).scan_locked := False;
@@ -926,9 +927,12 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    --  set_build_priority
    --------------------------------------------------------------------------------------------
-   procedure set_build_priority is
+   procedure set_build_priority (eliminate_orphan_depends : Boolean) is
    begin
       iterate_reverse_deps;
+      if eliminate_orphan_depends then
+         prune_orphaned_build_depends;
+      end if;
       iterate_drill_down;
    end set_build_priority;
 
@@ -961,6 +965,47 @@ package body PortScan.Scan is
          end if;
       end loop;
    end iterate_reverse_deps;
+
+
+   --------------------------------------------------------------------------------------------
+   --  prune_orphaned_build_depends
+   --------------------------------------------------------------------------------------------
+   procedure prune_orphaned_build_depends
+   is
+      --  Identify ports that are build dependencies of already built valid packages.
+      --  These are not required to build the requested ports, so remove them from the queue
+      --
+      --  Loop through the ports array until it passes completely without identifying
+      --  unnecessary port port.
+      procedure clear_block (cursor : block_crate.Cursor);
+
+      index : port_index := port_index'First;
+
+      procedure clear_block (cursor : block_crate.Cursor)
+      is
+         blocked_port : port_index renames block_crate.Element (cursor);
+      begin
+         if all_ports (blocked_port).blocked_by.Contains (index) then
+            all_ports (blocked_port).blocked_by.Delete (index);
+         end if;
+      end clear_block;
+
+   begin
+      loop
+         if all_ports (index).scanned and then
+           not all_ports (index).top_level and then
+           all_ports (index).blocked_by.Is_Empty
+         then
+            TIO.Put_Line ("Identified as orphan: " & HT.USS (all_ports (index).port_namebase));
+            all_ports (index).blocks.Iterate (clear_block'Access);
+            all_ports (index).scanned := False;
+            index := port_index'First;
+         else
+            exit when index = last_port;
+            index := index + 1;
+         end if;
+      end loop;
+   end prune_orphaned_build_depends;
 
 
    --------------------------------------------------------------------------------------------
