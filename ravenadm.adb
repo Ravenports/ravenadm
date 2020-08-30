@@ -278,7 +278,10 @@ begin
          if CLI.Argument_Count > 1 then
             if Pilot.install_compiler_packages and then
               Pilot.scan_stack_of_single_ports (always_build => False) and then
-              Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
+              Pilot.sanity_check_then_prefail
+                (delete_first             => False,
+                 dry_run                  => True,
+                 eliminate_orphan_depends => True)
             then
                Pilot.display_results_of_dry_run;
             end if;
@@ -292,7 +295,10 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.fully_scan_ports_tree and then
-           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
+           Pilot.sanity_check_then_prefail
+             (delete_first             => False,
+              dry_run                  => True,
+              eliminate_orphan_depends => False)
          then
             Pilot.display_results_of_dry_run;
          end if;
@@ -303,7 +309,10 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.scan_stack_of_single_ports (always_build => False) and then
-           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
+           Pilot.sanity_check_then_prefail
+             (delete_first             => False,
+              dry_run                  => False,
+              eliminate_orphan_depends => True)
          then
             Pilot.perform_bulk_run (testmode => False);
          end if;
@@ -314,7 +323,10 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.fully_scan_ports_tree and then
-           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
+           Pilot.sanity_check_then_prefail
+             (delete_first             => False,
+              dry_run                  => False,
+              eliminate_orphan_depends => False)
          then
             Pilot.perform_bulk_run (testmode => False);
          end if;
@@ -325,7 +337,10 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.fully_scan_ports_tree and then
-           Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
+           Pilot.sanity_check_then_prefail
+             (delete_first             => True,
+              dry_run                  => False,
+              eliminate_orphan_depends => False)
          then
             Pilot.perform_bulk_run (testmode => True);
          end if;
@@ -342,7 +357,10 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.scan_stack_of_single_ports (always_build => False) and then
-           Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
+           Pilot.sanity_check_then_prefail
+             (delete_first             => True,
+              dry_run                  => False,
+              eliminate_orphan_depends => True)
          then
             Pilot.perform_bulk_run (testmode => False);
          end if;
@@ -406,7 +424,10 @@ begin
          --------------------------------
          if Pilot.install_compiler_packages and then
            Pilot.scan_stack_of_single_ports (always_build => True) and then
-           Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
+           Pilot.sanity_check_then_prefail
+             (delete_first             => True,
+              dry_run                  => False,
+              eliminate_orphan_depends => True)
          then
             if Pilot.interact_with_single_builder then
                Pilot.bulk_run_then_interact_with_final_port;

@@ -193,6 +193,7 @@ private
          work_locked   : Boolean              := False;
          scan_locked   : Boolean              := False;
          top_level     : Boolean              := False;
+         intact_pkgset : Boolean              := False;
 
          use_procfs    : Boolean              := False;
          reverse_score : port_index           := 0;

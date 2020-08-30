@@ -68,6 +68,7 @@ package PortScan.Operations is
       rebuild_compiler : Boolean;
       rebuild_binutils : Boolean;
       suppress_remote  : Boolean;
+      drop_orphans     : Boolean;
       major_release    : String;
       architecture     : supported_arch);
 
@@ -197,6 +198,7 @@ private
    procedure assimulate_substring (history : in out progress_history; substring : String);
    procedure handle_first_history_entry;
    procedure check_history_segment_capacity;
+   procedure prune_orphaned_build_depends;
    procedure delete_rank (id : port_id);
    function  still_ranked (id : port_id) return Boolean;
    function  rank_arrow (id : port_id) return ranking_crate.Cursor;

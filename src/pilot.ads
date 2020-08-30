@@ -91,7 +91,8 @@ package Pilot is
    --  Return True if no problems are encountered.
    function sanity_check_then_prefail
      (delete_first : Boolean := False;
-      dry_run      : Boolean := False) return Boolean;
+      dry_run      : Boolean := False;
+      eliminate_orphan_depends : Boolean) return Boolean;
 
    --  Everything is fine so kick of the parallel builders.  They will
    --  continue until everything is complete.
