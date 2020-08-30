@@ -812,7 +812,7 @@ package body Pilot is
       end if;
       successful := SCN.scan_entire_ports_tree (sysrootver);
       if successful then
-         SCN.set_build_priority;
+         SCN.set_build_priority (eliminate_orphan_depends => False);
          if PortScan.queue_is_empty then
             successful := False;
             TIO.Put_Line ("There are no valid ports to build." & bailing);
@@ -838,7 +838,7 @@ package body Pilot is
       --  unkindness index generated at store_origins routine (can't get this far if failed)
       successful := SCN.scan_provided_list_of_ports (always_build, sysrootver);
       if successful then
-         SCN.set_build_priority;
+         SCN.set_build_priority (eliminate_orphan_depends => True);
          if PortScan.queue_is_empty then
             successful := False;
             TIO.Put_Line ("There are no valid ports to build." & bailing);
@@ -857,8 +857,7 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    function sanity_check_then_prefail
      (delete_first : Boolean := False;
-      dry_run      : Boolean := False;
-      eliminate_orphan_depends : Boolean) return Boolean
+      dry_run      : Boolean := False) return Boolean
    is
       ptid         : PortScan.port_id;
       num_skipped  : Natural;
@@ -906,7 +905,6 @@ package body Pilot is
                                 rebuild_compiler => force_compiler_build,
                                 rebuild_binutils => force_binutils_build,
                                 suppress_remote  => block_remote,
-                                drop_orphans     => eliminate_orphan_depends,
                                 major_release    => HT.USS (sysrootver.major),
                                 architecture     => sysrootver.arch);
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
