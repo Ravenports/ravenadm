@@ -33,7 +33,7 @@ package PortScan.Scan is
    --  then the extended (recursive) reverse dependencies.  The former is
    --  used progressively to determine when a port is free to build and the
    --  latter sets the build priority.
-   procedure set_build_priority (eliminate_orphan_depends : Boolean);
+   procedure set_build_priority;
 
    --  Iterate through portlist and scan each individual port recursively.
    --  May be interrupted with a a singal.  Returns False if any port fails scan or if
@@ -169,7 +169,6 @@ private
 
    procedure iterate_reverse_deps;
    procedure iterate_drill_down;
-   procedure prune_orphaned_build_depends;
 
    procedure drill_down (next_target : port_index; circular_flag : in out Boolean);
 
