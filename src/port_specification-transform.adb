@@ -1578,7 +1578,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_python_module (specs : in out Portspecs)
    is
-      procedure set_snake_ports (python_port, py_variant : String);
+      procedure set_snake_ports (build_only : Boolean; python_port, py_variant : String);
 
       module     : constant String := "python";
       PY27       : constant String := "py27";
@@ -1587,9 +1587,13 @@ package body Port_Specification.Transform is
 
       use_pip    : Boolean := False;
 
-      procedure set_snake_ports (python_port, py_variant : String) is
+      procedure set_snake_ports (build_only : Boolean; python_port, py_variant : String) is
       begin
-         add_buildrun_depends (specs, python_port);
+         if build_only then
+            add_build_depends (specs, python_port);
+         else
+            add_buildrun_depends (specs, python_port);
+         end if;
          if use_pip then
             add_build_depends (specs, "python-pip:single:" & py_variant);
          else
@@ -1611,19 +1615,19 @@ package body Port_Specification.Transform is
 
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, PY27) then
-            set_snake_ports (PYTHON27, PY27);
+            set_snake_ports (True, PYTHON27, PY27);
          elsif argument_present (specs, module, PY39) then
-            set_snake_ports (PYTHON39, PY39);
+            set_snake_ports (True, PYTHON39, PY39);
          else -- default to py38
-            set_snake_ports (PYTHON38, PY38);
+            set_snake_ports (True, PYTHON38, PY38);
          end if;
       else
          if argument_present (specs, module, PY27) then
-            set_snake_ports (PYTHON27, PY27);
+            set_snake_ports (False, PYTHON27, PY27);
          elsif argument_present (specs, module, PY39) then
-            set_snake_ports (PYTHON39, PY39);
+            set_snake_ports (False, PYTHON39, PY39);
          else -- default to py38
-            set_snake_ports (PYTHON38, PY38);
+            set_snake_ports (False, PYTHON38, PY38);
          end if;
       end if;
    end apply_python_module;
