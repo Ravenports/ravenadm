@@ -1589,7 +1589,7 @@ package body Port_Specification.Transform is
 
       procedure set_snake_ports (python_port, py_variant : String) is
       begin
-         add_build_depends (specs, python_port);
+         add_buildrun_depends (specs, python_port);
          if use_pip then
             add_build_depends (specs, "python-pip:single:" & py_variant);
          else
