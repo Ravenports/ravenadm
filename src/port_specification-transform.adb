@@ -1581,8 +1581,8 @@ package body Port_Specification.Transform is
       module     : constant String := "python";
       SETUPTOOLS : constant String := "python-setuptools:single:";
       PY27       : constant String := "py27";
-      PY37       : constant String := "py37";
       PY38       : constant String := "py38";
+      PY39       : constant String := "py39";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1595,10 +1595,10 @@ package body Port_Specification.Transform is
             add_build_depends (specs, PYTHON27);
             add_build_depends (specs, SETUPTOOLS & PY27);
             specs.used_python := HT.SUS (PY27);
-         elsif argument_present (specs, module, PY37) then
-            add_build_depends (specs, PYTHON37);
-            add_build_depends (specs, SETUPTOOLS & PY37);
-            specs.used_python := HT.SUS (PY37);
+         elsif argument_present (specs, module, PY39) then
+            add_build_depends (specs, PYTHON39);
+            add_build_depends (specs, SETUPTOOLS & PY39);
+            specs.used_python := HT.SUS (PY39);
          else -- default to py38
             add_build_depends (specs, PYTHON38);
             add_build_depends (specs, SETUPTOOLS & PY38);
@@ -1609,10 +1609,10 @@ package body Port_Specification.Transform is
             add_buildrun_depends (specs, PYTHON27);
             add_buildrun_depends (specs, SETUPTOOLS & PY27);
             specs.used_python := HT.SUS (PY27);
-         elsif argument_present (specs, module, PY37) then
-            add_buildrun_depends (specs, PYTHON37);
-            add_buildrun_depends (specs, SETUPTOOLS & PY37);
-            specs.used_python := HT.SUS (PY37);
+         elsif argument_present (specs, module, PY39) then
+            add_buildrun_depends (specs, PYTHON39);
+            add_buildrun_depends (specs, SETUPTOOLS & PY39);
+            specs.used_python := HT.SUS (PY39);
          else -- default to py38
             add_buildrun_depends (specs, PYTHON38);
             add_buildrun_depends (specs, SETUPTOOLS & PY38);
@@ -2563,8 +2563,8 @@ package body Port_Specification.Transform is
          elsif exrundep = "python" then
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
                Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON37)) then
-               Element := HT.SUS (PYTHON37);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON39)) then
+               Element := HT.SUS (PYTHON39);
             else
               Element := HT.SUS (PYTHON38);
             end if;
@@ -2674,7 +2674,7 @@ package body Port_Specification.Transform is
             if setting = ports_default or else setting = default_python3 then
                return name_subpackage & "py38";
             else
-               return name_subpackage & "py37";
+               return name_subpackage & "py39";
             end if;
          end;
       elsif trailer = "perl_default" then
