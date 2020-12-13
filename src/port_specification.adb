@@ -4406,7 +4406,6 @@ package body Port_Specification is
          ("NLS           ", NLS),
          ("OPENGL        ", OPENGL),
          ("OSS           ", OSS),
-         ("PERL_528      ", PERL528),
          ("PERL_530      ", PERL530),
          ("PERL_532      ", PERL532),
          ("PGSQL         ", PGSQL),
@@ -4491,7 +4490,6 @@ package body Port_Specification is
          when NLS          => return "Native Language Support";
          when OPENGL       => return "2D/3D rendering support via OpenGL";
          when OSS          => return "Open Sound System support";
-         when PERL528      => return "Build using Perl 5.28";
          when PERL530      => return "Build using Perl 5.30";
          when PERL532      => return "Build using Perl 5.32";
          when PGSQL        => return "PostgreSQL database support";

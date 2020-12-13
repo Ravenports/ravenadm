@@ -1824,8 +1824,8 @@ package body Port_Specification.Transform is
                flavor := "v26";
             elsif argument_present (specs, module, "v27") then
                flavor := "v27";
-            elsif argument_present (specs, module, "v25") then
-               flavor := "v25";
+            elsif argument_present (specs, module, "v30") then
+               flavor := "v30";
             end if;
          end if;
          add_buildrun_depends (specs, "ruby-rubygems:single:" & flavor);
@@ -2684,7 +2684,7 @@ package body Port_Specification.Transform is
             if setting = ports_default or else setting = default_perl then
                return name_subpackage & "530";
             else
-               return name_subpackage & "528";
+               return name_subpackage & "532";
             end if;
          end;
       elsif trailer = "lua_default" then
@@ -2704,12 +2704,13 @@ package body Port_Specification.Transform is
          declare
             setting : String := HT.USS (Parameters.configuration.def_ruby);
          begin
-            if setting = ports_default or else setting = default_ruby then
-               return name_subpackage & "v27";
-            elsif setting = "2.6" then
+            if setting = "2.6" then
                return name_subpackage & "v26";
+            elsif setting = "3.0" then
+               return name_subpackage & "v30";
             else
-               return name_subpackage & "v25";
+               --  ports_default or default_python ("2.7")
+               return name_subpackage & "v27";
             end if;
          end;
       elsif trailer = "python_used" then
