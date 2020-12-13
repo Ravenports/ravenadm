@@ -4416,7 +4416,6 @@ package body Port_Specification is
          ("PY37          ", PY37),
          ("PY38          ", PY38),
          ("READLINE      ", READLINE),
-         ("RUBY25        ", RUBY25),
          ("RUBY26        ", RUBY26),
          ("RUBY27        ", RUBY27),
          ("RUBY30        ", RUBY30),
@@ -4502,7 +4501,6 @@ package body Port_Specification is
          when PY37         => return "Build using Python 3.7";
          when PY38         => return "Build using Python 3.8";
          when READLINE     => return "Command line editing via libreadline";
-         when RUBY25       => return "Build using Ruby version 2.5";
          when RUBY26       => return "Build using Ruby version 2.6";
          when RUBY27       => return "Build using Ruby version 2.7";
          when RUBY30       => return "Build using Ruby version 3.0";

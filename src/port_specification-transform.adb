@@ -1628,7 +1628,6 @@ package body Port_Specification.Transform is
    procedure apply_ruby_module (specs : in out Portspecs)
    is
       module     : constant String := "ruby";
-      v25        : constant String := "v25";
       v26        : constant String := "v26";
       v27        : constant String := "v27";
       v30        : constant String := "v30";
@@ -1646,9 +1645,6 @@ package body Port_Specification.Transform is
          elsif argument_present (specs, module, v26) then
             add_build_depends (specs, RUBY26);
             specs.used_ruby := HT.SUS (RUBY26);
-         elsif argument_present (specs, module, v25) then
-            add_build_depends (specs, RUBY25);
-            specs.used_ruby := HT.SUS (RUBY25);
          else -- default to current default
             add_build_depends (specs, RUBY27);
             specs.used_ruby := HT.SUS (RUBY27);
@@ -1660,9 +1656,6 @@ package body Port_Specification.Transform is
          elsif argument_present (specs, module, v26) then
             add_buildrun_depends (specs, RUBY26);
             specs.used_ruby := HT.SUS (RUBY26);
-         elsif argument_present (specs, module, v25) then
-            add_buildrun_depends (specs, RUBY25);
-            specs.used_ruby := HT.SUS (RUBY25);
          else -- default to current default
             add_buildrun_depends (specs, RUBY27);
             specs.used_ruby := HT.SUS (RUBY27);

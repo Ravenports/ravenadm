@@ -59,7 +59,6 @@ private
    TCL86    : constant String := "tcl86:complete:standard";
    TK85     : constant String := "tk85:primary:standard";
    TK86     : constant String := "tk86:primary:standard";
-   RUBY25   : constant String := "ruby25:primary:standard";
    RUBY26   : constant String := "ruby26:primary:standard";
    RUBY27   : constant String := "ruby27:primary:standard";
    RUBY30   : constant String := "ruby30:primary:standard";
