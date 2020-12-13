@@ -1578,11 +1578,26 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_python_module (specs : in out Portspecs)
    is
+      procedure set_snake_ports (python_port, py_variant : String);
+
       module     : constant String := "python";
-      SETUPTOOLS : constant String := "python-setuptools:single:";
       PY27       : constant String := "py27";
       PY38       : constant String := "py38";
       PY39       : constant String := "py39";
+
+      use_pip    : Boolean := False;
+
+      procedure set_snake_ports (python_port, py_variant : String) is
+      begin
+         add_build_depends (specs, python_port);
+         if use_pip then
+            add_build_depends (specs, "python-pip:single:" & py_variant);
+         else
+            add_build_depends (specs, "python-setuptools:single:" & py_variant);
+         end if;
+         specs.used_python := HT.SUS (py_variant);
+      end set_snake_ports;
+
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1590,33 +1605,25 @@ package body Port_Specification.Transform is
 
       --  When changing python defaults, don't forget to alter convert_exrun_versions() too.
 
+      if argument_present (specs, module, "wheel") then
+         use_pip := True;
+      end if;
+
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, PY27) then
-            add_build_depends (specs, PYTHON27);
-            add_build_depends (specs, SETUPTOOLS & PY27);
-            specs.used_python := HT.SUS (PY27);
+            set_snake_ports (PYTHON27, PY27);
          elsif argument_present (specs, module, PY39) then
-            add_build_depends (specs, PYTHON39);
-            add_build_depends (specs, SETUPTOOLS & PY39);
-            specs.used_python := HT.SUS (PY39);
+            set_snake_ports (PYTHON39, PY39);
          else -- default to py38
-            add_build_depends (specs, PYTHON38);
-            add_build_depends (specs, SETUPTOOLS & PY38);
-            specs.used_python := HT.SUS (PY38);
+            set_snake_ports (PYTHON38, PY38);
          end if;
       else
          if argument_present (specs, module, PY27) then
-            add_buildrun_depends (specs, PYTHON27);
-            add_buildrun_depends (specs, SETUPTOOLS & PY27);
-            specs.used_python := HT.SUS (PY27);
+            set_snake_ports (PYTHON27, PY27);
          elsif argument_present (specs, module, PY39) then
-            add_buildrun_depends (specs, PYTHON39);
-            add_buildrun_depends (specs, SETUPTOOLS & PY39);
-            specs.used_python := HT.SUS (PY39);
+            set_snake_ports (PYTHON39, PY39);
          else -- default to py38
-            add_buildrun_depends (specs, PYTHON38);
-            add_buildrun_depends (specs, SETUPTOOLS & PY38);
-            specs.used_python := HT.SUS (PY38);
+            set_snake_ports (PYTHON38, PY38);
          end if;
       end if;
    end apply_python_module;
