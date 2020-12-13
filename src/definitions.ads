@@ -40,7 +40,7 @@ package Definitions is
    previous_default  : constant String := "gcc9";
    compiler_version  : constant String := "9.3.0";
    previous_compiler : constant String := "9.2.0";
-   binutils_version  : constant String := "2.35";
+   binutils_version  : constant String := "2.35.1";
    previous_binutils : constant String := "2.34";
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
