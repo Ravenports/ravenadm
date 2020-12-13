@@ -1631,6 +1631,7 @@ package body Port_Specification.Transform is
       v25        : constant String := "v25";
       v26        : constant String := "v26";
       v27        : constant String := "v27";
+      v30        : constant String := "v30";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) or else
         argument_present (specs, module, "interp")
@@ -1639,7 +1640,10 @@ package body Port_Specification.Transform is
       end if;
 
       if argument_present (specs, module, "build") then
-         if argument_present (specs, module, v26) then
+         if argument_present (specs, module, v30) then
+            add_build_depends (specs, RUBY30);
+            specs.used_ruby := HT.SUS (RUBY30);
+         elsif argument_present (specs, module, v26) then
             add_build_depends (specs, RUBY26);
             specs.used_ruby := HT.SUS (RUBY26);
          elsif argument_present (specs, module, v25) then
@@ -1650,7 +1654,10 @@ package body Port_Specification.Transform is
             specs.used_ruby := HT.SUS (RUBY27);
          end if;
       else
-         if argument_present (specs, module, v26) then
+         if argument_present (specs, module, v30) then
+            add_buildrun_depends (specs, RUBY30);
+            specs.used_ruby := HT.SUS (RUBY30);
+         elsif argument_present (specs, module, v26) then
             add_buildrun_depends (specs, RUBY26);
             specs.used_ruby := HT.SUS (RUBY26);
          elsif argument_present (specs, module, v25) then

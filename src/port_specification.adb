@@ -4419,6 +4419,7 @@ package body Port_Specification is
          ("RUBY25        ", RUBY25),
          ("RUBY26        ", RUBY26),
          ("RUBY27        ", RUBY27),
+         ("RUBY30        ", RUBY30),
          ("SNDIO         ", SNDIO),
          ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
@@ -4504,6 +4505,7 @@ package body Port_Specification is
          when RUBY25       => return "Build using Ruby version 2.5";
          when RUBY26       => return "Build using Ruby version 2.6";
          when RUBY27       => return "Build using Ruby version 2.7";
+         when RUBY30       => return "Build using Ruby version 3.0";
          when SNDIO        => return "Sndio audio support";
          when SOUND        => return "Sound (audio) support";
          when SQLITE       => return "SQLite database support";

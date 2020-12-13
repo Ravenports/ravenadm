@@ -62,6 +62,7 @@ private
    RUBY25   : constant String := "ruby25:primary:standard";
    RUBY26   : constant String := "ruby26:primary:standard";
    RUBY27   : constant String := "ruby27:primary:standard";
+   RUBY30   : constant String := "ruby30:primary:standard";
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:single:standard";
 
