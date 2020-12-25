@@ -631,12 +631,17 @@ package body PortScan.Buildcycle is
          return "TERM=dumb ";
       end set_terminal;
 
-      function toolchain_path return String is
+      function toolchain_path return String
+      is
+         defcomp : String := localbase & "/toolchain/" & default_compiler & "/bin:";
       begin
          if toolchain
          then
-            return localbase & "/toolchain/" & default_compiler & "/bin:" &
-              localbase & "/toolchain/" & previous_default & "/bin:";
+            if default_compiler /= previous_compiler then
+               return defcomp & localbase & "/toolchain/" & previous_default & "/bin:";
+            else
+               return defcomp;
+            end if;
          else
             return "";
          end if;
