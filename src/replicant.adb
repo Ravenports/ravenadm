@@ -241,7 +241,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  append_abnormal_log
    --------------------------------------------------------------------------------------------
-   procedure append_abnormal_log (line: String) is
+   procedure append_abnormal_log (line : String) is
    begin
       TIO.Put_Line (abnormal_log, line);
    end append_abnormal_log;

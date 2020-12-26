@@ -59,7 +59,7 @@ package Replicant is
    procedure clear_workzone_directory (subpath : String);
 
    --  Write given line to log on failed commands
-   procedure append_abnormal_log (line: String);
+   procedure append_abnormal_log (line : String);
 
 private
 
