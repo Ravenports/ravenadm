@@ -146,7 +146,7 @@ package body Replicant is
                   Mode => TIO.Out_File,
                   Name => logpath);
       abn_log_ready := True;
-      exception
+   exception
       when others => abn_log_ready := False;
    end start_abnormal_logging;
 
@@ -236,6 +236,15 @@ package body Replicant is
            command & " => failed (exit code not 0)";
       end if;
    end silent_exec;
+
+
+   --------------------------------------------------------------------------------------------
+   --  append_abnormal_log
+   --------------------------------------------------------------------------------------------
+   procedure append_abnormal_log (line: String) is
+   begin
+      TIO.Put_Line (abnormal_log, line);
+   end append_abnormal_log;
 
 
    --------------------------------------------------------------------------------------------

@@ -565,6 +565,8 @@ package body PortScan.Buildcycle is
                raise cycle_cmd_error
                  with "cmd: ..." & message (message'Last - 191 .. message'Last);
             else
+               REP.append_abnormal_log ("COMMAND: " & command);
+               REP.append_abnormal_log (" OUTPUT: " & HT.USS (content));
                raise cycle_cmd_error with "cmd: " & message;
             end if;
          end;
