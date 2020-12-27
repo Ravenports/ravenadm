@@ -1586,6 +1586,7 @@ package body Port_Specification.Transform is
       PY39       : constant String := "py39";
 
       use_pip    : Boolean := False;
+      use_setup  : Boolean := False;
 
       procedure set_snake_ports (build_only : Boolean; python_port, py_variant : String) is
       begin
@@ -1596,7 +1597,8 @@ package body Port_Specification.Transform is
          end if;
          if use_pip then
             add_build_depends (specs, "python-pip:single:" & py_variant);
-         else
+         end if;
+         if use_setup then
             add_build_depends (specs, "python-setuptools:single:" & py_variant);
          end if;
          specs.used_python := HT.SUS (py_variant);
@@ -1611,6 +1613,10 @@ package body Port_Specification.Transform is
 
       if argument_present (specs, module, "wheel") then
          use_pip := True;
+      end if;
+
+      if argument_present (specs, module, "sutools") then
+         use_setup := True;
       end if;
 
       if argument_present (specs, module, "build") then
