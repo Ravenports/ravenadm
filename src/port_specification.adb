@@ -3531,7 +3531,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 62;
+      total_modules : constant Positive := 63;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3588,6 +3588,7 @@ package body Port_Specification is
          "png            ",
          "python         ",
          "qt5            ",
+         "qt6            ",
          "readline       ",
          "ruby           ",
          "shebangfix     ",
