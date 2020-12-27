@@ -2921,6 +2921,8 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "gtk2" & ss);
             when gtk3 =>
                add_buildrun_depends (specs, "gtk3" & ss);
+            when gtk4 =>
+               add_buildrun_depends (specs, "gtk4" & ps);
             when gtkmm24 =>
                add_buildrun_depends (specs, "gtkmm24" & ss);
             when gtkmm30 =>

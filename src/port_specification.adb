@@ -3758,6 +3758,7 @@ package body Port_Specification is
          ("glibmm            ", glibmm),
          ("gtk2              ", gtk2),
          ("gtk3              ", gtk3),
+         ("gtk4              ", gtk4),
          ("gtkmm24           ", gtkmm24),
          ("gtkmm30           ", gtkmm30),
          ("gtksourceview3    ", gtksourceview3),
