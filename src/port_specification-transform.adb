@@ -2853,18 +2853,10 @@ package body Port_Specification.Transform is
             when gtk3 =>
                implies (atk);
                implies (pango);
-            when gtkmm24 =>
-               implies (glibmm);
-               implies (cairomm);
-               implies (atkmm);
-               implies (pangomm);
-               implies (gtk2);
             when gtkmm30 =>
-               implies (glibmm);
-               implies (cairomm);
-               implies (atkmm);
-               implies (pangomm);
                implies (gtk3);
+            when gtkmm40 =>
+               implies (gtk4);
             when gtksourceview3 =>
                implies (gtk3);
                implies (libxml2);
@@ -2902,10 +2894,14 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "atk" & ss);
             when atkmm =>
                add_buildrun_depends (specs, "atkmm" & ss);
+            when atkmm16 =>
+               add_buildrun_depends (specs, "atkmm16" & ss);
             when cairo =>
                add_buildrun_depends (specs, "cairo" & ss);
             when cairomm =>
                add_buildrun_depends (specs, "cairomm" & ss);
+            when cairomm10 =>
+               add_buildrun_depends (specs, "cairomm10" & ss);
             when dconf =>
                add_buildrun_depends (specs, "dconf" & ps);
             when gconf =>
@@ -2917,16 +2913,18 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "gettext:runtime:standard");
             when glibmm =>
                add_buildrun_depends (specs, "glibmm" & ss);
+            when glibmm24 =>
+               add_buildrun_depends (specs, "glibmm24" & ss);
             when gtk2 =>
                add_buildrun_depends (specs, "gtk2" & ss);
             when gtk3 =>
                add_buildrun_depends (specs, "gtk3" & ss);
             when gtk4 =>
                add_buildrun_depends (specs, "gtk4" & ps);
-            when gtkmm24 =>
-               add_buildrun_depends (specs, "gtkmm24" & ss);
             when gtkmm30 =>
                add_buildrun_depends (specs, "gtkmm30" & ss);
+            when gtkmm40 =>
+               add_buildrun_depends (specs, "gtkmm40" & ss);
             when gtksourceview3 =>
                add_buildrun_depends (specs, "gtksourceview3" & ps);
             when intltool =>
@@ -2959,6 +2957,8 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "pango" & ps);
             when pangomm =>
                add_buildrun_depends (specs, "pangomm" & ss);
+            when pangomm14 =>
+               add_buildrun_depends (specs, "pangomm14" & ss);
             when pygobject =>
                add_buildrun_depends (specs, "python-pygobject:primary:" & defpy);
                add_buildrun_depends (specs, "python-pygobject:common:" & defpy);
