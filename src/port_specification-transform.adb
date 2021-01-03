@@ -2904,9 +2904,9 @@ package body Port_Specification.Transform is
             when glibmm24 =>
                add_buildrun_depends (specs, "glibmm24" & ss);
             when gtk2 =>
-               add_buildrun_depends (specs, "gtk2" & ss);
+               add_buildrun_depends (specs, "gtk2" & ps);
             when gtk3 =>
-               add_buildrun_depends (specs, "gtk3" & ss);
+               add_buildrun_depends (specs, "gtk3" & ps);
             when gtk4 =>
                add_buildrun_depends (specs, "gtk4" & ps);
             when gtkmm30 =>
