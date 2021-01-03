@@ -2879,7 +2879,7 @@ package body Port_Specification.Transform is
          case comp is
             when invalid_component => null;  --  should be impossible
             when atk =>
-               add_buildrun_depends (specs, "atk" & ss);
+               add_buildrun_depends (specs, "atk" & ps);
             when atkmm =>
                add_buildrun_depends (specs, "atkmm" & ss);
             when atkmm16 =>
