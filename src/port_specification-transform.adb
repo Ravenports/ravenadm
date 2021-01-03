@@ -1435,7 +1435,7 @@ package body Port_Specification.Transform is
       module : String := "mime-info";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, "shared-mime-info:single:standard");
+         add_buildrun_depends (specs, "shared-mime-info:primary:standard");
       end if;
    end apply_mime_info_module;
 
