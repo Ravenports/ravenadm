@@ -326,7 +326,6 @@ package body Port_Specification.Transform is
       apply_gem_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
-      apply_ccache_module (specs);
       apply_schemas_module (specs);
       apply_firebird_module (specs);
       apply_desktop_utils_module (specs);
@@ -1324,23 +1323,6 @@ package body Port_Specification.Transform is
          add_buildrun_depends (specs, dependency);
       end if;
    end apply_info_presence;
-
-
-   --------------------------------------------------------------------------------------------
-   --  apply_ccache
-   --------------------------------------------------------------------------------------------
-   procedure apply_ccache_module (specs : in out Portspecs)
-   is
-      dependency : String := "ccache:primary:standard";
-   begin
-      if specs.skip_build or else
-        specs.skip_ccache or else
-        HT.equivalent (Parameters.configuration.dir_ccache, Parameters.no_ccache)
-      then
-         return;
-      end if;
-      add_build_depends (specs, dependency);
-   end apply_ccache_module;
 
 
    --------------------------------------------------------------------------------------------

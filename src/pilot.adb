@@ -294,9 +294,6 @@ package body Pilot is
          end if;
       end get_variant;
    begin
-      --  make sure ccache isn't added to deps
-      PM.configuration.dir_ccache := HT.SUS (PM.no_ccache);
-
       if DIR.Exists (dossier) then
          REP.launch_workzone;
          OPS.parse_and_transform_buildsheet (specification => specification,
