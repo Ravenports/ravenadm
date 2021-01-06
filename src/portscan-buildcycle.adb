@@ -639,7 +639,7 @@ package body PortScan.Buildcycle is
       begin
          if toolchain
          then
-            if default_compiler /= previous_compiler then
+            if default_compiler /= previous_default then
                return defcomp & localbase & "/toolchain/" & previous_default & "/bin:";
             else
                return defcomp;
