@@ -165,6 +165,9 @@ package HelperText is
    --  Return input surrounded by single quotation marks
    function SQ (txt : String) return String;
 
+   --  Returns literal surrounded by single quotes
+   function shell_quoted (txt : String) return String;
+
 private
 
    single_LF : constant String (1 .. 1) := (1 => ASCII.LF);

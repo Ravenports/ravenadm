@@ -862,4 +862,19 @@ package body HelperText is
    end SQ;
 
 
+   --------------------------------------------------------------------
+   --  DQ
+   --------------------------------------------------------------------
+   function shell_quoted (txt : String) return String
+   is
+      --  example input: my'my
+      --         output: 'my'\''my'
+      A : Character renames LAT.Apostrophe;
+      replacement : constant String := A & LAT.Reverse_Solidus & A & A;
+   begin
+      return A & replace_char (S         => txt,
+                               focus     => A,
+                               substring => replacement) & A;
+   end shell_quoted;
+
 end HelperText;

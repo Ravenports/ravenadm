@@ -393,8 +393,7 @@ package body Configure is
                   actprofile := linenum;
                else
                   TIO.Put_Line (indent & LAT.Left_Square_Bracket & HT.int2str (linenum) &
-                                  "] Delete " & LAT.Quotation & line & LAT.Quotation &
-                                  " profile");
+                                  "] Delete " & HT.DQ (line) & " profile");
                end if;
             end;
          end loop;
@@ -460,8 +459,7 @@ package body Configure is
                line : constant String := HT.extract_line (all_profiles, markers);
             begin
                TIO.Put_Line (indent & LAT.Left_Square_Bracket & HT.int2str (linenum) &
-                               "] Switch to " & LAT.Quotation & line & LAT.Quotation &
-                               " profile");
+                               "] Switch to " & HT.DQ (line) & " profile");
             end;
          end loop;
          linenum := linenum + 1;

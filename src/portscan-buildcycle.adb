@@ -940,7 +940,7 @@ package body PortScan.Buildcycle is
    is
       command : String :=
         PM.chroot_cmd & base & " /usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
-        "-h -m /usr/share/file/magic.mgc " & LAT.Quotation & filename & LAT.Quotation;
+        "-h -m /usr/share/file/magic.mgc " & HT.shell_quoted (filename);
       dynlinked  : Boolean;
       statlinked : Boolean;
    begin
