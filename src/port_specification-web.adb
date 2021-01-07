@@ -611,7 +611,7 @@ package body Port_Specification.Web is
          lnk : constant String := make_link (HT.USS (site_string));
       begin
          if HT.IsBlank (cell2) then
-            HT.SU.Append (cell2, LAT.LF & lnk);
+            HT.SU.Append (cell2, lnk);
          else
             HT.SU.Append (cell2, "<br/>" & LAT.LF & lnk);
          end if;
