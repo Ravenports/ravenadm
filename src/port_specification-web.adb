@@ -621,7 +621,9 @@ package body Port_Specification.Web is
       is
          name : HT.Text renames list_crate.Key (position);
       begin
-         groups.Append (name);
+         if not HT.equivalent (name, dlgroup_main) then
+            groups.Append (name);
+         end if;
       end gather;
 
       procedure group_scan (position : crate.Cursor)
@@ -646,6 +648,9 @@ package body Port_Specification.Web is
       end if;
       specs.dl_sites.Iterate (gather'Access);
       local_sorter.Sort (Container => groups);
+      if specs.dl_sites.Contains (HT.SUS (dlgroup_main)) then
+         groups.Prepend (HT.SUS (dlgroup_main));
+      end if;
       groups.Iterate (group_scan'Access);
       return HT.USS (result);
    end master_sites_block;
