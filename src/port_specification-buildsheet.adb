@@ -567,7 +567,8 @@ package body Port_Specification.Buildsheet is
 
          num_groups : constant Natural := Natural (specs.dl_sites.Length);
          first_one  : constant String  := HT.USS (list_crate.Element (specs.dl_sites.First).group);
-         groups : crate.Vector;
+         groups     : crate.Vector;
+         gcounter   : Natural := 0;
 
          procedure dump_groups (position : crate.Cursor)
          is
@@ -575,7 +576,8 @@ package body Port_Specification.Buildsheet is
             rec   : group_list renames specs.dl_sites.Element (index);
             site  : constant String := HT.USS (rec.group);
          begin
-            if site = dlgroup_main then
+            gcounter := gcounter + 1;
+            if gcounter = 1 then
                send (site, True);
             else
                send (" " & site, True);
