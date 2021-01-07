@@ -578,7 +578,13 @@ package body Port_Specification.Web is
    --------------------------------------------------------------------------------------------
    function master_sites_block (specs : Portspecs) return String
    is
-      procedure group_scan (position : list_crate.Cursor);
+      package crate is new CON.Vectors (Index_Type   => Positive,
+                                        Element_Type => HT.Text,
+                                        "="          => HT.SU."=");
+      package local_sorter is new crate.Generic_Sorting ("<" => HT.SU."<");
+
+      procedure group_scan (position : crate.Cursor);
+      procedure gather (position : list_crate.Cursor);
       procedure dump_sites (position : string_crate.Cursor);
       function make_link (site : String) return String;
       num_groups  : constant Natural := Natural (specs.dl_sites.Length);
@@ -586,6 +592,7 @@ package body Port_Specification.Web is
 
       cell2  : HT.Text;
       result : HT.Text;
+      groups : crate.Vector;
 
       function make_link (site : String) return String
       is
@@ -610,9 +617,17 @@ package body Port_Specification.Web is
          end if;
       end dump_sites;
 
-      procedure group_scan (position : list_crate.Cursor)
+      procedure gather (position : list_crate.Cursor)
       is
-         rec   : group_list renames list_crate.Element (position);
+         name : HT.Text renames list_crate.Key (position);
+      begin
+         groups.Append (name);
+      end gather;
+
+      procedure group_scan (position : crate.Cursor)
+      is
+         index : HT.Text renames crate.Element (position);
+         rec   : group_list renames specs.dl_sites.Element (index);
          cell1 : constant String := HT.USS (rec.group);
          row   : HT.Text := HT.SUS (two_cell_row_template);
       begin
@@ -629,7 +644,9 @@ package body Port_Specification.Web is
       then
          return "    <tr><td>This port does not download anything.</td></tr>";
       end if;
-      specs.dl_sites.Iterate (group_scan'Access);
+      specs.dl_sites.Iterate (gather'Access);
+      local_sorter.Sort (Container => groups);
+      groups.Iterate (group_scan'Access);
       return HT.USS (result);
    end master_sites_block;
 
