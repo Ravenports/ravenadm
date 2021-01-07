@@ -573,8 +573,13 @@ package body Port_Specification.Buildsheet is
          is
             index : HT.Text renames crate.Element (position);
             rec   : group_list renames specs.dl_sites.Element (index);
+            site  : constant String := HT.USS (rec.group);
          begin
-            send (HT.USS (rec.group), True);
+            if site = dlgroup_main then
+               send (site, True);
+            else
+               send (" " & site, True);
+            end if;
          end dump_groups;
 
          procedure dump_sites (position : crate.Cursor)
