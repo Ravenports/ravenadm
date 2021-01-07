@@ -29,6 +29,11 @@ package body Port_Specification.Buildsheet is
       ravensrcdir : String;
       output_file : String)
    is
+      package crate is new CON.Vectors (Index_Type   => Positive,
+                                        Element_Type => HT.Text,
+                                        "="          => HT.SU."=");
+      package local_sorter is new crate.Generic_Sorting ("<" => HT.SU."<");
+
       procedure send (data : String; use_put : Boolean := False);
       procedure send (varname : String; value, default : Integer);
       procedure send (varname, value : String);
@@ -52,7 +57,6 @@ package body Port_Specification.Buildsheet is
       procedure dump_manifest  (position : string_crate.Cursor);
       procedure dump_manifest2 (position : string_crate.Cursor);
       procedure dump_sdesc     (position : def_crate.Cursor);
-      procedure dump_sites     (position : list_crate.Cursor);
       procedure dump_optgroup  (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
       procedure dump_targets   (position : list_crate.Cursor);
@@ -148,8 +152,6 @@ package body Port_Specification.Buildsheet is
       begin
          varname_prefix := HT.SUS (varname);
          case flavor is
-            when 4 =>
-               crate.Iterate (Process => dump_sites'Access);
             when 5 =>
                crate.Iterate (Process => dump_optgroup'Access);
             when others =>
@@ -223,18 +225,6 @@ package body Port_Specification.Buildsheet is
       begin
          send (align24 (varname) & HT.USS (def_crate.Element (position)));
       end dump_sdesc;
-
-      procedure dump_sites (position : list_crate.Cursor)
-      is
-         rec     : group_list renames list_crate.Element (position);
-         varname : String := HT.USS (varname_prefix)  & LAT.Left_Square_Bracket &
-                   HT.USS (rec.group) & LAT.Right_Square_Bracket & LAT.Equals_Sign;
-      begin
-         if not rec.list.Is_Empty then
-            send (align24 (varname), True);
-            rec.list.Iterate (Process => print_item'Access);
-         end if;
-      end dump_sites;
 
       procedure dump_optgroup (position : list_crate.Cursor)
       is
@@ -556,35 +546,60 @@ package body Port_Specification.Buildsheet is
       procedure send_download_groups
       is
          --  The first group must be either "main" or "none"
-         procedure dump_group (position : list_crate.Cursor);
-         procedure dump_main (position : list_crate.Cursor);
+         procedure gather (position : list_crate.Cursor);
+         procedure dump_groups (position : crate.Cursor);
+         procedure dump_sites (position : crate.Cursor);
 
-         procedure dump_main (position : list_crate.Cursor)
-         is
-            rec : group_list renames list_crate.Element (position);
-         begin
-            if HT.equivalent (rec.group, dlgroup_main) or else
-              HT.equivalent (rec.group, dlgroup_none)
-            then
-               send (HT.USS (rec.group), True);
-            end if;
-         end dump_main;
+         num_groups : constant Natural := Natural (specs.dl_sites.Length);
+         first_one  : constant String  := HT.USS (list_crate.Element (specs.dl_sites.First).group);
+         groups : crate.Vector;
 
-         procedure dump_group (position : list_crate.Cursor)
+         procedure dump_groups (position : crate.Cursor)
          is
-            rec : group_list renames list_crate.Element (position);
+            index : HT.Text renames crate.Element (position);
+            rec   : group_list renames specs.dl_sites.Element (index);
          begin
-            if not HT.equivalent (rec.group, dlgroup_main) and then
-              not HT.equivalent (rec.group, dlgroup_none)
-            then
-              send (" " & HT.USS (rec.group), True);
+            send (HT.USS (rec.group), True);
+         end dump_groups;
+
+         procedure dump_sites (position : crate.Cursor)
+         is
+            index : HT.Text renames crate.Element (position);
+            rec   : group_list renames specs.dl_sites.Element (index);
+            vname : String := "SITES[" & HT.USS (rec.group) & "]=";
+         begin
+            if not rec.list.Is_Empty then
+               send (align24 (vname), True);
+               rec.list.Iterate (Process => print_item'Access);
             end if;
-         end dump_group;
+         end dump_sites;
+
+         procedure gather (position : list_crate.Cursor)
+         is
+            name : HT.Text renames list_crate.Key (position);
+         begin
+            if not HT.equivalent (name, dlgroup_main) then
+               groups.Append (name);
+            end if;
+         end gather;
       begin
          send (align24 ("DOWNLOAD_GROUPS="), True);
-         specs.dl_sites.Iterate (Process => dump_main'Access);
-         specs.dl_sites.Iterate (Process => dump_group'Access);
-         send ("");
+         if num_groups = 1 and then
+           first_one = dlgroup_none
+         then
+            send (dlgroup_none, False);
+            --  no SITES entry in this case
+         else
+            specs.dl_sites.Iterate (gather'Access);
+            local_sorter.Sort (Container => groups);
+            if specs.dl_sites.Contains (HT.SUS (dlgroup_main)) then
+               groups.Prepend (HT.SUS (dlgroup_main));
+            end if;
+            groups.Iterate (Process => dump_groups'Access);
+            send ("");
+            --  list SITES entries in same order
+            groups.Iterate (Process => dump_sites'Access);
+         end if;
       end send_download_groups;
 
       procedure send_catchall
@@ -635,7 +650,6 @@ package body Port_Specification.Buildsheet is
       blank_line;
 
       send_download_groups;
-      send ("SITES",                specs.dl_sites, 4);
       send ("DISTFILE",             specs.distfiles, 3);
       send ("DIST_SUBDIR",          specs.dist_subdir);
       send ("DF_INDEX",             specs.df_index, 2);
