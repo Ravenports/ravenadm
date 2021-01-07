@@ -57,6 +57,7 @@ package body Port_Specification.Buildsheet is
       procedure dump_manifest  (position : string_crate.Cursor);
       procedure dump_manifest2 (position : string_crate.Cursor);
       procedure dump_sdesc     (position : def_crate.Cursor);
+      procedure dump_subpkgs   (position : list_crate.Cursor);
       procedure dump_optgroup  (position : list_crate.Cursor);
       procedure dump_distfiles (position : string_crate.Cursor);
       procedure dump_targets   (position : list_crate.Cursor);
@@ -152,6 +153,8 @@ package body Port_Specification.Buildsheet is
       begin
          varname_prefix := HT.SUS (varname);
          case flavor is
+            when 4 =>
+               crate.Iterate (Process => dump_subpkgs'Access);
             when 5 =>
                crate.Iterate (Process => dump_optgroup'Access);
             when others =>
@@ -225,6 +228,18 @@ package body Port_Specification.Buildsheet is
       begin
          send (align24 (varname) & HT.USS (def_crate.Element (position)));
       end dump_sdesc;
+
+      procedure dump_subpkgs (position : list_crate.Cursor)
+      is
+         rec     : group_list renames list_crate.Element (position);
+         varname : String := HT.USS (varname_prefix)  & LAT.Left_Square_Bracket &
+                   HT.USS (rec.group) & LAT.Right_Square_Bracket & LAT.Equals_Sign;
+      begin
+         if not rec.list.Is_Empty then
+            send (align24 (varname), True);
+            rec.list.Iterate (Process => print_item'Access);
+         end if;
+      end dump_subpkgs;
 
       procedure dump_optgroup (position : list_crate.Cursor)
       is
