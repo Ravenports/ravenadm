@@ -2924,7 +2924,7 @@ package body Port_Specification.Transform is
             when libcroco =>
                add_buildrun_depends (specs, "libcroco" & ps);
             when libglade =>
-               add_buildrun_depends (specs, "libglade:single:py27");
+               add_buildrun_depends (specs, "libglade" & ss);
             when libgsf =>
                add_buildrun_depends (specs, "libgsf" & ps);
             when libidl =>
@@ -2948,8 +2948,7 @@ package body Port_Specification.Transform is
             when pangomm14 =>
                add_buildrun_depends (specs, "pangomm14" & ss);
             when pygobject =>
-               add_buildrun_depends (specs, "python-pygobject:primary:" & defpy);
-               add_buildrun_depends (specs, "python-pygobject:common:" & defpy);
+               add_buildrun_depends (specs, "python-PyGObject:single:" & defpy);
             when vte =>
                add_buildrun_depends (specs, "vte" & ps);
          end case;
