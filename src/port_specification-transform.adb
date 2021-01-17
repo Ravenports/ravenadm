@@ -318,6 +318,7 @@ package body Port_Specification.Transform is
       apply_cran_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
+      apply_zstd_module (specs);
       apply_mesa_module (specs);
       apply_jpeg_module (specs);
       apply_lua_module (specs);
@@ -1325,6 +1326,24 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_libiconv_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_zstd_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_zstd_module (specs : in out Portspecs)
+   is
+      module            : String := "zstd";
+      shared_dependency : String := "Zstandard:shared:standard";
+      static_dependency : String := "Zstandard:static:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, static_dependency);
+         if not argument_present (specs, module, BUILD) then
+            add_buildrun_depends (specs, shared_dependency);
+         end if;
+      end if;
+   end apply_zstd_module;
 
 
    --------------------------------------------------------------------------------------------

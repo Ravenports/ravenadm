@@ -3531,7 +3531,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 64;
+      total_modules : constant Positive := 65;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3601,7 +3601,8 @@ package body Port_Specification is
          "ssl            ",
          "tcl            ",
          "terminfo       ",
-         "zlib           "
+         "zlib           ",
+         "zstd           "
         );
       bandolier : uses_string := (others => ' ');
 
