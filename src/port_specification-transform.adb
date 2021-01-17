@@ -848,6 +848,51 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  generic_build_module
+   --------------------------------------------------------------------------------------------
+   procedure generic_build_module
+     (specs      : in out Portspecs;
+      module     : String;
+      dependency : String)
+   is
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dependency);
+      end if;
+   end generic_build_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generic_library_module
+   --------------------------------------------------------------------------------------------
+   procedure generic_library_module
+     (specs      : in out Portspecs;
+      module     : String;
+      dependency : String)
+   is
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, dependency);
+      end if;
+   end generic_library_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generic_run_module
+   --------------------------------------------------------------------------------------------
+   procedure generic_run_module
+     (specs      : in out Portspecs;
+      module     : String;
+      dependency : String)
+   is
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_run_depends (specs, dependency);
+      end if;
+   end generic_run_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_scons_module
    --------------------------------------------------------------------------------------------
    procedure apply_scons_module (specs : in out Portspecs)
@@ -855,9 +900,7 @@ package body Port_Specification.Transform is
       module     : String := "scons";
       dependency : String := "scons:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_scons_module;
 
 
@@ -869,9 +912,7 @@ package body Port_Specification.Transform is
       module     : String := "gmake";
       dependency : String := "gmake:single:ravensys";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_gmake_module;
 
 
@@ -883,9 +924,7 @@ package body Port_Specification.Transform is
       module     : String := "cargo";
       dependency : String := "rust:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_cargo_module;
 
 
@@ -895,10 +934,9 @@ package body Port_Specification.Transform is
    procedure apply_ninja_module (specs : in out Portspecs)
    is
       module     : String := "ninja";
+      dependency : String renames NINJA;
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, NINJA);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_ninja_module;
 
 
@@ -910,10 +948,8 @@ package body Port_Specification.Transform is
       module     : String := "meson";
       dependency : String := "meson:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, dependency);
-         add_build_depends (specs, NINJA);
-      end if;
+      generic_build_module (specs, module, dependency);
+      generic_build_module (specs, module, NINJA);
    end apply_meson_module;
 
 
@@ -922,12 +958,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_zlib_module (specs : in out Portspecs)
    is
-      module     : String := "zlib";
+      module : String := "zlib";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, "zlib:static:standard");
-         add_buildrun_depends (specs, "zlib:shared:standard");
-      end if;
+      generic_build_module   (specs, module, "zlib:static:standard");
+      generic_library_module (specs, module, "zlib:shared:standard");
    end apply_zlib_module;
 
 
@@ -939,9 +973,7 @@ package body Port_Specification.Transform is
       module     : String := "mesa";
       dependency : String := "mesa:libs:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, dependency);
-      end if;
+      generic_library_module (specs, module, dependency);
    end apply_mesa_module;
 
 
@@ -953,9 +985,7 @@ package body Port_Specification.Transform is
       module     : String := "makeinfo";
       dependency : String := "texinfo:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_makeinfo_module;
 
 
@@ -967,9 +997,7 @@ package body Port_Specification.Transform is
       module     : String := "readline";
       dependency : String := "readline:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, dependency);
-      end if;
+      generic_library_module (specs, module, dependency);
    end apply_readline_module;
 
 
@@ -981,9 +1009,7 @@ package body Port_Specification.Transform is
       module     : String := "sqlite";
       dependency : String := "sqlite:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, dependency);
-      end if;
+      generic_library_module (specs, module, dependency);
    end apply_sqlite_module;
 
 
@@ -1035,9 +1061,7 @@ package body Port_Specification.Transform is
       module     : String := "imake";
       dependency : String := "imake:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-           add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_imake_module;
 
 
@@ -1049,9 +1073,7 @@ package body Port_Specification.Transform is
       module     : String := "clang";
       dependency : String := "clang:complete:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-           add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_clang_module;
 
 
@@ -1063,9 +1085,7 @@ package body Port_Specification.Transform is
       module     : String := "gtk-doc";
       dependency : String := "gtk-doc:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-           add_build_depends (specs, dependency);
-      end if;
+      generic_build_module (specs, module, dependency);
    end apply_gtkdoc_module;
 
 
@@ -1078,10 +1098,8 @@ package body Port_Specification.Transform is
       cran_build : String := "R:primary:standard";
       cran_run   : String := "R:complete:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, cran_build);
-         add_run_depends   (specs, cran_run);
-      end if;
+      generic_build_module (specs, module, cran_build);
+      generic_run_module   (specs, module, cran_run);
    end apply_cran_module;
 
 
@@ -1188,9 +1206,7 @@ package body Port_Specification.Transform is
 
       dependency : String := determine_dependency;
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, dependency);
-      end if;
+      generic_library_module (specs, module, dependency);
    end apply_firebird_module;
 
 
@@ -1453,11 +1469,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gnome_icons_module (specs : in out Portspecs)
    is
-      module : String := "gnome-icons";
+      module     : String := "gnome-icons";
+      dependency : String := "gtk-update-icon-cache:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_run_depends (specs, "gtk-update-icon-cache:single:standard");
-      end if;
+      generic_run_module (specs, module, dependency);
    end apply_gnome_icons_module;
 
 
@@ -1466,11 +1481,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mime_info_module (specs : in out Portspecs)
    is
-      module : String := "mime-info";
+      module    : String := "mime-info";
+      dependency: String := "shared-mime-info:primary:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, "shared-mime-info:primary:standard");
-      end if;
+      generic_library_module (specs, module, dependency);
    end apply_mime_info_module;
 
 
@@ -1479,11 +1493,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_schemas_module (specs : in out Portspecs)
    is
-      module : String := "schemas";
+      module     : String := "schemas";
+      dependency : String renames GNOMELIB;
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_run_depends (specs, GNOMELIB);
-      end if;
+      generic_run_module (specs, module, dependency);
    end apply_schemas_module;
 
 
@@ -1765,12 +1778,14 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_jpeg_module
+   --  generic_3BR_module
    --------------------------------------------------------------------------------------------
-   procedure apply_jpeg_module (specs : in out Portspecs)
+   procedure generic_3BR_module
+     (specs      : in out Portspecs;
+      module     : String;
+      dependency : String)
    is
-      module     : String := "jpeg";
-      dependency : String := "jpeg-turbo:primary:standard";
+      --  Defaults to BUILDRUN, takes explicit "build", "run", "buildrun"
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
@@ -1799,6 +1814,18 @@ package body Port_Specification.Transform is
       else
          add_run_depends (specs, dependency);
       end if;
+   end generic_3BR_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_jpeg_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_jpeg_module (specs : in out Portspecs)
+   is
+      module     : String := "jpeg";
+      dependency : String := "jpeg-turbo:primary:standard";
+   begin
+      generic_3BR_module (specs, module, dependency);
    end apply_jpeg_module;
 
 
@@ -1809,36 +1836,21 @@ package body Port_Specification.Transform is
    is
       module     : String := "png";
       dependency : String := "png:single:standard";
-      hit_run    : Boolean;
-      hit_build  : Boolean;
-      hit_both   : Boolean;
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
-      end if;
-      if no_arguments_present (specs, module) then
-         hit_build := False;
-         hit_both  := True;
-         hit_run   := False;
-      else
-         hit_build := argument_present (specs, module, BUILD);
-         hit_both  := argument_present (specs, module, BUILDRUN);
-         hit_run   := argument_present (specs, module, RUN);
-
-         if not (hit_build or else hit_both or else hit_run) then
-            hit_both := True;
-         end if;
-      end if;
-
-      if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
-      elsif hit_build then
-         add_build_depends (specs, dependency);
-      else
-         add_run_depends (specs, dependency);
-      end if;
-      hit_build := argument_present (specs, module, BUILD);
+      generic_3BR_module (specs, module, dependency);
    end apply_png_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_tiff_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_tiff_module (specs : in out Portspecs)
+   is
+      module     : String := "tiff";
+      dependency : String := "tiff:primary:standard";
+   begin
+      generic_3BR_module (specs, module, dependency);
+   end apply_tiff_module;
 
 
    --------------------------------------------------------------------------------------------

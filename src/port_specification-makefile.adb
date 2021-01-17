@@ -217,6 +217,7 @@ package body Port_Specification.Makefile is
            module = "zlib" or else
            module = "zstd" or else
            module = "jpeg" or else
+           module = "tiff" or else
            module = "mesa" or else
            module = "readline" or else
            module = "execinfo" or else
