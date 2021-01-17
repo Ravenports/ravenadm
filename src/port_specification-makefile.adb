@@ -226,6 +226,7 @@ package body Port_Specification.Makefile is
            module = "ada" or else
            module = "c++" or else
            module = "gif" or else
+           module = "lz4" or else
            module = "cclibs" or else
            module = "compiler" or else
            module = "fortran"

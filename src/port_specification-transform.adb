@@ -328,6 +328,7 @@ package body Port_Specification.Transform is
       apply_png_module (specs);
       apply_gif_module (specs);
       apply_gem_module (specs);
+      apply_lz4_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
       apply_schemas_module (specs);
@@ -1362,6 +1363,24 @@ package body Port_Specification.Transform is
          end if;
       end if;
    end apply_zstd_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_lz4_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_lz4_module (specs : in out Portspecs)
+   is
+      module            : String := "lz4";
+      shared_dependency : String := "lz4:shared:standard";
+      static_dependency : String := "lz4:static:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, static_dependency);
+         if not argument_present (specs, module, BUILD) then
+            add_buildrun_depends (specs, shared_dependency);
+         end if;
+      end if;
+   end apply_lz4_module;
 
 
    --------------------------------------------------------------------------------------------

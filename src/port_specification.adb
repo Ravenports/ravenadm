@@ -3531,7 +3531,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 67;
+      total_modules : constant Positive := 68;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3574,6 +3574,7 @@ package body Port_Specification is
          "jpeg           ",
          "libtool        ",
          "lua            ",
+         "lz4            ",
          "macfix         ",
          "makeinfo       ",
          "mesa           ",
