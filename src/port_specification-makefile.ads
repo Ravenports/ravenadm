@@ -41,4 +41,7 @@ private
 
    procedure handle_github_relocations (specs : Portspecs; makefile : TIO.File_Type);
 
+   --  Returns true if USES module should be omitted from Makefile USES definition
+   function passive_uses_module (value : String) return Boolean;
+
 end Port_Specification.Makefile;

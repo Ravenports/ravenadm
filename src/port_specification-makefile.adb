@@ -203,36 +203,10 @@ package body Port_Specification.Makefile is
 
       procedure print_module (position : string_crate.Cursor)
       is
-         --  Some modules are implemented entirely in ravenadm, so don't output them
-         --  to the makefile which add unnecessary includes commands.
          module_w_args : String := HT.USS (string_crate.Element (position));
          module        : String := HT.part_1 (module_w_args);
       begin
-         --  TODO: convert to binary sort
-         if module = "cpe" or else
-           module = "makeinfo" or else
-           module = "pkgconfig" or else
-           module = "gprbuild" or else
-           module = "gettext-tools" or else
-           module = "bison" or else
-           module = "zlib" or else
-           module = "zstd" or else
-           module = "jpeg" or else
-           module = "tiff" or else
-           module = "mesa" or else
-           module = "readline" or else
-           module = "execinfo" or else
-           module = "sqlite" or else
-           module = "ada" or else
-           module = "c++" or else
-           module = "gif" or else
-           module = "lz4" or else
-           module = "cclibs" or else
-           module = "compiler" or else
-           module = "fortran"
-         then
-            null;
-         else
+         if not passive_uses_module (module) then
             send (module_w_args & " ", True);
          end if;
       end print_module;
@@ -1233,5 +1207,66 @@ package body Port_Specification.Makefile is
          when ZLIB       => return "zlib License";
       end case;
    end standard_license_names;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passive_uses_module
+   --------------------------------------------------------------------------------------------
+   function passive_uses_module (value : String) return Boolean
+   is
+      --  Some modules are implemented entirely in ravenadm, so don't output them
+      --  to the makefile which add unnecessary includes commands.
+
+      total_modules : constant Positive := 22;
+
+      subtype uses_string is String (1 .. 13);
+
+      --  Keep in alphabetical order for future conversion to binary search
+      all_keywords : constant array (1 .. total_modules) of uses_string :=
+        (
+         "ada          ",
+         "bison        ",
+         "c++          ",
+         "cclibs       ",
+         "compiler     ",
+         "cpe          ",
+         "execinfo     ",
+         "fortran      ",
+         "gettext-tools",
+         "gif          ",
+         "gprbuild     ",
+         "jpeg         ",
+         "lz4          ",
+         "makeinfo     ",
+         "mesa         ",
+         "pkgconfig    ",
+         "png          ",
+         "readline     ",
+         "sqlite       ",
+         "tiff         ",
+         "zlib         ",
+         "zstd         "
+        );
+      bandolier : uses_string := (others => ' ');
+
+   begin
+      declare
+         module : String := HT.part_1 (value, ":");
+      begin
+         if module'Length > uses_string'Length then
+            return False;
+         end if;
+
+         bandolier (1 .. module'Length) := module;
+      end;
+
+      for index in all_keywords'Range loop
+         if all_keywords (index) = bandolier then
+            return True;
+         end if;
+      end loop;
+
+      return False;
+   end passive_uses_module;
 
 end Port_Specification.Makefile;
