@@ -321,10 +321,12 @@ package body Port_Specification.Transform is
       apply_zstd_module (specs);
       apply_mesa_module (specs);
       apply_jpeg_module (specs);
+      apply_tiff_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
       apply_php_module (specs);
       apply_png_module (specs);
+      apply_gif_module (specs);
       apply_gem_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
@@ -1481,8 +1483,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mime_info_module (specs : in out Portspecs)
    is
-      module    : String := "mime-info";
-      dependency: String := "shared-mime-info:primary:standard";
+      module     : String := "mime-info";
+      dependency : String := "shared-mime-info:primary:standard";
    begin
       generic_library_module (specs, module, dependency);
    end apply_mime_info_module;
@@ -1839,6 +1841,18 @@ package body Port_Specification.Transform is
    begin
       generic_3BR_module (specs, module, dependency);
    end apply_png_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gif_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_gif_module (specs : in out Portspecs)
+   is
+      module     : String := "gif";
+      dependency : String := "giflib:single:standard";
+   begin
+      generic_3BR_module (specs, module, dependency);
+   end apply_gif_module;
 
 
    --------------------------------------------------------------------------------------------

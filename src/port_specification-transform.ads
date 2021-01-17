@@ -122,6 +122,7 @@ private
    procedure apply_ruby_module      (specs : in out Portspecs);
    procedure apply_php_module       (specs : in out Portspecs);
    procedure apply_png_module       (specs : in out Portspecs);
+   procedure apply_gif_module       (specs : in out Portspecs);
    procedure apply_gem_module       (specs : in out Portspecs);
    procedure generic_3BR_module    (specs      : in out Portspecs;
                                      module     : String;

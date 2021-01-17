@@ -208,6 +208,7 @@ package body Port_Specification.Makefile is
          module_w_args : String := HT.USS (string_crate.Element (position));
          module        : String := HT.part_1 (module_w_args);
       begin
+         --  TODO: convert to binary sort
          if module = "cpe" or else
            module = "makeinfo" or else
            module = "pkgconfig" or else
@@ -224,6 +225,7 @@ package body Port_Specification.Makefile is
            module = "sqlite" or else
            module = "ada" or else
            module = "c++" or else
+           module = "gif" or else
            module = "cclibs" or else
            module = "compiler" or else
            module = "fortran"
