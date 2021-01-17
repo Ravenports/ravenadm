@@ -307,6 +307,7 @@ package body Port_Specification.Transform is
       apply_perl_module (specs);
       apply_bdb_module (specs);
       apply_ssl_module (specs);
+      apply_clang_module (specs);
       apply_bison_module (specs);
       apply_mysql_module (specs);
       apply_pgsql_module (specs);
@@ -1037,6 +1038,20 @@ package body Port_Specification.Transform is
            add_build_depends (specs, dependency);
       end if;
    end apply_imake_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_clang_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_clang_module (specs : in out Portspecs)
+   is
+      module     : String := "clang";
+      dependency : String := "clang:complete:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+           add_build_depends (specs, dependency);
+      end if;
+   end apply_clang_module;
 
 
    --------------------------------------------------------------------------------------------
