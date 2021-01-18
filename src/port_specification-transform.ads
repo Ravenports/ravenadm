@@ -124,10 +124,17 @@ private
    procedure apply_png_module       (specs : in out Portspecs);
    procedure apply_gif_module       (specs : in out Portspecs);
    procedure apply_lz4_module       (specs : in out Portspecs);
+   procedure apply_lzo_module       (specs : in out Portspecs);
    procedure apply_gem_module       (specs : in out Portspecs);
-   procedure generic_3BR_module    (specs      : in out Portspecs;
+   procedure generic_3BR_module     (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
+   procedure generic_3B_module      (specs      : in out Portspecs;
+                                     module     : String;
+                                     dependency : String);
+   procedure generic_split_module   (specs      : in out Portspecs;
+                                     module     : String;
+                                     depprefix  : String);
    procedure generic_build_module   (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);

@@ -329,6 +329,7 @@ package body Port_Specification.Transform is
       apply_gif_module (specs);
       apply_gem_module (specs);
       apply_lz4_module (specs);
+      apply_lzo_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
       apply_schemas_module (specs);
@@ -962,9 +963,9 @@ package body Port_Specification.Transform is
    procedure apply_zlib_module (specs : in out Portspecs)
    is
       module : String := "zlib";
+      prefix : String := "zlib";
    begin
-      generic_build_module   (specs, module, "zlib:static:standard");
-      generic_library_module (specs, module, "zlib:shared:standard");
+      generic_split_module (specs, module, prefix);
    end apply_zlib_module;
 
 
@@ -1330,13 +1331,15 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_libiconv_module
+   --  generic_split_module
    --------------------------------------------------------------------------------------------
-   procedure apply_libiconv_module (specs : in out Portspecs)
+   procedure generic_split_module
+     (specs      : in out Portspecs;
+      module     : String;
+      depprefix  : String)
    is
-      module            : String := "iconv";
-      shared_dependency : String := "libiconv:shared:standard";
-      static_dependency : String := "libiconv:static:standard";
+      shared_dependency : String := depprefix & ":shared:standard";
+      static_dependency : String := depprefix & ":static:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, static_dependency);
@@ -1344,6 +1347,18 @@ package body Port_Specification.Transform is
             add_buildrun_depends (specs, shared_dependency);
          end if;
       end if;
+   end generic_split_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_libiconv_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_libiconv_module (specs : in out Portspecs)
+   is
+      module     : String := "iconv";
+      dep_prefix : String := "libiconv";
+   begin
+      generic_split_module (specs, module, dep_prefix);
    end apply_libiconv_module;
 
 
@@ -1352,16 +1367,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_zstd_module (specs : in out Portspecs)
    is
-      module            : String := "zstd";
-      shared_dependency : String := "Zstandard:shared:standard";
-      static_dependency : String := "Zstandard:static:standard";
+      module     : String := "zstd";
+      dep_prefix : String := "Zstandard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, static_dependency);
-         if not argument_present (specs, module, BUILD) then
-            add_buildrun_depends (specs, shared_dependency);
-         end if;
-      end if;
+      generic_split_module (specs, module, dep_prefix);
    end apply_zstd_module;
 
 
@@ -1370,17 +1379,23 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_lz4_module (specs : in out Portspecs)
    is
-      module            : String := "lz4";
-      shared_dependency : String := "lz4:shared:standard";
-      static_dependency : String := "lz4:static:standard";
+      module     : String := "lz4";
+      dep_prefix : String := "lz4";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, static_dependency);
-         if not argument_present (specs, module, BUILD) then
-            add_buildrun_depends (specs, shared_dependency);
-         end if;
-      end if;
+      generic_split_module (specs, module, dep_prefix);
    end apply_lz4_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_lzo_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_lzo_module (specs : in out Portspecs)
+   is
+      module     : String := "lzo";
+      dep_prefix : String := "lzo";
+   begin
+      generic_split_module (specs, module, dep_prefix);
+   end apply_lzo_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -1526,11 +1541,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_desktop_utils_module (specs : in out Portspecs)
    is
-      module : String := "desktop-utils";
+      module     : String := "desktop-utils";
+      dependency : String := "desktop-file-utils:single:standard";
    begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_buildrun_depends (specs, "desktop-file-utils:single:standard");
-      end if;
+      generic_library_module (specs, module, dependency);
    end apply_desktop_utils_module;
 
 
@@ -1541,34 +1555,8 @@ package body Port_Specification.Transform is
    is
       module     : String := "gettext-tools";
       dependency : String := "gettext:tools:standard";
-      hit_run    : Boolean;
-      hit_build  : Boolean;
-      hit_both   : Boolean;
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
-      end if;
-      if no_arguments_present (specs, module) then
-         hit_build := True;
-         hit_both  := False;
-         hit_run   := False;
-      else
-         hit_build := argument_present (specs, module, BUILD);
-         hit_both  := argument_present (specs, module, BUILDRUN);
-         hit_run   := argument_present (specs, module, RUN);
-
-         if not (hit_build or else hit_both or else hit_run) then
-            hit_build := True;
-         end if;
-      end if;
-
-      if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
-      elsif hit_build then
-         add_build_depends (specs, dependency);
-      else
-         add_run_depends (specs, dependency);
-      end if;
+      generic_3B_module (specs, module, dependency);
    end apply_gettext_tools_module;
 
 
@@ -1580,45 +1568,13 @@ package body Port_Specification.Transform is
       module     : String := "gettext-runtime";
       dependency : String := "gettext:runtime:standard";
       asprintf   : String := "gettext:asprintf:standard";
-      hit_run    : Boolean;
-      hit_build  : Boolean;
-      hit_both   : Boolean;
-      hit_aspr   : Boolean;
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
-      if no_arguments_present (specs, module) then
-         hit_build := False;
-         hit_both  := True;
-         hit_run   := False;
-         hit_aspr  := False;
-      else
-         hit_build := argument_present (specs, module, BUILD);
-         hit_both  := argument_present (specs, module, BUILDRUN);
-         hit_run   := argument_present (specs, module, RUN);
-         hit_aspr  := argument_present (specs, module, "asprintf");
-
-         if not (hit_build or else hit_both or else hit_run) then
-            hit_both := True;
-         end if;
-      end if;
-
-      if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
-         if hit_aspr then
-            add_buildrun_depends (specs, asprintf);
-         end if;
-      elsif hit_build then
-         add_build_depends (specs, dependency);
-         if hit_aspr then
-            add_build_depends (specs, asprintf);
-         end if;
-      else
-         add_run_depends (specs, dependency);
-         if hit_aspr then
-            add_run_depends (specs, asprintf);
-         end if;
+      generic_3BR_module (specs, module, dependency);
+      if argument_present (specs, module, "asprintf") then
+         generic_3BR_module (specs, module, asprintf);
       end if;
    end apply_gettext_runtime_module;
 
@@ -1767,34 +1723,8 @@ package body Port_Specification.Transform is
    is
       module     : String := "bison";
       dependency : String := "bison:primary:standard";
-      hit_run    : Boolean;
-      hit_build  : Boolean;
-      hit_both   : Boolean;
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
-      end if;
-      if no_arguments_present (specs, module) then
-         hit_build := True;
-         hit_both  := False;
-         hit_run   := False;
-      else
-         hit_build := argument_present (specs, module, BUILD);
-         hit_both  := argument_present (specs, module, BUILDRUN);
-         hit_run   := argument_present (specs, module, RUN);
-
-         if not (hit_build or else hit_both or else hit_run) then
-            hit_build := True;
-         end if;
-      end if;
-
-      if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
-      elsif hit_build then
-         add_build_depends (specs, dependency);
-      else
-         add_run_depends (specs, dependency);
-      end if;
+      generic_3B_module (specs, module, dependency);
    end apply_bison_module;
 
 
@@ -1836,6 +1766,45 @@ package body Port_Specification.Transform is
          add_run_depends (specs, dependency);
       end if;
    end generic_3BR_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generic_3B_module
+   --------------------------------------------------------------------------------------------
+   procedure generic_3B_module
+     (specs      : in out Portspecs;
+      module     : String;
+      dependency : String)
+   is
+      hit_run    : Boolean;
+      hit_build  : Boolean;
+      hit_both   : Boolean;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      if no_arguments_present (specs, module) then
+         hit_build := True;
+         hit_both  := False;
+         hit_run   := False;
+      else
+         hit_build := argument_present (specs, module, BUILD);
+         hit_both  := argument_present (specs, module, BUILDRUN);
+         hit_run   := argument_present (specs, module, RUN);
+
+         if not (hit_build or else hit_both or else hit_run) then
+            hit_build := True;
+         end if;
+      end if;
+
+      if hit_both or else (hit_build and hit_run) then
+         add_buildrun_depends (specs, dependency);
+      elsif hit_build then
+         add_build_depends (specs, dependency);
+      else
+         add_run_depends (specs, dependency);
+      end if;
+   end generic_3B_module;
 
 
    --------------------------------------------------------------------------------------------

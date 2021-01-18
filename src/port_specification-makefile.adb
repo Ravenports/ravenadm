@@ -1217,7 +1217,7 @@ package body Port_Specification.Makefile is
       --  Some modules are implemented entirely in ravenadm, so don't output them
       --  to the makefile which add unnecessary includes commands.
 
-      total_modules : constant Positive := 22;
+      total_modules : constant Positive := 23;
 
       subtype uses_string is String (1 .. 13);
 
@@ -1237,6 +1237,7 @@ package body Port_Specification.Makefile is
          "gprbuild     ",
          "jpeg         ",
          "lz4          ",
+         "lzo          ",
          "makeinfo     ",
          "mesa         ",
          "pkgconfig    ",
