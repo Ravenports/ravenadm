@@ -3531,7 +3531,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 71;
+      total_modules : constant Positive := 72;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3586,9 +3586,10 @@ package body Port_Specification is
          "mysql          ",
          "ncurses        ",
          "ninja          ",
-         "pgsql          ",
+         "pcre           ",
          "perl           ",
          "perl-interp    ",
+         "pgsql          ",
          "php            ",
          "pkgconfig      ",
          "png            ",
@@ -3597,12 +3598,12 @@ package body Port_Specification is
          "qt6            ",
          "readline       ",
          "ruby           ",
-         "shebangfix     ",
          "schemas        ",
          "scons          ",
-         "sqlite         ",
+         "shebangfix     ",
          "solaris-funcs  ",
          "solfix         ",
+         "sqlite         ",
          "ssl            ",
          "tcl            ",
          "terminfo       ",

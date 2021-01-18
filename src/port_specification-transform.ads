@@ -121,6 +121,7 @@ private
    procedure apply_jpeg_module      (specs : in out Portspecs);
    procedure apply_tiff_module      (specs : in out Portspecs);
    procedure apply_ruby_module      (specs : in out Portspecs);
+   procedure apply_pcre_module      (specs : in out Portspecs);
    procedure apply_php_module       (specs : in out Portspecs);
    procedure apply_png_module       (specs : in out Portspecs);
    procedure apply_gif_module       (specs : in out Portspecs);

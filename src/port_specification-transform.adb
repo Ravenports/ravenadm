@@ -322,6 +322,7 @@ package body Port_Specification.Transform is
       apply_mesa_module (specs);
       apply_jpeg_module (specs);
       apply_tiff_module (specs);
+      apply_pcre_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
       apply_php_module (specs);
@@ -1422,6 +1423,19 @@ package body Port_Specification.Transform is
    begin
       generic_split_module (specs, module, dep_prefix);
    end apply_expat_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_pcre_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_pcre_module (specs : in out Portspecs)
+   is
+      module     : String := "pcre";
+      dep_prefix : String := "pcre";
+   begin
+      generic_split_module (specs, module, dep_prefix);
+   end apply_pcre_module;
+
 
    --------------------------------------------------------------------------------------------
    --  apply_info_presence
