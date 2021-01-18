@@ -1217,7 +1217,7 @@ package body Port_Specification.Makefile is
       --  Some modules are implemented entirely in ravenadm, so don't output them
       --  to the makefile which add unnecessary includes commands.
 
-      total_modules : constant Positive := 23;
+      total_modules : constant Positive := 24;
 
       subtype uses_string is String (1 .. 13);
 
@@ -1226,6 +1226,7 @@ package body Port_Specification.Makefile is
         (
          "ada          ",
          "bison        ",
+         "bz2          ",
          "c++          ",
          "cclibs       ",
          "compiler     ",

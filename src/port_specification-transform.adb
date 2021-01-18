@@ -330,6 +330,7 @@ package body Port_Specification.Transform is
       apply_gem_module (specs);
       apply_lz4_module (specs);
       apply_lzo_module (specs);
+      apply_bz2_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
       apply_schemas_module (specs);
@@ -1396,6 +1397,18 @@ package body Port_Specification.Transform is
    begin
       generic_split_module (specs, module, dep_prefix);
    end apply_lzo_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_bz2_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_bz2_module (specs : in out Portspecs)
+   is
+      module     : String := "bz2";
+      dep_prefix : String := "bzip2";
+   begin
+      generic_split_module (specs, module, dep_prefix);
+   end apply_bz2_module;
 
 
    --------------------------------------------------------------------------------------------
