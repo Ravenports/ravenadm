@@ -331,6 +331,7 @@ package body Port_Specification.Transform is
       apply_lz4_module (specs);
       apply_lzo_module (specs);
       apply_bz2_module (specs);
+      apply_expat_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
       apply_schemas_module (specs);
@@ -1410,6 +1411,17 @@ package body Port_Specification.Transform is
       generic_split_module (specs, module, dep_prefix);
    end apply_bz2_module;
 
+
+   --------------------------------------------------------------------------------------------
+   --  apply_expat_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_expat_module (specs : in out Portspecs)
+   is
+      module     : String := "expat";
+      dep_prefix : String := "expat";
+   begin
+      generic_split_module (specs, module, dep_prefix);
+   end apply_expat_module;
 
    --------------------------------------------------------------------------------------------
    --  apply_info_presence

@@ -3531,7 +3531,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 70;
+      total_modules : constant Positive := 71;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3557,6 +3557,7 @@ package body Port_Specification is
          "display        ",
          "dos2unix       ",
          "execinfo       ",
+         "expat          ",
          "fbsd10fix      ",
          "firebird       ",
          "fonts          ",
