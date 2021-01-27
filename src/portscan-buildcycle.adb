@@ -1739,22 +1739,20 @@ package body PortScan.Buildcycle is
       if status = 0 then
          if DIR.Exists (distinfo) then
             if HT.IsBlank (content) then
-               if DIR.Size (distinfo) = DIR.File_Size (0) then
-                  --  The generated distinfo file is empty
-                  --  Not only do we not copy it over, let's erase the port's distinfo
-                  --  file if it exists
-                  if DIR.Exists (locfile) and then
-                    DIR.Kind (locfile) = DIR.Ordinary_File
-                  then
-                     DIR.Delete_File (locfile);
-                  end if;
-               else
-                  TIO.Put_Line ("Copying " & distinfo & " to current directory");
-                  DIR.Copy_File (distinfo, locfile);
+               TIO.Put_Line (HT.USS (content));
+            end if;
+            if DIR.Size (distinfo) = DIR.File_Size (0) then
+               --  The generated distinfo file is empty
+               --  Not only do we not copy it over, let's erase the port's distinfo
+               --  file if it exists
+               if DIR.Exists (locfile) and then
+                 DIR.Kind (locfile) = DIR.Ordinary_File
+               then
+                  DIR.Delete_File (locfile);
                end if;
             else
-               TIO.Put_Line ("####### distinfo generation failure #######");
-               TIO.Put_Line (HT.USS (content));
+               TIO.Put_Line ("Copying " & distinfo & " to current directory");
+               DIR.Copy_File (distinfo, locfile);
             end if;
          else
             TIO.Put_Line ("####### failure, distinfo not found #######");
