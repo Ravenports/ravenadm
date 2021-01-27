@@ -1738,7 +1738,7 @@ package body PortScan.Buildcycle is
       content := Unix.piped_command (command, status);
       if status = 0 then
          if DIR.Exists (distinfo) then
-            if HT.IsBlank (content) then
+            if not HT.IsBlank (content) then
                TIO.Put_Line (HT.USS (content));
             end if;
             if DIR.Size (distinfo) = DIR.File_Size (0) then
