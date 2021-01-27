@@ -1726,20 +1726,36 @@ package body PortScan.Buildcycle is
    is
       root     : constant String := get_root (id);
       distinfo : constant String := root & "/port/distinfo";
+      locfile  : constant String := "distinfo";
       environ  : constant String := environment_override (False, ssl_variant);
       command  : constant String := PM.chroot_cmd & root & environ &
                                     chroot_make_program & " -C /port makesum";
       content : HT.Text;
       status  : Integer;
+
+      use type DIR.File_Size, DIR.File_Kind;
    begin
       content := Unix.piped_command (command, status);
       if status = 0 then
          if DIR.Exists (distinfo) then
-            if not HT.IsBlank (content) then
+            if HT.IsBlank (content) then
+               if DIR.Size (distinfo) = DIR.File_Size (0) then
+                  --  The generated distinfo file is empty
+                  --  Not only do we not copy it over, let's erase the port's distinfo
+                  --  file if it exists
+                  if DIR.Exists (locfile) and then
+                    DIR.Kind (locfile) = DIR.Ordinary_File
+                  then
+                     DIR.Delete_File (locfile);
+                  end if;
+               else
+                  TIO.Put_Line ("Copying " & distinfo & " to current directory");
+                  DIR.Copy_File (distinfo, locfile);
+               end if;
+            else
+               TIO.Put_Line ("####### distinfo generation failure #######");
                TIO.Put_Line (HT.USS (content));
             end if;
-            TIO.Put_Line ("Copying " & distinfo & " to current directory");
-            DIR.Copy_File (distinfo, "distinfo");
          else
             TIO.Put_Line ("####### failure, distinfo not found #######");
          end if;
