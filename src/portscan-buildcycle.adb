@@ -266,7 +266,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  exec_phase_generic
    --------------------------------------------------------------------------------------------
-   function  exec_phase_generic
+   function exec_phase_generic
      (id            : builders;
       phase         : phases;
       environ       : String) return Boolean
@@ -283,7 +283,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  exec_phase_build
    --------------------------------------------------------------------------------------------
-   function  exec_phase_build
+   function exec_phase_build
      (id            : builders;
       environ       : String) return Boolean
    is
@@ -738,7 +738,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------
-   function  exec_phase_deinstall
+   function exec_phase_deinstall
      (id            : builders;
       pkgversion    : String;
       environ       : String) return Boolean
@@ -857,7 +857,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  log_linked_libraries
    --------------------------------------------------------------------------------------------
-   function  log_linked_libraries
+   function log_linked_libraries
      (id            : builders;
       pkgversion    : String;
       environ       : String) return Boolean

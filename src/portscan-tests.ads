@@ -92,4 +92,12 @@ private
    --  prepend "raw" with the prefix minus the leading slash.
    function convert_to_absolute_path (port_prefix, raw : String) return String;
 
+   --  Create a single-file manifest in $(profile directory)/installed_files and sort it
+   procedure create_single_file_manifest
+     (log_handle     : TIO.File_Type;
+      namebase       : String;
+      variant        : String;
+      port_prefix    : String;
+      rootdir        : String);
+
 end PortScan.Tests;

@@ -1,6 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Package_Manifests;
 with PortScan.Log;
 with Parameters;
 with Unix;
@@ -10,6 +11,7 @@ with Ada.Exceptions;
 
 package body PortScan.Tests is
 
+   package MAN renames Package_Manifests;
    package LOG renames PortScan.Log;
    package PM  renames Parameters;
    package LAT renames Ada.Characters.Latin_1;
@@ -29,6 +31,7 @@ package body PortScan.Tests is
    is
       passed_check : Boolean := True;
       namebase     : constant String := specification.get_namebase;
+      variant      : constant String := HT.USS (all_ports (seq_id).port_variant);
       directory_list : entry_crate.Map;
       dossier_list   : entry_crate.Map;
    begin
@@ -111,6 +114,12 @@ package body PortScan.Tests is
       if passed_check then
          TIO.Put_Line (log_handle, "====> No manifest issues found");
       end if;
+
+      create_single_file_manifest (log_handle  => log_handle,
+                                   namebase    => namebase,
+                                   variant     => variant,
+                                   port_prefix => port_prefix,
+                                   rootdir     => rootdir);
 
       LOG.log_phase_end (log_handle);
       return passed_check;
@@ -372,7 +381,7 @@ package body PortScan.Tests is
       localbase : constant String  := HT.substring (port_prefix, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir & " -type d -printf " &
-                  LAT.Quotation & "%P\n" & LAT.Quotation;
+                  HT.DQ ("%P\n");
       status    : Integer;
       comres    : String := HT.USS (Unix.piped_command (command, status));
       markers   : HT.Line_Markers;
@@ -494,8 +503,7 @@ package body PortScan.Tests is
       localbase : constant String  := HT.substring (port_prefix, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir &
-                  " \( -type f -o -type l \) -printf " &
-                  LAT.Quotation & "%P\n" & LAT.Quotation;
+                  " \( -type f -o -type l \) -printf " & HT.DQ ("%P\n");
       status    : Integer;
       comres    : String := HT.USS (Unix.piped_command (command, status));
       markers   : HT.Line_Markers;
@@ -574,5 +582,80 @@ package body PortScan.Tests is
       end if;
       return HT.substring (port_prefix, 1, 0) & LAT.Solidus & raw;
    end convert_to_absolute_path;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_single_file_manifest
+   --------------------------------------------------------------------------------------------
+   procedure create_single_file_manifest
+     (log_handle     : TIO.File_Type;
+      namebase       : String;
+      variant        : String;
+      port_prefix    : String;
+      rootdir        : String)
+   is
+      localbase : constant String  := HT.substring (port_prefix, 1, 0);
+      stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
+      command   : String := rootdir & "/usr/bin/find " & stagedir &
+                  " \( -type f -o -type l \) -printf " & HT.DQ ("%P\n");
+      status    : Integer;
+      handle    : TIO.File_Type;
+      markers   : HT.Line_Markers;
+      comres    : String := HT.USS (Unix.piped_command (command, status));
+      instdir   : constant String := HT.USS (PM.configuration.dir_profile) & "/installed_files";
+      dossier   : constant String := instdir & "/" & namebase & "___" & variant & ".txt";
+      si_string : constant String := "====> Full manifest saved at " & dossier;
+      no_string : constant String := "====> Failed to create " & dossier & " manifest";
+      lblen     : constant Natural := localbase'Length;
+
+   begin
+      if status /= 0 then
+         TIO.Put_Line ("create_single_file_manifest: command error: " & comres);
+         TIO.Put_Line (log_handle, no_string);
+         return;
+      end if;
+
+      if not DIR.Exists (instdir) then
+         DIR.Create_Path (instdir);
+         begin
+            TIO.Create (handle, TIO.Out_File, dossier);
+         exception
+            when TIO.Use_Error | TIO.Status_Error =>
+               TIO.Put_Line ("create_single_file_manifest: failed to create " & dossier);
+               TIO.Put_Line (log_handle, no_string);
+               return;
+         end;
+      end if;
+
+      HT.initialize_markers (comres, markers);
+
+      begin
+         loop
+            exit when not HT.next_line_present (comres, markers);
+            declare
+               line : constant String := HT.extract_line (comres, markers);
+            begin
+               if not file_excluded (localbase, line) then
+                  if HT.leads (line, localbase) then
+                     TIO.Put_Line (handle, HT.substring (line, lblen + 1, 0));
+                  else
+                     TIO.Put_Line (handle, line);
+                  end if;
+               end if;
+            end;
+         end loop;
+         TIO.Close (handle);
+         TIO.Put_Line (log_handle, si_string);
+         MAN.sort_manifest (MAN.Filename (dossier));
+         return;
+      exception
+         when TIO.End_Error =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
+            TIO.Put_Line (log_handle, no_string);
+            return;
+      end;
+   end create_single_file_manifest;
 
 end PortScan.Tests;
