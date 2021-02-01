@@ -597,7 +597,7 @@ package body PortScan.Tests is
       localbase : constant String  := HT.substring (port_prefix, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir &
-                  " \( -type f -o -type l \) -wholename " & HT.DQ("*/share/licenses/*") &
+                  " \( -type f -o -type l \) -wholename " & HT.DQ ("*/share/licenses/*") &
                   " -printf " & HT.DQ ("%P\n");
       status    : Integer;
       handle    : TIO.File_Type;
@@ -616,17 +616,18 @@ package body PortScan.Tests is
          return;
       end if;
 
-      if not DIR.Exists (instdir) then
-         DIR.Create_Path (instdir);
-         begin
-            TIO.Create (handle, TIO.Out_File, dossier);
-         exception
-            when TIO.Use_Error | TIO.Status_Error =>
-               TIO.Put_Line ("create_single_file_manifest: failed to create " & dossier);
-               TIO.Put_Line (log_handle, no_string);
-               return;
-         end;
-      end if;
+
+      begin
+         if not DIR.Exists (instdir) then
+            DIR.Create_Path (instdir);
+         end if;
+         TIO.Create (handle, TIO.Out_File, dossier);
+      exception
+         when TIO.Use_Error | TIO.Status_Error =>
+            TIO.Put_Line ("create_single_file_manifest: failed to create " & dossier);
+            TIO.Put_Line (log_handle, no_string);
+            return;
+      end;
 
       HT.initialize_markers (comres, markers);
 
