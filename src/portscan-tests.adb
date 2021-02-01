@@ -597,7 +597,7 @@ package body PortScan.Tests is
       localbase : constant String  := HT.substring (port_prefix, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir &
-                  " \( -type f -o -type l \) -wholename " & HT.QT("*/share/licenses/*") &
+                  " \( -type f -o -type l \) -wholename " & HT.DQ("*/share/licenses/*") &
                   " -printf " & HT.DQ ("%P\n");
       status    : Integer;
       handle    : TIO.File_Type;
