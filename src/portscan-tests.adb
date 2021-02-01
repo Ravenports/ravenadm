@@ -597,12 +597,13 @@ package body PortScan.Tests is
       localbase : constant String  := HT.substring (port_prefix, 1, 0);
       stagedir  : String := rootdir & "/construction/" & namebase & "/stage";
       command   : String := rootdir & "/usr/bin/find " & stagedir &
-                  " \( -type f -o -type l \) -printf " & HT.DQ ("%P\n");
+                  " \( -type f -o -type l \) -wholename " & HT.QT("*/share/licenses/*") &
+                  " -printf " & HT.DQ ("%P\n");
       status    : Integer;
       handle    : TIO.File_Type;
       markers   : HT.Line_Markers;
       comres    : String := HT.USS (Unix.piped_command (command, status));
-      instdir   : constant String := HT.USS (PM.configuration.dir_profile) & "/installed_files";
+      instdir   : constant String := HT.USS (PM.configuration.dir_profile) & "/manifests";
       dossier   : constant String := instdir & "/" & namebase & "___" & variant & ".txt";
       si_string : constant String := "====> Full manifest saved at " & dossier;
       no_string : constant String := "====> Failed to create " & dossier & " manifest";
