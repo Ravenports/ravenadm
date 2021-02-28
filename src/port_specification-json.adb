@@ -22,8 +22,6 @@ package body Port_Specification.Json is
    is
       nvar : constant Natural := specs.get_number_of_variants;
    begin
-      declare
-         fpcval : constant String := fpc_value (specs.generated, specs.equivalent_fpc_port);
       begin
          TIO.Put
            (dossier,
@@ -32,7 +30,6 @@ package body Port_Specification.Json is
               UTL.json_nvpair_string  ("namebase", specs.get_namebase, 2, pad) &
               UTL.json_nvpair_string  ("version",  specs.get_field_value (sp_version), 3, pad) &
               homepage_line (specs) &
-              UTL.json_nvpair_string  ("FPC",      fpcval, 3, pad) &
               UTL.json_nvpair_complex ("keywords", describe_keywords (specs), 3, pad) &
               UTL.json_nvpair_complex ("distfile", describe_distfiles (specs), 3, pad) &
               specs.get_json_contacts &
