@@ -1629,6 +1629,7 @@ package body Port_Specification.Transform is
       PY27       : constant String := "py27";
       PY38       : constant String := "py38";
       PY39       : constant String := "py39";
+      autopython : constant String := "autoselect-python:single:standard";
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
@@ -1681,6 +1682,7 @@ package body Port_Specification.Transform is
             set_snake_ports (False, PYTHON38, PY38);
          end if;
       end if;
+      add_build_depends (specs, autopython);
    end apply_python_module;
 
 
