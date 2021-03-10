@@ -36,7 +36,7 @@ to monitor the parallel builds using a browser.
 .It Ev RAVENPROFILE
 When this environment variable is set to name of an existing ravenadm
 profile, that profile will be loaded when ravenadm
-is launch rather than the active profile.  It is a temporary override;
+is launched rather than the active profile.  It is a temporary override;
 removing the variable will allow the default profile to load again.
 .It Ev SKIPCCRUN
 This environment variable blocks the effect of the cclib module.  This
@@ -199,7 +199,7 @@ build rate will differ from the rate averaged over the entire elapsed time,
 often by a great amount.  It's just a way to gauge the package production
 rate over the previous few minutes.
 .Ss Supported architectures
-Synth is written in Ada, and thus an Ada compiler or cross-compiler is
+Ravenadm is written in Ada, and thus an Ada compiler or cross-compiler is
 required to build it.  The currently supported architectures are x86_64 (aka
 amd64), i386, and aarch64 (aka ARMv8).  Support for other architectures is
 technically possible.

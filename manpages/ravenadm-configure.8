@@ -9,7 +9,7 @@
 .Sh DESCRIPTION
 The
 .Nm
-command launches the top-level interactive menu uses to allow users to
+command launches the top-level interactive menu which allows users to
 intuitively and correctly configure ravenadm without having to edit text
 files.
 .Pp
@@ -127,7 +127,7 @@ Default value:
 This is the directory upon which all the builders will mount. Subdirectories
 are created as necessary, but are removed when the builder shuts down. If
 ravenadm is abruptly stopped, the next invocation of ravenadm will remove
-the work fragments from the build base. When ravenadm is not use in, this
+the work fragments from the build base. When ravenadm is not in use, this
 directory should be empty.
 .Pp
 Default value:
@@ -232,8 +232,8 @@ key will cause the version submenu to appear, e.g.:
 .Ed
 .Pp
 By default, all versions are "floating" which means that ports are built
-using an internally defined default. For example, the default version of
-PostgreSQL is 9.6. All ports that require PostgreSQL will depend on
+using an internally defined default. For example, if the default version of
+PostgreSQL is 9.6, all ports that require PostgreSQL will depend on
 version 9.6 unless overridden here.
 .Pp
 When the associated key is selected, another submenu appears with the
