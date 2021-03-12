@@ -23,10 +23,10 @@ will be assumed.
 .Sh EXAMPLES
 An example passing a list of port identifiers to the command:
 .Bd -literal -offset indent
-% ravenadm subpackages gmake gmake:nls postgresql96
-gmake:standard subpackages: single
-gmake:nls subpackages: single
-postgresql96:standard subpackages: complete server client contrib plperl plpython pltcl docs
+% ravenadm subpackages gmake gmake:ravensys postgresql12
+gmake:standard subpackages: complete single nls
+gmake:ravensys subpackages: single
+postgresql12:standard subpackages: complete server client contrib plperl plpython pltcl docs nls
 .Ed
 .Sh SEE ALSO
 .Xr ravenadm 8 ,
