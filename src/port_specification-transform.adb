@@ -3212,6 +3212,8 @@ package body Port_Specification.Transform is
          return "mariadb104" & suffix;
       elsif setting = "mariadb-10.5" then
          return "mariadb105" & suffix;
+      elsif setting = "mariadb-10.6" then
+         return "mariadb106" & suffix;
       elsif setting = "percona-5.6" then
          return "percona56" & suffix;
       elsif setting = "percona-5.7" then
