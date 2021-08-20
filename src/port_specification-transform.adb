@@ -314,7 +314,6 @@ package body Port_Specification.Transform is
       apply_meson_module (specs);
       apply_ninja_module (specs);
       apply_fonts_module (specs);
-      apply_python_module (specs);
       apply_cran_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
@@ -342,6 +341,7 @@ package body Port_Specification.Transform is
       apply_sdl_components_dependencies (specs);
       apply_xorg_components_dependencies (specs);
       apply_php_extension_dependencies (specs);
+      apply_python_module (specs);
       if not skip_compiler_packages then
          apply_gcc_run_module (specs, variant, "ada", "ada_run");
          apply_gcc_run_module (specs, variant, "c++", "cxx_run");
@@ -2894,6 +2894,7 @@ package body Port_Specification.Transform is
       defpy     : constant String := "py" & HT.replace_char (default_python3, '.', "");
       ss        : constant String := ":single:standard";
       ps        : constant String := ":primary:standard";
+      pybuild   : HT.Text := HT.SUS ("python:build");
       component : array (gnome_type) of Boolean := (others => False);
       new_data  : Boolean;
 
@@ -2988,6 +2989,9 @@ package body Port_Specification.Transform is
             when glib =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, "gettext:runtime:standard");
+               if not specs.uses_base.Contains (pybuild) then
+                  specs.uses.Append (pybuild);
+               end if;
             when glibmm =>
                add_buildrun_depends (specs, "glibmm" & ss);
             when glibmm24 =>
