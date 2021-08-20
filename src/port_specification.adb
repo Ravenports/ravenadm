@@ -4421,8 +4421,8 @@ package body Port_Specification is
          ("NLS           ", NLS),
          ("OPENGL        ", OPENGL),
          ("OSS           ", OSS),
-         ("PERL_530      ", PERL530),
          ("PERL_532      ", PERL532),
+         ("PERL_534      ", PERL534),
          ("PGSQL         ", PGSQL),
          ("PNG           ", PNG),
          ("PULSEAUDIO    ", PULSEAUDIO),
@@ -4505,8 +4505,8 @@ package body Port_Specification is
          when NLS          => return "Native Language Support";
          when OPENGL       => return "2D/3D rendering support via OpenGL";
          when OSS          => return "Open Sound System support";
-         when PERL530      => return "Build using Perl 5.30";
          when PERL532      => return "Build using Perl 5.32";
+         when PERL534      => return "Build using Perl 5.34";
          when PGSQL        => return "PostgreSQL database support";
          when PNG          => return "PNG image format support";
          when PULSEAUDIO   => return "PulseAudio sound server support";
