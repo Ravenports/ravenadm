@@ -990,7 +990,7 @@ package body Port_Specification.Transform is
    procedure apply_makeinfo_module  (specs : in out Portspecs)
    is
       module     : String := "makeinfo";
-      dependency : String := "texinfo:single:standard";
+      dependency : String := "texinfo:primary:standard";
    begin
       generic_build_module (specs, module, dependency);
    end apply_makeinfo_module;
