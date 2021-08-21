@@ -2894,6 +2894,7 @@ package body Port_Specification.Transform is
       defpy     : constant String := "py" & HT.replace_char (default_python3, '.', "");
       ss        : constant String := ":single:standard";
       ps        : constant String := ":primary:standard";
+      uses_py   : HT.Text := HT.SUS ("python");
       pybuild   : HT.Text := HT.SUS ("python:build");
       component : array (gnome_type) of Boolean := (others => False);
       new_data  : Boolean;
@@ -2989,8 +2990,11 @@ package body Port_Specification.Transform is
             when glib =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, "gettext:runtime:standard");
+               if not specs.uses.Contains (uses_py) then
+                  specs.uses.Append (uses_py);
+               end if;
                if not specs.uses_base.Contains (pybuild) then
-                  specs.uses.Append (pybuild);
+                  specs.uses_base.Append (pybuild);
                end if;
             when glibmm =>
                add_buildrun_depends (specs, "glibmm" & ss);
