@@ -2990,11 +2990,11 @@ package body Port_Specification.Transform is
             when glib =>
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, "gettext:runtime:standard");
-               if not specs.uses.Contains (uses_py) then
-                  specs.uses.Append (uses_py);
+               if not specs.uses.Contains (pybuild) then
+                  specs.uses.Append (pybuild);
                end if;
-               if not specs.uses_base.Contains (pybuild) then
-                  specs.uses_base.Append (pybuild);
+               if not specs.uses_base.Contains (uses_py) then
+                  specs.uses_base.Append (uses_py);
                end if;
             when glibmm =>
                add_buildrun_depends (specs, "glibmm" & ss);
