@@ -1844,10 +1844,9 @@ package body PortScan.Operations is
                      --  If the target package is GCC7, let version mismatches slide.  We are
                      --  probably bootstrapping a new sysroot compiler
                      nbase   : constant String := HT.USS (all_ports (target_id).port_namebase);
-                     variant : constant String := HT.USS (all_ports (target_id).port_variant);
                   begin
                      if nbase /= default_compiler and then
-                       not (nbase = "binutils" and then variant = "ravensys")
+                       not (nbase = "ravensys-binutils")
                      then
                         LOG.obsolete_notice
                           (write_to_screen => debug_dep_check,

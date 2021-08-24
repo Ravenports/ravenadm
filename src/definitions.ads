@@ -35,14 +35,21 @@ package Definitions is
    default_ruby      : constant String := "2.7";
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
+
    default_binutils  : constant String := "ravensys-binutils:standard";
-   obsolete_binutils : constant String := "binutils:ravensys";  --  Remove line upon next update
-   default_compiler  : constant String := "gcc9";
-   previous_default  : constant String := "gcc9";
-   compiler_version  : constant String := "9.3.0";
-   previous_compiler : constant String := "9.2.0";
    binutils_version  : constant String := "2.37";
+
+   obsolete_binutils : constant String := "binutils:ravensys";  --  Remove line upon next update
    previous_binutils : constant String := "2.35.1";
+
+   default_compiler  : constant String := "ravensys-gcc";
+   compiler_version  : constant String := "11.2.0";
+   default_comppath  : constant String := "gcc11";
+
+   previous_default  : constant String := "gcc9";
+   previous_compiler : constant String := "9.3.0";
+   previous_comppath : constant String := "gcc9";
+
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
    task_stack_limit  : constant := 10_000_000;
