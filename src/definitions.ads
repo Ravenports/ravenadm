@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "1";
-   raven_version_minor : constant String := "73";
+   raven_version_minor : constant String := "74";
    copyright_years     : constant String := "2015-2021";
 
    raven_tool        : constant String := "ravenadm";
@@ -35,13 +35,14 @@ package Definitions is
    default_ruby      : constant String := "2.7";
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
-   default_binutils  : constant String := "binutils:ravensys";
+   default_binutils  : constant String := "ravensys-binutils:standard";
+   obsolete_binutils : constant String := "binutils:ravensys";  --  Remove line upon next update
    default_compiler  : constant String := "gcc9";
    previous_default  : constant String := "gcc9";
    compiler_version  : constant String := "9.3.0";
    previous_compiler : constant String := "9.2.0";
-   binutils_version  : constant String := "2.35.1";
-   previous_binutils : constant String := "2.34";
+   binutils_version  : constant String := "2.37";
+   previous_binutils : constant String := "2.35.1";
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
    task_stack_limit  : constant := 10_000_000;
