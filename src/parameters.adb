@@ -462,8 +462,9 @@ package body Parameters is
       result.def_tcl_tk      := floating;
 
       case platform_type is
-         when macos  => result.avoid_tmpfs := True;
-         when others => result.avoid_tmpfs := not enough_memory (builders (def_builders));
+         when macos   => result.avoid_tmpfs := True;
+         when openbsd => result.avoid_tmpfs := True;
+         when others  => result.avoid_tmpfs := not enough_memory (builders (def_builders));
       end case;
 
       return result;

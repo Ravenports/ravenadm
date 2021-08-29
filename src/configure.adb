@@ -302,8 +302,9 @@ package body Configure is
       case opt is
          when 13 =>
             case platform_type is
-               when macos  => dupe.avoid_tmpfs := True;
-               when others => dupe.avoid_tmpfs := new_value;
+               when macos   => dupe.avoid_tmpfs := True;
+               when openbsd => dupe.avoid_tmpfs := True;
+               when others  => dupe.avoid_tmpfs := new_value;
             end case;
          when 14 => dupe.defer_prebuilt := new_value;
          when 15 => dupe.avec_ncurses   := new_value;
