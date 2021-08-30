@@ -44,11 +44,11 @@ package Definitions is
 
    default_compiler  : constant String := "ravensys-gcc";
    compiler_version  : constant String := "11.2.0";
-   default_comppath  : constant String := "gcc11";
+   default_comppath  : constant String := default_compiler;
 
    previous_default  : constant String := "gcc9";
    previous_compiler : constant String := "9.3.0";
-   previous_comppath : constant String := "gcc9";
+   previous_comppath : constant String := previous_default;
 
    arc_ext           : constant String := ".tzst";
    jobs_per_cpu      : constant := 2;
