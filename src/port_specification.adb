@@ -3683,8 +3683,7 @@ package body Port_Specification is
       return
         (
          HT.leads (value, "oracle-") and then
-             (value = "oracle-5.6" or else
-              value = "oracle-5.7" or else
+             (value = "oracle-5.7" or else
               value = "oracle-8.0")
         )
         or else
