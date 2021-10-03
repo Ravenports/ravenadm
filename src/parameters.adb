@@ -217,17 +217,20 @@ package body Parameters is
    procedure query_physical_memory is
       --  Works for *BSD, DragonFly, Bitrig
       --  DF/Free "hw.physmem: 8525971456"  (8G)
-      --  NetBSD  "hw.physmem = 1073278976" (1G)
+      --  NetBSD  "hw.physmem64 = 17060806656"  (16G)
       --  MacOS   "hw.memsize = 2147483648" (16G)
       bsd_command : constant String := "/sbin/sysctl hw.physmem";
+      net_command : constant String := "/sbin/sysctl hw.physmem64";
       mac_command : constant String := "/usr/sbin/sysctl hw.memsize";
       content : HT.Text;
       status  : Integer;
    begin
       memory_megs := 1024;
       case platform_type is
-         when dragonfly | freebsd | netbsd | openbsd =>
+         when dragonfly | freebsd | openbsd =>
             content := Unix.piped_command (bsd_command, status);
+         when netbsd =>
+            content := Unix.piped_command (net_command, status);
          when macos =>
             content := Unix.piped_command (mac_command, status);
          when linux | sunos =>
@@ -384,7 +387,7 @@ package body Parameters is
 
 
    --------------------------------------------------------------------------------------------
-   --  enough_memory
+   --  default_parallelism
    --------------------------------------------------------------------------------------------
    procedure default_parallelism
      (num_cores        : cpu_range;
