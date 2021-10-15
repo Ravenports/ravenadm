@@ -578,9 +578,9 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure unmount (device_or_node : String; retry_times : Natural := 0)
    is
-      bsd_command : constant String := "/sbin/umount " & device_or_node;
-      sol_command : constant String := "/usr/sbin/umount " & device_or_node;
-      lin_command : constant String := "/bin/umount " & device_or_node;
+      bsd_command : constant String := "/sbin/umount -f " & device_or_node;
+      sol_command : constant String := "/usr/sbin/umount -f " & device_or_node;
+      lin_command : constant String := "/bin/umount -f " & device_or_node;
       counter     : Natural := 0;
       success     : Boolean := False;
    begin
