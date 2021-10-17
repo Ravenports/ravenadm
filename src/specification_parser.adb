@@ -39,6 +39,7 @@ package body Specification_Parser is
       converting    : constant Boolean := not stop_at_targets and then stop_at_files;
       match_opsys   : constant String  := UTL.lower_opsys (opsys_focus);
       match_arch    : constant String  := UTL.cpu_arch (arch_focus);
+      maxlen_remark : constant Positive := 100;
       markers       : HT.Line_Markers;
       linenum       : Natural := 0;
       seen_namebase : Boolean := False;
@@ -88,8 +89,9 @@ package body Specification_Parser is
                   goto line_done;
                end if;
                if not spec.port_is_generated then
-                  if line'Length > 79 then
-                     spec.set_parse_error (LN & "Comment length exceeds 79 columns");
+                  if line'Length > maxlen_remark then
+                     spec.set_parse_error
+                       (LN & "Comment length exceeds " & HT.int2str (maxlen_remark) & " columns");
                      exit;
                   end if;
                end if;
