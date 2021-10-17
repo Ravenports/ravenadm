@@ -52,6 +52,7 @@ package body Port_Specification.Buildsheet is
       procedure print_item40   (position : string_crate.Cursor);
       procedure print_straight (position : string_crate.Cursor);
       procedure print_adjacent (position : string_crate.Cursor);
+      procedure print_adjacent_nowrap (position : string_crate.Cursor);
       procedure dump_vardesc   (position : string_crate.Cursor);
       procedure dump_vardesc2  (position : string_crate.Cursor);
       procedure dump_manifest  (position : string_crate.Cursor);
@@ -138,6 +139,11 @@ package body Port_Specification.Buildsheet is
             when 3 =>
                varname_prefix := HT.SUS (varname);
                crate.Iterate (Process => dump_distfiles'Access);
+            when 4 =>
+               current_len := 0;
+               send (align24 (varname & "="), True);
+               crate.Iterate (Process => print_adjacent_nowrap'Access);
+               send ("");
             when others =>
                null;
          end case;
@@ -213,6 +219,20 @@ package body Port_Specification.Buildsheet is
          send (item, True);
          current_len := current_len + len;
       end print_adjacent;
+
+      procedure print_adjacent_nowrap (position : string_crate.Cursor)
+      is
+         index : Natural := string_crate.To_Index (position);
+         item  : String  := HT.USS (string_crate.Element (position));
+         len   : Natural := item'Length;
+      begin
+         if current_len > 0 then
+            send (" ", True);
+            current_len := current_len + 1;
+         end if;
+         send (item, True);
+         current_len := current_len + len;
+      end print_adjacent_nowrap;
 
       procedure print_straight (position : string_crate.Cursor)
       is
@@ -665,7 +685,7 @@ package body Port_Specification.Buildsheet is
       send ("REVISION",             specs.revision, 0);
       send ("EPOCH",                specs.epoch, 0);
       send ("KEYWORDS",             specs.keywords, 2);
-      send ("VARIANTS",             specs.variants, 2);
+      send ("VARIANTS",             specs.variants, 4);
       send ("SDESC",                specs.taglines);
       send ("HOMEPAGE",             specs.homepage);
       send ("CONTACT",              specs.contacts, 1);
