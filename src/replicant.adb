@@ -84,13 +84,13 @@ package body Replicant is
             DIR.Copy_File (sretc & hints, mm & hints);
          when freebsd   =>
             DIR.Copy_File (sretc & hints, mm & hints);
-         when netbsd    |
-              openbsd   =>
+         when openbsd   =>
             DIR.Copy_File (sretc & nhints, mm & nhints);
          when linux     =>
             DIR.Copy_File (sretc & ldcnf1, mm & ldcnf1);
             DIR.Copy_File (sretc & ldcnf2, mm & ldcnf2);
-         when macos     |
+         when netbsd    |
+              macos     |
               sunos     => null;
       end case;
       create_mtree_exc_preinst (mm);
