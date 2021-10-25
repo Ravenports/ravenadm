@@ -1077,6 +1077,7 @@ package body Replicant is
       create_etc_services      (etc_path);
       create_etc_shells        (etc_path);
       create_sun_files         (etc_path);
+      create_etc_localtime     (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
 
    exception
@@ -1488,6 +1489,22 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
+   --  create_etc_localtime
+   --------------------------------------------------------------------------------------------
+   procedure create_etc_localtime (path_to_etc : String)
+   is
+      result : Boolean;
+   begin
+      case platform_type is
+         when netbsd =>
+            result := Unix.create_symlink (actual_file => path_to_etc & "/localtime",
+                                           destination => "/usr/share/zoneinfo/UTC");
+         when others => null;
+      end case;
+   end create_etc_localtime;
+
+
+   --------------------------------------------------------------------------------------------
    --  create_make_conf
    --------------------------------------------------------------------------------------------
    procedure create_make_conf (path_to_etc : String)
@@ -1546,7 +1563,7 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
-   --  create_make_conf
+   --  concatenate_makeconf
    --------------------------------------------------------------------------------------------
    procedure concatenate_makeconf (makeconf_handle : TIO.File_Type; target_name : String)
    is

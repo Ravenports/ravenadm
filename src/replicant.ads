@@ -215,8 +215,11 @@ private
    --  Install linux /etc/ld.so.conf.d/* file
    procedure install_linux_ldsoconf (path_to_etc_ldsocnf : String);
 
-    --  create /etc/make.conf in slave
+   --  create /etc/make.conf in slave
    procedure create_make_conf (path_to_etc : String);
+
+   --  create /etc/localtime in slave (NetBSD only for now)
+   procedure create_etc_localtime (path_to_etc : String);
 
    --  Concatentation used for per-profile make.conf fragments (if they exist)
    procedure concatenate_makeconf (makeconf_handle : TIO.File_Type; target_name : String);
