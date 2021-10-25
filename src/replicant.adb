@@ -1497,8 +1497,8 @@ package body Replicant is
    begin
       case platform_type is
          when netbsd =>
-            result := Unix.create_symlink (actual_file => path_to_etc & "/localtime",
-                                           destination => "/usr/share/zoneinfo/UTC");
+            result := Unix.create_symlink (destination => path_to_etc & "/localtime",
+                                           actual_file => "/usr/share/zoneinfo/UTC");
          when others => null;
       end case;
    end create_etc_localtime;
