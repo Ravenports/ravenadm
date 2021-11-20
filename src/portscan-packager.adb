@@ -182,6 +182,7 @@ package body PortScan.Packager is
                       HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
          built_loc  : constant String := rootdir & newpkgdir & "/" & pkgarchive;
          final_loc  : constant String := realpkgdir & "/All/" & pkgarchive;
+         link_loc   : constant String := realpkgdir & "/Latest/" & pkgarchive;
          mv_program : constant String := sysroot & "/bin/mv ";
          mv_command : constant String := mv_program & " " & built_loc & " " & final_loc;
          cmd_output : HT.Text;
@@ -194,9 +195,12 @@ package body PortScan.Packager is
                TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
             end if;
             if still_good and then namebase = "pkg" then
+               if DIR.Exists (link_loc) then
+                  DIR.Delete_File (link_loc);
+               end if;
                still_good := Unix.create_symlink
                  (actual_file => "../All/" & pkgarchive,
-                  link_to_create => realpkgdir & "/Latest/" & pkgarchive);
+                  link_to_create => link_loc);
             end if;
          end if;
       end move_it_outside_sysroot;
