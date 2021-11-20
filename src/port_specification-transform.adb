@@ -3242,14 +3242,14 @@ package body Port_Specification.Transform is
    is
       setting : constant String := HT.USS (Parameters.configuration.def_postgresql);
    begin
-      if setting = "9.6" then
-         return "postgresql96";
-      elsif setting = "10" then
+      if setting = "10" then
          return "postgresql10";
       elsif setting = "11" then
          return "postgresql11";
       elsif setting = "13" then
          return "postgresql13";
+      elsif setting = "14" then
+         return "postgresql14";
       else
          --  case: setting = ports_default
          --  case: setting = default_pgsql (12 right now)

@@ -3709,11 +3709,11 @@ package body Port_Specification is
    function valid_broken_pgsql_value (value : String) return Boolean is
    begin
       return
+        value = "14" or else
         value = "13" or else
         value = "12" or else
         value = "11" or else
-        value = "10" or else
-        value = "9.6";
+        value = "10";
    end valid_broken_pgsql_value;
 
 
