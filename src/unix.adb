@@ -325,14 +325,14 @@ package body Unix is
    --------------------------------------------------------------------------------------------
    --  create_symlink
    --------------------------------------------------------------------------------------------
-   function create_symlink (actual_file : String; destination : String) return Boolean
+   function create_symlink (actual_file : String; link_to_create : String) return Boolean
    is
       use type IC.int;
       path1  : IC.char_array := IC.To_C (actual_file);
-      path2  : IC.char_array := IC.To_C (destination);
+      path2  : IC.char_array := IC.To_C (link_to_create);
       result : IC.int;
    begin
-      if actual_file = "" or else destination = "" then
+      if actual_file = "" or else link_to_create = "" then
          return False;
       end if;
       result := symlink (path1, path2);

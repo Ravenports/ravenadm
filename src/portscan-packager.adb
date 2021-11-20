@@ -40,6 +40,7 @@ package body PortScan.Packager is
       wrkdir     : constant String := rootdir & conbase;
       chspkgdir  : constant String := "/construction/metadata/";
       newpkgdir  : constant String := "/construction/new_packages";
+      sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
       realpkgdir : constant String := HT.USS (PM.configuration.dir_packages);
       stagedir   : constant String := conbase & "/stage";
       display    : constant String := "/+DISPLAY";
@@ -179,21 +180,23 @@ package body PortScan.Packager is
          namebase   : constant String := specification.get_namebase;
          pkgarchive : String := namebase & "-" & subpackage & "-" &
                       HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
-         link_cmd   : constant String := "/bin/ln -sf ../All/" & pkgarchive & " " &
-                      realpkgdir & "/Latest/" & pkgarchive;
+         built_loc  : constant String := rootdir & newpkgdir & "/" & pkgarchive;
+         final_loc  : constant String := realpkgdir & "/All/" & pkgarchive;
+         mv_program : constant String := sysroot & "/bin/mv ";
+         mv_command : constant String := mv_program & " " & built_loc & " " & final_loc;
+         cmd_output : HT.Text;
       begin
          if still_good then
-            begin
-               DIR.Rename (Old_Name => rootdir & newpkgdir & "/" & pkgarchive,
-                           New_Name => realpkgdir & "/All/" & pkgarchive);
-            exception
-               when others =>
-                  still_good := False;
-            end;
+            --  DIR.Rename fails.  The exception doesn't indicate why.  Use mv instead.
+            if not Unix.piped_mute_command (mv_command, cmd_output) then
+               still_good := False;
+               TIO.Put_Line (log_handle, "Failed to move " & built_loc & " to " & final_loc);
+               TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
+            end if;
             if still_good and then namebase = "pkg" then
                still_good := Unix.create_symlink
-                 (actual_file => realpkgdir & "/All/" & pkgarchive,
-                  destination => realpkgdir & "/Latest/" & pkgarchive);
+                 (actual_file => "../All/" & pkgarchive,
+                  link_to_create => realpkgdir & "/Latest/" & pkgarchive);
             end if;
          end if;
       end move_it_outside_sysroot;
