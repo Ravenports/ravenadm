@@ -1676,7 +1676,7 @@ package body Port_Specification.Transform is
       else
          if argument_present (specs, module, PY27) then
             set_snake_ports (False, PYTHON27, PY27);
-         elsif argument_present (specs, module, PY39) then
+         elsif argument_present (specs, module, PY310) then
             set_snake_ports (False, PYTHON310, PY310);
          else -- default to py39
             set_snake_ports (False, PYTHON39, PY39);
