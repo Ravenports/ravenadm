@@ -1627,8 +1627,8 @@ package body Port_Specification.Transform is
 
       module     : constant String := "python";
       PY27       : constant String := "py27";
-      PY38       : constant String := "py38";
       PY39       : constant String := "py39";
+      PY310      : constant String := "py310";
       autopython : constant String := "autoselect-python:single:standard";
 
       use_pip    : Boolean := False;
@@ -1668,18 +1668,18 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, PY27) then
             set_snake_ports (True, PYTHON27, PY27);
-         elsif argument_present (specs, module, PY39) then
+         elsif argument_present (specs, module, PY310) then
+            set_snake_ports (True, PYTHON310, PY310);
+         else -- default to py39
             set_snake_ports (True, PYTHON39, PY39);
-         else -- default to py38
-            set_snake_ports (True, PYTHON38, PY38);
          end if;
       else
          if argument_present (specs, module, PY27) then
             set_snake_ports (False, PYTHON27, PY27);
          elsif argument_present (specs, module, PY39) then
+            set_snake_ports (False, PYTHON310, PY310);
+         else -- default to py39
             set_snake_ports (False, PYTHON39, PY39);
-         else -- default to py38
-            set_snake_ports (False, PYTHON38, PY38);
          end if;
       end if;
       add_build_depends (specs, autopython);
@@ -2651,10 +2651,10 @@ package body Port_Specification.Transform is
          elsif exrundep = "python" then
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
                Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON39)) then
-               Element := HT.SUS (PYTHON39);
+            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON310)) then
+               Element := HT.SUS (PYTHON310);
             else
-              Element := HT.SUS (PYTHON38);
+              Element := HT.SUS (PYTHON39);
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
@@ -2760,9 +2760,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & "py38";
-            else
                return name_subpackage & "py39";
+            else
+               return name_subpackage & "py310";
             end if;
          end;
       elsif trailer = "perl_default" then
