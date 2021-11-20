@@ -32,6 +32,7 @@ package body PortScan.Packager is
    is
       procedure metadata   (position : subpackage_crate.Cursor);
       procedure package_it (position : subpackage_crate.Cursor);
+      procedure move_it_outside_sysroot (position : subpackage_crate.Cursor);
 
       namebase   : constant String := HT.USS (all_ports (seq_id).port_namebase);
       conbase    : constant String := "/construction/" & namebase;
@@ -39,6 +40,8 @@ package body PortScan.Packager is
       wrkdir     : constant String := rootdir & conbase;
       chspkgdir  : constant String := "/construction/metadata/";
       newpkgdir  : constant String := "/construction/new_packages";
+      sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
+      realpkgdir : constant String := HT.USS (PM.configuration.dir_packages);
       stagedir   : constant String := conbase & "/stage";
       display    : constant String := "/+DISPLAY";
       pkgvers    : constant String := HT.USS (all_ports (seq_id).pkgversion);
@@ -147,10 +150,6 @@ package body PortScan.Packager is
          package_cmd : constant String := PM.chroot_cmd & rootdir & " /usr/bin/env FORCE_POST=" &
            LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
            PKG_CREATE & PKG_CREATE_ARGS & pkgname;
-         move_cmd : constant String := PM.chroot_cmd & rootdir & " /bin/mv " & newpkgdir & "/" &
-           pkgname & arc_ext & " /packages/All/";
-         link_cmd : constant String := PM.chroot_cmd & rootdir & " /bin/ln -sf /packages/All/" &
-           pkgname & arc_ext & " /packages/Latest/" & pkgname & arc_ext;
       begin
          if still_good then
             if DIR.Exists (spkgdir & subpackage & display) then
@@ -168,18 +167,43 @@ package body PortScan.Packager is
             TIO.Close (log_handle);
 
             still_good := execute_command (package_cmd, log_name);
-            if still_good then
-               still_good := execute_command (move_cmd, log_name);
-            end if;
-            if still_good and then namebase = "pkg" then
-               still_good := execute_command (link_cmd, log_name);
-            end if;
 
             TIO.Open (File => log_handle,
                       Mode => TIO.Append_File,
                       Name => log_name);
          end if;
       end package_it;
+
+      procedure move_it_outside_sysroot (position : subpackage_crate.Cursor)
+      is
+         subpackage : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
+         namebase   : constant String := specification.get_namebase;
+         pkgarchive : String := namebase & "-" & subpackage & "-" &
+                      HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
+         built_loc  : constant String := rootdir & newpkgdir & "/" & pkgarchive;
+         final_loc  : constant String := realpkgdir & "/All/" & pkgarchive;
+         link_loc   : constant String := realpkgdir & "/Latest/" & pkgarchive;
+         mv_program : constant String := sysroot & "/bin/mv ";
+         mv_command : constant String := mv_program & " " & built_loc & " " & final_loc;
+         cmd_output : HT.Text;
+      begin
+         if still_good then
+            --  DIR.Rename fails.  The exception doesn't indicate why.  Use mv instead.
+            if not Unix.piped_mute_command (mv_command, cmd_output) then
+               still_good := False;
+               TIO.Put_Line (log_handle, "Failed to move " & built_loc & " to " & final_loc);
+               TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
+            end if;
+            if still_good and then namebase = "pkg" then
+               if DIR.Exists (link_loc) then
+                  DIR.Delete_File (link_loc);
+               end if;
+               still_good := Unix.create_symlink
+                 (actual_file => "../All/" & pkgarchive,
+                  link_to_create => link_loc);
+            end if;
+         end if;
+      end move_it_outside_sysroot;
 
    begin
       LOG.log_phase_begin (log_handle, phase_name);
@@ -195,6 +219,7 @@ package body PortScan.Packager is
 
       DIR.Create_Directory (rootdir & newpkgdir);
       all_ports (seq_id).subpackages.Iterate (package_it'Access);
+      all_ports (seq_id).subpackages.Iterate (move_it_outside_sysroot'Access);
       LOG.log_phase_end (log_handle);
 
       return still_good;

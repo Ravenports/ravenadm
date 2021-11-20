@@ -74,7 +74,7 @@ package Unix is
    function create_hardlink (actual_file : String; destination : String) return Boolean;
 
    --  Attempts to create a symlink and returns True on success
-   function create_symlink (actual_file : String; destination : String) return Boolean;
+   function create_symlink (actual_file : String; link_to_create : String) return Boolean;
 
 private
 
