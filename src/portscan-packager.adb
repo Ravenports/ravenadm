@@ -194,7 +194,7 @@ package body PortScan.Packager is
                TIO.Put_Line (log_handle, "Failed to move " & built_loc & " to " & final_loc);
                TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
             end if;
-            if still_good and then namebase = "pkg" then
+            if still_good and then namebase = "ravensw" then
                if DIR.Exists (link_loc) then
                   DIR.Delete_File (link_loc);
                end if;
