@@ -1945,8 +1945,8 @@ package body Port_Specification.Transform is
             flavor := "php80";
          elsif argument_present (specs, module, "74") then
             flavor := "php74";
-         elsif argument_present (specs, module, "73") then
-            flavor := "php73";
+         elsif argument_present (specs, module, "81") then
+            flavor := "php81";
          end if;
          hit_build   := argument_present (specs, module, BUILD);
          hit_phpize  := argument_present (specs, module, "phpize");
@@ -3187,8 +3187,8 @@ package body Port_Specification.Transform is
             flavor := "php80";
          elsif argument_present (specs, php_module, "74") then
             flavor := "php74";
-         elsif argument_present (specs, php_module, "73") then
-            flavor := "php73";
+         elsif argument_present (specs, php_module, "81") then
+            flavor := "php81";
          end if;
       end if;
       hit_build := argument_present (specs, php_module, BUILD);
