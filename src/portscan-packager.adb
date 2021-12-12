@@ -201,6 +201,10 @@ package body PortScan.Packager is
                still_good := Unix.create_symlink
                  (actual_file => "../All/" & pkgarchive,
                   link_to_create => link_loc);
+               if not still_good then
+                  TIO.Put_Line (log_handle, "Failed to create link " & link_loc &
+                                  " to ../All/" & pkgarchive);
+               end if;
             end if;
          end if;
       end move_it_outside_sysroot;
