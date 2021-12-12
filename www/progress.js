@@ -252,7 +252,7 @@ $(document).bind("keydown", function(e) {
  * Basic initialization of datatable, run once.
  */
 function initialize_database() {
-	$('#report_table').dataTable(
+	$('#report_table').DataTable(
 	{
 		pageLength: 20,
 		lengthMenu: [10, 20, 50, 100, 200],

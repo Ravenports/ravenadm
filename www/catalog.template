@@ -4,15 +4,13 @@
  <title>Ravenports Catalog</title>
  <meta charset="utf-8">
  <meta name="description" content="Searchable index of Ravenports">
- <meta http-equiv="Cache-Control" content="public, max-age=21600">
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
- <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>
- <link href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
+ <meta http-equiv="Cache-Control" content="no-cache">
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+ <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>
+ <link href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
  <link href="style/ravenports.css" rel="stylesheet">
  <link href="favicon.png" rel="icon" type="image/png">
  <script type="text/javascript">
-var rowdata = [];
-
 function originlink (bucket, origin) {
 	var parts = origin.split(':');
 	var ravenlink = '<a title="Description of the ' + parts[1] +
@@ -28,30 +26,28 @@ function row_assy(entry, bucket, origin, pkgversion, tagline, timestamp) {
 	trow.push(pkgversion);
 	trow.push(tagline);
 	trow.push(timestamp);
-	rowdata.push (trow);
+	$('#catalog_table').DataTable().row.add(trow);
 }
 
 function populate_catalog() {
 @ROW_ASSY@
-	$('#catalog_table').dataTable().fnClearTable();
-	$('#catalog_table').dataTable().fnAddData(rowdata);
+	$('#catalog_table').DataTable().draw(false);
 }
 
 $(document).ready(function() {
-	$('#catalog_table').dataTable({
-		"aaSorting": [[ 0, 'asc' ]],
-		"bProcessing": true, // Show processing icon
-		"bDeferRender": true, // Defer creating TR/TD until needed
-		"aoColumnDefs": [
-			{"bSortable": false, "aTargets": [2,3,4]},
-			{"bSearchable": false, "aTargets": [0,4]},
+	$('#catalog_table').DataTable({
+		pageLength: 20,
+		lengthMenu: [10, 20, 50, 100, 200],
+		columns: [
+			{ orderable: true,  searchable: false, order: 'asc' },
+			{ orderable: true,  searchable: true },
+			{ orderable: false, searchable: true },
+			{ orderable: false, searchable: true },
+			{ orderable: false, searchable: false },
 		],
-		"bStateSave": true, // Enable cookie for keeping state
-		"aLengthMenu":[10, 20, 50, 100, 200],
-		"iDisplayLength": 20,
-		"autoWidth": false,
+		order: [[0, 'desc']],
+		autoWidth: false
 		});
-
 	populate_catalog();
 })
  </script>
@@ -74,7 +70,7 @@ $(document).ready(function() {
       </table>
     </div>
     <div id="catfooter">
-      <a href="http://ravenports.ironwolf.systems/" class="footlink">Ravenports official site</a>
+      <a href="http://www.ravenports.com/" class="footlink">Ravenports official site</a>
     </div>
   </body>
 </html>
