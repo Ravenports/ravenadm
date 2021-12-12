@@ -1,16 +1,11 @@
-var SbInterval = 6;
-var progwidth = 950;
+var progwidth  = 950;
 var progheight = 14;
 var progtop    = 2;
-var run_active;
-var kfiles = 0;
+var run_active = 1;
+var kfiles     = 0;
 var last_kfile = 1;
-var history = [[]];
-
-/* Disabling jQuery caching */
-$.ajaxSetup({
-	cache: false
-});
+var processed_lines = Array(100).fill(0);  /* capacity of 20,000 variants */
+var summary_etag;
 
 function catwidth (variable, queued) {
 	if (variable == 0)
@@ -163,8 +158,8 @@ function originlink (bucket, origin) {
 }
 
 function process_history_file(data, k) {
-	history [k] = [];
-	for (n = 0; n < data.length; n++) {
+	var T = $('#report_table').DataTable();
+	for (n = processed_lines[k-1]; n < data.length; n++) {
 		var trow = [];
 		trow.push(format_entry (data[n].entry, data[n].origin));
 		trow.push(data[n].elapsed);
@@ -174,13 +169,14 @@ function process_history_file(data, k) {
 		trow.push(information (data[n].result, data[n].origin, data[n].info));
 		trow.push(skip_info (data[n].result, data[n].info));
 		trow.push(data[n].duration);
-		history [k].push (trow);
+		T.row.add(trow);
 	}
+	processed_lines[k-1] = data.length;
 }
 
 function cycle () {
 	if (run_active) {
-		setTimeout(update_summary_and_builders, SbInterval * 1000);
+		setTimeout(update_summary_and_builders, 2000);
 	} else {
 		$('#builders_zone_2').fadeOut(2500);
 		$('#main').css('border-top', '1px solid #404066');
@@ -189,12 +185,7 @@ function cycle () {
 
 function update_history_success(kfile) {
 	if (kfile == kfiles) {
-		var full_history = [];
-		for (var k = 1; k <= kfiles; k++) {
-			full_history = full_history.concat (history[k]);
-		}
-		$('#report_table').dataTable().fnClearTable();
-		$('#report_table').dataTable().fnAddData(full_history);
+		$('#report_table').DataTable().draw(false);
 		cycle();
 	} else {
 		last_kfile = kfile + 1;
@@ -207,52 +198,46 @@ function update_history() {
 		cycle();
 		return;
 	}
-	clearInterval(update_history);
 	$.ajax({
 		url: digit2(last_kfile) + '_history.json',
 		dataType: 'json',
-		success: function(data) {
-			process_history_file(data, last_kfile);
-			update_history_success (last_kfile);
-		},
-		error: function(data) {
-			/* May not be there yet, try again shortly */
-			setTimeout(update_history, SbInterval * 500);
-		}
+		cache: false
+	}).done(function(data) {
+		process_history_file(data, last_kfile);
+		update_history_success (last_kfile);
+	}).fail(function(data) {
+		/* May not be there yet, try again shortly */
+		setTimeout(update_history, 750);
 	})
 }
 
 function update_summary_and_builders() {
+	var fresh_data = 0;
 	$.ajax({
 		url: 'summary.json',
 		dataType: 'json',
-		success: function(data) {
-			process_summary(data);
-			clearInterval(update_summary_and_builders);
-			update_history();
-		},
-		error: function(data) {
-			/* May not be there yet, try again shortly */
-			setTimeout(update_summary_and_builders, SbInterval * 500);
+		cache: false
+	}).done(function(data, status, jqXHR) {
+		if (typeof(data) === 'object') {
+			var lastmod = jqXHR.getResponseHeader("ETag");
+			if (lastmod != summary_etag) {
+				fresh_data = 1;
+				summary_etag = lastmod;
+				process_summary(data);
+				update_history();
+			}
 		}
+		if (!fresh_data) {
+			setTimeout(update_summary_and_builders, 750);
+		}
+	}).fail(function(data) {
+		/* Missing file, try again shortly */
+		setTimeout(update_summary_and_builders, 750);
 	});
 }
 
 $(document).ready(function() {
-
-	$('#report_table').dataTable({
-		"aaSorting": [[ 0, 'desc' ]],
-		"bProcessing": true, // Show processing icon
-		"bDeferRender": true, // Defer creating TR/TD until needed
-		"aoColumnDefs": [
-			{"bSortable": false, "aTargets": [1,2,3,5]},
-			{"bSearchable": false, "aTargets": [0,1,6,7]},
-		],
-		"bStateSave": true, // Enable cookie for keeping state
-		"aLengthMenu":[10,20,50, 100, 200],
-		"iDisplayLength": 20,
-		});
-
+	initialize_database();
 	update_summary_and_builders();
 })
 
@@ -262,3 +247,62 @@ $(document).bind("keydown", function(e) {
     e.preventDefault();
   }
 });
+
+/*
+ * Basic initialization of datatable, run once.
+ */
+function initialize_database() {
+	$('#report_table').dataTable(
+	{
+		pageLength: 20,
+		lengthMenu: [10, 20, 50, 100, 200],
+		columns: [
+			{ orderable: true,  searchable: false, order: 'asc', type: 'html-num' },
+			{ orderable: false, searchable: false },
+			{ orderable: false, searchable: true },
+			{ orderable: false, searchable: true },
+			{ orderable: true,  searchable: true,  order: 'asc' },
+			{ orderable: false, searchable: true },
+			{ orderable: true,  searchable: false, order: 'desc', type: 'html-num' },
+			{ orderable: true,  searchable: false, order: 'desc', type: 'duration' },
+		],
+		order: [[0, 'desc']]
+	}
+	);
+}
+
+/*
+ * Custom sort for duration (ascending)
+ */
+ jQuery.fn.dataTableExt.oSort['duration-asc'] = function(a,b) {
+	 var aparts = a.split(':');
+	 var bparts = b.split(':');
+	 var asecs = 0;
+	 var bsecs = 0;
+	 if (aparts[0] != '--') {
+		 asecs = parseInt(aparts[2], 10) + parseInt(aparts[1], 10) * 60 + parseInt(aparts[0], 10) * 3600;
+	 }
+	 if (bparts[0] != '--') {
+		 bsecs = parseInt(bparts[2], 10) + parseInt(bparts[1], 10) * 60 + parseInt(bparts[0], 10) * 3600;
+	 }
+	 if (asecs == bsecs) { return 0; }
+	 return (asecs < bsecs) ? -1 : 1;
+}
+
+/*
+ * Custom sort for duration (descending)
+ */
+ jQuery.fn.dataTableExt.oSort['duration-desc'] = function(a,b) {
+	 var aparts = a.split(':');
+	 var bparts = b.split(':');
+	 var asecs = 0;
+	 var bsecs = 0;
+	 if (aparts[0] != '--') {
+		 asecs = parseInt(aparts[2], 10) + parseInt(aparts[1], 10) * 60 + parseInt(aparts[0], 10) * 3600;
+	 }
+	 if (bparts[0] != '--') {
+		 bsecs = parseInt(bparts[2], 10) + parseInt(bparts[1], 10) * 60 + parseInt(bparts[0], 10) * 3600;
+	 }
+	 if (asecs == bsecs) { return 0; }
+	 return (asecs > bsecs) ? -1 : 1;
+}
