@@ -1545,7 +1545,7 @@ package body Port_Specification.Transform is
    procedure apply_gnome_icons_module (specs : in out Portspecs)
    is
       module     : String := "gnome-icons";
-      dependency : String := "gtk-update-icon-cache:single:standard";
+      dependency : String := "gtk3:icon_cache:standard";
    begin
       generic_run_module (specs, module, dependency);
    end apply_gnome_icons_module;
