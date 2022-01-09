@@ -3004,6 +3004,7 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "gtk2" & ps);
             when gtk3 =>
                add_buildrun_depends (specs, "gtk3" & ps);
+               add_run_depends (specs, "adwaita-icon-theme" & ss);
             when gtk4 =>
                add_buildrun_depends (specs, "gtk4" & ps);
             when gtkmm30 =>
