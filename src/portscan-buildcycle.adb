@@ -321,7 +321,7 @@ package body PortScan.Buildcycle is
       pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
       pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
       fullpath   : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
-      command    : constant String  := PM.chroot_cmd & root & env_vars & PKG_ADD &
+      command    : constant String  := PM.chroot_cmd & root & env_vars & "ABI= " & PKG_ADD &
                                        "/packages/All/" & pkgfile;
       still_good : Boolean := True;
    begin
