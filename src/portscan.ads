@@ -89,7 +89,8 @@ private
 
    package CON renames Ada.Containers;
 
-   max_ports : constant := 8000;
+   max_ports    : constant := 8000;
+   max_packages : constant := 24000;
 
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;
@@ -97,6 +98,8 @@ private
    port_match_failed : constant port_id := port_id'First;
 
    subtype bucket_code is String (1 .. 2);
+
+   type built_package_id is range 0 .. max_packages;
 
    pkgng_execution  : exception;
    circular_logic   : exception;
@@ -126,6 +129,11 @@ private
    package string_crate is new CON.Vectors
      (Element_Type => HT.Text,
       Index_Type   => port_index,
+      "="          => HT.SU."=");
+
+   package built_package_crate is new CON.Vectors
+     (Index_Type   => built_package_id,
+      Element_Type => HT.Text,
       "="          => HT.SU."=");
 
    package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
@@ -219,7 +227,7 @@ private
    log_list     : string_crate.Vector;
    portlist     : string_crate.Vector;
    dupelist     : string_crate.Vector;
-   package_list : string_crate.Vector;
+   package_list : built_package_crate.Vector;
    distfile_set : portkey_crate.Map;
 
    original_queue_len : CON.Count_Type;

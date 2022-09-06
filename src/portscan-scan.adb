@@ -2172,6 +2172,12 @@ package body PortScan.Scan is
          begin
             package_list.Append (pkgname);
             result := True;
+         exception
+            when Constraint_Error =>
+               TIO.Put_Line ("Repository scan failed, operation aborted.");
+               TIO.Put_Line ("Package count exceeds the maximum of" & max_packages'Img & ".");
+               result := False;
+               exit;
          end;
       end loop;
       DIR.End_Search (pkg_search);

@@ -2972,7 +2972,7 @@ package body PortScan.Operations is
    procedure eliminate_obsolete_packages
    is
       procedure search (position : subpackage_crate.Cursor);
-      procedure kill (position : string_crate.Cursor);
+      procedure kill (position : built_package_crate.Cursor);
 
       id : port_index;
       counter : Natural := 0;
@@ -2989,9 +2989,9 @@ package body PortScan.Operations is
          end if;
       end search;
 
-      procedure kill (position : string_crate.Cursor)
+      procedure kill (position : built_package_crate.Cursor)
       is
-         package_name : constant String := HT.USS (string_crate.Element (position));
+         package_name : constant String := HT.USS (built_package_crate.Element (position));
       begin
          DIR.Delete_File (repo & package_name);
          counter := counter + 1;
