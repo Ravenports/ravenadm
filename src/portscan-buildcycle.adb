@@ -673,11 +673,13 @@ package body PortScan.Buildcycle is
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
       PKG8 : constant String := "RAVENSW_DBDIR=/var/db/pkg8 " &
                                 "RAVENSW_CACHEDIR=/var/cache/pkg8 ";
+      CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog";
+      SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog";
       CENV : constant String := HT.USS (customenv);
       DYLD : constant String := dyld_fallback;
    begin
       return " /usr/bin/env -i " &
-        CENV & LANG & TERM & SHLL & USER & HOME & RAVN & SSLV & PKG8 & DYLD & PATH;
+        CENV & LANG & TERM & SHLL & USER & HOME & SGML & CXML & RAVN & SSLV & PKG8 & DYLD & PATH;
    end environment_override;
 
 
