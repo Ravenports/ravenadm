@@ -2075,6 +2075,7 @@ package body PortScan.Scan is
    is
       procedure kill (position : portkey_crate.Cursor);
       procedure find_actual_tarballs (folder : String);
+      procedure purge_empty_directories (folder : String);
 
       distfiles_directory : String := Unix.true_path (HT.USS (PM.configuration.dir_distfiles));
       abort_purge  : Boolean := False;
@@ -2140,12 +2141,112 @@ package body PortScan.Scan is
             TIO.Put_Line ("purge_obsolete_distfiles: Unknown error - directory search");
             TIO.Put_Line (EX.Exception_Information (failed));
       end find_actual_tarballs;
+
+      procedure purge_empty_directories (folder : String)
+      is
+         procedure top_subdirs (item : DIR.Directory_Entry_Type);
+
+         dir_removed : Boolean;
+
+         procedure top_subdirs (item : DIR.Directory_Entry_Type)
+         is
+            procedure child_subdirs (item : DIR.Directory_Entry_Type);
+            procedure child_files (item : DIR.Directory_Entry_Type);
+
+            total_child_dirs : Natural := 0;
+            files_present : Boolean := False;
+            full_dir_name : constant String := DIR.Full_Name (item);
+
+            procedure child_subdirs (item : DIR.Directory_Entry_Type)
+            is
+               child_dir_name : constant String := DIR.Full_Name (item);
+            begin
+               DIR.Search (Directory => child_dir_name,
+                           Pattern   => "",
+                           Filter    => (DIR.Directory => True, others => False),
+                           Process   => top_subdirs'Access);
+               total_child_dirs := total_child_dirs + 1;
+            exception
+               when DIR.Name_Error =>
+                  TIO.Put_Line ("child_subdirs: " & child_dir_name & " directory does not exist");
+               when DIR.Use_Error =>
+                  TIO.Put_Line ("Searching " & child_dir_name & " directory is not supported");
+            end child_subdirs;
+
+            procedure child_files (item : DIR.Directory_Entry_Type) is
+            begin
+               files_present := True;
+            end child_files;
+         begin
+            if DIR.Simple_Name (item) /= "." and then
+              DIR.Simple_Name (item) /= ".."
+            then
+               begin
+                  DIR.Search (Directory => full_dir_name,
+                              Pattern   => "",
+                              Filter    => (DIR.Directory => True, others => False),
+                              Process   => child_subdirs'Access);
+               exception
+                  when DIR.Name_Error =>
+                     TIO.Put_Line (full_dir_name & " directory does not exist");
+                  when DIR.Use_Error =>
+                     TIO.Put_Line (full_dir_name & " directory USE error");
+               end;
+               if total_child_dirs = 0 then
+                  begin
+                     DIR.Search (Directory => full_dir_name,
+                                 Pattern   => "*",
+                                 Filter    => (DIR.Ordinary_File => True, others => False),
+                                 Process   => child_files'Access);
+                  exception
+                     when DIR.Name_Error =>
+                        TIO.Put_Line (full_dir_name & " directory does not exist");
+                     when DIR.Use_Error =>
+                        TIO.Put_Line (full_dir_name & " directory USE error");
+                  end;
+                  if not files_present then
+                     begin
+                        DIR.Delete_Directory (full_dir_name);
+                        TIO.Put_Line ("Deleted empty directory " & full_dir_name);
+                        dir_removed := True;
+                     exception
+                        when DIR.Name_Error =>
+                           TIO.Put_Line ("warning: " & full_dir_name & " is not a directory.");
+                        when DIR.Use_Error =>
+                           TIO.Put_Line ("warning: " & full_dir_name & " cannot be deleted.");
+                     end;
+                  end if;
+               end if;
+            end if;
+         end top_subdirs;
+      begin
+         loop
+            dir_removed := False;
+            begin
+               DIR.Search (Directory => folder,
+                           Pattern   => "",
+                           Filter    => (DIR.Directory => True, others => False),
+                           Process   => top_subdirs'Access);
+            exception
+               when DIR.Name_Error =>
+                  TIO.Put_Line ("The " & folder & " directory does not exist");
+               when DIR.Use_Error =>
+                  TIO.Put_Line ("Searching " & folder & " directory is not supported");
+               when failed : others =>
+                  TIO.Put_Line ("purge_empty_directories: Unknown error - directory search");
+                  TIO.Put_Line (EX.Exception_Information (failed));
+            end;
+            exit when not dir_removed;
+         end loop;
+      end purge_empty_directories;
+
    begin
       find_actual_tarballs (distfiles_directory);
       if abort_purge then
          TIO.Put_Line ("Distfile purge operation aborted.");
       else
          rmfiles.Iterate (kill'Access);
+         purge_empty_directories (distfiles_directory);
          TIO.Put_Line ("Recovered" & display_kmg (bytes_purged));
       end if;
    end purge_obsolete_distfiles;
