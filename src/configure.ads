@@ -77,8 +77,9 @@ private
    version_A : constant String := default_firebird & ":3.0";
    version_B : constant String := "5.2:" & default_lua & ":5.4";
    version_C : constant String := "oracle-5.7:" & default_mysql &
-                                  "mariadb-10.2:mariadb-10.3:mariadb-10.4:mariadb-10.5:" &
-                                  "mariadb-10.6:percona-5.6:percona-5.7:percona-8.0";
+                                  "mariadb-10.3:mariadb-10.4:mariadb-10.5:mariadb-10.6:" &
+                                  "mariadb-10.7:mariadb-10.8:mariadb-10.9:" &
+                                  "percona-5.6:percona-5.7:percona-8.0";
    version_D : constant String := default_perl & ":5.34";
    version_E : constant String := "7.4:" & default_php & ":8.1";
    version_F : constant String := "10:11:" & default_pgsql & ":13:14";
