@@ -64,8 +64,8 @@ private
          log_handle  : aliased TIO.File_Type;
          dynlink     : string_crate.Vector;
          runpaths    : string_crate.Vector;
-         checkpaths  : string_crate.Vector;
-         goodpaths   : string_crate.Vector;
+         nonexistent : string_crate.Vector;
+         seen_libs   : string_crate.Vector;
          rpath_fatal : Boolean;
          check_strip : Boolean;
          disable_dog : Boolean;

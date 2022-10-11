@@ -890,8 +890,6 @@ package body PortScan.Buildcycle is
       begin
          trackers (id).dynlink.Clear;
          trackers (id).runpaths.Clear;
-         trackers (id).checkpaths.Clear;
-         trackers (id).goodpaths.Clear;
          HT.initialize_markers (comres, markers);
          loop
             exit when not HT.next_line_present (comres, markers);
@@ -925,8 +923,14 @@ package body PortScan.Buildcycle is
          when others => null;
       end check_package;
    begin
+      --  dynlink, runpaths, nonexistent, seen_libs already empty at this point
       TIO.Put_Line (trackers (id).log_handle, "=> Checking shared library dependencies");
       all_ports (trackers (id).seq_id).subpackages.Iterate (check_package'Access);
+
+      trackers (id).dynlink.Clear;
+      trackers (id).runpaths.Clear;
+      trackers (id).nonexistent.Clear;
+      trackers (id).seen_libs.Clear;
       return result;
    end log_linked_libraries;
 
@@ -1039,27 +1043,27 @@ package body PortScan.Buildcycle is
 
       begin
          --  Check system library paths first
-         if trackers (id).goodpaths.Contains (syslib_1txt) or else
-           trackers (id).goodpaths.Contains (syslib_2txt)
+         if trackers (id).seen_libs.Contains (syslib_1txt) or else
+           trackers (id).seen_libs.Contains (syslib_2txt)
          then
             return;
          end if;
 
-         if not trackers (id).checkpaths.Contains (syslib_1txt) then
+         if not trackers (id).nonexistent.Contains (syslib_1txt) then
             if DIR.Exists (root & systemlib_1) then
-               trackers (id).goodpaths.Append (syslib_1txt);
+               trackers (id).seen_libs.Append (syslib_1txt);
                return;
             end if;
-            trackers (id).checkpaths.Append (syslib_1txt);
+            trackers (id).nonexistent.Append (syslib_1txt);
             attempted := True;
          end if;
 
-         if not trackers (id).checkpaths.Contains (syslib_2txt) then
+         if not trackers (id).nonexistent.Contains (syslib_2txt) then
             if DIR.Exists (root & systemlib_2) then
-               trackers (id).goodpaths.Append (syslib_2txt);
+               trackers (id).seen_libs.Append (syslib_2txt);
                return;
             end if;
-            trackers (id).checkpaths.Append (syslib_2txt);
+            trackers (id).nonexistent.Append (syslib_2txt);
             attempted := True;
          end if;
 
@@ -1075,16 +1079,23 @@ package body PortScan.Buildcycle is
                test_library : String := testpath & "/" & library;
                test_lib_txt : HT.Text := HT.SUS (test_library);
             begin
-               if trackers (id).goodpaths.Contains (test_lib_txt) then
+               if trackers (id).seen_libs.Contains (test_lib_txt) then
+                  TIO.Put_Line (trackers (id).log_handle, "GOOD: Already seen " & test_library);
                   return;
                end if;
-               if not trackers (id).checkpaths.Contains (test_lib_txt) then
+               if not trackers (id).nonexistent.Contains (test_lib_txt) then
                   if DIR.Exists (root & test_library) then
-                     trackers (id).goodpaths.Append (test_lib_txt);
+                     trackers (id).seen_libs.Append (test_lib_txt);
+                     TIO.Put_Line (trackers (id).log_handle, "GOOD: Added " & test_library);
                      return;
                   end if;
-                  trackers (id).checkpaths.Append (test_lib_txt);
+                  trackers (id).nonexistent.Append (test_lib_txt);
+                  TIO.Put_Line (trackers (id).log_handle,
+                                "NOTE: marked nonexistent " & test_library);
                   attempted := True;
+               else
+                  TIO.Put_Line (trackers (id).log_handle,
+                                "NOTE: known not to exist " & test_library);
                end if;
             end;
          end loop;
