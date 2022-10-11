@@ -1705,24 +1705,24 @@ package body Port_Specification.Transform is
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, v31) then
             add_build_depends (specs, RUBY31);
-            specs.used_ruby := HT.SUS (RUBY31);
+            specs.used_ruby := HT.SUS (v31);
          elsif argument_present (specs, module, v27) then
             add_build_depends (specs, RUBY27);
-            specs.used_ruby := HT.SUS (RUBY27);
+            specs.used_ruby := HT.SUS (v27);
          else -- default to current default
             add_build_depends (specs, RUBY30);
-            specs.used_ruby := HT.SUS (RUBY30);
+            specs.used_ruby := HT.SUS (v30);
          end if;
       else
          if argument_present (specs, module, v31) then
             add_buildrun_depends (specs, RUBY31);
-            specs.used_ruby := HT.SUS (RUBY31);
+            specs.used_ruby := HT.SUS (v31);
          elsif argument_present (specs, module, v27) then
             add_buildrun_depends (specs, RUBY27);
-            specs.used_ruby := HT.SUS (RUBY27);
+            specs.used_ruby := HT.SUS (v27);
          else -- default to current default
             add_buildrun_depends (specs, RUBY30);
-            specs.used_ruby := HT.SUS (RUBY30);
+            specs.used_ruby := HT.SUS (v30);
          end if;
       end if;
    end apply_ruby_module;
