@@ -285,10 +285,14 @@ package body File_Operations is
       end if;
       declare
          basedir     : constant String := HT.head (filename, "/");
-         new_runpath : HT.Text := HT.replace_substring (US         => HT.SUS (runpath),
-                                                        old_string => ORIGIN,
-                                                        new_string => basedir);
+         new_runpath : HT.Text := HT.SUS (runpath);
       begin
+         loop
+            new_runpath := HT.replace_substring (US         => new_runpath,
+                                                 old_string => ORIGIN,
+                                                 new_string => basedir);
+            exit when not HT.contains (new_runpath, ORIGIN);
+         end loop;
          return HT.USS (new_runpath);
       end;
    end convert_ORIGIN_in_runpath;
