@@ -2161,12 +2161,16 @@ package body PortScan.Scan is
             is
                child_dir_name : constant String := DIR.Full_Name (item);
             begin
-               TIO.Put_Line ("child_subdirs: " & child_dir_name);
-               DIR.Search (Directory => child_dir_name,
-                           Pattern   => "",
-                           Filter    => (DIR.Directory => True, others => False),
-                           Process   => top_subdirs'Access);
-               total_child_dirs := total_child_dirs + 1;
+               if DIR.Simple_Name (item) /= "." and then
+                 DIR.Simple_Name (item) /= ".."
+               then
+                  TIO.Put_Line ("child_subdirs: " & child_dir_name);
+                  DIR.Search (Directory => child_dir_name,
+                              Pattern   => "",
+                              Filter    => (DIR.Directory => True, others => False),
+                              Process   => top_subdirs'Access);
+                  total_child_dirs := total_child_dirs + 1;
+               end if;
             exception
                when DIR.Name_Error =>
                   TIO.Put_Line ("child_subdirs: " & child_dir_name & " directory does not exist");
