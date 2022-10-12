@@ -2144,18 +2144,56 @@ package body PortScan.Scan is
 
       procedure purge_empty_directories (folder : String)
       is
-         procedure top_subdirs (item : DIR.Directory_Entry_Type);
+         procedure check_subdir (item : DIR.Directory_Entry_Type);
+         procedure remove_directory (directory_path : String);
+         procedure walk_subdirectories (directory_path : String);
+         function files_are_present (directory_path : String) return Boolean;
+         function subdirs_are_present (directory_path : String) return Boolean;
 
-         dir_removed : Boolean;
+         procedure remove_directory (directory_path : String) is
+         begin
+            DIR.Delete_Directory (directory_path);
+            TIO.Put_Line ("Deleted empty directory " & directory_path);
+         exception
+            when DIR.Name_Error =>
+               TIO.Put_Line ("warning: " & directory_path & " is not a directory.");
+            when DIR.Use_Error =>
+               TIO.Put_Line ("warning: " & directory_path & " cannot be deleted.");
+         end remove_directory;
 
-         procedure top_subdirs (item : DIR.Directory_Entry_Type)
+         function files_are_present (directory_path : String) return Boolean
          is
-            procedure child_subdirs (item : DIR.Directory_Entry_Type);
             procedure child_files (item : DIR.Directory_Entry_Type);
 
-            total_child_dirs : Natural := 0;
             files_present : Boolean := False;
-            full_dir_name : constant String := DIR.Full_Name (item);
+            filter : constant DIR.Filter_Type := (DIR.Ordinary_File => True,
+                                                  DIR.Special_File => True,
+                                                  DIR.Directory => False);
+
+            procedure child_files (item : DIR.Directory_Entry_Type) is
+            begin
+               files_present := True;
+            end child_files;
+         begin
+            DIR.Search (Directory => directory_path,
+                        Pattern   => "*",
+                        Filter    => filter,
+                        Process   => child_files'Access);
+            return files_present;
+         exception
+            when DIR.Name_Error =>
+               TIO.Put_Line (directory_path & " directory does not exist (FAP)");
+               return True;
+            when DIR.Use_Error =>
+               TIO.Put_Line (directory_path & " directory USE error (FAP)");
+               return True;
+         end files_are_present;
+
+         function subdirs_are_present (directory_path : String) return Boolean
+         is
+            procedure child_subdirs (item : DIR.Directory_Entry_Type);
+
+            subdirs_present : Boolean := False;
 
             procedure child_subdirs (item : DIR.Directory_Entry_Type)
             is
@@ -2164,84 +2202,69 @@ package body PortScan.Scan is
                if DIR.Simple_Name (item) /= "." and then
                  DIR.Simple_Name (item) /= ".."
                then
-                  DIR.Search (Directory => child_dir_name,
-                              Pattern   => "",
-                              Filter    => (DIR.Directory => True, others => False),
-                              Process   => top_subdirs'Access);
-                  total_child_dirs := total_child_dirs + 1;
+                  subdirs_present := True;
                end if;
-            exception
-               when DIR.Name_Error =>
-                  TIO.Put_Line ("child_subdirs: " & child_dir_name & " directory does not exist");
-               when DIR.Use_Error =>
-                  TIO.Put_Line ("Searching " & child_dir_name & " directory is not supported");
             end child_subdirs;
-
-            procedure child_files (item : DIR.Directory_Entry_Type) is
-            begin
-               files_present := True;
-            end child_files;
          begin
-            if DIR.Simple_Name (item) /= "." and then
-              DIR.Simple_Name (item) /= ".."
-            then
-               begin
-                  DIR.Search (Directory => full_dir_name,
-                              Pattern   => "",
-                              Filter    => (DIR.Directory => True, others => False),
-                              Process   => child_subdirs'Access);
-               exception
-                  when DIR.Name_Error =>
-                     TIO.Put_Line (full_dir_name & " directory does not exist");
-                  when DIR.Use_Error =>
-                     TIO.Put_Line (full_dir_name & " directory USE error");
-               end;
-               if total_child_dirs = 0 then
-                  begin
-                     DIR.Search (Directory => full_dir_name,
-                                 Pattern   => "*",
-                                 Filter    => (DIR.Ordinary_File => True, others => False),
-                                 Process   => child_files'Access);
-                  exception
-                     when DIR.Name_Error =>
-                        TIO.Put_Line (full_dir_name & " directory does not exist");
-                     when DIR.Use_Error =>
-                        TIO.Put_Line (full_dir_name & " directory USE error");
-                  end;
-                  if not files_present then
-                     begin
-                        DIR.Delete_Directory (full_dir_name);
-                        TIO.Put_Line ("Deleted empty directory " & full_dir_name);
-                        dir_removed := True;
-                     exception
-                        when DIR.Name_Error =>
-                           TIO.Put_Line ("warning: " & full_dir_name & " is not a directory.");
-                        when DIR.Use_Error =>
-                           TIO.Put_Line ("warning: " & full_dir_name & " cannot be deleted.");
-                     end;
-                  end if;
+            DIR.Search (Directory => directory_path,
+                        Pattern   => "*",
+                        Filter    => (DIR.Directory => True, others => False),
+                        Process   => child_subdirs'Access);
+            return subdirs_present;
+         exception
+            when DIR.Name_Error =>
+               TIO.Put_Line (directory_path & " directory does not exist (SAP)");
+               return True;
+            when DIR.Use_Error =>
+               TIO.Put_Line (directory_path & " directory USE error (SAP)");
+               return True;
+         end subdirs_are_present;
+
+         procedure walk_subdirectories (directory_path : String) is
+         begin
+            DIR.Search (Directory => directory_path,
+                        Pattern   => "*",
+                        Filter    => (DIR.Directory => True, others => False),
+                        Process   => check_subdir'Access);
+         exception
+            when DIR.Name_Error =>
+               TIO.Put_Line (directory_path & " directory does not exist (walk)");
+            when DIR.Use_Error =>
+               TIO.Put_Line (directory_path & " directory USE error (walk)");
+         end walk_subdirectories;
+
+         procedure check_subdir (item : DIR.Directory_Entry_Type)
+         is
+            full_dir_name : constant String := DIR.Full_Name (item);
+         begin
+            TIO.Put_Line ("Entering " & full_dir_name & " directory");
+            if subdirs_are_present (full_dir_name) then
+               walk_subdirectories (full_dir_name);
+
+               if subdirs_are_present (full_dir_name) then
+                  return;
                end if;
             end if;
-         end top_subdirs;
+
+            --  Only get this far when no subdirectories are present
+            if not files_are_present (full_dir_name) then
+               remove_directory (full_dir_name);
+            end if;
+         end check_subdir;
+
       begin
-         loop
-            dir_removed := False;
-            begin
-               DIR.Search (Directory => folder,
-                           Pattern   => "",
-                           Filter    => (DIR.Directory => True, others => False),
-                           Process   => top_subdirs'Access);
-            exception
-               when DIR.Name_Error =>
-                  TIO.Put_Line ("The " & folder & " directory does not exist");
-               when DIR.Use_Error =>
-                  TIO.Put_Line ("Searching " & folder & " directory is not supported");
-               when failed : others =>
-                  TIO.Put_Line ("purge_empty_directories: Unknown error - directory search");
-                  TIO.Put_Line (EX.Exception_Information (failed));
-            end;
-            exit when not dir_removed;
-         end loop;
+         DIR.Search (Directory => folder,
+                     Pattern   => "",
+                     Filter    => (DIR.Directory => True, others => False),
+                     Process   => check_subdir'Access);
+      exception
+         when DIR.Name_Error =>
+            TIO.Put_Line ("The " & folder & " directory does not exist");
+         when DIR.Use_Error =>
+            TIO.Put_Line ("Searching " & folder & " directory is not supported");
+         when failed : others =>
+            TIO.Put_Line ("purge_empty_directories: Unknown error - directory search");
+            TIO.Put_Line (EX.Exception_Information (failed));
       end purge_empty_directories;
 
    begin
