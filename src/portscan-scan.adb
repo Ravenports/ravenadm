@@ -2161,6 +2161,7 @@ package body PortScan.Scan is
             is
                child_dir_name : constant String := DIR.Full_Name (item);
             begin
+               TIO.Put_Line ("child_subdirs: " & child_dir_name);
                DIR.Search (Directory => child_dir_name,
                            Pattern   => "",
                            Filter    => (DIR.Directory => True, others => False),
@@ -2178,6 +2179,7 @@ package body PortScan.Scan is
                files_present := True;
             end child_files;
          begin
+            TIO.Put_Line ("top_subdirs: " & full_dir_name);
             if DIR.Simple_Name (item) /= "." and then
               DIR.Simple_Name (item) /= ".."
             then

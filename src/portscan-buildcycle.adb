@@ -1091,7 +1091,7 @@ package body PortScan.Buildcycle is
                   end if;
                   trackers (id).nonexistent.Append (test_lib_txt);
                   TIO.Put_Line (trackers (id).log_handle,
-                                "NOTE: marked nonexistent " & test_library);
+                                "NOTE: marked nonexistent '" & root & test_library & "'");
                   attempted := True;
                else
                   TIO.Put_Line (trackers (id).log_handle,
