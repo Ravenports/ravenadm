@@ -2240,7 +2240,6 @@ package body PortScan.Scan is
             if DIR.Simple_Name (item) /= "." and then
               DIR.Simple_Name (item) /= ".."
             then
-               TIO.Put_Line ("Entering " & full_dir_name & " directory");
                if subdirs_are_present (full_dir_name) then
                   walk_subdirectories (full_dir_name);
 
