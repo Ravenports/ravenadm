@@ -2237,18 +2237,22 @@ package body PortScan.Scan is
          is
             full_dir_name : constant String := DIR.Full_Name (item);
          begin
-            TIO.Put_Line ("Entering " & full_dir_name & " directory");
-            if subdirs_are_present (full_dir_name) then
-               walk_subdirectories (full_dir_name);
-
+            if DIR.Simple_Name (item) /= "." and then
+              DIR.Simple_Name (item) /= ".."
+            then
+               TIO.Put_Line ("Entering " & full_dir_name & " directory");
                if subdirs_are_present (full_dir_name) then
-                  return;
-               end if;
-            end if;
+                  walk_subdirectories (full_dir_name);
 
-            --  Only get this far when no subdirectories are present
-            if not files_are_present (full_dir_name) then
-               remove_directory (full_dir_name);
+                  if subdirs_are_present (full_dir_name) then
+                     return;
+                  end if;
+               end if;
+
+               --  Only get this far when no subdirectories are present
+               if not files_are_present (full_dir_name) then
+                  remove_directory (full_dir_name);
+               end if;
             end if;
          end check_subdir;
 
