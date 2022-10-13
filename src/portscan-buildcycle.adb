@@ -1080,22 +1080,15 @@ package body PortScan.Buildcycle is
                test_lib_txt : HT.Text := HT.SUS (test_library);
             begin
                if trackers (id).seen_libs.Contains (test_lib_txt) then
-                  TIO.Put_Line (trackers (id).log_handle, "GOOD: Already seen " & test_library);
                   return;
                end if;
                if not trackers (id).nonexistent.Contains (test_lib_txt) then
                   if Unix.target_exists (root & test_library) then
                      trackers (id).seen_libs.Append (test_lib_txt);
-                     TIO.Put_Line (trackers (id).log_handle, "GOOD: Added " & test_library);
                      return;
                   end if;
                   trackers (id).nonexistent.Append (test_lib_txt);
-                  TIO.Put_Line (trackers (id).log_handle,
-                                "NOTE: marked nonexistent '" & root & test_library & "'");
                   attempted := True;
-               else
-                  TIO.Put_Line (trackers (id).log_handle,
-                                "NOTE: known not to exist " & test_library);
                end if;
             end;
          end loop;
