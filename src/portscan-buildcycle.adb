@@ -1050,7 +1050,7 @@ package body PortScan.Buildcycle is
          end if;
 
          if not trackers (id).nonexistent.Contains (syslib_1txt) then
-            if DIR.Exists (root & systemlib_1) then
+            if Unix.target_exists (root & systemlib_1) then
                trackers (id).seen_libs.Append (syslib_1txt);
                return;
             end if;
@@ -1059,7 +1059,7 @@ package body PortScan.Buildcycle is
          end if;
 
          if not trackers (id).nonexistent.Contains (syslib_2txt) then
-            if DIR.Exists (root & systemlib_2) then
+            if Unix.target_exists (root & systemlib_2) then
                trackers (id).seen_libs.Append (syslib_2txt);
                return;
             end if;
@@ -1084,7 +1084,7 @@ package body PortScan.Buildcycle is
                   return;
                end if;
                if not trackers (id).nonexistent.Contains (test_lib_txt) then
-                  if DIR.Exists (root & test_library) then
+                  if Unix.target_exists (root & test_library) then
                      trackers (id).seen_libs.Append (test_lib_txt);
                      TIO.Put_Line (trackers (id).log_handle, "GOOD: Added " & test_library);
                      return;

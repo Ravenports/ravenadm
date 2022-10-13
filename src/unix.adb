@@ -340,4 +340,19 @@ package body Unix is
       return result = 0;
    end create_symlink;
 
+
+   --------------------------------------------------------------------------------------------
+   --  target_exists
+   --------------------------------------------------------------------------------------------
+   function target_exists (provided_path : String) return Boolean
+   is
+      use type IC.int;
+      path   : IC.char_array := IC.To_C (provided_path);
+      F_OK   : constant IC.int := 0;
+      result : IC.int;
+   begin
+      result := unix_access (path, F_OK);
+      return result = 0;
+   end target_exists;
+
 end Unix;

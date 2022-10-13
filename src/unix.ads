@@ -76,6 +76,10 @@ package Unix is
    --  Attempts to create a symlink and returns True on success
    function create_symlink (actual_file : String; link_to_create : String) return Boolean;
 
+   --  Returns true if the provided path exists as a file or a symbolic link that dereferences
+   --  to an existing file.
+   function target_exists (provided_path : String) return Boolean;
+
 private
 
    type uInt8 is mod 2 ** 16;
@@ -120,6 +124,9 @@ private
 
    function symlink (path1, path2 : IC.char_array) return IC.int;
    pragma Import (C, symlink);
+
+   function unix_access (path : IC.char_array; mode : IC.int) return IC.int;
+   pragma Import (C, unix_access, "access");
 
    --  internal pipe close command
    function pipe_close (OpenFile : CSM.FILEs) return Integer;
