@@ -142,15 +142,9 @@ package body Ravenports is
       --  Return true if tag variable mets pattern of 20YYMMDD.[1-9]
       function validate_tag_pattern return Boolean
       is
-         use type REG.Match_Location;
-
-         pattern : String :=
-           "^20[23][[:digit:]](0[1-9]|1[0-2])(0[1-9]|[12][[:digit:]]|3[01])[.][1-9]$";
-         regex   : constant REG.Pattern_Matcher := REG.Compile (pattern);
-         groups : REG.Match_Array (0 .. 2);
+         pattern : String := "^20\d\d(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])[.][1-9]$";
       begin
-         REG.Match (regex, pattern, groups);
-         return (groups (0) /= REG.No_Match);
+         return REG.Match (pattern, tag);
       end validate_tag_pattern;
 
       function determine_tag return String is
