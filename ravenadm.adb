@@ -461,7 +461,11 @@ begin
          --------------------------------
          --  update-ports
          --------------------------------
-         Pilot.update_to_latest_ravenports;
+         if CLI.Argument_Count > 1 then
+            Pilot.update_to_latest_ravenports (CLI.Argument (2));
+         else
+            Pilot.update_to_latest_ravenports (Parameters.latest_tag);
+         end if;
 
       when repository =>
          --------------------------------

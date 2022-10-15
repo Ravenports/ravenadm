@@ -1552,9 +1552,9 @@ package body Pilot is
    --------------------------------------------------------------------------------------------
    --  update_to_latest_ravenports
    --------------------------------------------------------------------------------------------
-   procedure update_to_latest_ravenports is
+   procedure update_to_latest_ravenports  (tag : String) is
    begin
-      Ravenports.retrieve_latest_ravenports;
+      Ravenports.retrieve_latest_ravenports (tag);
    end update_to_latest_ravenports;
 
 

@@ -13,6 +13,7 @@ package Parameters is
    no_ccache     : constant String := "none";
    no_unkindness : constant String := "none";
    raven_confdir : constant String := host_localbase & "/etc/ravenadm";
+   latest_tag    : constant String := "LATEST";
 
    type configuration_record is
       record

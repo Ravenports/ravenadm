@@ -147,7 +147,7 @@ package Pilot is
    procedure check_ravenports_version;
 
    --  Executes routine to update to the latest published ravenports
-   procedure update_to_latest_ravenports;
+   procedure update_to_latest_ravenports (tag : String);
 
    --  Scan entire ports tree
    function fully_scan_ports_tree return Boolean;

@@ -9,7 +9,7 @@ package Ravenports is
 
    --  If a new version of Ravenports is available, this first retrieves the tarball and
    --  then installs the set (replacing an old set if necessary).
-   procedure retrieve_latest_ravenports;
+   procedure retrieve_latest_ravenports (tag : String);
 
 private
 

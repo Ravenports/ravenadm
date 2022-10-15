@@ -7,6 +7,7 @@ with Unix;
 with File_Operations;
 with Ada.Directories;
 with Ada.Text_IO;
+with GNAT.Regpat;
 
 package body Ravenports is
 
@@ -15,6 +16,7 @@ package body Ravenports is
    package FOP renames File_Operations;
    package TIO renames Ada.Text_IO;
    package DIR renames Ada.Directories;
+   package REG renames GNAT.Regpat;
 
    --------------------------------------------------------------------------------------------
    --  check_version_available
@@ -129,13 +131,49 @@ package body Ravenports is
    --------------------------------------------------------------------------------------------
    --  retrieve_latest_ravenports
    --------------------------------------------------------------------------------------------
-   procedure retrieve_latest_ravenports
+   procedure retrieve_latest_ravenports (tag : String)
    is
-      available      : Boolean;
-      latest_version : constant String := later_version_available (available);
+      function determine_tag return String;
+      function validate_tag_pattern return Boolean;
+
+      available : Boolean := True;
+      good_pattern : Boolean := False;
+
+      --  Return true if tag variable mets pattern of 20YYMMDD.[1-9]
+      function validate_tag_pattern return Boolean
+      is
+         use type REG.Match_Location;
+
+         pattern : String :=
+           "^20[23][[:digit:]](0[1-9]|1[0-2])(0[1-9]|[12][[:digit:]]|3[01])[.][1-9]$";
+         regex   : constant REG.Pattern_Matcher := REG.Compile (pattern);
+         groups : REG.Match_Array (0 .. 2);
+      begin
+         REG.Match (regex, pattern, groups);
+         return (groups (0) /= REG.No_Match);
+      end validate_tag_pattern;
+
+      function determine_tag return String is
+      begin
+         if tag = Parameters.latest_tag then
+            good_pattern := True;
+            return later_version_available (available);
+         else
+            good_pattern := validate_tag_pattern;
+            return tag;
+         end if;
+      end determine_tag;
+
+      latest_version : constant String := determine_tag;
+
    begin
       if not available then
          TIO.Put_Line ("Ravenports update skipped as no new version is available.");
+         return;
+      end if;
+
+      if not good_pattern then
+         TIO.Put_Line ("Ravenports update skipped; invalid format for historical tag.");
          return;
       end if;
 
