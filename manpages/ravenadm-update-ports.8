@@ -1,4 +1,4 @@
-.Dd January 25, 2019
+.Dd October 15, 2022
 .Dt UPDATE-PORTS 8
 .Os
 .Sh NAME
@@ -9,10 +9,24 @@
 .Sh DESCRIPTION
 The
 .Nm
-command installs or upgrades to the latest version of Ravenports (conspiracy collection).
-If the currently installed version of Ravenports matches the latest version, that
-information will be displayed and nothing more will happen.  The download and
-installation steps are handled automatically by ravenadm.
+command installs or upgrades to the latest version of Ravenports (conspiracy
+collection). If the currently installed version of Ravenports matches the
+latest version, that information will be displayed and nothing more will
+happen.
+The download and installation steps are handled automatically by ravenadm.
+.Pp
+The
+.Nm
+command optionally takes a specific release tag as an argument.
+When the tag is provided, ravenadm will install a specific release of the
+ports tree rather than the latest release.
+.Sh EXAMPLES
+The release argument must match a tag listed on
+.Lk https://github.com/Ravenports/Ravenports/tags "Ravenports tags" .
+.Bd -literal -offset indent
+% ravenadm update-ports 20221010.1
+Ravenports updated to version 20221010.1
+.Ed
 .Sh SEE ALSO
 .Xr ravenadm 8 ,
 .Xr ravenadm-build 8 ,
@@ -23,9 +37,9 @@ installation steps are handled automatically by ravenadm.
 .Xr ravenadm-force 8 ,
 .Xr ravenadm-generate-repository 8 ,
 .Xr ravenadm-generate-website 8 ,
-.Xr ravenadm-purge-distfiles 8 ,
-.Xr ravenadm-purge-logs 8,
 .Xr ravenadm-locate 8 ,
+.Xr ravenadm-purge-distfiles 8 ,
+.Xr ravenadm-purge-logs 8 ,
 .Xr ravenadm-set-options 8 ,
 .Xr ravenadm-status 8 ,
 .Xr ravenadm-status-everything 8 ,
