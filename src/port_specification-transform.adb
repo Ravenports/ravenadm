@@ -3211,8 +3211,6 @@ package body Port_Specification.Transform is
       end if;
       if setting = "oracle-5.7" then
          return "mysql57" & suffix;
-      elsif setting = "mariadb-10.2" then
-         return "mariadb102" & suffix;
       elsif setting = "mariadb-10.3" then
          return "mariadb103" & suffix;
       elsif setting = "mariadb-10.4" then
@@ -3220,6 +3218,14 @@ package body Port_Specification.Transform is
       elsif setting = "mariadb-10.5" then
          return "mariadb105" & suffix;
       elsif setting = "mariadb-10.6" then
+         return "mariadb106" & suffix;
+      elsif setting = "mariadb-10.7" then
+         return "mariadb106" & suffix;
+      elsif setting = "mariadb-10.8" then
+         return "mariadb106" & suffix;
+      elsif setting = "mariadb-10.9" then
+         return "mariadb106" & suffix;
+      elsif setting = "mariadb-10.10" then
          return "mariadb106" & suffix;
       elsif setting = "percona-5.6" then
          return "percona56" & suffix;
