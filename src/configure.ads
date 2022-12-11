@@ -82,7 +82,7 @@ private
                                   "percona-5.6:percona-5.7:percona-8.0";
    version_D : constant String := default_perl & ":5.36";
    version_E : constant String := "8.0:" & default_php & ":8.2";
-   version_F : constant String := "10:11:" & default_pgsql & ":13:14";
+   version_F : constant String := "11:12:13:" & default_pgsql & ":15";
    version_G : constant String := default_python3 & ":3.10";
    version_H : constant String := "2.7:" & default_ruby & ":3.1";
    version_I : constant String := "openssl10:openssl11:openssl30:" &

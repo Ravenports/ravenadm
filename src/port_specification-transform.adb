@@ -3243,19 +3243,19 @@ package body Port_Specification.Transform is
    is
       setting : constant String := HT.USS (Parameters.configuration.def_postgresql);
    begin
-      if setting = "10" then
-         return "postgresql10";
-      elsif setting = "11" then
+      if setting = "11" then
          return "postgresql11";
+      elsif setting = "12" then
+         return "postgresql12";
       elsif setting = "13" then
          return "postgresql13";
-      elsif setting = "14" then
-         return "postgresql14";
+      elsif setting = "15" then
+         return "postgresql15";
       else
          --  case: setting = ports_default
-         --  case: setting = default_pgsql (12 right now)
+         --  case: setting = default_pgsql (14 right now)
          --  case: setting = invalid value
-         return "postgresql12";
+         return "postgresql14";
       end if;
    end determine_pgsql_namebase;
 

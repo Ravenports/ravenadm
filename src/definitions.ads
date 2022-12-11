@@ -29,7 +29,7 @@ package Definitions is
    default_mysql     : constant String := "oracle-8.0";
    default_lua       : constant String := "5.3";
    default_perl      : constant String := "5.34";
-   default_pgsql     : constant String := "12";
+   default_pgsql     : constant String := "14";
    default_php       : constant String := "8.1";
    default_python3   : constant String := "3.9";
    default_ruby      : constant String := "3.0";
