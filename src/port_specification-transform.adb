@@ -1943,8 +1943,8 @@ package body Port_Specification.Transform is
       if not no_arguments_present (specs, module) then
          if argument_present (specs, module, "80") then
             flavor := "php80";
-         elsif argument_present (specs, module, "74") then
-            flavor := "php74";
+         elsif argument_present (specs, module, "82") then
+            flavor := "php82";
          elsif argument_present (specs, module, "81") then
             flavor := "php81";
          end if;
@@ -3186,8 +3186,8 @@ package body Port_Specification.Transform is
       if not no_arguments_present (specs, php_module) then
          if argument_present (specs, php_module, "80") then
             flavor := "php80";
-         elsif argument_present (specs, php_module, "74") then
-            flavor := "php74";
+         elsif argument_present (specs, php_module, "82") then
+            flavor := "php82";
          elsif argument_present (specs, php_module, "81") then
             flavor := "php81";
          end if;
