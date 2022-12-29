@@ -1786,6 +1786,7 @@ package body PortScan.Buildcycle is
                                     chroot_make_program & " -C /port ";
       cextract : constant String := premake & "extract";
       cpatch   : constant String := premake & "do-patch";
+      patch_wc : constant String := "patch-*";
 
       function get_wrksrc return String
       is
@@ -1834,10 +1835,13 @@ package body PortScan.Buildcycle is
             if Unix.external_command (cpatch) then
                if Unix.external_command (cregen) then
                   --  copy contents of /tmp/shiny to sourceloc/patches and sourceloc/files
-                  copy_files ("patches", "patch-*");
-                  copy_files ("dragonfly", "patch-*");
-                  copy_files ("freebsd", "patch-*");
-                  copy_files ("linux", "patch-*");
+                  copy_files ("patches", patch_wc);
+                  copy_files ("dragonfly", patch_wc);
+                  copy_files ("freebsd", patch_wc);
+                  copy_files ("netbsd", patch_wc);
+                  copy_files ("darwin", patch_wc);
+                  copy_files ("linux", patch_wc);
+                  copy_files ("sunos", patch_wc);
                   copy_files ("files", "extra-patch-*");
                else
                   TIO.Put_Line ("patch regen: failed to regenerate patches");
