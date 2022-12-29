@@ -32,7 +32,7 @@ package Definitions is
    default_pgsql     : constant String := "14";
    default_php       : constant String := "8.1";
    default_python3   : constant String := "3.10";
-   default_ruby      : constant String := "3.0";
+   default_ruby      : constant String := "3.1";
    default_tcltk     : constant String := "8.6";
    default_firebird  : constant String := "2.5";
 

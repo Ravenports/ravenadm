@@ -84,7 +84,7 @@ private
    version_E : constant String := "8.0:" & default_php & ":8.2";
    version_F : constant String := "11:12:13:" & default_pgsql & ":15";
    version_G : constant String := default_python3 & ":3.11";
-   version_H : constant String := "2.7:" & default_ruby & ":3.1";
+   version_H : constant String := "3.0:" & default_ruby & ":3.2";
    version_I : constant String := "openssl10:openssl11:openssl30:" &
                                    default_ssl & ":libressl-devel";
    version_J : constant String := "8.5:" & default_tcltk;
