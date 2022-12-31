@@ -1910,8 +1910,8 @@ package body Port_Specification.Transform is
          if not no_arguments_present (specs, module) then
             if argument_present (specs, module, "v31") then
                flavor := "v31";
-            elsif argument_present (specs, module, "v27") then
-               flavor := "v27";
+            elsif argument_present (specs, module, "v32") then
+               flavor := "v32";
             elsif argument_present (specs, module, "v30") then
                flavor := "v30";
             end if;
