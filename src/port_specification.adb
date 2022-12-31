@@ -4432,7 +4432,7 @@ package body Port_Specification is
          ("READLINE      ", READLINE),
          ("RUBY30        ", RUBY30),
          ("RUBY31        ", RUBY31),
-         ("RUBY30        ", RUBY32),
+         ("RUBY32        ", RUBY32),
          ("SNDIO         ", SNDIO),
          ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
