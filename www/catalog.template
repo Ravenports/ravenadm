@@ -45,7 +45,7 @@ $(document).ready(function() {
 			{ orderable: false, searchable: true },
 			{ orderable: false, searchable: false },
 		],
-		order: [[0, 'desc']],
+		order: [[0, 'asc']],
 		autoWidth: false
 		});
 	populate_catalog();
