@@ -225,7 +225,9 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    function valid_test_phase (afterphase : String) return phases is
    begin
-      if afterphase = "extract" then
+      if afterphase = "fetch" then
+         return fetch;
+      elsif afterphase = "extract" then
          return extract;
       elsif afterphase = "patch" then
          return patch;
@@ -253,6 +255,7 @@ package body PortScan.Buildcycle is
    function valid_test_phase (afterphase : String) return Boolean is
    begin
       return
+        afterphase = "fetch"     or else
         afterphase = "extract"   or else
         afterphase = "patch"     or else
         afterphase = "configure" or else

@@ -1029,6 +1029,7 @@ package body Port_Specification.Makefile is
                                  shiny  => LAT.Hyphen);
             begin
                send (LAT.HT & "@${RM} -r ${WRKSRC}/" & reldir & LAT.LF &
+                     LAT.HT & "@${MKDIR} ${WRKSRC}/" & HT.head (reldir, "/") & LAT.LF &
                      LAT.HT & "@${ECHO_MSG} " & LAT.Quotation & "==> Relocating " & extractdir &
                               " to WRKSRC/" & reldir & LAT.Quotation & LAT.LF &
                      LAT.HT & "@${MV} ${WRKDIR}/" & extractdir & " ${WRKSRC}/" & reldir & LAT.LF &
