@@ -1627,7 +1627,7 @@ package body Port_Specification.Transform is
 
       module     : constant String := "python";
       PY310      : constant String := "py310";
-      PY311      : constant String := "py311";
+      PY311      : constant String := "v11";
       autopython : constant String := "autoselect-python:single:standard";
 
       use_pip    : Boolean := False;
@@ -2755,7 +2755,7 @@ package body Port_Specification.Transform is
             if setting = ports_default or else setting = default_python3 then
                return name_subpackage & "py310";
             else
-               return name_subpackage & "py311";
+               return name_subpackage & "v11";
             end if;
          end;
       elsif trailer = "perl_default" then
