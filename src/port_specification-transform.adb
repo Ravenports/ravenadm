@@ -1626,7 +1626,6 @@ package body Port_Specification.Transform is
       procedure set_snake_ports (build_only : Boolean; python_port, py_variant : String);
 
       module     : constant String := "python";
-      PY27       : constant String := "py27";
       PY310      : constant String := "py310";
       PY311      : constant String := "py311";
       autopython : constant String := "autoselect-python:single:standard";
@@ -1666,17 +1665,13 @@ package body Port_Specification.Transform is
       end if;
 
       if argument_present (specs, module, "build") then
-         if argument_present (specs, module, PY27) then
-            set_snake_ports (True, PYTHON27, PY27);
-         elsif argument_present (specs, module, PY311) then
+         if argument_present (specs, module, PY311) then
             set_snake_ports (True, PYTHON311, PY311);
          else -- default to py310
             set_snake_ports (True, PYTHON310, PY310);
          end if;
       else
-         if argument_present (specs, module, PY27) then
-            set_snake_ports (False, PYTHON27, PY27);
-         elsif argument_present (specs, module, PY311) then
+         if argument_present (specs, module, PY311) then
             set_snake_ports (False, PYTHON311, PY311);
          else -- default to py310
             set_snake_ports (False, PYTHON310, PY310);
@@ -2649,9 +2644,7 @@ package body Port_Specification.Transform is
                end if;
             end;
          elsif exrundep = "python" then
-            if specs.buildrun_deps.Contains (HT.SUS (PYTHON27)) then
-               Element := HT.SUS (PYTHON27);
-            elsif specs.buildrun_deps.Contains (HT.SUS (PYTHON311)) then
+            if specs.buildrun_deps.Contains (HT.SUS (PYTHON311)) then
                Element := HT.SUS (PYTHON311);
             else
               Element := HT.SUS (PYTHON310);

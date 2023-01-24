@@ -52,7 +52,6 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
-   PYTHON27  : constant String := "python27:single:standard";
    PYTHON310 : constant String := "python310:single:standard";
    PYTHON311 : constant String := "python311:single:standard";
 
