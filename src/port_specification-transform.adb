@@ -1381,7 +1381,7 @@ package body Port_Specification.Transform is
       module     : String := "iconv";
       dep_prefix : String := "libiconv";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_libiconv_module;
 
 
