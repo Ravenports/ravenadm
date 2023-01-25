@@ -144,6 +144,9 @@ private
    procedure generic_library_module (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
+   procedure generic_devlib_module  (specs      : in out Portspecs;
+                                     module     : String;
+                                     depprefix  : String);
    procedure generic_run_module     (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);

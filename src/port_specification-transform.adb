@@ -885,6 +885,26 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  generic_devlib_module
+   --------------------------------------------------------------------------------------------
+   procedure generic_devlib_module
+     (specs     : in out Portspecs;
+      module    : String;
+      depprefix : String)
+   is
+      dev_dependency     : String := depprefix & ":dev:standard";
+      primary_dependency : String := depprefix & ":primary:standard";
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dev_dependency);
+         if not argument_present (specs, module, BUILD) then
+            add_buildrun_depends (specs, primary_dependency);
+         end if;
+      end if;
+   end generic_devlib_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  generic_run_module
    --------------------------------------------------------------------------------------------
    procedure generic_run_module
@@ -1370,10 +1390,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_zstd_module (specs : in out Portspecs)
    is
-      module     : String := "zstd";
-      dep_prefix : String := "Zstandard";
+      module     : constant String := "zstd";
+      dep_prefix : constant String := "zstd";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_zstd_module;
 
 
