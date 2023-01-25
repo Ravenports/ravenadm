@@ -1441,7 +1441,7 @@ package body Port_Specification.Transform is
       module     : String := "expat";
       dep_prefix : String := "expat";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_expat_module;
 
 
