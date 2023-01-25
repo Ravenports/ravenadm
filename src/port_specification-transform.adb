@@ -1417,7 +1417,7 @@ package body Port_Specification.Transform is
       module     : String := "lzo";
       dep_prefix : String := "lzo";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_lzo_module;
 
 
