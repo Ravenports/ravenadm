@@ -47,7 +47,7 @@ package Port_Specification is
                        sp_og_radio, sp_og_unlimited, sp_og_restrict, sp_opt_descr, sp_opt_group,
                        sp_ext_deb, sp_os_bdep, sp_os_rdep, sp_os_brdep, sp_test_env, sp_generated,
                        sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
-                       sp_lic_terms, sp_lic_awk, sp_lic_src, sp_repsucks, sp_killdog,
+                       sp_lic_terms, sp_lic_awk, sp_lic_src, sp_infra, sp_killdog,
                        sp_cgo_conf, sp_cgo_build, sp_cgo_inst, sp_cgo_cargs, sp_cgo_bargs,
                        sp_cgo_iargs, sp_cgo_feat, sp_verbatim);
 
@@ -562,7 +562,7 @@ private
          generated      : Boolean;
          opt_df_index   : Boolean;
          skip_opsys_dep : Boolean;
-         repology_sucks : Boolean;
+         infrastructure : Boolean;
          kill_watchdog  : Boolean;
          prefix         : HT.Text;
          build_wrksrc   : HT.Text;

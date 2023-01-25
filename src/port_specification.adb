@@ -81,7 +81,7 @@ package body Port_Specification is
       specs.generated      := False;
       specs.opt_df_index   := False;
       specs.skip_opsys_dep := False;
-      specs.repology_sucks := False;
+      specs.infrastructure := False;
       specs.kill_watchdog  := False;
       specs.build_wrksrc   := HT.blank;
       specs.makefile       := HT.blank;
@@ -1633,8 +1633,8 @@ package body Port_Specification is
             specs.debugging_on := value;
          when sp_generated =>
             specs.generated := value;
-         when sp_repsucks =>
-            specs.repology_sucks := value;
+         when sp_infra =>
+            specs.infrastructure := value;
          when sp_killdog =>
             specs.kill_watchdog := value;
          when sp_cgo_conf =>
@@ -5743,7 +5743,7 @@ package body Port_Specification is
             when sp_rpath_warning  => TIO.Put_Line (specs.fatal_rpath'Img);
             when sp_debugging      => TIO.Put_Line (specs.debugging_on'Img);
             when sp_generated      => TIO.Put_Line (specs.generated'Img);
-            when sp_repsucks       => TIO.Put_Line (specs.repology_sucks'Img);
+            when sp_infra          => TIO.Put_Line (specs.infrastructure'Img);
             when sp_killdog        => TIO.Put_Line (specs.kill_watchdog'Img);
             when sp_cgo_conf       => TIO.Put_Line (specs.cgo_skip_conf'Img);
             when sp_cgo_build      => TIO.Put_Line (specs.cgo_skip_build'Img);
@@ -5844,7 +5844,7 @@ package body Port_Specification is
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("SET_DEBUGGING_ON", sp_debugging);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
-      print_boolean     ("REPOLOGY_SUCKS", sp_repsucks);
+      print_boolean     ("iNFRASTRUCTURE", sp_infra);
       print_boolean     ("BLOCK_WATCHDOG", sp_killdog);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
       print_single      ("MAKEFILE", sp_makefile);

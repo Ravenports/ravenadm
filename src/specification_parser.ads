@@ -47,7 +47,7 @@ private
                          test_args, gnome_comp, rc_scripts, ug_subpackage, broken_mysql,
                          broken_pgsql, og_radio, og_restrict, og_unlimited, ext_deb, test_env,
                          generated, xorg_comp, sdl_comp, phpext, job_limit, so_version,
-                         lic_terms, lic_awk, lic_source, repsucks, killdog, cgo_conf, cgo_build,
+                         lic_terms, lic_awk, lic_source, infrastruct, killdog, cgo_conf, cgo_build,
                          cgo_inst, cgo_cargs, cgo_bargs, cgo_iargs, cgo_feat);
 
    type spec_target  is (not_target, target_title, target_body, bad_target);

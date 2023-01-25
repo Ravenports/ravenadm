@@ -449,7 +449,7 @@ package body Specification_Parser is
                      when invalid_rpath    => set_boolean (spec, PSP.sp_rpath_warning, line);
                      when debugging        => set_boolean (spec, PSP.sp_debugging, line);
                      when generated        => set_boolean (spec, PSP.sp_generated, line);
-                     when repsucks         => set_boolean (spec, PSP.sp_repsucks, line);
+                     when infrastruct      => set_boolean (spec, PSP.sp_infra, line);
                      when killdog          => set_boolean (spec, PSP.sp_killdog, line);
                      when cgo_conf         => set_boolean (spec, PSP.sp_cgo_conf, line);
                      when cgo_build        => set_boolean (spec, PSP.sp_cgo_build, line);
@@ -1174,6 +1174,7 @@ package body Specification_Parser is
          ("INFO                  ",  4, info),
          ("INFO_PATH             ",  9, catchall),
          ("INFO_SUBDIR           ", 11, diode),
+         ("INFRASTRUCTURE        ", 14, infrastruct),
          ("INSTALL_REQ_TOOLCHAIN ", 21, shift_install),
          ("INSTALL_TARGET        ", 14, install_tgt),
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
@@ -1226,7 +1227,6 @@ package body Specification_Parser is
          ("PYSETUP               ",  7, catchall),
          ("QMAKE_ARGS            ", 10, qmake_args),
          ("RC_SUBR               ",  7, rc_scripts),
-         ("REPOLOGY_SUCKS        ", 14, repsucks),
          ("REVISION              ",  8, revision),
          ("RUBY_EXTCONF          ", 12, catchall),
          ("RUBY_FLAGS            ", 10, catchall),
