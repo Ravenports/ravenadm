@@ -1429,7 +1429,7 @@ package body Port_Specification.Transform is
       module     : String := "bz2";
       dep_prefix : String := "bzip2";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_bz2_module;
 
 
