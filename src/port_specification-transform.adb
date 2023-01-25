@@ -1453,7 +1453,7 @@ package body Port_Specification.Transform is
       module     : String := "pcre";
       dep_prefix : String := "pcre";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_pcre_module;
 
 
