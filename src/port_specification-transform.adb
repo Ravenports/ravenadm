@@ -1405,7 +1405,7 @@ package body Port_Specification.Transform is
       module     : String := "lz4";
       dep_prefix : String := "lz4";
    begin
-      generic_split_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_lz4_module;
 
 
