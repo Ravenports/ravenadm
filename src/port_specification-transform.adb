@@ -988,7 +988,7 @@ package body Port_Specification.Transform is
       module : String := "zlib";
       prefix : String := "zlib";
    begin
-      generic_split_module (specs, module, prefix);
+      generic_devlib_module (specs, module, prefix);
    end apply_zlib_module;
 
 
@@ -1351,26 +1351,6 @@ package body Port_Specification.Transform is
          add_build_depends (specs, dependency);
       end if;
    end apply_libtool_module;
-
-
-   --------------------------------------------------------------------------------------------
-   --  generic_split_module
-   --------------------------------------------------------------------------------------------
-   procedure generic_split_module
-     (specs      : in out Portspecs;
-      module     : String;
-      depprefix  : String)
-   is
-      shared_dependency : String := depprefix & ":shared:standard";
-      static_dependency : String := depprefix & ":static:standard";
-   begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, static_dependency);
-         if not argument_present (specs, module, BUILD) then
-            add_buildrun_depends (specs, shared_dependency);
-         end if;
-      end if;
-   end generic_split_module;
 
 
    --------------------------------------------------------------------------------------------

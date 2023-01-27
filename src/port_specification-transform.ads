@@ -135,9 +135,6 @@ private
    procedure generic_3B_module      (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
-   procedure generic_split_module   (specs      : in out Portspecs;
-                                     module     : String;
-                                     depprefix  : String);
    procedure generic_build_module   (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
