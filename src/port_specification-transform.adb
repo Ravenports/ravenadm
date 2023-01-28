@@ -1765,6 +1765,29 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  generate_dev_depend
+   --------------------------------------------------------------------------------------------
+   procedure generic_dev_require
+     (specs      : in out Portspecs;
+      module     : String;
+      dependency : String)
+   is
+      dev_present  : Boolean;
+   begin
+      if not specs.uses_base.Contains (HT.SUS (module)) then
+         return;
+      end if;
+      dev_present := no_arguments_present (specs, module) or else
+        argument_present (specs, module, BUILD) or else
+        argument_present (specs, module, BUILDRUN);
+
+      if dev_present then
+         add_build_depends (specs, dependency);
+      end if;
+   end generic_dev_require;
+
+
+   --------------------------------------------------------------------------------------------
    --  generic_3BR_module
    --------------------------------------------------------------------------------------------
    procedure generic_3BR_module
@@ -1888,6 +1911,7 @@ package body Port_Specification.Transform is
       dependency : String := "tiff:primary:standard";
    begin
       generic_3BR_module (specs, module, dependency);
+      generic_dev_require (specs, module, "zlib:dev:standard");
    end apply_tiff_module;
 
 

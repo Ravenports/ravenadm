@@ -130,6 +130,9 @@ private
    procedure apply_lzo_module       (specs : in out Portspecs);
    procedure apply_gem_module       (specs : in out Portspecs);
    procedure apply_bz2_module       (specs : in out Portspecs);
+   procedure generic_dev_require    (specs      : in out Portspecs;
+                                     module     : String;
+                                     dependency : String);
    procedure generic_3BR_module     (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
