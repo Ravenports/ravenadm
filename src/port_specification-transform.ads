@@ -64,6 +64,7 @@ private
    RUBY32   : constant String := "ruby32:primary:standard";
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:primary:standard";
+   GLIBDEV  : constant String := "glib:dev:standard";
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;

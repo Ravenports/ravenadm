@@ -2981,6 +2981,7 @@ package body Port_Specification.Transform is
             when gdkpixbuf =>
                add_buildrun_depends (specs, "gdk-pixbuf" & ps);
             when glib =>
+               add_build_depends (specs, GLIBDEV);
                add_buildrun_depends (specs, GNOMELIB);
                add_buildrun_depends (specs, "gettext:runtime:standard");
                if not specs.uses_base.Contains (uses_py) then
