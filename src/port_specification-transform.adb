@@ -1913,6 +1913,7 @@ package body Port_Specification.Transform is
    begin
       generic_3BR_module (specs, module, dependency);
       generic_dev_require (specs, module, "zstd:dev:standard");
+      generic_dev_require (specs, module, "xz:dev:standard");
    end apply_tiff_module;
 
 
