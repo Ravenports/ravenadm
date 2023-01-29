@@ -1249,6 +1249,7 @@ package body Port_Specification.Makefile is
          "readline     ",
          "sqlite       ",
          "tiff         ",
+         "xz           ",
          "zlib         ",
          "zstd         "
         );

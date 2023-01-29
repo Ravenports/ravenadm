@@ -331,6 +331,7 @@ package body Port_Specification.Transform is
       apply_lz4_module (specs);
       apply_lzo_module (specs);
       apply_bz2_module (specs);
+      apply_xz_module  (specs);
       apply_expat_module (specs);
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
@@ -2313,6 +2314,18 @@ package body Port_Specification.Transform is
       specs.used_perl := HT.SUS (dep_suffix);
 
    end apply_perl_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_xz_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_xz_module (specs : in out Portspecs)
+   is
+      module     : constant String := "xz";
+      dep_prefix : constant String := "xz";
+   begin
+      generic_devlib_module (specs, module, dep_prefix);
+   end apply_xz_module;
 
 
    --------------------------------------------------------------------------------------------
