@@ -1327,7 +1327,9 @@ package body Port_Specification.Transform is
       dep_prefix : String := "ncurses";
    begin
       generic_devlib_module (specs, module, dep_prefix);
-      add_buildrun_depends (specs, "ncurses:terminfo:standard");
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_buildrun_depends (specs, "ncurses:terminfo:standard");
+      end if;
    end apply_ncurses_module;
 
 
