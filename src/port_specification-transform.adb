@@ -1439,15 +1439,21 @@ package body Port_Specification.Transform is
    procedure apply_info_presence (specs : in out Portspecs)
    is
       procedure scan (position : string_crate.Cursor);
+
+      dependency : constant String := "indexinfo:single:standard";
+
       procedure scan (position : string_crate.Cursor)
       is
          subpkg_infopage : constant String := HT.USS (string_crate.Element (position));
          subpackage : constant String := HT.part_1 (":");
-         dependency : constant String := "indexinfo:single:standard";
       begin
          add_exrun_depends (specs, dependency, subpackage);
       end scan;
    begin
+      -- Build depends necessary to force prescan of indexinfo
+      if not specs.info.Is_Empty then
+         add_build_depends (specs, dependency);
+      end if;
       specs.info.Iterate (scan'Access);
    end apply_info_presence;
 
