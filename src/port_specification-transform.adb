@@ -1445,16 +1445,12 @@ package body Port_Specification.Transform is
       procedure scan (position : string_crate.Cursor)
       is
          subpkg_infopage : constant String := HT.USS (string_crate.Element (position));
-         subpackage : constant String := HT.part_1 (":");
+         subpackage : constant String := HT.part_1 (subpkg_infopage, ":");
       begin
          add_exrun_depends (specs, dependency, subpackage);
       end scan;
    begin
       specs.info.Iterate (scan'Access);
-      -- Build depends necessary to force prescan of indexinfo
-      if not specs.info.Is_Empty then
-         add_build_depends (specs, dependency);
-      end if;
    end apply_info_presence;
 
 
