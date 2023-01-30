@@ -1323,18 +1323,11 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ncurses_module (specs : in out Portspecs)
    is
-      module            : String := "ncurses";
-      full_dependency   : String := "ncurses:primary:standard";
-      static_dependency : String := "ncurses:primary:static";
+      module     : String := "ncurses";
+      dep_prefix : String := "ncurses";
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
-      end if;
-      if no_arguments_present (specs, module) then
-         add_buildrun_depends (specs, full_dependency);
-      elsif argument_present (specs, module, "static") then
-         add_build_depends (specs, static_dependency);
-      end if;
+      generic_devlib_module (specs, module, dep_prefix);
+      add_buildrun_depends (specs, "ncurses:terminfo:standard");
    end apply_ncurses_module;
 
 
