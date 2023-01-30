@@ -1438,11 +1438,17 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_info_presence (specs : in out Portspecs)
    is
-      dependency : String := "indexinfo:single:standard";
+      procedure scan (position : string_crate.Cursor);
+      procedure scan (position : string_crate.Cursor)
+      is
+         subpkg_infopage : constant String := HT.USS (string_crate.Element (position));
+         subpackage : constant String := HT.part_1 (":");
+         dependency : constant String := "indexinfo:single:standard";
+      begin
+         add_exrun_depends (specs, dependency, subpackage);
+      end scan;
    begin
-      if not specs.info.Is_Empty then
-         add_buildrun_depends (specs, dependency);
-      end if;
+      specs.info.Iterate (Scan'Access);
    end apply_info_presence;
 
 
@@ -2680,7 +2686,7 @@ package body Port_Specification.Transform is
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON311)) then
                Element := HT.SUS (PYTHON311);
             else
-              Element := HT.SUS (PYTHON310);
+               Element := HT.SUS (PYTHON310);
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
