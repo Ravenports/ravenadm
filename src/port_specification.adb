@@ -3532,7 +3532,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 73;
+      total_modules : constant Positive := 72;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3607,7 +3607,6 @@ package body Port_Specification is
          "sqlite         ",
          "ssl            ",
          "tcl            ",
-         "terminfo       ",
          "tiff           ",
          "xz             ",
          "zlib           ",
@@ -5270,11 +5269,10 @@ package body Port_Specification is
    function base_module (index : smodules) return String is
    begin
       case index is
-         when 1 => return "terminfo";
-         when 2 => return "schemas";
-         when 3 => return "mime-info";
-         when 4 => return "gnome-icons";
-         when 5 => return "desktop-utils";
+         when 1 => return "schemas";
+         when 2 => return "mime-info";
+         when 3 => return "gnome-icons";
+         when 4 => return "desktop-utils";
       end case;
    end base_module;
 

@@ -648,7 +648,7 @@ private
       end record;
 
    --  Ordinal type representing numbers that have subpackage arguments
-   type smodules is range 1 .. 5;
+   type smodules is range 1 .. 4;
 
    --  Returns the name of the module associated with the smodules index
    function base_module (index : smodules) return String;

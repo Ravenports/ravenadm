@@ -1448,7 +1448,7 @@ package body Port_Specification.Transform is
          add_exrun_depends (specs, dependency, subpackage);
       end scan;
    begin
-      specs.info.Iterate (Scan'Access);
+      specs.info.Iterate (scan'Access);
    end apply_info_presence;
 
 
