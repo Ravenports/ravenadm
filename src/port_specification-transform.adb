@@ -1450,11 +1450,11 @@ package body Port_Specification.Transform is
          add_exrun_depends (specs, dependency, subpackage);
       end scan;
    begin
+      specs.info.Iterate (scan'Access);
       -- Build depends necessary to force prescan of indexinfo
       if not specs.info.Is_Empty then
          add_build_depends (specs, dependency);
       end if;
-      specs.info.Iterate (scan'Access);
    end apply_info_presence;
 
 
