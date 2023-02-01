@@ -1734,25 +1734,23 @@ package body Port_Specification.Transform is
    procedure apply_fonts_module (specs : in out Portspecs)
    is
       module      : String := "fonts";
-      fontconfig  : String := "fontconfig:primary:standard";
+      fontconfig  : String := "fontconfig";
       mkfontscale : String := "xorg-mkfontscale:single:standard";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
       if no_arguments_present (specs, module) or else
-        argument_present (specs, module, "fontsdir")
+        argument_present (specs, module, "fcfontsdir")
       then
-         add_buildrun_depends (specs, mkfontscale);
+         generic_devlib_module (specs, fontconfig, fontconfig);
+         add_run_depends (specs, mkfontscale);
          return;
       end if;
-      if argument_present (specs, module, "fc") then
-         add_buildrun_depends (specs, fontconfig);
-         return;
-      end if;
-      if argument_present (specs, module, "fcfontsdir") then
-         add_buildrun_depends (specs, fontconfig);
-         add_buildrun_depends (specs, mkfontscale);
+      if argument_present (specs, module, "fontsdir") then
+         add_run_depends (specs, mkfontscale);
+      elsif argument_present (specs, module, "fc") then
+         generic_devlib_module (specs, fontconfig, fontconfig);
       end if;
    end apply_fonts_module;
 
