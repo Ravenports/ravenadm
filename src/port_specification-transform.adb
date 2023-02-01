@@ -3025,8 +3025,10 @@ package body Port_Specification.Transform is
                add_build_depends (specs, FCDEV);
             when cairomm =>
                add_buildrun_depends (specs, "cairomm" & ss);
+               add_build_depends (specs, FCDEV);
             when cairomm10 =>
                add_buildrun_depends (specs, "cairomm10" & ss);
+               add_build_depends (specs, FCDEV);
             when dconf =>
                add_buildrun_depends (specs, "dconf" & ps);
             when gconf =>
@@ -3091,8 +3093,10 @@ package body Port_Specification.Transform is
                add_build_depends (specs, FCDEV);
             when pangomm =>
                add_buildrun_depends (specs, "pangomm" & ss);
+               add_build_depends (specs, FCDEV);
             when pangomm14 =>
                add_buildrun_depends (specs, "pangomm14" & ss);
+               add_build_depends (specs, FCDEV);
             when pygobject =>
                add_buildrun_depends (specs, "python-PyGObject:single:" & defpy);
             when vte =>
