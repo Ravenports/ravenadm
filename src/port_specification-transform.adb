@@ -337,6 +337,7 @@ package body Port_Specification.Transform is
       apply_gtkdoc_module (specs);
       apply_schemas_module (specs);
       apply_firebird_module (specs);
+      apply_fontconfig_module (specs);
       apply_desktop_utils_module (specs);
       apply_gnome_components_dependencies (specs);
       apply_sdl_components_dependencies (specs);
@@ -2330,6 +2331,18 @@ package body Port_Specification.Transform is
    begin
       generic_devlib_module (specs, module, dep_prefix);
    end apply_xz_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_fontconfig_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_fontconfig_module (specs : in out Portspecs)
+   is
+      module     : constant String := "fontconfig";
+      dep_prefix : constant String := "fontconfig";
+   begin
+      generic_devlib_module (specs, module, dep_prefix);
+   end apply_fontconfig_module;
 
 
    --------------------------------------------------------------------------------------------
