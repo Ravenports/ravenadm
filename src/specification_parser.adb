@@ -1767,7 +1767,7 @@ package body Specification_Parser is
          return "check above errors to determine which option groups are too small";
       end if;
       if not spec.post_module_argument_check then
-         return "The argumens of a USES modules are not valid.";
+         return "The arguments of a USES modules are not valid.";
       end if;
       return "";
    end late_validity_check_error;
