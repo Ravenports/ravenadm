@@ -4796,10 +4796,14 @@ package body Port_Specification is
       begin
          if not found then
             declare
-               modulestr : String := HT.part_1 (value, ":");
+               modulestr  : String := HT.part_1 (value, ":");
+               num_colons : Natural;
             begin
                if modulestr = module then
-                  module_args := HT.SUS (HT.part_2 (value, ":"));
+                  num_colons := HT.count_char (value, LAT.Colon);
+                  if num_colons = 1 then
+                     module_args := HT.SUS (HT.part_2 (value, ":"));
+                  end if;
                   found := True;
                end if;
             end;
