@@ -65,6 +65,7 @@ private
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:primary:standard";
    GLIBDEV  : constant String := "glib:dev:standard";
+   FCDEV    : constant String := "fontconfig:dev:standard";
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;

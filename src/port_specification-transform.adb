@@ -3022,6 +3022,7 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "atkmm16" & ss);
             when cairo =>
                add_buildrun_depends (specs, "cairo" & ss);
+               add_build_depends (specs, FCDEV);
             when cairomm =>
                add_buildrun_depends (specs, "cairomm" & ss);
             when cairomm10 =>
@@ -3087,6 +3088,7 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "ORBit2" & ps);
             when pango =>
                add_buildrun_depends (specs, "pango" & ps);
+               add_build_depends (specs, FCDEV);
             when pangomm =>
                add_buildrun_depends (specs, "pangomm" & ss);
             when pangomm14 =>
