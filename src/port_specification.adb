@@ -4780,6 +4780,73 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  retrieve_module_arguments
+   --------------------------------------------------------------------------------------------
+   function retrieve_module_arguments (specs : Portspecs; module : String) return String
+   is
+      procedure scan (position : string_crate.Cursor);
+
+      found : Boolean := False;
+      module_args : HT.Text := HT.blank;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         value_text : HT.Text renames string_crate.Element (position);
+         value      : String := HT.USS (value_text);
+      begin
+         if not found then
+            declare
+               modulestr : String := HT.part_1 (value, ":");
+            begin
+               if modulestr = module then
+                  module_args := HT.SUS (HT.part_2 (value, ":"));
+                  found := True;
+               end if;
+            end;
+         end if;
+      end scan;
+   begin
+      specs.uses.Iterate (scan'Access);
+      return HT.USS (module_args);
+   end retrieve_module_arguments;
+
+
+   --------------------------------------------------------------------------------------------
+   --  post_module_argument_check
+   --------------------------------------------------------------------------------------------
+   function post_module_argument_check (specs : Portspecs) return Boolean
+   is
+      fonts_module : constant String := "fonts";
+   begin
+      if specs.uses_base.Contains (HT.SUS (fonts_module)) then
+         --  Rules for fonts module:
+         --  Must be blank or have exactly one argument
+         --  The one argument must be "fc", "fontsdir", or "fcfontsdir" only
+         declare
+            fonts_args : String := retrieve_module_arguments (specs, fonts_module);
+            num_commas : Natural;
+         begin
+            num_commas := HT.count_char (fonts_args, LAT.Comma);
+            if num_commas > 0 then
+               TIO.Put_Line (fonts_module & " module has more than one argument.");
+               return False;
+            end if;
+            if fonts_args /= "" and then
+              fonts_args /= "fc" and then
+              fonts_args /= "fontsdir" and then
+              fonts_args /= "fcfontsdir"
+            then
+               TIO.Put_Line
+                 (fonts_module & " module has unrecognized argument '" & fonts_args & "'");
+               return False;
+            end if;
+         end;
+      end if;
+      return True;
+   end post_module_argument_check;
+
+
+   --------------------------------------------------------------------------------------------
    --  post_transform_option_group_defaults_passes
    --------------------------------------------------------------------------------------------
    function post_transform_option_group_defaults_passes (specs : Portspecs) return Boolean

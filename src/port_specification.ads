@@ -265,6 +265,9 @@ package Port_Specification is
    --  set by (by default) and restricted groups need at least one.
    function post_transform_option_group_defaults_passes (specs : Portspecs) return Boolean;
 
+   --  Checks module arguments for fatal errors
+   function post_module_argument_check (specs : Portspecs) return Boolean;
+
    --  Return "joined" table of group + options
    function option_block_for_dialog (specs : Portspecs) return String;
 
@@ -764,5 +767,9 @@ private
      (specs  : Portspecs;
       module : String;
       errmsg : out HT.Text) return Boolean;
+
+   --  If module is defined, return argument list, comma delimited
+   --  if module is not defined, return empty string
+   function retrieve_module_arguments (specs : Portspecs; module : String) return String;
 
 end Port_Specification;
