@@ -987,10 +987,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_zlib_module (specs : in out Portspecs)
    is
-      module : String := "zlib";
-      prefix : String := "zlib";
+      zlib : String := "zlib";
    begin
-      generic_devlib_module (specs, module, prefix);
+      generic_devlib_module (specs, zlib, zlib);
    end apply_zlib_module;
 
 
@@ -1324,11 +1323,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ncurses_module (specs : in out Portspecs)
    is
-      module     : String := "ncurses";
-      dep_prefix : String := "ncurses";
+      ncurses : constant String := "ncurses";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
-      if specs.uses_base.Contains (HT.SUS (module)) then
+      generic_devlib_module (specs, ncurses, ncurses);
+      if specs.uses_base.Contains (HT.SUS (ncurses)) then
          add_buildrun_depends (specs, "ncurses:terminfo:standard");
       end if;
    end apply_ncurses_module;
@@ -1355,8 +1353,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_libiconv_module (specs : in out Portspecs)
    is
-      module     : String := "iconv";
-      dep_prefix : String := "libiconv";
+      module     : constant String := "iconv";
+      dep_prefix : constant String := "libiconv";
    begin
       generic_devlib_module (specs, module, dep_prefix);
    end apply_libiconv_module;
@@ -1367,10 +1365,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_zstd_module (specs : in out Portspecs)
    is
-      module     : constant String := "zstd";
-      dep_prefix : constant String := "zstd";
+      zstd : constant String := "zstd";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, zstd, zstd);
    end apply_zstd_module;
 
 
@@ -1379,10 +1376,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_lz4_module (specs : in out Portspecs)
    is
-      module     : String := "lz4";
-      dep_prefix : String := "lz4";
+      lz4 : constant String := "lz4";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, lz4, lz4);
    end apply_lz4_module;
 
 
@@ -1391,10 +1387,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_lzo_module (specs : in out Portspecs)
    is
-      module     : String := "lzo";
-      dep_prefix : String := "lzo";
+      lzo : constant String := "lzo";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, lzo, lzo);
    end apply_lzo_module;
 
 
@@ -1403,8 +1398,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_bz2_module (specs : in out Portspecs)
    is
-      module     : String := "bz2";
-      dep_prefix : String := "bzip2";
+      module     : constant String := "bz2";
+      dep_prefix : constant String := "bzip2";
    begin
       generic_devlib_module (specs, module, dep_prefix);
    end apply_bz2_module;
@@ -1415,10 +1410,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_expat_module (specs : in out Portspecs)
    is
-      module     : String := "expat";
-      dep_prefix : String := "expat";
+      expat : constant String := "expat";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, expat, expat);
    end apply_expat_module;
 
 
@@ -1427,10 +1421,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_pcre_module (specs : in out Portspecs)
    is
-      module     : String := "pcre";
-      dep_prefix : String := "pcre";
+      pcre : constant String := "pcre";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, pcre, pcre);
    end apply_pcre_module;
 
 
@@ -1733,9 +1726,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_fonts_module (specs : in out Portspecs)
    is
-      module      : String := "fonts";
-      fontconfig  : String := "fontconfig";
-      mkfontscale : String := "xorg-mkfontscale:single:standard";
+      module      : constant String := "fonts";
+      fontconfig  : constant String := "fontconfig";
+      mkfontscale : constant String := "xorg-mkfontscale:single:standard";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1874,10 +1867,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_jpeg_module (specs : in out Portspecs)
    is
-      module     : String := "jpeg";
-      dependency : String := "jpeg-turbo:primary:standard";
+      module     : constant String := "jpeg";
+      dependency : constant String := "jpeg-turbo";
    begin
-      generic_3BR_module (specs, module, dependency);
+      generic_devlib_module (specs, module, dependency);
    end apply_jpeg_module;
 
 
@@ -2324,10 +2317,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_xz_module (specs : in out Portspecs)
    is
-      module     : constant String := "xz";
-      dep_prefix : constant String := "xz";
+      xz : constant String := "xz";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, xz, xz);
    end apply_xz_module;
 
 
@@ -2336,10 +2328,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_fontconfig_module (specs : in out Portspecs)
    is
-      module     : constant String := "fontconfig";
-      dep_prefix : constant String := "fontconfig";
+      fontconfig : constant String := "fontconfig";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_devlib_module (specs, fontconfig, fontconfig);
    end apply_fontconfig_module;
 
 
