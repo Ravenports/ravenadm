@@ -3532,7 +3532,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 73;
+      total_modules : constant Positive := 72;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3565,8 +3565,7 @@ package body Port_Specification is
          "fonts          ",
          "fortran        ",
          "gem            ",
-         "gettext-runtime",
-         "gettext-tools  ",
+         "gettext        ",
          "gif            ",
          "gmake          ",
          "gnome-icons    ",
