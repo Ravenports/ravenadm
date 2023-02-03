@@ -1729,11 +1729,11 @@ package body Port_Specification.Transform is
         argument_present (specs, module, "fcfontsdir")
       then
          generic_devlib_module (specs, fontconfig, fontconfig);
-         add_run_depends (specs, mkfontscale);
+         add_buildrun_depends (specs, mkfontscale);
          return;
       end if;
       if argument_present (specs, module, "fontsdir") then
-         add_run_depends (specs, mkfontscale);
+         add_buildrun_depends (specs, mkfontscale);
       elsif argument_present (specs, module, "fc") then
          generic_devlib_module (specs, fontconfig, fontconfig);
       end if;
