@@ -66,6 +66,11 @@ private
    GNOMELIB : constant String := "glib:primary:standard";
    GLIBDEV  : constant String := "glib:dev:standard";
    FCDEV    : constant String := "fontconfig:dev:standard";
+   GTDEV    : constant String := "gettext:dev:standard";
+   GTBTOOLS : constant String := "gettext:bldtools:standard";
+   GTSOLINX : constant String := "gettext:solinks:standard";
+   GTLIB    : constant String := "gettext:primary:standard";
+   GTTOOLS  : constant String := "gettext:tools:standard";
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;
@@ -163,8 +168,7 @@ private
    procedure apply_desktop_utils_module   (specs : in out Portspecs);
    procedure apply_gnome_icons_module     (specs : in out Portspecs);
    procedure apply_mime_info_module       (specs : in out Portspecs);
-   procedure apply_gettext_runtime_module (specs : in out Portspecs);
-   procedure apply_gettext_tools_module   (specs : in out Portspecs);
+   procedure apply_gettext_module         (specs : in out Portspecs);
    procedure apply_extraction_deps        (specs : in out Portspecs);
    procedure apply_opsys_dependencies     (specs : in out Portspecs);
 

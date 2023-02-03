@@ -293,9 +293,8 @@ package body Port_Specification.Transform is
       apply_pkgconfig_module (specs);
       apply_gprbuild_module (specs);
       apply_ncurses_module (specs);
+      apply_gettext_module (specs);
       apply_info_presence (specs);
-      apply_gettext_runtime_module (specs);
-      apply_gettext_tools_module (specs);
       apply_gnome_icons_module (specs);
       apply_mime_info_module (specs);
       apply_autoconf_module (specs);
@@ -1586,34 +1585,27 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_gettext_tools_module
-   --------------------------------------------------------------------------------------------
-   procedure apply_gettext_tools_module (specs : in out Portspecs)
-   is
-      module     : String := "gettext-tools";
-      dependency : String := "gettext:tools:standard";
-   begin
-      generic_3B_module (specs, module, dependency);
-   end apply_gettext_tools_module;
-
-
-   --------------------------------------------------------------------------------------------
    --  apply_gettext_runtime_module
    --------------------------------------------------------------------------------------------
-   procedure apply_gettext_runtime_module (specs : in out Portspecs)
+   procedure apply_gettext_module (specs : in out Portspecs)
    is
-      module     : String := "gettext-runtime";
-      dependency : String := "gettext:runtime:standard";
-      asprintf   : String := "gettext:asprintf:standard";
+      gettext : constant String := "gettext";
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
+      if specs.uses_base.Contains (HT.SUS (gettext)) then
+         add_build_depends (specs, GTDEV);
+         add_build_depends (specs, GTBTOOLS);
+         if argument_present (specs, gettext, BUILD) then
+            add_build_depends (specs, GTTOOLS);
+         else
+            add_build_depends (specs, GTSOLINX);
+            add_buildrun_depends (specs, GTTOOLS);
+            add_buildrun_depends (specs, GTLIB);
+            if argument_present (specs, gettext, "asprintf") then
+               add_buildrun_depends (specs, "gettext:asprintf:standard");
+            end if;
+         end if;
       end if;
-      generic_3BR_module (specs, module, dependency);
-      if argument_present (specs, module, "asprintf") then
-         generic_3BR_module (specs, module, asprintf);
-      end if;
-   end apply_gettext_runtime_module;
+   end apply_gettext_module;
 
 
    --------------------------------------------------------------------------------------------
@@ -2962,24 +2954,34 @@ package body Port_Specification.Transform is
                implies (glib);
             when glibmm =>
                implies (glib);
-            when gtk2 =>
+            when gtk2 | gtk3 | gtk4 =>
                implies (atk);
+               implies (glib);
                implies (pango);
-            when gtk3 =>
-               implies (atk);
-               implies (pango);
-            when gtkmm30 =>
+            when gtkmm30 | vte =>
                implies (gtk3);
+               implies (atk);
+               implies (glib);
+               implies (pango);
             when gtkmm40 =>
                implies (gtk4);
+               implies (atk);
+               implies (glib);
+               implies (pango);
             when gtksourceview3 =>
                implies (gtk3);
+               implies (atk);
+               implies (glib);
+               implies (pango);
                implies (libxml2);
             when introspection =>
                implies (glib);
             when libglade =>
                implies (libxml2);
                implies (gtk2);
+               implies (atk);
+               implies (glib);
+               implies (pango);
             when libgsf =>
                implies (glib);
                implies (libxml2);
@@ -2995,8 +2997,6 @@ package body Port_Specification.Transform is
                implies (libidl);
             when pygobject =>
                implies (glib);
-            when vte =>
-               implies (gtk3);
             when others => null;
          end case;
       end implicate;
@@ -3028,8 +3028,12 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "gdk-pixbuf" & ps);
             when glib =>
                add_build_depends (specs, GLIBDEV);
+               add_build_depends (specs, GTDEV);
+               add_build_depends (specs, GTBTOOLS);
+               add_build_depends (specs, GTSOLINX);
                add_buildrun_depends (specs, GNOMELIB);
-               add_buildrun_depends (specs, "gettext:runtime:standard");
+               add_buildrun_depends (specs, GTLIB);
+               add_buildrun_depends (specs, GTTOOLS);
                if not specs.uses_base.Contains (uses_py) then
                   specs.uses_base.Append (uses_py);
                   if not specs.uses.Contains (pybuild) then
