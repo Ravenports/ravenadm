@@ -3045,11 +3045,14 @@ package body Port_Specification.Transform is
             when glibmm24 =>
                add_buildrun_depends (specs, "glibmm24" & ss);
             when gtk2 =>
+               add_build_depends (specs, "gtk2:dev:standard");
                add_buildrun_depends (specs, "gtk2" & ps);
             when gtk3 =>
+               add_build_depends (specs, "gtk3:dev:standard");
                add_buildrun_depends (specs, "gtk3" & ps);
                add_run_depends (specs, "adwaita-icon-theme" & ss);
             when gtk4 =>
+               add_build_depends (specs, "gtk4:dev:standard");
                add_buildrun_depends (specs, "gtk4" & ps);
             when gtkmm30 =>
                add_buildrun_depends (specs, "gtkmm30" & ss);
