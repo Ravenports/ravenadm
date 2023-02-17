@@ -321,6 +321,7 @@ package body Port_Specification.Transform is
       apply_jpeg_module (specs);
       apply_tiff_module (specs);
       apply_pcre_module (specs);
+      apply_curl_module (specs);
       apply_lua_module (specs);
       apply_tcl_module (specs);
       apply_php_module (specs);
@@ -1357,6 +1358,17 @@ package body Port_Specification.Transform is
    begin
       generic_devlib_module (specs, module, dep_prefix);
    end apply_libiconv_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_curl_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_curl_module (specs : in out Portspecs)
+   is
+      curl : constant String := "curl";
+   begin
+      generic_devlib_module (specs, curl, curl);
+   end apply_curl_module;
 
 
    --------------------------------------------------------------------------------------------

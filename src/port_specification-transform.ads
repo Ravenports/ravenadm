@@ -122,6 +122,7 @@ private
    procedure apply_clang_module     (specs : in out Portspecs);
    procedure apply_expat_module     (specs : in out Portspecs);
    procedure apply_cran_module      (specs : in out Portspecs);
+   procedure apply_curl_module      (specs : in out Portspecs);
    procedure apply_zlib_module      (specs : in out Portspecs);
    procedure apply_zstd_module      (specs : in out Portspecs);
    procedure apply_mesa_module      (specs : in out Portspecs);
