@@ -374,7 +374,7 @@ private
       invalid_component);
 
    type sdl_type is
-     (sdl1, sdl2, gfx1, gfx2, image1, image2, mixer1, mixer2, net1, net2, ttf1, ttf2,
+     (sdl1, sdl2, sound1, sound2, image1, image2, mixer1, mixer2, net1, net2, ttf1, ttf2,
       invalid_component);
 
    type phpext_type is

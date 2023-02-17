@@ -3989,8 +3989,6 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("INVALID ", invalid_component),
-         ("gfx1    ", gfx1),
-         ("gfx2    ", gfx2),
          ("image1  ", image1),
          ("image2  ", image2),
          ("mixer1  ", mixer1),
@@ -3999,6 +3997,8 @@ package body Port_Specification is
          ("net2    ", net2),
          ("sdl1    ", sdl1),
          ("sdl2    ", sdl2),
+         ("sound1  ", sound1),
+         ("sound2  ", sound2),
          ("ttf1    ", ttf1),
          ("ttf2    ", ttf2)
         );

@@ -3126,10 +3126,16 @@ package body Port_Specification.Transform is
    procedure apply_sdl_components_dependencies  (specs : in out Portspecs)
    is
       procedure import (position : string_crate.Cursor);
+      procedure add_devlib (sdl_module : String);
 
-      ss : constant String := ":single:standard";
       menv1 : HT.Text := HT.SUS ("SDL_CONFIG=""${LOCALBASE}/bin/sdl-config""");
       menv2 : HT.Text := HT.SUS ("SDL_CONFIG=""${LOCALBASE}/bin/sdl2-config""");
+
+      procedure add_devlib (sdl_module : String) is
+      begin
+         add_build_depends    (specs, sdl_module & ":dev:standard");
+         add_buildrun_depends (specs, sdl_module & ":primary:standard");
+      end add_devlib;
 
       procedure import (position : string_crate.Cursor)
       is
@@ -3140,24 +3146,24 @@ package body Port_Specification.Transform is
             when invalid_component => null;  --  should be impossible
             when sdl1 => null;
             when sdl2 => null;
-            when gfx1   => add_buildrun_depends (specs, "sdl1_gfx" & ss);
-            when gfx2   => add_buildrun_depends (specs, "sdl2_gfx" & ss);
-            when image1 => add_buildrun_depends (specs, "sdl1_image" & ss);
-            when image2 => add_buildrun_depends (specs, "sdl2_image" & ss);
-            when mixer1 => add_buildrun_depends (specs, "sdl1_mixer" & ss);
-            when mixer2 => add_buildrun_depends (specs, "sdl2_mixer" & ss);
-            when net1   => add_buildrun_depends (specs, "sdl1_net" & ss);
-            when net2   => add_buildrun_depends (specs, "sdl2_net" & ss);
-            when ttf1   => add_buildrun_depends (specs, "sdl1_ttf" & ss);
-            when ttf2   => add_buildrun_depends (specs, "sdl2_ttf" & ss);
+            when sound1 => add_devlib ("sdl1_sound");
+            when sound2 => add_devlib ("sdl2_sound");
+            when image1 => add_devlib ("sdl1_image");
+            when image2 => add_devlib ("sdl2_image");
+            when mixer1 => add_devlib ("sdl1_mixer");
+            when mixer2 => add_devlib ("sdl2_mixer");
+            when net1   => add_devlib ("sdl1_net");
+            when net2   => add_devlib ("sdl2_net");
+            when ttf1   => add_devlib ("sdl1_ttf");
+            when ttf2   => add_devlib ("sdl2_ttf");
          end case;
          case comp is
-            when sdl1 | gfx1 | image1 | mixer1 | net1 | ttf1 =>
-               add_buildrun_depends (specs, "sdl1:primary:standard");
+            when sdl1 | sound1 | image1 | mixer1 | net1 | ttf1 =>
+               add_devlib ("sdl1");
                specs.make_env.Append (menv1);
                specs.config_env.Append (menv1);
-            when sdl2 | gfx2 | image2 | mixer2 | net2 | ttf2 =>
-               add_buildrun_depends (specs, "sdl2:single:standard");
+            when sdl2 | sound2 | image2 | mixer2 | net2 | ttf2 =>
+               add_devlib ("sdl2");
                specs.make_env.Append (menv2);
                specs.config_env.Append (menv2);
             when invalid_component => null;
