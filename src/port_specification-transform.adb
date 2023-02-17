@@ -2687,9 +2687,9 @@ package body Port_Specification.Transform is
                setting : String := HT.USS (Parameters.configuration.def_ssl);
             begin
                if setting = ports_default then
-                  Element := HT.SUS ("libressl:single:standard");
+                  Element := HT.SUS ("libressl:primary:standard");
                else
-                  Element := HT.SUS (setting & ":single:standard");
+                  Element := HT.SUS (setting & ":primary:standard");
                end if;
             end;
          elsif exrundep = "python" then
