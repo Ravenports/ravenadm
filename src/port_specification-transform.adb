@@ -2165,15 +2165,17 @@ package body Port_Specification.Transform is
       end if;
 
       declare
-         normvar    : constant String := Parameters.ssl_selection (Parameters.configuration);
-         dependency : constant String := specs.get_ssl_variant (normvar) & ":single:standard";
+         normvar : constant String := Parameters.ssl_selection (Parameters.configuration);
+         primary : constant String := specs.get_ssl_variant (normvar) & ":primary:standard";
+         devpkg  : constant String := specs.get_ssl_variant (normvar) & ":dev:standard";
       begin
          if hit_both or else (hit_build and hit_run) then
-            add_buildrun_depends (specs, dependency);
+            add_build_depends (specs, devpkg);
+            add_buildrun_depends (specs, primary);
          elsif hit_build then
-            add_build_depends (specs, dependency);
+            add_build_depends (specs, devpkg);
          else
-            add_run_depends (specs, dependency);
+            add_run_depends (specs, primary);
          end if;
       end;
    end apply_ssl_module;
