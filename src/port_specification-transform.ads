@@ -138,6 +138,8 @@ private
    procedure apply_gem_module       (specs : in out Portspecs);
    procedure apply_bz2_module       (specs : in out Portspecs);
    procedure apply_xz_module        (specs : in out Portspecs);
+   procedure add_primdev_submodule  (specs      : in out Portspecs;
+                                     namebase   : String);
    procedure generic_dev_require    (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);

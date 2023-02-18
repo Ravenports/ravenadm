@@ -857,6 +857,17 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  add_primdev_submodule
+   --------------------------------------------------------------------------------------------
+   procedure add_primdev_submodule  (specs      : in out Portspecs;
+                                     namebase   : String)
+   is
+   begin
+      add_build_depends (specs, namebase & ":dev:standard");
+      add_buildrun_depends (specs, namebase & ":primary:standard");
+   end add_primdev_submodule;
+
+   --------------------------------------------------------------------------------------------
    --  generic_build_module
    --------------------------------------------------------------------------------------------
    procedure generic_build_module
@@ -3055,9 +3066,9 @@ package body Port_Specification.Transform is
                   end if;
                end if;
             when glibmm =>
-               add_buildrun_depends (specs, "glibmm" & ss);
+               add_primdev_submodule (specs, "glibmm");
             when glibmm24 =>
-               add_buildrun_depends (specs, "glibmm24" & ss);
+               add_primdev_submodule (specs, "glibmm24");
             when gtk2 =>
                add_build_depends (specs, "gtk2:dev:standard");
                add_buildrun_depends (specs, "gtk2" & ps);
@@ -3069,9 +3080,9 @@ package body Port_Specification.Transform is
                add_build_depends (specs, "gtk4:dev:standard");
                add_buildrun_depends (specs, "gtk4" & ps);
             when gtkmm30 =>
-               add_buildrun_depends (specs, "gtkmm30" & ss);
+               add_primdev_submodule (specs, "gtkmm30");
             when gtkmm40 =>
-               add_buildrun_depends (specs, "gtkmm40" & ss);
+               add_primdev_submodule (specs, "gtkmm40");
             when gtksourceview3 =>
                add_buildrun_depends (specs, "gtksourceview3" & ps);
             when intltool =>
@@ -3140,16 +3151,9 @@ package body Port_Specification.Transform is
    procedure apply_sdl_components_dependencies  (specs : in out Portspecs)
    is
       procedure import (position : string_crate.Cursor);
-      procedure add_devlib (sdl_module : String);
 
       menv1 : HT.Text := HT.SUS ("SDL_CONFIG=""${LOCALBASE}/bin/sdl-config""");
       menv2 : HT.Text := HT.SUS ("SDL_CONFIG=""${LOCALBASE}/bin/sdl2-config""");
-
-      procedure add_devlib (sdl_module : String) is
-      begin
-         add_build_depends    (specs, sdl_module & ":dev:standard");
-         add_buildrun_depends (specs, sdl_module & ":primary:standard");
-      end add_devlib;
 
       procedure import (position : string_crate.Cursor)
       is
@@ -3160,24 +3164,24 @@ package body Port_Specification.Transform is
             when invalid_component => null;  --  should be impossible
             when sdl1 => null;
             when sdl2 => null;
-            when sound1 => add_devlib ("sdl1_sound");
-            when sound2 => add_devlib ("sdl2_sound");
-            when image1 => add_devlib ("sdl1_image");
-            when image2 => add_devlib ("sdl2_image");
-            when mixer1 => add_devlib ("sdl1_mixer");
-            when mixer2 => add_devlib ("sdl2_mixer");
-            when net1   => add_devlib ("sdl1_net");
-            when net2   => add_devlib ("sdl2_net");
-            when ttf1   => add_devlib ("sdl1_ttf");
-            when ttf2   => add_devlib ("sdl2_ttf");
+            when sound1 => add_primdev_submodule (specs, "sdl1_sound");
+            when sound2 => add_primdev_submodule (specs, "sdl2_sound");
+            when image1 => add_primdev_submodule (specs, "sdl1_image");
+            when image2 => add_primdev_submodule (specs, "sdl2_image");
+            when mixer1 => add_primdev_submodule (specs, "sdl1_mixer");
+            when mixer2 => add_primdev_submodule (specs, "sdl2_mixer");
+            when net1   => add_primdev_submodule (specs, "sdl1_net");
+            when net2   => add_primdev_submodule (specs, "sdl2_net");
+            when ttf1   => add_primdev_submodule (specs, "sdl1_ttf");
+            when ttf2   => add_primdev_submodule (specs, "sdl2_ttf");
          end case;
          case comp is
             when sdl1 | sound1 | image1 | mixer1 | net1 | ttf1 =>
-               add_devlib ("sdl1");
+               add_primdev_submodule (specs, "sdl1");
                specs.make_env.Append (menv1);
                specs.config_env.Append (menv1);
             when sdl2 | sound2 | image2 | mixer2 | net2 | ttf2 =>
-               add_devlib ("sdl2");
+               add_primdev_submodule (specs, "sdl2");
                specs.make_env.Append (menv2);
                specs.config_env.Append (menv2);
             when invalid_component => null;
