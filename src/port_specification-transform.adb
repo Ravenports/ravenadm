@@ -1034,9 +1034,8 @@ package body Port_Specification.Transform is
    procedure apply_readline_module  (specs : in out Portspecs)
    is
       module     : String := "readline";
-      dependency : String := "readline:single:standard";
    begin
-      generic_library_module (specs, module, dependency);
+      generic_devlib_module (specs, module, module);
    end apply_readline_module;
 
 
