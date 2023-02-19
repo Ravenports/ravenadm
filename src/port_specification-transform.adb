@@ -1071,7 +1071,7 @@ package body Port_Specification.Transform is
    procedure apply_cmake_module (specs : in out Portspecs)
    is
       module     : String := "cmake";
-      dependency : String := "cmake:single:standard";
+      dependency : String := "cmake:primary:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if argument_present (specs, module, RUN) then
