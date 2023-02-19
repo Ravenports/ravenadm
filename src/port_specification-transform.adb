@@ -1900,9 +1900,8 @@ package body Port_Specification.Transform is
    procedure apply_gif_module (specs : in out Portspecs)
    is
       module     : String := "gif";
-      dependency : String := "giflib:single:standard";
    begin
-      generic_3BR_module (specs, module, dependency);
+      generic_devlib_module (specs, module, "giflib");
    end apply_gif_module;
 
 
