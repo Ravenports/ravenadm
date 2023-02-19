@@ -3105,7 +3105,7 @@ package body Port_Specification.Transform is
             when libxmlxx5 =>
                add_primdev_submodule (specs, "libxmlxx");
             when libxml2 =>
-               add_buildrun_depends (specs, "libxml2" & ss);
+               add_primdev_submodule (specs, "libxml2");
             when libxslt =>
                add_buildrun_depends (specs, "libxslt" & ss);
             when orbit2 =>
