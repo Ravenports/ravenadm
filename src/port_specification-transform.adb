@@ -2947,6 +2947,7 @@ package body Port_Specification.Transform is
       defpy     : constant String := "py" & HT.replace_char (default_python3, '.', "");
       ss        : constant String := ":single:standard";
       ps        : constant String := ":primary:standard";
+      ds        : constant String := ":dev:standard";
       uses_py   : HT.Text := HT.SUS ("python");
       pybuild   : HT.Text := HT.SUS ("python:build");
       component : array (gnome_type) of Boolean := (others => False);
@@ -3085,7 +3086,8 @@ package body Port_Specification.Transform is
             when intltool =>
                add_build_depends    (specs, "intltool" & ss);
             when introspection =>
-               add_build_depends    (specs, "gobject-introspection" & ss);
+               add_build_depends    (specs, "gobject-introspection" & ps);
+               add_build_depends    (specs, "gobject-introspection" & ds);
                specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
             when libcroco =>
