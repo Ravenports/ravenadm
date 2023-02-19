@@ -3093,15 +3093,15 @@ package body Port_Specification.Transform is
             when libglade =>
                add_primdev_submodule (specs, "libglade");
             when libgsf =>
-               add_buildrun_depends (specs, "libgsf" & ps);
+               add_primdev_submodule (specs, "libgsf");
             when libidl =>
-               add_buildrun_depends (specs, "libIDL" & ss);
+               add_primdev_submodule (specs, "libIDL");
             when librsvg =>
-               add_buildrun_depends (specs, "librsvg" & ps);
+               add_primdev_submodule (specs, "librsvg");
             when libsigcxx2 =>
-               add_buildrun_depends (specs, "libsigcxx" & ps);
+               add_primdev_submodule (specs, "libsigcxx");
             when libxmlxx2 =>
-               add_buildrun_depends (specs, "libxmlxx2" & ss);
+               add_primdev_submodule (specs, "libxmlxx2");
             when libxml2 =>
                add_buildrun_depends (specs, "libxml2" & ss);
             when libxslt =>
