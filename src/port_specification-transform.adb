@@ -1033,7 +1033,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_readline_module  (specs : in out Portspecs)
    is
-      module     : String := "readline";
+      module : String := "readline";
    begin
       generic_devlib_module (specs, module, module);
    end apply_readline_module;
@@ -1044,10 +1044,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_sqlite_module  (specs : in out Portspecs)
    is
-      module     : String := "sqlite";
-      dependency : String := "sqlite:single:standard";
+      module : String := "sqlite";
    begin
-      generic_library_module (specs, module, dependency);
+      generic_devlib_module (specs, module, module);
    end apply_sqlite_module;
 
 
