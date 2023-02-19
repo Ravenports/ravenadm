@@ -1910,11 +1910,8 @@ package body Port_Specification.Transform is
    procedure apply_tiff_module (specs : in out Portspecs)
    is
       module     : String := "tiff";
-      dependency : String := "tiff:primary:standard";
    begin
-      generic_3BR_module (specs, module, dependency);
-      generic_dev_require (specs, module, "zstd:dev:standard");
-      generic_dev_require (specs, module, "xz:dev:standard");
+      generic_devlib_module (specs, module, module);
    end apply_tiff_module;
 
 
