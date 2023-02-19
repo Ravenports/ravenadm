@@ -3109,8 +3109,7 @@ package body Port_Specification.Transform is
             when orbit2 =>
                add_buildrun_depends (specs, "ORBit2" & ps);
             when pango =>
-               add_buildrun_depends (specs, "pango" & ps);
-               add_build_depends (specs, FCDEV);
+               add_primdev_submodule (specs, "pango");
             when pangomm =>
                add_buildrun_depends (specs, "pangomm" & ss);
                add_build_depends (specs, FCDEV);
