@@ -313,6 +313,7 @@ package body Port_Specification.Transform is
       apply_meson_module (specs);
       apply_ninja_module (specs);
       apply_fonts_module (specs);
+      apply_pcre2_module (specs);
       apply_cran_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
