@@ -3784,7 +3784,7 @@ package body Port_Specification is
          ("librsvg           ", librsvg),
          ("libsigc++20       ", libsigcxx2),
          ("libsigc++30       ", libsigcxx3),
-         ("libxml++26        ", libxmlxx2),
+         ("libxml++50        ", libxmlxx5),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
          ("orbit2            ", orbit2),

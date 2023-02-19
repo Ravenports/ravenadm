@@ -3102,8 +3102,8 @@ package body Port_Specification.Transform is
                add_primdev_submodule (specs, "libsigcxx2");
             when libsigcxx3 =>
                add_primdev_submodule (specs, "libsigcxx");
-            when libxmlxx2 =>
-               add_primdev_submodule (specs, "libxmlxx2");
+            when libxmlxx5 =>
+               add_primdev_submodule (specs, "libxmlxx");
             when libxml2 =>
                add_buildrun_depends (specs, "libxml2" & ss);
             when libxslt =>
