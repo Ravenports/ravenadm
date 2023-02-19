@@ -3032,11 +3032,11 @@ package body Port_Specification.Transform is
          case comp is
             when invalid_component => null;  --  should be impossible
             when atk =>
-               add_buildrun_depends (specs, "atk" & ps);
+               add_primdev_submodule (specs, "atk");
             when atkmm =>
-               add_buildrun_depends (specs, "atkmm" & ss);
+               add_primdev_submodule (specs, "atkmm");
             when atkmm16 =>
-               add_buildrun_depends (specs, "atkmm16" & ss);
+               add_primdev_submodule (specs, "atkmm16");
             when cairo =>
                add_primdev_submodule (specs, "cairo");
             when cairomm =>
