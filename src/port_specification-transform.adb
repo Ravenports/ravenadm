@@ -1887,10 +1887,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_png_module (specs : in out Portspecs)
    is
-      module     : String := "png";
-      dependency : String := "png:single:standard";
+      module : String := "png";
    begin
-      generic_3BR_module (specs, module, dependency);
+      generic_devlib_module (specs, module, module);
    end apply_png_module;
 
 
@@ -1899,7 +1898,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gif_module (specs : in out Portspecs)
    is
-      module     : String := "gif";
+      module : String := "gif";
    begin
       generic_devlib_module (specs, module, "giflib");
    end apply_gif_module;
