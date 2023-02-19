@@ -3109,7 +3109,7 @@ package body Port_Specification.Transform is
             when libxslt =>
                add_primdev_submodule (specs, "libxslt");
             when orbit2 =>
-               add_buildrun_depends (specs, "ORBit2" & ps);
+               add_primdev_submodule (specs, "ORBit2");
             when pango =>
                add_primdev_submodule (specs, "pango");
             when pangomm =>
@@ -3119,7 +3119,7 @@ package body Port_Specification.Transform is
             when pygobject =>
                add_buildrun_depends (specs, "python-PyGObject:single:" & defpy);
             when vte =>
-               add_buildrun_depends (specs, "vte" & ps);
+               add_primdev_submodule (specs, "vte");
          end case;
       end import;
    begin
