@@ -3085,7 +3085,7 @@ package body Port_Specification.Transform is
             when gtksourceview5 =>
                add_primdev_submodule (specs, "gtksourceview5");
             when intltool =>
-               add_build_depends    (specs, "intltool" & ss);
+               add_build_depends    (specs, "intltool" & ps);
             when introspection =>
                add_build_depends    (specs, "gobject-introspection" & ps);
                add_build_depends    (specs, "gobject-introspection" & ds);
