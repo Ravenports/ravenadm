@@ -3040,11 +3040,9 @@ package body Port_Specification.Transform is
                add_buildrun_depends (specs, "cairo" & ss);
                add_build_depends (specs, FCDEV);
             when cairomm =>
-               add_buildrun_depends (specs, "cairomm" & ss);
-               add_build_depends (specs, FCDEV);
+               add_primdev_submodule (specs, "cairomm");
             when cairomm10 =>
-               add_buildrun_depends (specs, "cairomm10" & ss);
-               add_build_depends (specs, FCDEV);
+               add_primdev_submodule (specs, "cairomm10");
             when dconf =>
                add_buildrun_depends (specs, "dconf" & ps);
             when gconf =>
