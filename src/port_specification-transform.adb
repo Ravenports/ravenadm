@@ -3099,7 +3099,9 @@ package body Port_Specification.Transform is
             when librsvg =>
                add_primdev_submodule (specs, "librsvg");
             when libsigcxx2 =>
-               add_primdev_submodule (specs, "libsigcxx");
+               add_primdev_submodule (specs, "libsigcxx2");
+            when libsigcxx3 =>
+               add_primdev_submodule (specs, "libsigcxx3");
             when libxmlxx2 =>
                add_primdev_submodule (specs, "libxmlxx2");
             when libxml2 =>

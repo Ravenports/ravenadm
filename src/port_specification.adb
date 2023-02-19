@@ -3783,6 +3783,7 @@ package body Port_Specification is
          ("libidl            ", libidl),
          ("librsvg           ", librsvg),
          ("libsigc++20       ", libsigcxx2),
+         ("libsigc++30       ", libsigcxx3),
          ("libxml++26        ", libxmlxx2),
          ("libxml2           ", libxml2),
          ("libxslt           ", libxslt),
@@ -3829,7 +3830,6 @@ package body Port_Specification is
 --  libgnomeui
 --  libgtkhtml
 --  libgtksourceviewmm
---  libsigc++12
 --  libwnck
 --  metacity
 --  nautilus3
