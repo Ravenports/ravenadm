@@ -3037,8 +3037,7 @@ package body Port_Specification.Transform is
             when atkmm16 =>
                add_buildrun_depends (specs, "atkmm16" & ss);
             when cairo =>
-               add_buildrun_depends (specs, "cairo" & ss);
-               add_build_depends (specs, FCDEV);
+               add_primdev_submodule (specs, "cairo");
             when cairomm =>
                add_primdev_submodule (specs, "cairomm");
             when cairomm10 =>
