@@ -358,10 +358,11 @@ private
       OPT_NOT_DEFINED);
 
    type gnome_type is
-     (atk, cairo, glib, gtk2, gtk3, gtk4, gtksourceview3, gdkpixbuf, intltool, introspection,
+     (atk, cairo, glib, gtk2, gtk3, gtk4, gdkpixbuf, intltool, introspection,
       pango, pygobject, libcroco, libglade, libgsf, librsvg, libxml2, libxslt,
       dconf, gconf, libidl, orbit2, vte, libxmlxx5, libsigcxx2, libsigcxx3, glibmm, glibmm24,
       cairomm, cairomm10, atkmm, atkmm16, pangomm, pangomm14, gtkmm30, gtkmm40,
+      gtksourceview3, gtksourceview4, gtksourceview5,
       invalid_component);
 
    type xorg_type is

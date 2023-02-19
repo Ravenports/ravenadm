@@ -3775,6 +3775,8 @@ package body Port_Specification is
          ("gtkmm30           ", gtkmm30),
          ("gtkmm40           ", gtkmm40),
          ("gtksourceview3    ", gtksourceview3),
+         ("gtksourceview4    ", gtksourceview4),
+         ("gtksourceview5    ", gtksourceview5),
          ("intltool          ", intltool),
          ("introspection     ", introspection),
          ("libcroco          ", libcroco),

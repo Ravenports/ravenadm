@@ -3068,21 +3068,22 @@ package body Port_Specification.Transform is
             when glibmm24 =>
                add_primdev_submodule (specs, "glibmm24");
             when gtk2 =>
-               add_build_depends (specs, "gtk2:dev:standard");
-               add_buildrun_depends (specs, "gtk2" & ps);
+               add_primdev_submodule (specs, "gtk2");
             when gtk3 =>
-               add_build_depends (specs, "gtk3:dev:standard");
-               add_buildrun_depends (specs, "gtk3" & ps);
+               add_primdev_submodule (specs, "gtk3");
                add_run_depends (specs, "adwaita-icon-theme" & ss);
             when gtk4 =>
-               add_build_depends (specs, "gtk4:dev:standard");
-               add_buildrun_depends (specs, "gtk4" & ps);
+               add_primdev_submodule (specs, "gtk4");
             when gtkmm30 =>
                add_primdev_submodule (specs, "gtkmm30");
             when gtkmm40 =>
                add_primdev_submodule (specs, "gtkmm40");
             when gtksourceview3 =>
-               add_buildrun_depends (specs, "gtksourceview3" & ps);
+               add_primdev_submodule (specs, "gtksourceview3");
+            when gtksourceview4 =>
+               add_primdev_submodule (specs, "gtksourceview4");
+            when gtksourceview5 =>
+               add_primdev_submodule (specs, "gtksourceview5");
             when intltool =>
                add_build_depends    (specs, "intltool" & ss);
             when introspection =>
