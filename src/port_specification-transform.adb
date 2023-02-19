@@ -1441,6 +1441,17 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
+   --  apply_pcre2_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_pcre2_module (specs : in out Portspecs)
+   is
+      pcre2 : constant String := "pcre2";
+   begin
+      generic_devlib_module (specs, pcre2, pcre2);
+   end apply_pcre2_module;
+
+
+   --------------------------------------------------------------------------------------------
    --  apply_info_presence
    --------------------------------------------------------------------------------------------
    procedure apply_info_presence (specs : in out Portspecs)
