@@ -2144,36 +2144,13 @@ package body Port_Specification.Transform is
    procedure apply_bdb_module (specs : in out Portspecs)
    is
       module       : String  := "bdb";
-      dep_static_5 : String  := "db5:static:standard";
-      dep_shared_5 : String  := "db5:shared:standard";
-      dep_static_6 : String  := "db6:static:standard";
-      dep_shared_6 : String  := "db6:shared:standard";
-      dep_static_7 : String  := "db18:static:standard";
-      dep_shared_7 : String  := "db18:shared:standard";
-      need_static  : Boolean := False;
    begin
-      if not specs.uses_base.Contains (HT.SUS (module)) then
-         return;
-      end if;
-      if argument_present (specs, module, "static") then
-         need_static := True;
-      end if;
-
       if argument_present (specs, module, "6") then
-         add_build_depends (specs, dep_static_6);
-         if not need_static then
-            add_buildrun_depends (specs, dep_shared_6);
-         end if;
+         generic_devlib_module (specs, module, "db6");
       elsif argument_present (specs, module, "18") then
-         add_build_depends (specs, dep_static_7);
-         if not need_static then
-            add_buildrun_depends (specs, dep_shared_7);
-         end if;
+         generic_devlib_module (specs, module, "db18");
       else
-         add_build_depends (specs, dep_static_5);
-         if not need_static then
-            add_buildrun_depends (specs, dep_shared_5);
-         end if;
+         generic_devlib_module (specs, module, "db5");
       end if;
    end apply_bdb_module;
 
