@@ -3089,9 +3089,9 @@ package body Port_Specification.Transform is
                specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
             when libcroco =>
-               add_buildrun_depends (specs, "libcroco" & ps);
+               add_primdev_submodule (specs, "libcroco");
             when libglade =>
-               add_buildrun_depends (specs, "libglade" & ss);
+               add_primdev_submodule (specs, "libglade");
             when libgsf =>
                add_buildrun_depends (specs, "libgsf" & ps);
             when libidl =>
