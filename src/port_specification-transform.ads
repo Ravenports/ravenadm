@@ -142,9 +142,6 @@ private
    procedure generic_dev_require    (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
-   procedure generic_3BR_module     (specs      : in out Portspecs;
-                                     module     : String;
-                                     dependency : String);
    procedure generic_3B_module      (specs      : in out Portspecs;
                                      module     : String;
                                      dependency : String);
