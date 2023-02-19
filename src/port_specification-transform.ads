@@ -65,7 +65,6 @@ private
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:primary:standard";
    GLIBDEV  : constant String := "glib:dev:standard";
-   FCDEV    : constant String := "fontconfig:dev:standard";
    GTDEV    : constant String := "gettext:dev:standard";
    GTBTOOLS : constant String := "gettext:bldtools:standard";
    GTSOLINX : constant String := "gettext:solinks:standard";
