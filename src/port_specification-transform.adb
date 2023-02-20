@@ -966,8 +966,9 @@ package body Port_Specification.Transform is
       dependency : constant String := "rust:single:standard";
    begin
       generic_build_module (specs, module, dependency);
-
-      add_primdev_submodule (specs, "libexecinfo");
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_primdev_submodule (specs, "libexecinfo");
+      end if;
    end apply_cargo_module;
 
 
