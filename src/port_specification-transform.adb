@@ -962,10 +962,11 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_cargo_module (specs : in out Portspecs)
    is
-      module     : String := "cargo";
-      dependency : String := "rust:single:standard";
+      module     : constant String := "cargo";
+      dependency : constant String := "rust:single:standard";
    begin
       generic_build_module (specs, module, dependency);
+      add_primdev_submodule (specs, "execinfo");
    end apply_cargo_module;
 
 
