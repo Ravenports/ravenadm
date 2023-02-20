@@ -967,7 +967,7 @@ package body Port_Specification.Transform is
    begin
       generic_build_module (specs, module, dependency);
       if specs.uses_base.Contains (HT.SUS (module)) then
-         add_primdev_submodule (specs, "libexecinfo");
+         add_build_depends (specs, "libexecinfo:dev:standard");
       end if;
    end apply_cargo_module;
 
