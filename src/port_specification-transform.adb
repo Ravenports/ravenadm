@@ -299,6 +299,7 @@ package body Port_Specification.Transform is
       apply_mime_info_module (specs);
       apply_autoconf_module (specs);
       apply_execinfo_module (specs);
+      apply_freetype_module (specs);
       apply_display_module (specs);
       apply_sqlite_module (specs);
       apply_cmake_module (specs);
@@ -1453,6 +1454,17 @@ package body Port_Specification.Transform is
    begin
       generic_devlib_module (specs, pcre2, pcre2);
    end apply_pcre2_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_freetype_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_freetype_module (specs : in out Portspecs)
+   is
+      freetype : constant String := "freetype";
+   begin
+      generic_devlib_module (specs, freetype, freetype);
+   end apply_freetype_module;
 
 
    --------------------------------------------------------------------------------------------

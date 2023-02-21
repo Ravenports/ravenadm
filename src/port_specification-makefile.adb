@@ -1218,7 +1218,7 @@ package body Port_Specification.Makefile is
       --  Some modules are implemented entirely in ravenadm, so don't output them
       --  to the makefile which add unnecessary includes commands.
 
-      total_modules : constant Positive := 29;
+      total_modules : constant Positive := 30;
 
       subtype uses_string is String (1 .. 13);
 
@@ -1237,6 +1237,7 @@ package body Port_Specification.Makefile is
          "expat        ",
          "fontconfig   ",
          "fortran      ",
+         "freetype     ",
          "gif          ",
          "gprbuild     ",
          "jpeg         ",
