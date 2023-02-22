@@ -3166,6 +3166,8 @@ package body Port_Specification.Transform is
             add_build_depends (specs, dependency);
          elsif component = "xfont2" then
             add_primdev_submodule (specs, "xorg-xfont2");
+         elsif component = "xft" then
+            add_primdev_submodule (specs, "xorg-xft");
          else
             add_buildrun_depends (specs, dependency);
          end if;
