@@ -3164,6 +3164,8 @@ package body Port_Specification.Transform is
       begin
          if HT.trails (component, "proto") then
             add_build_depends (specs, dependency);
+         elsif component = "xfont2" then
+            add_primdev_submodule (specs, "xorg-xfont2");
          else
             add_buildrun_depends (specs, dependency);
          end if;
