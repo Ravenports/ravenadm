@@ -952,7 +952,7 @@ package body Port_Specification.Transform is
    procedure apply_gmake_module (specs : in out Portspecs)
    is
       module     : String := "gmake";
-      dependency : String := "gmake:single:ravensys";
+      dependency : String := "gmake:primary:standard";
    begin
       generic_build_module (specs, module, dependency);
    end apply_gmake_module;
@@ -967,9 +967,6 @@ package body Port_Specification.Transform is
       dependency : constant String := "rust:single:standard";
    begin
       generic_build_module (specs, module, dependency);
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, "libexecinfo:dev:standard");
-      end if;
    end apply_cargo_module;
 
 
