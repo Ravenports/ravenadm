@@ -3160,8 +3160,9 @@ package body Port_Specification.Transform is
    is
       procedure import (position : string_crate.Cursor);
 
-      --  All xorg components have this format : xorg-{COMPONENT}:single:standard
-      --  All xorg components ending in "proto" are build-only depends
+      --  All xorg components have this format : xorg-{COMPONENT}:primary:standard
+      --      exceptions: xorg-xbitmaps
+      --  All xorg components ending in "proto" are build-only depends (single)
       --      The rest are considered libraries (buildrun type)
       --  All libraries depend on pkgconfig and xorg-macros
 
@@ -3172,7 +3173,9 @@ package body Port_Specification.Transform is
          component_text : HT.Text renames string_crate.Element (position);
          component  : constant String := HT.USS (component_text);
       begin
-         if HT.trails (component, "proto") then
+         if HT.trails (component, "proto") or else
+           component = "xbitmaps"
+         then
             add_build_depends (specs, "xorg-" & component & ":single:standard");
          else
             add_primdev_submodule (specs, "xorg-" & component);
