@@ -3892,7 +3892,6 @@ package body Port_Specification is
         (
          ("INVALID           ", invalid_component),
          ("dmx               ", dmx),
-         ("fontcacheproto    ", fontcacheproto),
          ("fontenc           ", fontenc),
          ("fontutil          ", fontutil),
          ("ice               ", ice),
