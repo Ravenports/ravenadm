@@ -1647,11 +1647,9 @@ package body Port_Specification.Transform is
       if specs.uses_base.Contains (HT.SUS (gettext)) then
          add_build_depends (specs, GTDEV);
          add_build_depends (specs, GTBTOOLS);
-         if argument_present (specs, gettext, BUILD) then
-            add_build_depends (specs, GTTOOLS);
-         else
+         add_build_depends (specs, GTTOOLS);
+         if not argument_present (specs, gettext, BUILD) then
             add_build_depends (specs, GTSOLINX);
-            add_buildrun_depends (specs, GTTOOLS);
             add_buildrun_depends (specs, GTLIB);
             if argument_present (specs, gettext, "asprintf") then
                add_buildrun_depends (specs, "gettext:asprintf:standard");
