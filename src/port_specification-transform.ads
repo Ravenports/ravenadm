@@ -194,9 +194,8 @@ private
    --  True for all defaults as they get formed
    function transform_defaults (dep, pyx, plx, lux, rbx : String) return String;
 
-   --  Returns XXXX:server:standard or XXXX:client:standard depending on server value
-   --  and mysql configuration setting
-   function determine_mysql_package (server : Boolean) return String;
+   --  Returns mysql namebase based on mysql configuration setting
+   function determine_mysql_namebase return String;
 
    --  Returns XXXX based on pgsql configuration setting
    function determine_pgsql_namebase return String;

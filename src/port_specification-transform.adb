@@ -1254,15 +1254,17 @@ package body Port_Specification.Transform is
       function determine_dependency return String is
       begin
          if argument_present (specs, module, "server") then
-            return determine_mysql_package (True);
+            return determine_mysql_namebase & ":server:standard";
          else
-            return determine_mysql_package (False);
+            return determine_mysql_namebase & ":client:standard";
          end if;
       end determine_dependency;
 
       dependency : String := determine_dependency;
+      dev_package : String := determine_mysql_namebase & ":dev:standard";
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dev_package);
          if argument_present (specs, module, "build") then
             add_build_depends (specs, dependency);
          else
@@ -2675,7 +2677,7 @@ package body Port_Specification.Transform is
             end;
          elsif exrundep = "mysql" then
             --  only mysql:client is supported by EXRUN
-            Element := HT.SUS (determine_mysql_package (False));
+            Element := HT.SUS (determine_mysql_namebase & ":client:standard");
          elsif exrundep = "pgsql" then
             --  only pgsql:client is supported by EXRUN
             Element := HT.SUS (determine_pgsql_namebase & ":client:standard");
@@ -3225,45 +3227,41 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  determine_mysql_package
    --------------------------------------------------------------------------------------------
-   function determine_mysql_package (server : Boolean) return String
+   function determine_mysql_namebase return String
    is
-      suffix  : String := ":client:standard";
       setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
    begin
-      if server then
-         suffix := ":server:standard";
-      end if;
       if setting = "oracle-5.7" then
-         return "mysql57" & suffix;
+         return "mysql57";
       elsif setting = "mariadb-10.3" then
-         return "mariadb103" & suffix;
+         return "mariadb103";
       elsif setting = "mariadb-10.4" then
-         return "mariadb104" & suffix;
+         return "mariadb104";
       elsif setting = "mariadb-10.5" then
-         return "mariadb105" & suffix;
+         return "mariadb105";
       elsif setting = "mariadb-10.6" then
-         return "mariadb106" & suffix;
+         return "mariadb106";
       elsif setting = "mariadb-10.7" then
-         return "mariadb106" & suffix;
+         return "mariadb106";
       elsif setting = "mariadb-10.8" then
-         return "mariadb106" & suffix;
+         return "mariadb106";
       elsif setting = "mariadb-10.9" then
-         return "mariadb106" & suffix;
+         return "mariadb106";
       elsif setting = "mariadb-10.10" then
-         return "mariadb106" & suffix;
+         return "mariadb106";
       elsif setting = "percona-5.6" then
-         return "percona56" & suffix;
+         return "percona56";
       elsif setting = "percona-5.7" then
-         return "percona57" & suffix;
+         return "percona57";
       elsif setting = "percona-8.0" then
-         return "percona80" & suffix;
+         return "percona80";
       else
          --  case: setting = ports_default
          --  case: setting = default_mysql
          --  case: setting = invalid value
-         return "mysql80" & suffix;
+         return "mysql80";
       end if;
-   end determine_mysql_package;
+   end determine_mysql_namebase;
 
 
    --------------------------------------------------------------------------------------------
