@@ -3925,7 +3925,6 @@ package body Port_Specification is
          ("xmu               ", xmu),
          ("xorgproto         ", xorgproto),
          ("xpm               ", xpm),
-         ("xprop             ", xprop),
          ("xrandr            ", xrandr),
          ("xrender           ", xrender),
          ("xres              ", xres),
