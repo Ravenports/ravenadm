@@ -371,7 +371,7 @@ private
       xcb_util, xcb_util_cursor, xcb_util_image, xcb_util_keysyms, xcb_util_wm, xcb_util_xrm,
       xcb_render_util, xcomposite, xcursor, xdamage, xdmcp, xext, xfixes, xfont, xfont2,
       xft, xi, xinerama, xkbfile, xmu, xpm, xrandr, xrender, xres,
-      xscrnsaver, xset, xshmfence, xt, xtst, xv, xvmc, xxf86dga, xxf86vm, xbitmaps,
+      xscrnsaver, xshmfence, xt, xtst, xv, xvmc, xxf86dga, xxf86vm, xbitmaps,
       invalid_component);
 
    type sdl_type is

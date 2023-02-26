@@ -3929,7 +3929,6 @@ package body Port_Specification is
          ("xrender           ", xrender),
          ("xres              ", xres),
          ("xscrnsaver        ", xscrnsaver),
-         ("xset              ", xset),
          ("xshmfence         ", xshmfence),
          ("xt                ", xt),
          ("xtransproto       ", xtransproto),
