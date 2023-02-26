@@ -1631,7 +1631,7 @@ package body Port_Specification.Transform is
    procedure apply_desktop_utils_module (specs : in out Portspecs)
    is
       module     : String := "desktop-utils";
-      dependency : String := "desktop-file-utils:single:standard";
+      dependency : String := "desktop-file-utils:primary:standard";
    begin
       generic_library_module (specs, module, dependency);
    end apply_desktop_utils_module;
