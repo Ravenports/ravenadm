@@ -3918,7 +3918,6 @@ package body Port_Specification is
          ("xfixes            ", xfixes),
          ("xfont             ", xfont),
          ("xfont2            ", xfont2),
-         ("xfontcache        ", xfontcache),
          ("xft               ", xft),
          ("xi                ", xi),
          ("xinerama          ", xinerama),
