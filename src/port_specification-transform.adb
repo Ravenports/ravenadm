@@ -1506,7 +1506,7 @@ package body Port_Specification.Transform is
    procedure apply_pkgconfig_module (specs : in out Portspecs)
    is
       module     : String := "pkgconfig";
-      dependency : String := "pkgconf:single:standard";
+      dependency : String := "pkgconf:primary:standard";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -3166,30 +3166,24 @@ package body Port_Specification.Transform is
       --  All libraries depend on pkgconfig and xorg-macros
 
       uses_xorg : Boolean := False;
-      ss        : constant String := ":single:standard";
 
       procedure import (position : string_crate.Cursor)
       is
          component_text : HT.Text renames string_crate.Element (position);
          component  : constant String := HT.USS (component_text);
-         dependency : constant String := "xorg-" & component & ss;
       begin
          if HT.trails (component, "proto") then
-            add_build_depends (specs, dependency);
-         elsif component = "xfont2" then
-            add_primdev_submodule (specs, "xorg-xfont2");
-         elsif component = "xft" then
-            add_primdev_submodule (specs, "xorg-xft");
+            add_build_depends (specs, "xorg-" & component & ":single:standard");
          else
-            add_buildrun_depends (specs, dependency);
+            add_primdev_submodule (specs, "xorg-" & component);
          end if;
          uses_xorg := True;
       end import;
    begin
       specs.xorg_comps.Iterate (import'Access);
       if uses_xorg and then not HT.trails (specs.get_namebase, "proto") then
-         add_build_depends (specs, "xorg-macros" & ss);
-         add_build_depends (specs, "pkgconf" & ss);
+         add_build_depends (specs, "xorg-macros:single:standard");
+         add_build_depends (specs, "pkgconf:primary:standard");
       end if;
    end apply_xorg_components_dependencies;
 
