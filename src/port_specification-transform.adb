@@ -1011,10 +1011,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mesa_module (specs : in out Portspecs)
    is
-      module     : String := "mesa";
-      dependency : String := "mesa:libs:standard";
+      mesa : String := "mesa";
    begin
-      generic_library_module (specs, module, dependency);
+      generic_devlib_module (specs, mesa, mesa);
    end apply_mesa_module;
 
 
