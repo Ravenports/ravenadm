@@ -1214,30 +1214,43 @@ package body Port_Specification.Transform is
    procedure apply_firebird_module (specs : in out Portspecs)
    is
       function determine_dependency return String;
+      function determine_firebird_namebase return String;
 
       module : String := "firebird";
 
-      function determine_dependency return String
+      function determine_firebird_namebase return String
       is
-         suffix  : String := ":client:standard";
          setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
       begin
-         if argument_present (specs, module, "server") then
-            suffix := ":server:standard";
-         end if;
          if setting = "3.0" then
-            return "firebird30" & suffix;
+            return "firebird30";
+         elsif setting = "4.0" then
+            return "firebird40";
          else
-            --  case: setting = ports_default
-            --  case: setting = default_firebird
-            --  case: setting = invalid value
-            return "firebird25" & suffix;
+            return "firebird25";
+         end if;
+      end determine_firebird_namebase;
+
+      function determine_dependency return String is
+      begin
+         if argument_present (specs, module, "server") then
+            return determine_firebird_namebase & ":server:standard";
+         else
+            return determine_firebird_namebase & ":client:standard";
          end if;
       end determine_dependency;
 
       dependency : String := determine_dependency;
+      dev_package : String := determine_firebird_namebase & ":dev:standard";
    begin
-      generic_library_module (specs, module, dependency);
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, dev_package);
+         if argument_present (specs, module, "build") then
+            add_build_depends (specs, dependency);
+         else
+            add_buildrun_depends (specs, dependency);
+         end if;
+      end if;
    end apply_firebird_module;
 
 
