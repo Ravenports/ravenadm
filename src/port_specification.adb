@@ -3897,7 +3897,6 @@ package body Port_Specification is
          ("ice               ", ice),
          ("pciaccess         ", pciaccess),
          ("pixman            ", pixman),
-         ("printproto        ", printproto),
          ("sm                ", sm),
          ("x11               ", x11),
          ("xau               ", xau),

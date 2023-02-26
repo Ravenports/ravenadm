@@ -366,7 +366,7 @@ private
       invalid_component);
 
    type xorg_type is
-     (xorgproto, printproto, xtransproto,
+     (xorgproto, xtransproto,
       dmx, fontenc, fontutil, ice, pciaccess, pixman, sm, x11, xau, xaw, xcb,
       xcb_util, xcb_util_cursor, xcb_util_image, xcb_util_keysyms, xcb_util_wm, xcb_util_xrm,
       xcb_render_util, xcomposite, xcursor, xdamage, xdmcp, xext, xfixes, xfont, xfont2,
