@@ -1305,6 +1305,7 @@ package body Port_Specification.Transform is
       end set_dependency_on_subpackage;
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
+         add_build_depends (specs, namebase & ":dev:standard");
          if no_arguments_present (specs, module) then
             set_dependency ("client");
          elsif argument_present (specs, module, "all") then
