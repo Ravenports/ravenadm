@@ -2180,11 +2180,9 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_bdb_module (specs : in out Portspecs)
    is
-      module       : String  := "bdb";
+      module : String  := "bdb";
    begin
-      if argument_present (specs, module, "6") then
-         generic_devlib_module (specs, module, "db6");
-      elsif argument_present (specs, module, "18") then
+      if argument_present (specs, module, "18") then
          generic_devlib_module (specs, module, "db18");
       else
          generic_devlib_module (specs, module, "db5");
