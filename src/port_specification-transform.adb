@@ -3249,14 +3249,14 @@ package body Port_Specification.Transform is
          return "mariadb105";
       elsif setting = "mariadb-10.6" then
          return "mariadb106";
-      elsif setting = "mariadb-10.7" then
-         return "mariadb106";
       elsif setting = "mariadb-10.8" then
-         return "mariadb106";
+         return "mariadb108";
       elsif setting = "mariadb-10.9" then
-         return "mariadb106";
+         return "mariadb109";
       elsif setting = "mariadb-10.10" then
-         return "mariadb106";
+         return "mariadb1010";
+      elsif setting = "mariadb-10.11" then
+         return "mariadb1011";
       elsif setting = "percona-5.6" then
          return "percona56";
       elsif setting = "percona-5.7" then
