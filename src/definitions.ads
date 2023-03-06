@@ -56,7 +56,7 @@ package Definitions is
    jobs_per_cpu      : constant := 2;
    task_stack_limit  : constant := 10_000_000;
 
-   type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos);
+   type supported_opsys is (dragonfly, freebsd, netbsd, openbsd, sunos, linux, macos, midnight);
    type supported_arch  is (x86_64, i386, aarch64);
 
    type cpu_range is range 1 .. 64;

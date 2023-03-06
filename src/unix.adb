@@ -205,7 +205,7 @@ package body Unix is
       result     : HT.Text;
    begin
       case platform_type is
-         when freebsd | dragonfly | linux | netbsd | openbsd =>
+         when freebsd | dragonfly | linux | netbsd | openbsd | midnight =>
             filestream := popen (IC.To_C (command & redirect), popen_re);
          when macos | sunos =>
             filestream := popen (IC.To_C (command & redirect), popen_r);
@@ -233,7 +233,7 @@ package body Unix is
       status     : Integer;
    begin
       case platform_type is
-         when freebsd | dragonfly | linux | netbsd | openbsd =>
+         when freebsd | dragonfly | linux | netbsd | openbsd | midnight =>
             filestream := popen (IC.To_C (command & redirect), popen_re);
          when macos | sunos =>
             filestream := popen (IC.To_C (command & redirect), popen_r);

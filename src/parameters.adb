@@ -227,7 +227,7 @@ package body Parameters is
    begin
       memory_megs := 1024;
       case platform_type is
-         when dragonfly | freebsd | openbsd =>
+         when dragonfly | freebsd | openbsd | midnight =>
             content := Unix.piped_command (bsd_command, status);
          when netbsd =>
             content := Unix.piped_command (net_command, status);
@@ -378,7 +378,8 @@ package body Parameters is
                  freebsd   |
                  macos     |
                  netbsd    |
-                 openbsd   => query_physical_memory;
+                 openbsd   |
+                 midnight  => query_physical_memory;
          end case;
       end if;
       megs_per_slave := memory_megs / Positive (num_builders);
@@ -733,7 +734,7 @@ package body Parameters is
       --      UltraSPARC-T2+ (cpuid 64 clock 1165 MHz)
 
       case platform_type is
-         when dragonfly | freebsd | netbsd | openbsd =>
+         when dragonfly | freebsd | netbsd | openbsd | midnight =>
             comres := Unix.piped_command (bsd_cmd, status);
          when macos =>
             comres := Unix.piped_command (mac_cmd, status);
@@ -748,6 +749,7 @@ package body Parameters is
 
       case platform_type is
          when dragonfly | freebsd | macos => start := 10;
+         when midnight                    => start := 10;
          when linux                       => start := 1;
          when netbsd                      => start := 11;
          when openbsd                     => start := 9;

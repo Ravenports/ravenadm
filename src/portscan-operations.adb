@@ -1335,7 +1335,16 @@ package body PortScan.Operations is
                abi_formats.calculated_alt_abi := HT.SUS (open2);
                craft_common_endings (release);
             end;
-         when sunos   =>
+         when midnight =>
+            declare
+               mbsd1   : constant String := "MidnightBSD:";
+               mbsd2   : constant String := "midnightbsd:";
+            begin
+               abi_formats.calculated_abi     := HT.SUS (mbsd1);
+               abi_formats.calculated_alt_abi := HT.SUS (mbsd2);
+               craft_common_endings (release);
+            end;
+         when sunos =>
             declare
                sol1    : constant String := "Solaris:";
                sol2    : constant String := "solaris:";
@@ -1345,7 +1354,7 @@ package body PortScan.Operations is
                abi_formats.calculated_alt_abi := HT.SUS (sol2);
                craft_common_endings (solrel);
             end;
-         when macos   =>
+         when macos =>
             --  Hardcode i386 for now until pkg(8) fixed to provide correct arch
             abi_formats.calculated_abi     := HT.SUS ("Darwin:" & release & ":");
             abi_formats.calculated_alt_abi := HT.SUS ("darwin:" & release & ":");
@@ -1355,7 +1364,7 @@ package body PortScan.Operations is
             HT.SU.Append (abi_formats.calculated_alt_abi, "i386:32");
             HT.SU.Append (abi_formats.calc_abi_noarch, "*");
             HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
-         when linux   =>
+         when linux =>
             declare
                sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
                command : constant String := sysroot & "/usr/bin/file -m " & sysroot &
@@ -2504,7 +2513,7 @@ package body PortScan.Operations is
    function swapinfo_command return String is
    begin
       case platform_type is
-         when dragonfly | freebsd =>
+         when dragonfly | freebsd | midnight =>
             return "/usr/sbin/swapinfo -k";
          when netbsd | openbsd =>
             return "/sbin/swapctl -lk";
@@ -2567,7 +2576,7 @@ package body PortScan.Operations is
             return 200.0;  --  [ERROR] Signal to set swap display to "N/A"
          end if;
          case platform_type is
-            when freebsd | dragonfly | netbsd | openbsd | linux | sunos =>
+            when freebsd | dragonfly | netbsd | openbsd | linux | sunos | midnight =>
                --  Normally 1 swap line, but there is no limit
                loop
                   exit when not HT.next_line_present (command_result, markers);
@@ -2576,7 +2585,7 @@ package body PortScan.Operations is
                        HT.strip_excessive_spaces (HT.extract_line (command_result, markers));
                   begin
                      case platform_type is
-                        when freebsd | dragonfly | netbsd | openbsd =>
+                        when freebsd | dragonfly | netbsd | openbsd | midnight =>
                            if HT.specific_field (line, 1) /= "Total" then
                               blocks_total := blocks_total +
                                               memtype'Value (HT.specific_field (line, 2));

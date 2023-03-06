@@ -24,6 +24,7 @@ package body Utilities is
          when sunos     => return "sunos";
          when linux     => return "linux";
          when macos     => return "darwin";
+         when midnight  => return "midnightbsd";
       end case;
    end lower_opsys;
 
@@ -41,6 +42,7 @@ package body Utilities is
          when sunos     => return "SunOS";
          when linux     => return "Linux";
          when macos     => return "Darwin";
+         when midnight  => return "MidnightBSD";
       end case;
    end mixed_opsys;
 

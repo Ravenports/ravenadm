@@ -162,6 +162,7 @@ package body Repository is
                  freebsd   |
                  netbsd    |
                  openbsd   |
+                 midnight  |
                  macos     => return "/usr/bin/stat -f %Lp ";
             when linux     |
                  sunos     => return "/usr/bin/stat -L --format=%a ";
