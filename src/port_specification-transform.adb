@@ -2990,7 +2990,7 @@ package body Port_Specification.Transform is
          case comp is
             when invalid_component => null;  --  should be impossible
             when atk =>
-               add_primdev_submodule (specs, "atk");
+               add_primdev_submodule (specs, "at-spi2-core");
             when atkmm =>
                add_primdev_submodule (specs, "atkmm");
             when atkmm16 =>
