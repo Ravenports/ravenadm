@@ -364,6 +364,7 @@ package body Port_Specification.Web is
          trunk : constant String := portdir & "/descriptions/desc.";
          desc1 : constant String := trunk & subpackage & "." & variant;
          desc2 : constant String := trunk & subpackage;
+         final : constant String := " subpackage of the " & id2 & " port.";
       begin
          if DIR.Exists (desc1) then
             return FOP.get_file_contents (desc1);
@@ -371,11 +372,18 @@ package body Port_Specification.Web is
             return FOP.get_file_contents (desc2);
          end if;
          if subpackage = "docs" then
-            return "This is the documents subpackage of the " & id2 & " port.";
+            return "This is the documents" & final;
          elsif subpackage = "examples" then
-            return "This is the examples subpackage of the " & id2 & " port.";
+            return "This is the examples" & final;
          elsif subpackage = "nls" then
-            return "This is the native language support subpackage of the " & id2 & " port.";
+            return "This is the native language support" & final;
+         elsif subpackage = "man" then
+            return "This is the man page" & final;
+         elsif subpackage = "lang" then
+            return "This is the language" & final;
+         elsif subpackage = "dev" then
+            return "This is the developer" & final & LAT.LF &
+              "It may contain headers, pc files, static and PIC libraries and SO links.";
          elsif subpackage = "complete" then
             return
               "This is the " & id2 & " metapackage." & LAT.LF &
