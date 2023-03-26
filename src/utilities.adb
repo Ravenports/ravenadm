@@ -17,14 +17,14 @@ package body Utilities is
    function lower_opsys (opsys : supported_opsys) return String is
    begin
       case opsys is
-         when dragonfly => return "dragonfly";
-         when freebsd   => return "freebsd";
-         when netbsd    => return "netbsd";
-         when openbsd   => return "openbsd";
-         when sunos     => return "sunos";
-         when linux     => return "linux";
-         when macos     => return "darwin";
-         when midnight  => return "midnightbsd";
+         when dragonfly   => return "dragonfly";
+         when freebsd     => return "freebsd";
+         when netbsd      => return "netbsd";
+         when openbsd     => return "openbsd";
+         when sunos       => return "sunos";
+         when linux       => return "linux";
+         when macos       => return "darwin";
+         when midnightbsd => return "midnightbsd";
       end case;
    end lower_opsys;
 
@@ -35,14 +35,14 @@ package body Utilities is
    function mixed_opsys (opsys : supported_opsys) return String is
    begin
       case opsys is
-         when dragonfly => return "DragonFly";
-         when freebsd   => return "FreeBSD";
-         when netbsd    => return "NetBSD";
-         when openbsd   => return "OpenBSD";
-         when sunos     => return "SunOS";
-         when linux     => return "Linux";
-         when macos     => return "Darwin";
-         when midnight  => return "MidnightBSD";
+         when dragonfly   => return "DragonFly";
+         when freebsd     => return "FreeBSD";
+         when netbsd      => return "NetBSD";
+         when openbsd     => return "OpenBSD";
+         when sunos       => return "SunOS";
+         when linux       => return "Linux";
+         when macos       => return "Darwin";
+         when midnightbsd => return "MidnightBSD";
       end case;
    end mixed_opsys;
 

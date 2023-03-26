@@ -1150,7 +1150,7 @@ package body PortScan.Buildcycle is
          sol  : constant String := "/usr/bin/uptime";
       begin
          case platform_type is
-            when dragonfly | freebsd | midnight =>
+            when dragonfly | freebsd | midnightbsd =>
                lo := 14;
                return generic_system_command (bsd);
             when macos =>
@@ -1169,7 +1169,7 @@ package body PortScan.Buildcycle is
          when others =>
             case platform_type is
                when dragonfly | freebsd |
-                    macos | midnight            => return "vm.loadavg: { 0.00 0.00 0.00 }";
+                    macos | midnightbsd         => return "vm.loadavg: { 0.00 0.00 0.00 }";
                when netbsd | openbsd            => return "vm.loadavg: 0.00 0.00 0.00";
                when linux                       => return "0.00 0.00 0.00";
                when sunos                       => return "load average: 0.00, 0.00, 0.00";
@@ -1179,7 +1179,7 @@ package body PortScan.Buildcycle is
       comres : constant String := probe_load;
    begin
       case platform_type is
-         when dragonfly | freebsd | netbsd | openbsd | linux | macos | midnight =>
+         when dragonfly | freebsd | netbsd | openbsd | linux | macos | midnightbsd =>
             declare
                stripped : constant String := comres (comres'First + lo .. comres'Last);
             begin

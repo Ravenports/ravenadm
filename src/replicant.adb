@@ -47,10 +47,10 @@ package body Replicant is
       case platform_type is
          when dragonfly |
               freebsd   |
-              midnight  |
               macos     |
               netbsd    |
-              openbsd   =>
+              openbsd   |
+              midnightbsd =>
             DIR.Copy_File (sretc & passwd, mm & passwd);
             DIR.Copy_File (sretc & maspas, mm & maspas);
             DIR.Copy_File (sretc & group,  mm & group);
@@ -64,7 +64,7 @@ package body Replicant is
               freebsd   |
               netbsd    |
               openbsd   |
-            midnight    =>
+              midnightbsd =>
             DIR.Copy_File (sretc & spwd, mm & spwd);
             DIR.Copy_File (sretc & pwd,  mm & pwd);
          when linux     |
@@ -76,7 +76,7 @@ package body Replicant is
               freebsd   |
               netbsd    |
               openbsd   |
-              midnight  =>
+              midnightbsd =>
             DIR.Copy_File (sretc & rcconf, mm & rcconf);
          when linux     |
               macos     |
@@ -87,7 +87,7 @@ package body Replicant is
             DIR.Copy_File (sretc & hints, mm & hints);
          when freebsd   =>
             DIR.Copy_File (sretc & hints, mm & hints);
-         when midnight  =>
+         when midnightbsd =>
             DIR.Copy_File (sretc & hints, mm & hints);
          when openbsd   =>
             DIR.Copy_File (sretc & nhints, mm & nhints);
@@ -489,7 +489,7 @@ package body Replicant is
       function opsys_specific return String is
       begin
          case platform_type is
-            when freebsd | dragonfly | netbsd | openbsd | midnight =>
+            when freebsd | dragonfly | netbsd | openbsd | midnightbsd =>
                return "./libexec" & LAT.LF;
             when linux =>
                return "./lib" & LAT.LF & "./lib64" & LAT.LF;
@@ -568,8 +568,8 @@ package body Replicant is
    begin
       case platform_type is
          when freebsd   |
-              midnight  |
-              macos     => return "/bin/df -h";
+              macos     |
+              midnightbsd => return "/bin/df -h";
          when dragonfly |
               netbsd    |
               openbsd   => return "/bin/df -h -t null,tmpfs,devfs,procfs";
@@ -598,10 +598,10 @@ package body Replicant is
             case platform_type is
                when dragonfly |
                     freebsd   |
-                    midnight  |
                     macos     |
                     netbsd    |
-                    openbsd   => execute (bsd_command);
+                    openbsd   |
+                    midnightbsd => execute (bsd_command);
                when linux     => execute (lin_command);
                when sunos     => execute (sol_command);
             end case;
@@ -643,7 +643,7 @@ package body Replicant is
 
       case platform_type is
          when freebsd   |
-              midnight  => command := HT.SUS (cmd_freebsd);
+              midnightbsd => command := HT.SUS (cmd_freebsd);
          when dragonfly |
               netbsd    => command := HT.SUS (cmd_dragonfly);
          when sunos     => command := HT.SUS (cmd_solaris);
@@ -678,7 +678,7 @@ package body Replicant is
       case platform_type is
          when freebsd   |
               netbsd    |
-              midnight  => command := HT.SUS (cmd_freebsd);
+              midnightbsd => command := HT.SUS (cmd_freebsd);
          when dragonfly => command := HT.SUS (cmd_dragonfly);
          when sunos     => command := HT.SUS (cmd_solaris);
          when linux     => command := HT.SUS (cmd_linux);
@@ -702,8 +702,8 @@ package body Replicant is
          when freebsd   |
               dragonfly |
               netbsd    |
-              midnight  |
-              linux     => HT.SU.Append (command, " tmpfs " & mount_point);
+              linux     |
+              midnightbsd => HT.SU.Append (command, " tmpfs " & mount_point);
          when macos     => null;
          when openbsd   => null;
       end case;
@@ -722,8 +722,8 @@ package body Replicant is
       case platform_type is
          when dragonfly |
               freebsd   |
-              midnight  |
-              macos     => execute (bsd_command);
+              macos     |
+              midnightbsd => execute (bsd_command);
          when linux     => execute (lin_command);
          when netbsd    |
               openbsd   |
@@ -753,7 +753,7 @@ package body Replicant is
       case platform_type is
          when dragonfly |
               freebsd   |
-              midnight  => execute (bsd_command);
+              midnightbsd => execute (bsd_command);
          when netbsd    |
               openbsd   => execute (net_command);
          when linux     => execute (lin_command);
@@ -1035,7 +1035,7 @@ package body Replicant is
             mount_nullfs (location (dir_system, usr), location (slave_base, usr));
       end case;
       case platform_type is
-         when freebsd | dragonfly | netbsd | openbsd | midnight =>
+         when freebsd | dragonfly | netbsd | openbsd | midnightbsd =>
             --  should be limited to rtld executable
             if PM.configuration.avoid_tmpfs then
                mount_hardlink (target      => location (dir_system, libexec),
@@ -1140,7 +1140,7 @@ package body Replicant is
             unmount (location (slave_base, usr));
       end case;
       case platform_type is
-         when freebsd | dragonfly | netbsd | openbsd | midnight =>
+         when freebsd | dragonfly | netbsd | openbsd | midnightbsd =>
             null;  --  libexec is copied now
          when linux =>
             unmount (location (slave_base, lib));
@@ -1277,7 +1277,7 @@ package body Replicant is
       nhints : constant String := "/ld.so.hints";
    begin
       case platform_type is
-         when dragonfly | freebsd | midnight =>
+         when dragonfly | freebsd | midnightbsd =>
             DIR.Copy_File (mm & hints, path_to_varrun & hints);
          when openbsd =>
             DIR.Copy_File (mm & nhints, path_to_varrun & nhints);
