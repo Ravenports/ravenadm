@@ -1081,6 +1081,7 @@ package body Replicant is
       populate_var_folder      (location (slave_base, var));
       copy_rc_default          (etc_path);
       copy_resolv_conf         (etc_path);
+      install_libmap_conf      (etc_path);
       copy_ldconfig_hints      (slave_base & "/var/run");
       copy_unkindness_IDs      (slave_base & "/construction");
       fix_macos_resolv         (slave_base & "/var/run");
@@ -1374,6 +1375,21 @@ package body Replicant is
       install (nssfiles);
       install (nssdns);
    end copy_resolv_conf;
+
+
+   --------------------------------------------------------------------------------------------
+   --  install_libmap_conf
+   --------------------------------------------------------------------------------------------
+   procedure install_libmap_conf (path_to_etc : String)
+   is
+      profilelc : constant String := PM.raven_confdir & "/" &
+        HT.USS (PM.configuration.profile) & "-libmap.conf";
+   begin
+      if DIR.Exists (profilelc) then
+         DIR.Copy_File (Source_Name => profilelc,
+                        Target_Name => path_to_etc & "/libmap.conf");
+      end if;
+   end install_libmap_conf;
 
 
    --------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-.Dd January 25, 2019
+.Dd Marchi 26, 2023
 .Dt BUILD 8
 .Os
 .Sh NAME
@@ -64,6 +64,13 @@ one pair per line.  If the file exists, these variables will be defined
 in the builder environment.  For the default profile, the file would
 normally be located at
 .Pa /raven/etc/ravenadm/primary-environment .
+.It <profile>-libmap.conf
+This is an optional, user-provided file that can be used on platforms
+with a real-time run linker that supports libmap.  Platforms known to
+support this are FreeBSD, MidnightBSD and Dragonfly.  The contents of
+this file are placed in the builder's /etc directory.
+For the default profile, the file would normally be located at
+.Pa /raven/etc/ravenadm/primary-libmap.conf .
 .It index.html
 For every build run, ravenadm installs a web summary within the build logs
 directory.  For the default profile, the file would be located at
