@@ -1846,6 +1846,7 @@ package body PortScan.Buildcycle is
                   copy_files ("darwin", patch_wc);
                   copy_files ("linux", patch_wc);
                   copy_files ("sunos", patch_wc);
+                  copy_files ("midnightbsd", patch_wc);
                   copy_files ("files", "extra-patch-*");
                else
                   TIO.Put_Line ("patch regen: failed to regenerate patches");
