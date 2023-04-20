@@ -1941,7 +1941,7 @@ package body Port_Specification.Transform is
    procedure apply_php_module (specs : in out Portspecs)
    is
       module      : constant String := "php";
-      std_suffix  : constant String := ":single:standard";
+      primary     : constant String := ":primary:standard";
       --  This defver works until PHP 10 is released
       defver : String (1 .. 2) := default_php (default_php'First) & default_php (default_php'Last);
       flavor : String := "php" & defver;
@@ -1968,12 +1968,13 @@ package body Port_Specification.Transform is
          hit_zend    := argument_present (specs, module, "zend");
       end if;
       if hit_build or else hit_phpize or else hit_ext or else hit_zend then
-         add_buildrun_depends (specs, flavor & std_suffix);
+         add_buildrun_depends (specs, flavor & primary);
+         add_build_depends (specs, flavor & ":dev:standard");
       else
-         add_run_depends (specs, flavor & std_suffix);
+         add_run_depends (specs, flavor & primary);
       end if;
       if hit_phpize or else hit_ext or else hit_zend then
-         add_build_depends (specs, "autoconf" & std_suffix);
+         add_build_depends (specs, "autoconf:single:standard");
       end if;
 
    end apply_php_module;
