@@ -1125,12 +1125,14 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_cran_module (specs : in out Portspecs)
    is
-      module     : String := "cran";
-      cran_build : String := "R:primary:standard";
-      cran_run   : String := "R:complete:standard";
+      module    : String := "cran";
+      cran_main : String := "R:primary:standard";
+      cran_nls  : String := "R:nls:standard";
    begin
-      generic_build_module (specs, module, cran_build);
-      generic_run_module   (specs, module, cran_run);
+      generic_build_module (specs, module, cran_main);
+      generic_build_module (specs, module, "icu:dev:standard");
+      generic_run_module   (specs, module, cran_main);
+      generic_run_module   (specs, module, cran_nls);
    end apply_cran_module;
 
 
