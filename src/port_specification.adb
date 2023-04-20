@@ -5915,7 +5915,7 @@ package body Port_Specification is
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("SET_DEBUGGING_ON", sp_debugging);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
-      print_boolean     ("iNFRASTRUCTURE", sp_infra);
+      print_boolean     ("INFRASTRUCTURE", sp_infra);
       print_boolean     ("BLOCK_WATCHDOG", sp_killdog);
       print_single      ("BUILD_WRKSRC", sp_build_wrksrc);
       print_single      ("MAKEFILE", sp_makefile);
