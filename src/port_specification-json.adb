@@ -22,6 +22,9 @@ package body Port_Specification.Json is
    is
       nvar : constant Natural := specs.get_number_of_variants;
    begin
+      if specs.infrastructure then
+         return;
+      end if;
       begin
          TIO.Put
            (dossier,
