@@ -3242,20 +3242,12 @@ package body Port_Specification.Transform is
    begin
       if setting = "oracle-5.7" then
          return "mysql57";
-      elsif setting = "mariadb-10.3" then
-         return "mariadb103";
       elsif setting = "mariadb-10.4" then
          return "mariadb104";
       elsif setting = "mariadb-10.5" then
          return "mariadb105";
       elsif setting = "mariadb-10.6" then
          return "mariadb106";
-      elsif setting = "mariadb-10.8" then
-         return "mariadb108";
-      elsif setting = "mariadb-10.9" then
-         return "mariadb109";
-      elsif setting = "mariadb-10.10" then
-         return "mariadb1010";
       elsif setting = "mariadb-10.11" then
          return "mariadb1011";
       elsif setting = "percona-5.6" then
