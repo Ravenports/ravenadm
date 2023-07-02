@@ -215,3 +215,9 @@ table a {
 	line-height: 30px;
 	width: 1000px;
 }
+
+/* https://github.com/Ravenports/ravensource/issues/289 */
+#distblock, #optionblock, #pdt2 tbody td:nth-child(2) {
+	font-family: monospace; 
+	white-space: pre-wrap;
+}
