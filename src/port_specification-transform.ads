@@ -180,7 +180,7 @@ private
    procedure apply_default_version_transformations (specs : in out Portspecs);
    procedure apply_curly_bracket_conversions       (specs : in out Portspecs);
    procedure apply_cbc_string_crate (crate : in out string_crate.Vector);
-   procedure convert_exrun_versions (specs : in out Portspecs);
+   procedure convert_exrun_versions (specs : in out Portspecs; variant : String);
 
    function argument_present (specs : Portspecs; module, argument : String) return Boolean;
    function no_arguments_present (specs : Portspecs; module : String) return Boolean;

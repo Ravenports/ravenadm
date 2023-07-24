@@ -1,4 +1,7 @@
+# gnatstudio
+.clang-format
 build/[a-ln-z]*
+build/.clangd/
 external
 
 # Object file

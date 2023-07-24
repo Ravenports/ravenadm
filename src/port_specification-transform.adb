@@ -363,7 +363,7 @@ package body Port_Specification.Transform is
       end if;
       apply_curly_bracket_conversions (specs);
       apply_default_version_transformations (specs);
-      convert_exrun_versions (specs);
+      convert_exrun_versions (specs, variant);
    end apply_directives;
 
 
@@ -2644,7 +2644,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    --  convert_exrun_versions
    --------------------------------------------------------------------------------------------
-   procedure convert_exrun_versions (specs : in out Portspecs)
+   procedure convert_exrun_versions (specs : in out Portspecs; variant : String)
    is
       procedure convert1 (position1 : list_crate.Cursor);
       procedure convert2 (Key : HT.Text; Element : in out group_list);
@@ -2654,7 +2654,11 @@ package body Port_Specification.Transform is
       is
          exrundep : String := HT.USS (Element);
       begin
-         if exrundep = "ssl" then
+         if specs.subpackage_exists (exrundep) then
+            --  ex. EXRUN[tools]= primary
+            --  The namebase and the variant must be added dynamically.
+            Element := HT.SUS (specs.get_namebase & ":" & exrundep & ":" & variant);
+         elsif exrundep = "ssl" then
             declare
                setting : String := HT.USS (Parameters.configuration.def_ssl);
             begin
@@ -2698,44 +2702,29 @@ package body Port_Specification.Transform is
 
       procedure convert2 (Key : HT.Text; Element : in out group_list)
       is
-         txt_ssl    : HT.Text := HT.SUS ("ssl");
-         txt_python : HT.Text := HT.SUS ("python");
-         txt_tcl    : HT.Text := HT.SUS ("tcl");
-         txt_perl   : HT.Text := HT.SUS ("perl");
-         txt_mysql  : HT.Text := HT.SUS ("mysql");
-         txt_pgsql  : HT.Text := HT.SUS ("pgsql");
+         procedure check_payload (position2 : string_crate.Cursor);
+         procedure check_payload (position2 : string_crate.Cursor)
+         is
+            exrun_value : constant String := HT.USS (string_crate.Element (position2));
+         begin
+            if specs.subpackage_exists (exrun_value) or else
+              exrun_value = "ssl" or else
+              exrun_value = "python" or else
+              exrun_value = "perl" or else
+              exrun_value = "tcl" or else
+              exrun_value = "mysql" or else
+              exrun_value = "pgsql"
+            then
+               Element.list.Update_Element (position2, convert3'Access);
+            end if;
+         end check_payload;
       begin
-         if Element.list.Contains (txt_ssl) then
-            Element.list.Update_Element (Position => Element.list.Find (txt_ssl),
-                                         Process  => convert3'Access);
-         end if;
-         if Element.list.Contains (txt_python) then
-            Element.list.Update_Element (Position => Element.list.Find (txt_python),
-                                         Process  => convert3'Access);
-         end if;
-         if Element.list.Contains (txt_tcl) then
-            Element.list.Update_Element (Position => Element.list.Find (txt_tcl),
-                                         Process  => convert3'Access);
-         end if;
-         if Element.list.Contains (txt_perl) then
-            Element.list.Update_Element (Position => Element.list.Find (txt_perl),
-                                         Process  => convert3'Access);
-         end if;
-         if Element.list.Contains (txt_mysql) then
-            Element.list.Update_Element (Position => Element.list.Find (txt_mysql),
-                                         Process  => convert3'Access);
-         end if;
-         if Element.list.Contains (txt_pgsql) then
-            Element.list.Update_Element (Position => Element.list.Find (txt_pgsql),
-                                         Process  => convert3'Access);
-         end if;
-
+         Element.list.Iterate (check_payload'Access);
       end convert2;
 
       procedure convert1 (position1 : list_crate.Cursor) is
       begin
-         specs.extra_rundeps.Update_Element (Position => position1,
-                                             Process  => convert2'Access);
+         specs.extra_rundeps.Update_Element (position1, convert2'Access);
       end convert1;
    begin
       specs.extra_rundeps.Iterate (convert1'Access);

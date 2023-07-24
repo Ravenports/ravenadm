@@ -1406,15 +1406,26 @@ package body Port_Specification is
             if not specs.subpackage_exists (key) then
                raise wrong_type with "subpackage key '" & key & "' has not been defined.";
             end if;
-            if not valid_dependency_format (value) then
-               if value /= "ssl" and then
-                 value /= "python" and then
-                 value /= "tcl" and then
-                 value /= "perl" and then
-                 value /= "mysql" and then
-                 value /= "pgsql"
-               then
-                  raise wrong_value with "invalid dependency format '" & value & "'";
+            --  Valid EX_RUN values:
+            --  1) string matching a defined subpackage (e.g. EXRUN[tools]= primary)
+            --  2a) "ssl", pulls in primary package of selected ssl
+            --  2b) "python", pulls in single package of selected python version
+            --  2c) "tcl", pulls in complete package of selected tcl version
+            --  2d) "perl", pulls in primary package of selected perl version
+            --  2e) "mysql", pulls in client package of selected mysql version
+            --  2f) "pgsql", pulls in client package of the selected postgresql version
+            --  3) any string matching the dependency format
+            if not specs.subpackage_exists (value) then
+               if not valid_dependency_format (value) then
+                  if value /= "ssl" and then
+                    value /= "python" and then
+                    value /= "tcl" and then
+                    value /= "perl" and then
+                    value /= "mysql" and then
+                    value /= "pgsql"
+                  then
+                     raise wrong_value with "invalid dependency format '" & value & "'";
+                  end if;
                end if;
             end if;
             if specs.extra_rundeps.Contains (text_key) and then
