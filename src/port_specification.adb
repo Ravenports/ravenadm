@@ -3707,7 +3707,8 @@ package body Port_Specification is
                (value = "mariadb-10.4" or else
                 value = "mariadb-10.5" or else
                 value = "mariadb-10.6" or else
-                value = "mariadb-10.11")
+                value = "mariadb-10.11" or else
+                value = "mariadb-11")
             );
    end valid_broken_mysql_value;
 
