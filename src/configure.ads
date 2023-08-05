@@ -24,7 +24,7 @@ private
    indent : constant String (1 ..  3) := (others => LAT.Space);
 
    type option is range 1 .. 17;
-   type default is range 1 .. 10;
+   type default is range 1 .. 9;
    subtype ofield is String (1 .. 30);
    type desc_type is array (option) of ofield;
    type default_type is array (default) of ofield;
@@ -52,16 +52,15 @@ private
 
    version_desc : constant default_type :=
      (
-      "[A] Firebird SQL server       ",
-      "[B] Lua (language)            ",
-      "[C] MySQL-workalike server    ",
-      "[D] Perl (language)           ",
-      "[E] PHP (language)            ",
-      "[F] PostgreSQL server         ",
-      "[G] Python 3 (language)       ",
-      "[H] Ruby (language)           ",
-      "[I] SSL/TLS library           ",
-      "[J] TCL/TK toolkit            "
+      "[A] Lua (language)            ",
+      "[B] MySQL-workalike server    ",
+      "[C] Perl (language)           ",
+      "[D] PHP (language)            ",
+      "[E] PostgreSQL server         ",
+      "[F] Python 3 (language)       ",
+      "[G] Ruby (language)           ",
+      "[H] SSL/TLS library           ",
+      "[I] TCL/TK toolkit            "
      );
 
    optX5A : constant String := "[V]   Set version defaults (e.g. perl, ruby, mysql ...)";
@@ -74,19 +73,18 @@ private
 
    dupe   : PM.configuration_record;
 
-   version_A : constant String := default_firebird & ":3.0";
-   version_B : constant String := "5.2:" & default_lua & ":5.4";
-   version_C : constant String := "oracle-5.7:" & default_mysql & ":" &
+   version_A : constant String := "5.2:" & default_lua & ":5.4";
+   version_B : constant String := "oracle-5.7:" & default_mysql & ":" &
                                   "mariadb-10.4:mariadb-10.5:mariadb-10.6:mariadb-10.11:" &
                                   "percona-5.6:percona-5.7:percona-8.0";
-   version_D : constant String := default_perl & ":5.36";
-   version_E : constant String := "8.0:" & default_php & ":8.2";
-   version_F : constant String := "11:12:13:" & default_pgsql & ":15";
-   version_G : constant String := default_python3 & ":3.11";
-   version_H : constant String := "3.0:" & default_ruby & ":3.2";
-   version_I : constant String := "openssl10:openssl11:openssl30:" &
+   version_C : constant String := default_perl & ":5.36";
+   version_D : constant String := "8.0:" & default_php & ":8.2";
+   version_E : constant String := "11:12:13:" & default_pgsql & ":15";
+   version_F : constant String := default_python3 & ":3.11";
+   version_G : constant String := "3.0:" & default_ruby & ":3.2";
+   version_H : constant String := "openssl10:openssl11:openssl30:" &
                                    default_ssl & ":libressl-devel";
-   version_J : constant String := "8.5:" & default_tcltk;
+   version_I : constant String := "8.5:" & default_tcltk;
 
    procedure clear_screen;
    procedure print_header;

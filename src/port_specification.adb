@@ -3543,7 +3543,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 76;
+      total_modules : constant Positive := 75;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3572,7 +3572,6 @@ package body Port_Specification is
          "execinfo       ",
          "expat          ",
          "fbsd10fix      ",
-         "firebird       ",
          "fontconfig     ",
          "fonts          ",
          "fortran        ",
@@ -4417,7 +4416,6 @@ package body Port_Specification is
          ("DBUS          ", DBUS),
          ("DEBUG         ", DEBUG),
          ("DOCS          ", DOCS),
-         ("FIREBIRD      ", FIREBIRD),
          ("ICONV         ", ICONV),
          ("IDN           ", IDN),
          ("IPV4          ", IPV4),
@@ -4500,7 +4498,6 @@ package body Port_Specification is
          when DBUS         => return "D-Bus IPC system support";
          when DEBUG        => return "Build with debugging support";
          when DOCS         => return "Build and install documentation";
-         when FIREBIRD     => return "Firebird (Interbase) database support";
          when ICONV        => return "Encoding conversion support via iconv";
          when IDN          => return "International Domain Names support";
          when IPV4         => return "IPv4 protocol support";

@@ -36,7 +36,6 @@ package Definitions is
    default_python3   : constant String := "3.10";
    default_ruby      : constant String := "3.1";
    default_tcltk     : constant String := "8.6";
-   default_firebird  : constant String := "2.5";
 
    default_binutils  : constant String := "ravensys-binutils:standard";
    binutils_version  : constant String := "2.37";

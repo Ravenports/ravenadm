@@ -1574,7 +1574,6 @@ package body Replicant is
          TIO.Put_Line (makeconf, "BUILD_WITH_CCACHE=yes");
          TIO.Put_Line (makeconf, "CCACHE_DIR=/ccache");
       end if;
-      override_defaults ("firebird", PM.configuration.def_firebird);
       override_defaults ("lua",      PM.configuration.def_lua);
       override_defaults ("mysql",    PM.configuration.def_mysql_group);
       override_defaults ("perl5",    PM.configuration.def_perl);

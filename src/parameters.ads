@@ -39,7 +39,6 @@ package Parameters is
          batch_mode      : Boolean;
 
          --  defaults
-         def_firebird    : HT.Text;
          def_lua         : HT.Text;
          def_mysql_group : HT.Text;
          def_perl        : HT.Text;
@@ -143,16 +142,15 @@ private
    Field_15 : constant String := "record_default_options";
    Field_27 : constant String := "assume_default_options";
 
-   Field_17 : constant String := "default_firebird";
-   Field_18 : constant String := "default_lua";
-   Field_19 : constant String := "default_mysql_group";
-   Field_20 : constant String := "default_perl";
-   Field_21 : constant String := "default_php";
-   Field_22 : constant String := "default_postgresql";
-   Field_23 : constant String := "default_python3";
-   Field_24 : constant String := "default_ruby";
-   Field_25 : constant String := "default_ssl";
-   Field_26 : constant String := "default_tcl_tk";
+   Field_17 : constant String := "default_lua";
+   Field_18 : constant String := "default_mysql_group";
+   Field_19 : constant String := "default_perl";
+   Field_20 : constant String := "default_php";
+   Field_21 : constant String := "default_postgresql";
+   Field_22 : constant String := "default_python3";
+   Field_23 : constant String := "default_ruby";
+   Field_24 : constant String := "default_ssl";
+   Field_25 : constant String := "default_tcl_tk";
 
    global_01 : constant String := "profile_selected";
    global_02 : constant String := "url_conspiracy";

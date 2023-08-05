@@ -454,7 +454,6 @@ package body Parameters is
       result.record_options := False;
       result.batch_mode     := True;
 
-      result.def_firebird    := floating;
       result.def_lua         := floating;
       result.def_mysql_group := floating;
       result.def_perl        := floating;
@@ -529,16 +528,15 @@ package body Parameters is
       IFM.insert_or_update (profile_name, Field_15, set_boolean (confrec.record_options));
       IFM.insert_or_update (profile_name, Field_27, set_boolean (confrec.batch_mode));
 
-      IFM.insert_or_update (profile_name, Field_17, HT.USS (confrec.def_firebird));
-      IFM.insert_or_update (profile_name, Field_18, HT.USS (confrec.def_lua));
-      IFM.insert_or_update (profile_name, Field_19, HT.USS (confrec.def_mysql_group));
-      IFM.insert_or_update (profile_name, Field_20, HT.USS (confrec.def_perl));
-      IFM.insert_or_update (profile_name, Field_21, HT.USS (confrec.def_php));
-      IFM.insert_or_update (profile_name, Field_22, HT.USS (confrec.def_postgresql));
-      IFM.insert_or_update (profile_name, Field_23, HT.USS (confrec.def_python3));
-      IFM.insert_or_update (profile_name, Field_24, HT.USS (confrec.def_ruby));
-      IFM.insert_or_update (profile_name, Field_25, HT.USS (confrec.def_ssl));
-      IFM.insert_or_update (profile_name, Field_26, HT.USS (confrec.def_tcl_tk));
+      IFM.insert_or_update (profile_name, Field_17, HT.USS (confrec.def_lua));
+      IFM.insert_or_update (profile_name, Field_18, HT.USS (confrec.def_mysql_group));
+      IFM.insert_or_update (profile_name, Field_19, HT.USS (confrec.def_perl));
+      IFM.insert_or_update (profile_name, Field_20, HT.USS (confrec.def_php));
+      IFM.insert_or_update (profile_name, Field_21, HT.USS (confrec.def_postgresql));
+      IFM.insert_or_update (profile_name, Field_22, HT.USS (confrec.def_python3));
+      IFM.insert_or_update (profile_name, Field_23, HT.USS (confrec.def_ruby));
+      IFM.insert_or_update (profile_name, Field_24, HT.USS (confrec.def_ssl));
+      IFM.insert_or_update (profile_name, Field_25, HT.USS (confrec.def_tcl_tk));
    end insert_profile;
 
 
@@ -673,16 +671,15 @@ package body Parameters is
       configuration.record_options := default_boolean (Field_15, False);
       configuration.batch_mode     := default_boolean (Field_27, True);
 
-      configuration.def_firebird    := default_string (Field_17, ports_default);
-      configuration.def_lua         := default_string (Field_18, ports_default);
-      configuration.def_mysql_group := default_string (Field_19, ports_default);
-      configuration.def_perl        := default_string (Field_20, ports_default);
-      configuration.def_php         := default_string (Field_21, ports_default);
-      configuration.def_postgresql  := default_string (Field_22, ports_default);
-      configuration.def_python3     := default_string (Field_23, ports_default);
-      configuration.def_ruby        := default_string (Field_24, ports_default);
-      configuration.def_ssl         := default_string (Field_25, ports_default);
-      configuration.def_tcl_tk      := default_string (Field_26, ports_default);
+      configuration.def_lua         := default_string (Field_17, ports_default);
+      configuration.def_mysql_group := default_string (Field_18, ports_default);
+      configuration.def_perl        := default_string (Field_19, ports_default);
+      configuration.def_php         := default_string (Field_20, ports_default);
+      configuration.def_postgresql  := default_string (Field_21, ports_default);
+      configuration.def_python3     := default_string (Field_22, ports_default);
+      configuration.def_ruby        := default_string (Field_23, ports_default);
+      configuration.def_ssl         := default_string (Field_24, ports_default);
+      configuration.def_tcl_tk      := default_string (Field_25, ports_default);
 
       --  Derived configuration
       configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/All");

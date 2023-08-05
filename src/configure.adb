@@ -530,16 +530,15 @@ package body Configure is
    begin
       TIO.Put (indent & version_desc (def));
       case def is
-         when  1 => nextt := dupe.def_firebird;    origt := PM.configuration.def_firebird;
-         when  2 => nextt := dupe.def_lua;         origt := PM.configuration.def_lua;
-         when  3 => nextt := dupe.def_mysql_group; origt := PM.configuration.def_mysql_group;
-         when  4 => nextt := dupe.def_perl;        origt := PM.configuration.def_perl;
-         when  5 => nextt := dupe.def_php;         origt := PM.configuration.def_php;
-         when  6 => nextt := dupe.def_postgresql;  origt := PM.configuration.def_postgresql;
-         when  7 => nextt := dupe.def_python3;     origt := PM.configuration.def_python3;
-         when  8 => nextt := dupe.def_ruby;        origt := PM.configuration.def_ruby;
-         when  9 => nextt := dupe.def_ssl;         origt := PM.configuration.def_ssl;
-         when 10 => nextt := dupe.def_tcl_tk;      origt := PM.configuration.def_tcl_tk;
+         when  1 => nextt := dupe.def_lua;         origt := PM.configuration.def_lua;
+         when  2 => nextt := dupe.def_mysql_group; origt := PM.configuration.def_mysql_group;
+         when  3 => nextt := dupe.def_perl;        origt := PM.configuration.def_perl;
+         when  4 => nextt := dupe.def_php;         origt := PM.configuration.def_php;
+         when  5 => nextt := dupe.def_postgresql;  origt := PM.configuration.def_postgresql;
+         when  6 => nextt := dupe.def_python3;     origt := PM.configuration.def_python3;
+         when  7 => nextt := dupe.def_ruby;        origt := PM.configuration.def_ruby;
+         when  8 => nextt := dupe.def_ssl;         origt := PM.configuration.def_ssl;
+         when  9 => nextt := dupe.def_tcl_tk;      origt := PM.configuration.def_tcl_tk;
       end case;
       equivalent := HT.equivalent (origt, nextt);
       show := nextt;
@@ -575,32 +574,30 @@ package body Configure is
             ascii := Character'Pos (answer);
             case answer is
                when 'A' | 'a' =>
-                  update_version (1, version_A, "Firebird SQL");
+                  update_version (1, version_A, "Lua");
                when 'B' | 'b' =>
-                  update_version (2, version_B, "Lua");
+                  update_version (2, version_B, "MySQL group");
                when 'C' | 'c' =>
-                  update_version (3, version_C, "MySQL group");
+                  update_version (3, version_C, "Perl");
                when 'D' | 'd' =>
-                  update_version (4, version_D, "Perl");
+                  update_version (4, version_D, "PHP");
                when 'E' | 'e' =>
-                  update_version (5, version_E, "PHP");
+                  update_version (5, version_E, "PostgreSQL");
                when 'F' | 'f' =>
-                  update_version (6, version_F, "PostgreSQL");
+                  update_version (6, version_F, "Python 3");
                when 'G' | 'g' =>
-                  update_version (7, version_G, "Python 3");
+                  update_version (7, version_G, "Ruby");
                when 'H' | 'h' =>
-                  update_version (8, version_H, "Ruby");
+                  update_version (8, version_H, "SSL library");
                when 'I' | 'i' =>
-                  update_version (9, version_I, "SSL library");
-               when 'J' | 'j' =>
-                  update_version (10, version_J, "TCL/TK");
+                  update_version (9, version_I, "TCL/TK");
                when LAT.LF =>
                   return;
                when others =>
                   null;
             end case;
             case answer is
-               when 'A' .. 'J' | 'a' .. 'j' | LAT.LF =>
+               when 'A' .. 'I' | 'a' .. 'i' | LAT.LF =>
                   exit;
                when others =>
                   null;
@@ -636,16 +633,15 @@ package body Configure is
 
       TIO.Put (LAT.LF & "Current setting: ");
       case def is
-         when  1 => TIO.Put_Line (HT.USS (dupe.def_firebird));
-         when  2 => TIO.Put_Line (HT.USS (dupe.def_lua));
-         when  3 => TIO.Put_Line (HT.USS (dupe.def_mysql_group));
-         when  4 => TIO.Put_Line (HT.USS (dupe.def_perl));
-         when  5 => TIO.Put_Line (HT.USS (dupe.def_php));
-         when  6 => TIO.Put_Line (HT.USS (dupe.def_postgresql));
-         when  7 => TIO.Put_Line (HT.USS (dupe.def_python3));
-         when  8 => TIO.Put_Line (HT.USS (dupe.def_ruby));
-         when  9 => TIO.Put_Line (HT.USS (dupe.def_ssl));
-         when 10 => TIO.Put_Line (HT.USS (dupe.def_tcl_tk));
+         when  1 => TIO.Put_Line (HT.USS (dupe.def_lua));
+         when  2 => TIO.Put_Line (HT.USS (dupe.def_mysql_group));
+         when  3 => TIO.Put_Line (HT.USS (dupe.def_perl));
+         when  4 => TIO.Put_Line (HT.USS (dupe.def_php));
+         when  5 => TIO.Put_Line (HT.USS (dupe.def_postgresql));
+         when  6 => TIO.Put_Line (HT.USS (dupe.def_python3));
+         when  7 => TIO.Put_Line (HT.USS (dupe.def_ruby));
+         when  8 => TIO.Put_Line (HT.USS (dupe.def_ssl));
+         when  9 => TIO.Put_Line (HT.USS (dupe.def_tcl_tk));
       end case;
       TIO.Put (" Change setting: ");
       loop
@@ -672,16 +668,15 @@ package body Configure is
          end case;
       end loop;
       case def is
-         when  1 => dupe.def_firebird    := new_value;
-         when  2 => dupe.def_lua         := new_value;
-         when  3 => dupe.def_mysql_group := new_value;
-         when  4 => dupe.def_perl        := new_value;
-         when  5 => dupe.def_php         := new_value;
-         when  6 => dupe.def_postgresql  := new_value;
-         when  7 => dupe.def_python3     := new_value;
-         when  8 => dupe.def_ruby        := new_value;
-         when  9 => dupe.def_ssl         := new_value;
-         when 10 => dupe.def_tcl_tk      := new_value;
+         when  1 => dupe.def_lua         := new_value;
+         when  2 => dupe.def_mysql_group := new_value;
+         when  3 => dupe.def_perl        := new_value;
+         when  4 => dupe.def_php         := new_value;
+         when  5 => dupe.def_postgresql  := new_value;
+         when  6 => dupe.def_python3     := new_value;
+         when  7 => dupe.def_ruby        := new_value;
+         when  8 => dupe.def_ssl         := new_value;
+         when  9 => dupe.def_tcl_tk      := new_value;
       end case;
    end update_version;
 

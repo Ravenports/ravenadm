@@ -338,7 +338,6 @@ package body Port_Specification.Transform is
       apply_cargo_module (specs);
       apply_gtkdoc_module (specs);
       apply_schemas_module (specs);
-      apply_firebird_module (specs);
       apply_fontconfig_module (specs);
       apply_desktop_utils_module (specs);
       apply_gnome_components_dependencies (specs);
@@ -1208,52 +1207,6 @@ package body Port_Specification.Transform is
       end;
 
    end add_exrun_cclibs;
-
-
-   --------------------------------------------------------------------------------------------
-   --  apply_firebird_module
-   --------------------------------------------------------------------------------------------
-   procedure apply_firebird_module (specs : in out Portspecs)
-   is
-      function determine_dependency return String;
-      function determine_firebird_namebase return String;
-
-      module : String := "firebird";
-
-      function determine_firebird_namebase return String
-      is
-         setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
-      begin
-         if setting = "3.0" then
-            return "firebird30";
-         elsif setting = "4.0" then
-            return "firebird40";
-         else
-            return "firebird25";
-         end if;
-      end determine_firebird_namebase;
-
-      function determine_dependency return String is
-      begin
-         if argument_present (specs, module, "server") then
-            return determine_firebird_namebase & ":server:standard";
-         else
-            return determine_firebird_namebase & ":client:standard";
-         end if;
-      end determine_dependency;
-
-      dependency : String := determine_dependency;
-      dev_package : String := determine_firebird_namebase & ":dev:standard";
-   begin
-      if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, dev_package);
-         if argument_present (specs, module, "build") then
-            add_build_depends (specs, dependency);
-         else
-            add_buildrun_depends (specs, dependency);
-         end if;
-      end if;
-   end apply_firebird_module;
 
 
    --------------------------------------------------------------------------------------------
