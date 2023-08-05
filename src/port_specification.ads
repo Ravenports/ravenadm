@@ -382,7 +382,7 @@ private
      (bcmath, bitset, bz2, calendar, ctype, curl, dba, dom, enchant, exif, fileinfo, filter,
       ftp, gd, gettext, gmp, hash, iconv, igbinary, imap, interbase, intl, jsonext, ldap, mbstring,
       mcrypt, memcache, memcached, mysqli, odbc, opcache, openssl, pcntl, pdf, pdo,
-      pdo_dblib, pdo_firebird, pdo_mysql, pdo_odbc, pdo_pgsql, pdo_sqlite, pgsql, phar, posix,
+      pdo_dblib, pdo_mysql, pdo_odbc, pdo_pgsql, pdo_sqlite, pgsql, phar, posix,
       pspell, radius, readline, recode, redis, session, shmop, simplexml, snmp, soap, sockets,
       sqlite3, sysvmsg, sysvsem, sysvshm, tidy, tokenizer, wddx, xml, xmlreader, xmlrpc,
       xmlwriter, xsl, zip, zlib, ffi, sodium, invalid_extension);

@@ -4101,7 +4101,6 @@ package body Port_Specification is
          ("pdf         ", pdf),
          ("pdo         ", pdo),
          ("pdo_dblib   ", pdo_dblib),
-         ("pdo_firebird", pdo_firebird),
          ("pdo_mysql   ", pdo_mysql),
          ("pdo_odbc    ", pdo_odbc),
          ("pdo_pgsql   ", pdo_pgsql),
