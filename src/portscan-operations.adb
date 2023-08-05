@@ -2283,17 +2283,26 @@ package body PortScan.Operations is
                subpackage : String := HT.USS (rec.subpackage);
             begin
                if not aborted and then important then
-                  if remote_scan and then
-                    not rec.never_remote
-                  then
-                     if not rec.pkg_present or else
-                       rec.deletion_due
+                  begin
+                     if remote_scan and then
+                       not rec.never_remote
                      then
-                        remote_package_scan (target_port, subpackage);
+                        if not rec.pkg_present or else
+                          rec.deletion_due
+                        then
+                           remote_package_scan (target_port, subpackage);
+                        end if;
+                     else
+                        initial_package_scan (repository, target_port, subpackage);
                      end if;
-                  else
-                     initial_package_scan (repository, target_port, subpackage);
-                  end if;
+                  exception
+                     when problem : others =>
+                        aborted := True;
+                        TIO.Put_Line
+                          ("Encountered issue scanning " &
+                             calculate_package_name (target_port, subpackage) &
+                             " exception:" & EX.Exception_Message (problem));
+                  end;
                end if;
             end check_subpackage;
 
