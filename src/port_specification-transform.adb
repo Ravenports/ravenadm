@@ -3194,12 +3194,6 @@ package body Port_Specification.Transform is
          return "mariadb106";
       elsif setting = "mariadb-10.11" then
          return "mariadb1011";
-      elsif setting = "percona-5.6" then
-         return "percona56";
-      elsif setting = "percona-5.7" then
-         return "percona57";
-      elsif setting = "percona-8.0" then
-         return "percona80";
       else
          --  case: setting = ports_default
          --  case: setting = default_mysql
