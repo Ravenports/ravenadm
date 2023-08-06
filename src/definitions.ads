@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "2";
-   raven_version_minor : constant String := "08";
+   raven_version_minor : constant String := "09";
    copyright_years     : constant String := "2015-2023";
 
    raven_tool        : constant String := "ravenadm";
@@ -44,11 +44,11 @@ package Definitions is
    previous_binutils : constant String := "2.35.1";
 
    default_compiler  : constant String := "ravensys-gcc";
-   compiler_version  : constant String := "11.2.0";
+   compiler_version  : constant String := "13.2.0";
    default_comppath  : constant String := default_compiler;
 
-   previous_default  : constant String := "gcc9";
-   previous_compiler : constant String := "9.3.0";
+   previous_default  : constant String := "ravensys-gcc";
+   previous_compiler : constant String := "11.2.0";
    previous_comppath : constant String := previous_default;
 
    arc_ext           : constant String := ".tzst";
