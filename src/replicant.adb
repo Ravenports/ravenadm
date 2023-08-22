@@ -1458,9 +1458,11 @@ package body Replicant is
    procedure install_linux_ldsoconf (path_to_etc_ldsocnf : String)
    is
       procedure install (filename : String);
+      procedure install_cache;
 
       mm     : constant String := get_master_mount;
       ldconf : constant String := "/x86_64-linux-gnu.conf";
+      cache  : constant String := "/ld.so.cache";
 
       procedure install (filename : String) is
       begin
@@ -1469,8 +1471,17 @@ package body Replicant is
                            Target_Name => path_to_etc_ldsocnf & filename);
          end if;
       end install;
+
+      procedure install_cache is
+      begin
+         if DIR.Exists (mm & cache) then
+            DIR.Copy_File (Source_Name => mm & cache,
+                           Target_Name => path_to_etc_ldsocnf & "/.." & cache);
+         end if;
+      end install_cache;
    begin
       install (ldconf);
+      install_cache;
    end install_linux_ldsoconf;
 
 
