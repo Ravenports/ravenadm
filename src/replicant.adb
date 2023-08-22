@@ -37,6 +37,7 @@ package body Replicant is
       group  : constant String := "/group";
       ldcnf1 : constant String := "/x86_64-linux-gnu.conf";
       ldcnf2 : constant String := "/ld.so.conf";
+      ldcnf3 : constant String := "/ld.so.cache";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
@@ -94,6 +95,9 @@ package body Replicant is
          when linux     =>
             DIR.Copy_File (sretc & ldcnf1, mm & ldcnf1);
             DIR.Copy_File (sretc & ldcnf2, mm & ldcnf2);
+            if DIR.Exists (sretc & ldcnf3) then
+               DIR.Copy_File (sretc & ldcnf3, mm & ldcnf3);
+            end if;
          when netbsd    |
               macos     |
               sunos     => null;
