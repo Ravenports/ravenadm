@@ -1098,7 +1098,7 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  establish_group
+   --  append_array
    --------------------------------------------------------------------------------------------
    procedure establish_group
      (specs : in out Portspecs;
@@ -1199,7 +1199,6 @@ package body Port_Specification is
       field : spec_field;
       key   : String;
       value : String;
-      major : String;
       allow_spaces : Boolean)
    is
       procedure grow (Key : HT.Text; Element : in out group_list);
@@ -1355,7 +1354,7 @@ package body Port_Specification is
                   specs.establish_group (sp_options_on, options_all);
                end if;
             end if;
-            if not specs.valid_OPT_ON_value (major, key, value) then
+            if not specs.valid_OPT_ON_value (key, value) then
                raise wrong_value with "OPT_ON value '" & value &
                  "' either doesn't match option list, is present in 'all' section, " &
                  "or it is misformatted";
@@ -2329,10 +2328,20 @@ package body Port_Specification is
    --  valid_OPT_ON_value
    --------------------------------------------------------------------------------------------
    function valid_OPT_ON_value (specs : Portspecs;
-                                major : String;
                                 key   : String;
                                 word  : String) return Boolean
    is
+      function looks_like_release (wrkstr : String) return Boolean;
+      function looks_like_release (wrkstr : String) return Boolean is
+      begin
+         for X in wrkstr'Range loop
+            case wrkstr (X) is
+               when '0' .. '9' | '.' => null;
+               when others => return False;
+            end case;
+         end loop;
+         return True;
+      end looks_like_release;
    begin
       if key = options_all or else
         UTL.valid_cpu_arch (key)
@@ -2368,7 +2377,7 @@ package body Port_Specification is
                P3_2 : String := HT.part_2 (P2_2, "/");
             begin
                if P3_1 /= "" and then
-                 P3_1 /= major
+                 not looks_like_release (P3_1)
                then
                   return False;
                end if;
@@ -2401,9 +2410,8 @@ package body Port_Specification is
                end;
             end;
          else
-            --  OPTION_NAME/MAJOR
-            --  "MAJOR" must match the OSMAJOR value
-            return P2_2 = major;
+            --  Only [0-9.] allowed
+            return looks_like_release (P2_2);
          end if;
       end;
    end valid_OPT_ON_value;

@@ -19,7 +19,6 @@ package Specification_Parser is
       success         : out Boolean;
       opsys_focus     : supported_opsys;
       arch_focus      : supported_arch;
-      major_focus     : String;
       stop_at_targets : Boolean;
       extraction_dir  : String := "");
 
@@ -139,7 +138,7 @@ private
 
    --  essentially a singlet, but the varname is used a key for a name-value pair
    --  Spaces are allowed only if quoted (single value)
-   procedure build_nvpair (spec : in out PSP.Portspecs; line : String; major_focus : String);
+   procedure build_nvpair (spec : in out PSP.Portspecs; line : String);
 
    --  Line may contain spaces and they are considered part of an entire string
    procedure build_string (spec : in out PSP.Portspecs; field : PSP.spec_field; line : String);
@@ -156,8 +155,7 @@ private
      (spec  : in out PSP.Portspecs;
       field : PSP.spec_field;
       key   : String;
-      value : String;
-      major : String);
+      value : String);
 
    --  Return true if all final validity checks pass
    function late_validity_check_error (spec : PSP.Portspecs) return String;

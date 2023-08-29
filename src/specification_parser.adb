@@ -30,7 +30,6 @@ package body Specification_Parser is
       success         : out Boolean;
       opsys_focus     : supported_opsys;
       arch_focus      : supported_arch;
-      major_focus     : String;
       stop_at_targets : Boolean;
       extraction_dir  : String := "")
    is
@@ -249,7 +248,6 @@ package body Specification_Parser is
                                  spec.append_array (field => PSP.sp_taglines,
                                                     key   => tkey,
                                                     value => tvalue,
-                                                    major => major_focus,
                                                     allow_spaces => True);
                               else
                                  spec.set_parse_error
@@ -284,39 +282,33 @@ package body Specification_Parser is
                               build_group_list (spec  => spec,
                                                 field => PSP.sp_dl_sites,
                                                 key   => tkey,
-                                                value => HT.USS (defvalue),
-                                                major => major_focus);
+                                                value => HT.USS (defvalue));
                            end if;
                         when spkgs =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_subpackages,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
                         when vopts =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_vopts,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
                         when ext_head =>
                            spec.append_array (field        => PSP.sp_ext_head,
                                               key          => tkey,
                                               value        => tvalue,
-                                              major        => major_focus,
                                               allow_spaces => True);
                         when ext_tail =>
                            spec.append_array (field        => PSP.sp_ext_tail,
                                               key          => tkey,
                                               value        => tvalue,
-                                              major        => major_focus,
                                               allow_spaces => True);
                         when extra_rundep =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_exrun,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
                         when option_on =>
                            if tkey = options_all or else
                              UTL.valid_lower_opsys (tkey) or else
@@ -325,8 +317,7 @@ package body Specification_Parser is
                               build_group_list (spec  => spec,
                                                 field => PSP.sp_options_on,
                                                 key   => tkey,
-                                                value => tvalue,
-                                                major => major_focus);
+                                                value => tvalue);
                            else
                               spec.set_parse_error
                                 (LN & "group '" & tkey & "' is not valid (all, <opsys>, <arch>)");
@@ -340,7 +331,6 @@ package body Specification_Parser is
                               spec.append_array (field        => PSP.sp_broken,
                                                  key          => tkey,
                                                  value        => tvalue,
-                                                 major        => major_focus,
                                                  allow_spaces => True);
                            else
                               spec.set_parse_error
@@ -353,7 +343,6 @@ package body Specification_Parser is
                                  spec.append_array (field        => PSP.sp_var_opsys,
                                                     key          => tkey,
                                                     value        => tvalue,
-                                                    major        => major_focus,
                                                     allow_spaces => True);
                               else
                                  spec.set_parse_error
@@ -371,7 +360,6 @@ package body Specification_Parser is
                                  spec.append_array (field        => PSP.sp_var_arch,
                                                     key          => tkey,
                                                     value        => tvalue,
-                                                    major        => major_focus,
                                                     allow_spaces => True);
                               else
                                  spec.set_parse_error
@@ -387,39 +375,33 @@ package body Specification_Parser is
                            spec.append_array (field        => PSP.sp_opt_descr,
                                               key          => tkey,
                                               value        => tvalue,
-                                              major        => major_focus,
                                               allow_spaces => True);
                         when opt_group =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_opt_group,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
                         when b_deps =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_os_bdep,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
                         when r_deps =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_os_rdep,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
                         when br_deps =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_os_brdep,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
 
                         when c_uses =>
                            build_group_list (spec  => spec,
                                              field => PSP.sp_os_uses,
                                              key   => tkey,
-                                             value => tvalue,
-                                             major => major_focus);
+                                             value => tvalue);
 
                         when not_array => null;
                      end case;
@@ -537,7 +519,7 @@ package body Specification_Parser is
                      when cgo_bargs        => build_list (spec, PSP.sp_cgo_bargs, line);
                      when cgo_iargs        => build_list (spec, PSP.sp_cgo_iargs, line);
                      when cgo_feat         => build_list (spec, PSP.sp_cgo_feat, line);
-                     when catchall         => build_nvpair (spec, line, major_focus);
+                     when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
                         if converting then
@@ -585,7 +567,6 @@ package body Specification_Parser is
                           (field        => PSP.sp_makefile_targets,
                            key          => HT.USS (last_index),
                            value        => transform_target_line (spec, line, not converting),
-                           major        => major_focus,
                            allow_spaces => True);
                      when bad_target   => null;
                      when not_target   => null;
@@ -1604,7 +1585,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  build_nvpair
    --------------------------------------------------------------------------------------------
-   procedure build_nvpair (spec : in out PSP.Portspecs; line : String; major_focus : String)
+   procedure build_nvpair (spec : in out PSP.Portspecs; line : String)
    is
       function getkey return String;
 
@@ -1635,7 +1616,6 @@ package body Specification_Parser is
       spec.append_array (field        => PSP.sp_catchall,
                          key          => strkey,
                          value        => strvalue,
-                         major        => major_focus,
                          allow_spaces => True);
    end build_nvpair;
 
@@ -1708,8 +1688,7 @@ package body Specification_Parser is
      (spec  : in out PSP.Portspecs;
       field : PSP.spec_field;
       key   : String;
-      value : String;
-      major : String)
+      value : String)
    is
       procedure insert_item (data : String);
 
@@ -1721,7 +1700,6 @@ package body Specification_Parser is
          spec.append_array (field        => field,
                             key          => key,
                             value        => data,
-                            major        => major,
                             allow_spaces => False);
       end insert_item;
    begin

@@ -118,7 +118,6 @@ package Port_Specification is
       field : spec_field;
       key   : String;
       value : String;
-      major : String;
       allow_spaces : Boolean);
 
    --  Generic function to establish groups of string arrays.
@@ -676,7 +675,6 @@ private
    --  have above with "/" followed by one or more valid arch separated by "|" or
    --  same as above except nothing between the two "/" separators
    function valid_OPT_ON_value (specs : Portspecs;
-                                major : String;
                                 key   : String;
                                 word  : String) return Boolean;
 
