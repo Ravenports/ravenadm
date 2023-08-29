@@ -2809,6 +2809,7 @@ package body PortScan.Operations is
                                     spec            => specification,
                                     opsys_focus     => platform_type,
                                     arch_focus      => sysrootver.arch,
+                                    major_focus     => HT.USS (sysrootver.major),
                                     success         => successful,
                                     stop_at_targets => excl_targets,
                                     extraction_dir  => portloc);

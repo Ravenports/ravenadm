@@ -1161,6 +1161,7 @@ package body PortScan.Scan is
                                        spec            => customspec,
                                        opsys_focus     => platform_type,
                                        arch_focus      => arch_focus,
+                                       major_focus     => HT.USS (sysrootver.major),
                                        success         => successful,
                                        stop_at_targets => True);
          if not successful then
@@ -1385,6 +1386,7 @@ package body PortScan.Scan is
                            spec            => specification,
                            opsys_focus     => platform_type,  --  unused
                            arch_focus      => x86_64,         --  irrevelevant
+                           major_focus     => "99",           --  Don't care
                            success         => successful,
                            stop_at_targets => False);
 
@@ -1819,12 +1821,14 @@ package body PortScan.Scan is
                         successful : Boolean;
                         customspec : PSP.Portspecs;
                         arch_focus : supported_arch := x86_64;  -- unused, pick one
+                        rand_major : constant String := "99";   -- unused, don't care
                         buildsheet : constant String := "/bucket_" & bucket & "/" & namebase;
                      begin
                         PAR.parse_specification_file (dossier       => compiled_BS & buildsheet,
                                                       spec          => customspec,
                                                       opsys_focus   => platform_type,
                                                       arch_focus    => arch_focus,
+                                                      major_focus   => rand_major,
                                                       success       => successful,
                                                       stop_at_targets => True);
                         if not successful then
@@ -1924,6 +1928,7 @@ package body PortScan.Scan is
                                              spec            => customspec,
                                              opsys_focus     => platform_type,
                                              arch_focus      => arch_focus,
+                                             major_focus     => HT.USS (sysrootver.major),
                                              success         => successful,
                                              stop_at_targets => True);
                if not successful then
@@ -2980,6 +2985,7 @@ package body PortScan.Scan is
                                     spec            => specification,
                                     opsys_focus     => platform_type,  --  unused
                                     arch_focus      => x86_64,         --  irrelevant
+                                    major_focus     => "99",           --  Don't care
                                     success         => successful,
                                     stop_at_targets => False);
 
@@ -3046,6 +3052,7 @@ package body PortScan.Scan is
                                        spec            => customspec,
                                        opsys_focus     => platform_type,
                                        arch_focus      => arch_focus,
+                                       major_focus     => HT.USS (sysrootver.major),
                                        success         => successful,
                                        stop_at_targets => True);
          if not successful then

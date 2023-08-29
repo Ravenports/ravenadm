@@ -164,6 +164,7 @@ package body Pilot is
                                              spec            => specification,
                                              opsys_focus     => platform_type,
                                              arch_focus      => sysrootver.arch,
+                                             major_focus     => HT.USS (sysrootver.major),
                                              success         => successful,
                                              stop_at_targets => False);
             else
@@ -177,6 +178,7 @@ package body Pilot is
                                           spec            => specification,
                                           opsys_focus     => platform_type,
                                           arch_focus      => sysrootver.arch,
+                                          major_focus     => HT.USS (sysrootver.major),
                                           success         => successful,
                                           stop_at_targets => False);
          else
@@ -366,6 +368,7 @@ package body Pilot is
                                        spec            => specification,
                                        opsys_focus     => platform_type,  --  unused
                                        arch_focus      => sysrootver.arch,
+                                       major_focus     => HT.USS (sysrootver.major),
                                        success         => successful,
                                        stop_at_targets => False);
       else
@@ -1255,6 +1258,7 @@ package body Pilot is
                                     spec            => specification,
                                     opsys_focus     => platform_type,
                                     arch_focus      => x86_64,
+                                    major_focus     => "99",
                                     success         => successful,
                                     stop_at_targets => True,
                                     extraction_dir  => portloc);
@@ -1666,6 +1670,7 @@ package body Pilot is
                                           spec            => prespec,
                                           opsys_focus     => platform_type,
                                           arch_focus      => x86_64,
+                                          major_focus     => "99",
                                           success         => presuccess,
                                           stop_at_targets => True);
             if presuccess then
