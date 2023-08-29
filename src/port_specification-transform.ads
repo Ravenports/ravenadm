@@ -27,7 +27,7 @@ package Port_Specification.Transform is
       variant       : String;
       opsys         : supported_opsys;
       arch_standard : supported_arch;
-      osrelease     : String);
+      os_major      : String);
 
    --  Update current value of given option
    procedure define_option_setting (specs : in out Portspecs; option : String; value : Boolean);

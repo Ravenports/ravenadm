@@ -384,7 +384,7 @@ package body Pilot is
          variant       => specification.get_list_item (Port_Specification.sp_variants, 1),
          opsys         => platform_type,
          arch_standard => sysrootver.arch,
-         osrelease     => HT.USS (sysrootver.release));
+         os_major      => HT.USS (sysrootver.major));
 
       if not specification.post_transform_option_group_defaults_passes then
          successful := False;

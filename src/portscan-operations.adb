@@ -2830,7 +2830,7 @@ package body PortScan.Operations is
          variant       => variant,
          opsys         => platform_type,
          arch_standard => sysrootver.arch,
-         osrelease     => HT.USS (sysrootver.release));
+         os_major      => HT.USS (sysrootver.major));
 
       --  If no available options, skip (remember, if variants there are ALWAYS options
       --  otherwise

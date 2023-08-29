@@ -374,17 +374,35 @@ package body Port_Specification.Transform is
       variant       : String;
       opsys         : supported_opsys;
       arch_standard : supported_arch;
-      osrelease     : String)
+      os_major      : String)
    is
       procedure vopt_set   (position : string_crate.Cursor);
       procedure varstd_set (position : string_crate.Cursor);
       procedure opsys_set  (position : string_crate.Cursor);
       procedure set_on     (Key : HT.Text; Element : in out Option_Helper);
+      function for_this_architecture (arch_list : String) return Boolean;
 
       variant_text : HT.Text := HT.SUS (variant);
       all_text     : HT.Text := HT.SUS (options_all);
       arch_text    : HT.Text := HT.SUS (UTL.cpu_arch (arch_standard));
       opsys_text   : HT.Text := HT.SUS (UTL.lower_opsys (opsys));
+
+      function for_this_architecture (arch_list : String) return Boolean
+      is
+         num_pipes : constant Natural := HT.count_char (arch_list, LAT.Vertical_Line);
+         this_arch : constant String := UTL.cpu_arch (arch_standard);
+      begin
+         if num_pipes = 0 then
+            return arch_list = this_arch;
+         else
+            for candidate in 1 .. num_pipes + 1 loop
+               if HT.specific_field (arch_list, candidate, "|") = this_arch then
+                  return True;
+               end if;
+            end loop;
+            return False;
+         end if;
+      end for_this_architecture;
 
       procedure set_on (Key : HT.Text; Element : in out Option_Helper) is
       begin
@@ -432,22 +450,23 @@ package body Port_Specification.Transform is
          if num_slash > 0 then
             if num_slash = 1 then
                declare
-                  opt_name     : HT.Text := HT.SUS (HT.part_1 (option_name, "/"));
-                  spec_version : String  := HT.part_2 (option_name, "/");
+                  --  e.g. OPT_NAME/MAJOR
+                  opt_name   : HT.Text := HT.SUS (HT.part_1 (option_name, "/"));
+                  spec_major : String  := HT.part_2 (option_name, "/");
                begin
-                  if GTE (gen_release => osrelease, spec_release => spec_version) then
+                  if spec_major = os_major then
                      option_text := opt_name;
                   end if;
                end;
             else
                declare
+                  --  e.g OPT_NAME//ARCH  or OPT_NAME/MAJOR/ARCH   or OPT_NAME/x/ARCH1|ARCH2|ARCH3
                   opt_name     : HT.Text := HT.SUS (HT.part_1 (option_name, "/"));
                   temp_P2      : String  := HT.part_2 (option_name, "/");
-                  spec_version : String  := HT.part_1 (temp_P2);
+                  spec_major   : String  := HT.part_1 (temp_P2);
                   arch_str     : String  := HT.part_2 (temp_P2);
-                  meets_ver    : Boolean := spec_version = "" or else
-                                            GTE (osrelease, spec_version);
-                  meets_arch   : Boolean := HT.contains (arch_str, UTL.cpu_arch (arch_standard));
+                  meets_ver    : Boolean := spec_major = "" or else spec_major = os_major;
+                  meets_arch   : Boolean := for_this_architecture (arch_str);
                begin
                   if meets_ver and then meets_arch then
                      option_text := opt_name;

@@ -1309,7 +1309,7 @@ package body PortScan.Scan is
    is
       max_lots : constant scanners := get_max_lots;
       consdir  : constant String := HT.USS (PM.configuration.dir_conspiracy);
-      release  : constant String := "1";
+      no_major : constant String := "99";
       source   : array (scanners) of string_crate.Vector;
       counter  : scanners := scanners'First;
       aborted  : Boolean := False;
@@ -1404,7 +1404,7 @@ package body PortScan.Scan is
                            variant       => specification.get_list_item (PSP.sp_variants, 1),
                            opsys         => platform_type,
                            arch_standard => x86_64,
-                           osrelease     => release);
+                           os_major      => no_major);
 
                         if not specification.post_transform_option_group_defaults_passes then
                            aborted := True;
@@ -2999,7 +2999,7 @@ package body PortScan.Scan is
          variant       => specification.get_list_item (Port_Specification.sp_variants, 1),
          opsys         => platform_type,
          arch_standard => x86_64,
-         osrelease     => "1");
+         os_major      => "99");
 
       if not specification.post_transform_option_group_defaults_passes then
          successful := False;

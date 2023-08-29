@@ -1098,7 +1098,7 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  append_array
+   --  establish_group
    --------------------------------------------------------------------------------------------
    procedure establish_group
      (specs : in out Portspecs;
