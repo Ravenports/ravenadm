@@ -353,6 +353,9 @@ begin
          --  dev command
          --------------------------------
          if CLI.Argument_Count > 1 then
+            if Pilot.slave_platform_determined then
+               null;
+            end if;
             declare
                dev_subcmd : dev_mandate := scan_dev_command_word;
             begin

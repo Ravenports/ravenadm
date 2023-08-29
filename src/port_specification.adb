@@ -5973,10 +5973,10 @@ package body Port_Specification is
       print_vector_list ("CARGO_INSTALL_ARGS", sp_cgo_iargs);
       print_vector_list ("CARGO_FEATURES", sp_cgo_feat);
 
-      TIO.Put ("SYSROOT_ARCH" & LAT.Equals_Sign & LAT.HT & arch);
-      TIO.Put ("SYSROOT_MAJOR" & LAT.Equals_Sign & LAT.HT & major);
-      TIO.Put ("SYSROOT_RELEASE" & LAT.Equals_Sign & LAT.HT & release);
-      TIO.Put ("SYSROOT_VERSION" & LAT.Equals_Sign & LAT.HT & version);
+      TIO.Put_Line ("SYSROOT_ARCH" & LAT.Equals_Sign & LAT.HT & arch);
+      TIO.Put_Line ("SYSROOT_MAJOR" & LAT.Equals_Sign & LAT.HT & major);
+      TIO.Put_Line ("SYSROOT_RELEASE" & LAT.Equals_Sign & LAT.HT & release);
+      TIO.Put_Line ("SYSROOT_VERSION" & LAT.Equals_Sign & LAT.HT & version);
 
    end dump_specification;
 
