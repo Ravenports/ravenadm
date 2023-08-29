@@ -158,7 +158,12 @@ package Port_Specification is
       group : String) return Boolean;
 
    --  Developer routine which shows contents of specification
-   procedure dump_specification (specs : Portspecs);
+   procedure dump_specification
+     (specs : Portspecs;
+      major   : String;
+      release : String;
+      version : String;
+      arch    : String);
 
    --  Iterate through all non-standard variants to check if all options are accounted for.
    --  Return blank string if all of them pass or the name of the first variant that doesn't

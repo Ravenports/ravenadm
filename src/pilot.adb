@@ -185,7 +185,11 @@ package body Pilot is
          end if;
       end if;
       if successful then
-         specification.dump_specification;
+         specification.dump_specification
+           (major   => HT.USS (sysrootver.major),
+            release => HT.USS (sysrootver.release),
+            version => HT.USS (sysrootver.version),
+            arch    => UTL.cpu_arch (sysrootver.arch));
       else
          TIO.Put_Line ("dump_ravensource < " & errprefix & "Failed to parse " & specfile);
          TIO.Put_Line (specification.get_parse_error);

@@ -5493,7 +5493,12 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  dump_specification
    --------------------------------------------------------------------------------------------
-   procedure dump_specification (specs : Portspecs)
+   procedure dump_specification
+     (specs   : Portspecs;
+      major   : String;
+      release : String;
+      version : String;
+      arch    : String)
    is
       procedure print_item (position : string_crate.Cursor);
       procedure print_tagline (position : def_crate.Cursor);
@@ -5967,6 +5972,11 @@ package body Port_Specification is
       print_vector_list ("CARGO_BUILD_ARGS", sp_cgo_bargs);
       print_vector_list ("CARGO_INSTALL_ARGS", sp_cgo_iargs);
       print_vector_list ("CARGO_FEATURES", sp_cgo_feat);
+
+      TIO.Put ("SYSROOT_ARCH" & LAT.Equals_Sign & LAT.HT & arch);
+      TIO.Put ("SYSROOT_MAJOR" & LAT.Equals_Sign & LAT.HT & major);
+      TIO.Put ("SYSROOT_RELEASE" & LAT.Equals_Sign & LAT.HT & release);
+      TIO.Put ("SYSROOT_VERSION" & LAT.Equals_Sign & LAT.HT & version);
 
    end dump_specification;
 
