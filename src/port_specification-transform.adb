@@ -315,6 +315,7 @@ package body Port_Specification.Transform is
       apply_ninja_module (specs);
       apply_fonts_module (specs);
       apply_pcre2_module (specs);
+      apply_mold_module (specs);
       apply_cran_module (specs);
       apply_ruby_module (specs);
       apply_zlib_module (specs);
@@ -962,6 +963,18 @@ package body Port_Specification.Transform is
    begin
       generic_build_module (specs, module, dependency);
    end apply_scons_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_mold_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_mold_module (specs : in out Portspecs)
+   is
+      module     : String := "mold";
+      dependency : String := "mold:primary:standard";
+   begin
+      generic_build_module (specs, module, dependency);
+   end apply_mold_module;
 
 
    --------------------------------------------------------------------------------------------
