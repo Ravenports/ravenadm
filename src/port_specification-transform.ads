@@ -52,8 +52,9 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
-   PYTHON310 : constant String := "python310:single:standard";
    PYTHON311 : constant String := "python311:single:standard";
+   PYTHON312 : constant String := "python312:primary:standard";
+   PY312DEV  : constant String := "python312:dev:standard";
 
    TCL85    : constant String := "tcl85:complete:standard";
    TCL86    : constant String := "tcl86:complete:standard";

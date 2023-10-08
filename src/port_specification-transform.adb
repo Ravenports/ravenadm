@@ -1651,17 +1651,20 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_python_module (specs : in out Portspecs)
    is
-      procedure set_snake_ports (build_only : Boolean; python_port, py_variant : String);
+      procedure set_single_snake_ports (build_only : Boolean; python_port, py_variant : String);
+      procedure set_split_snakes (build_only : Boolean;
+                                  primary_spkg, dev_spkg, py_variant : String);
 
       module     : constant String := "python";
-      PY310      : constant String := "py310";
+      PY312      : constant String := "v12";
       PY311      : constant String := "v11";
       autopython : constant String := "autoselect-python:single:standard";
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
 
-      procedure set_snake_ports (build_only : Boolean; python_port, py_variant : String) is
+      --  Remove after python 3.11 retired
+      procedure set_single_snake_ports (build_only : Boolean; python_port, py_variant : String) is
       begin
          if build_only then
             add_build_depends (specs, python_port);
@@ -1675,7 +1678,26 @@ package body Port_Specification.Transform is
             add_build_depends (specs, "python-setuptools:single:" & py_variant);
          end if;
          specs.used_python := HT.SUS (py_variant);
-      end set_snake_ports;
+      end set_single_snake_ports;
+
+      procedure set_split_snakes (build_only : Boolean;
+                                  primary_spkg, dev_spkg, py_variant : String)
+      is
+      begin
+         add_build_depends (specs, dev_spkg);
+         if build_only then
+            add_build_depends (specs, primary_spkg);
+         else
+            add_buildrun_depends (specs, primary_spkg);
+         end if;
+         if use_pip then
+            add_build_depends (specs, "python-pip:single:" & py_variant);
+         end if;
+         if use_setup then
+            add_build_depends (specs, "python-setuptools:single:" & py_variant);
+         end if;
+         specs.used_python := HT.SUS (py_variant);
+      end set_split_snakes;
 
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
@@ -1694,15 +1716,15 @@ package body Port_Specification.Transform is
 
       if argument_present (specs, module, "build") then
          if argument_present (specs, module, PY311) then
-            set_snake_ports (True, PYTHON311, PY311);
-         else -- default to py310
-            set_snake_ports (True, PYTHON310, PY310);
+            set_single_snake_ports (True, PYTHON311, PY311);
+         else -- default to py312
+            set_split_snakes (True, PYTHON312, PY312DEV, PY312);
          end if;
       else
          if argument_present (specs, module, PY311) then
-            set_snake_ports (False, PYTHON311, PY311);
-         else -- default to py310
-            set_snake_ports (False, PYTHON310, PY310);
+            set_single_snake_ports (False, PYTHON311, PY311);
+         else -- default to py312
+            set_split_snakes (False, PYTHON312, PY312DEV, PY312);
          end if;
       end if;
       add_build_depends (specs, autopython);
@@ -2657,7 +2679,7 @@ package body Port_Specification.Transform is
             if specs.buildrun_deps.Contains (HT.SUS (PYTHON311)) then
                Element := HT.SUS (PYTHON311);
             else
-               Element := HT.SUS (PYTHON310);
+               Element := HT.SUS (PYTHON312);
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
@@ -2748,7 +2770,7 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & "py310";
+               return name_subpackage & "v12";
             else
                return name_subpackage & "v11";
             end if;
@@ -2879,7 +2901,7 @@ package body Port_Specification.Transform is
       procedure import (comp : gnome_type);
       procedure implies (comp : gnome_type);
 
-      defpy     : constant String := "py" & HT.replace_char (default_python3, '.', "");
+      defpy     : constant String := "v" & HT.part_2 (default_python3, ".");
       ss        : constant String := ":single:standard";
       ps        : constant String := ":primary:standard";
       ds        : constant String := ":dev:standard";

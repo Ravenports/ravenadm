@@ -4432,8 +4432,8 @@ package body Port_Specification is
          ("PGSQL         ", PGSQL),
          ("PNG           ", PNG),
          ("PULSEAUDIO    ", PULSEAUDIO),
-         ("PY310         ", PY310),
          ("PY311         ", PY311),
+         ("PY312         ", PY312),
          ("READLINE      ", READLINE),
          ("RUBY30        ", RUBY30),
          ("RUBY31        ", RUBY31),
@@ -4514,8 +4514,8 @@ package body Port_Specification is
          when PGSQL        => return "PostgreSQL database support";
          when PNG          => return "PNG image format support";
          when PULSEAUDIO   => return "PulseAudio sound server support";
-         when PY310        => return "Build using Python 3.10";
          when PY311        => return "Build using Python 3.11";
+         when PY312        => return "Build using Python 3.12";
          when READLINE     => return "Command line editing via libreadline";
          when RUBY30       => return "Build using Ruby version 3.0";
          when RUBY31       => return "Build using Ruby version 3.1";

@@ -33,7 +33,7 @@ package Definitions is
    default_perl      : constant String := "5.36";
    default_pgsql     : constant String := "15";
    default_php       : constant String := "8.1";
-   default_python3   : constant String := "3.10";
+   default_python3   : constant String := "3.12";
    default_ruby      : constant String := "3.1";
    default_tcltk     : constant String := "8.6";
 
