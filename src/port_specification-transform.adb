@@ -1594,9 +1594,9 @@ package body Port_Specification.Transform is
    procedure apply_mime_info_module (specs : in out Portspecs)
    is
       module     : String := "mime-info";
-      dependency : String := "shared-mime-info:primary:standard";
+      dep_prefix : String := "shared-mime-info";
    begin
-      generic_library_module (specs, module, dependency);
+      generic_devlib_module (specs, module, dep_prefix);
    end apply_mime_info_module;
 
 
