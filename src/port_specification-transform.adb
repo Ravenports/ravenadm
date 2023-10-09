@@ -3005,7 +3005,7 @@ package body Port_Specification.Transform is
             when gconf =>
                add_buildrun_depends (specs, "gconf" & ps);
             when gdkpixbuf =>
-               add_buildrun_depends (specs, "gdk-pixbuf" & ps);
+               add_primdev_submodule (specs, "gdk-pixbuf");
             when glib =>
                add_build_depends (specs, GLIBDEV);
                add_build_depends (specs, GTDEV);
