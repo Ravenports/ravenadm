@@ -3077,7 +3077,8 @@ package body Port_Specification.Transform is
             when pangomm14 =>
                add_primdev_submodule (specs, "pangomm14");
             when pygobject =>
-               add_primdev_submodule (specs, "python-PyGObject");
+               add_build_depends    (specs, "python-PyGObject:dev:" & defpy);
+               add_buildrun_depends (specs, "python-PyGObject:primary:" & defpy);
             when vte =>
                add_primdev_submodule (specs, "vte");
          end case;
