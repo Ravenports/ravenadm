@@ -2064,77 +2064,117 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_tcl_module (specs : in out Portspecs)
    is
-      function pick_tcl (actually_tk : Boolean) return String;
-      procedure install_package (dependency : String);
+      function  use_the_newest_tcltk return Boolean;
+      function  tk_package_name (dev_package : Boolean) return String;
+      function  tcl_package_name (dev_package : Boolean) return String;
+      procedure link_tk_packages;
+      procedure link_tcl_packages;
 
       module     : String := "tcl";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
       install_tk : Boolean;
+      use_latest : Boolean;
 
-      --  When changing tcl defaults, don't forget to alter convert_exrun_versions() too.
-
-      function pick_tcl (actually_tk : Boolean) return String
+      function use_the_newest_tcltk return Boolean
       is
-         def_setting : String := HT.USS (Parameters.configuration.def_tcl_tk);
       begin
          if argument_present (specs, module, "8.5") then
-            return TCL85;
-         elsif argument_present (specs, module, "8.6") or else
-           def_setting = ports_default or else
-           def_setting = "8.6"
-         then
-            if actually_tk then
-               return TK86;
+            return False;
+         end if;
+         if argument_present (specs, module, "8.6") then
+            return True;
+         end if;
+         if HT.USS (Parameters.configuration.def_tcl_tk) = "8.5" then
+            return False;
+         end if;
+         --  If we get here, the port did not specify the version and ravenadm is configured
+         --  either to use version 8.6 or it's floating to the default (also 8.6)
+         return True;
+      end use_the_newest_tcltk;
+
+      function tk_package_name (dev_package : Boolean) return String is
+      begin
+         if dev_package then
+            if use_latest then
+               return "tk86:dev:standard";
             else
-               return TCL86;
+               return "tk85:dev:standard";
             end if;
          else
-            if actually_tk then
-               return TK85;
+            if use_latest then
+               return "tk86:tools:standard";
+            else
+               return "tk85:tools:standard";
+            end if;
+         end if;
+      end tk_package_name;
+
+      function tcl_package_name (dev_package : Boolean) return String is
+      begin
+         if dev_package then
+            if use_latest then
+               return "tcl86:dev:standard";
+            else
+               return "tcl85:dev:standard";
+            end if;
+         else
+            if use_latest then
+               return TCL86;
             else
                return TCL85;
             end if;
          end if;
-      end pick_tcl;
+      end tcl_package_name;
 
-      procedure install_package (dependency : String) is
+      procedure link_tk_packages
+      is
+         dpkg : constant String := tk_package_name (True);
+         tpkg : constant String := tk_package_name (False);
       begin
-         if hit_both or else (hit_build and hit_run) then
-            add_buildrun_depends (specs, dependency);
-         elsif hit_build then
-            add_build_depends (specs, dependency);
+         if hit_build then
+            add_build_depends (specs, dpkg);
+            add_build_depends (specs, tpkg);
+         elsif hit_run then
+            add_run_depends (specs, tpkg);
          else
-            add_run_depends (specs, dependency);
+            add_build_depends (specs, dpkg);
+            add_buildrun_depends (specs, tpkg);
          end if;
-      end install_package;
+      end link_tk_packages;
 
-      tcl_package : String := pick_tcl (actually_tk => False);
-      tk_package  : String := pick_tcl (actually_tk => True);
+      procedure link_tcl_packages
+      is
+         dpkg : constant String := tcl_package_name (True);
+         tpkg : constant String := tcl_package_name (False);
+      begin
+         if hit_build then
+            add_build_depends (specs, dpkg);
+            add_build_depends (specs, tpkg);
+         elsif hit_run then
+            add_run_depends (specs, tpkg);
+         else
+            add_build_depends (specs, dpkg);
+            add_buildrun_depends (specs, tpkg);
+         end if;
+      end link_tcl_packages;
+
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
-      if no_arguments_present (specs, module) then
-         hit_build  := False;
-         hit_both   := True;
-         hit_run    := False;
-         install_tk := False;
-      else
-         hit_build  := argument_present (specs, module, BUILD);
-         hit_both   := argument_present (specs, module, BUILDRUN);
-         hit_run    := argument_present (specs, module, RUN);
-         install_tk := argument_present (specs, module, "tk");
 
-         if not (hit_build or else hit_both or else hit_run) then
-            hit_both := True;
-         end if;
-      end if;
+      hit_build  := argument_present (specs, module, BUILD);
+      hit_run    := not hit_build and then argument_present (specs, module, RUN);
+      hit_both   := not hit_build and then not hit_run;
+      install_tk := argument_present (specs, module, "tk");
+      use_latest := use_the_newest_tcltk;
 
-      install_package (tcl_package);
       if install_tk then
-         install_package (tk_package);
+         link_tk_packages;
+      else
+         link_tcl_packages;
       end if;
 
    end apply_tcl_module;

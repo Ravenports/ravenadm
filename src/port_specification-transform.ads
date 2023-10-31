@@ -56,10 +56,8 @@ private
    PYTHON312 : constant String := "python312:primary:standard";
    PY312DEV  : constant String := "python312:dev:standard";
 
-   TCL85    : constant String := "tcl85:complete:standard";
-   TCL86    : constant String := "tcl86:complete:standard";
-   TK85     : constant String := "tk85:primary:standard";
-   TK86     : constant String := "tk86:primary:standard";
+   TCL85    : constant String := "tcl85:tools:standard";
+   TCL86    : constant String := "tcl86:tools:standard";
    RUBY30   : constant String := "ruby30:primary:standard";
    RUBY31   : constant String := "ruby31:primary:standard";
    RUBY32   : constant String := "ruby32:primary:standard";
