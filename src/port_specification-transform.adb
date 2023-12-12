@@ -2000,12 +2000,13 @@ package body Port_Specification.Transform is
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
+      hit_tools  : Boolean;
 
       function pick_lua return String
       is
-         LUA52 : String := "lua52:single:standard";
-         LUA53 : String := "lua53:single:standard";
-         LUA54 : String := "lua54:single:standard";
+         LUA52 : String := "lua52";
+         LUA53 : String := "lua53";
+         LUA54 : String := "lua54";
          def_setting : String := HT.USS (Parameters.configuration.def_lua);
       begin
          if argument_present (specs, module, "5.2") then
@@ -2020,28 +2021,33 @@ package body Port_Specification.Transform is
 
          if def_setting = "5.2" then
             return LUA52;
-         elsif def_setting = "5.4" then
+         elsif def_setting = "5.3" then
             return LUA54;
          else
-            --  current default: lua53
-            return LUA53;
+            --  current default: lua54
+            return LUA54;
          end if;
 
       end pick_lua;
 
-      dependency : String := pick_lua;
+      dependency         : constant String := pick_lua;
+      dev_subpackage     : constant String := dependency & ":dev:standard";
+      primary_subpackage : constant String := dependency & ":primary:standard";
+      tools_subpackage   : constant String := dependency & ":tools:standard";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
       if no_arguments_present (specs, module) then
-         hit_build := False;
-         hit_both  := True;
+         hit_build := True;
+         hit_both  := False;
          hit_run   := False;
+         hit_tools := False;
       else
          hit_build := argument_present (specs, module, BUILD);
          hit_both  := argument_present (specs, module, BUILDRUN);
          hit_run   := argument_present (specs, module, RUN);
+         hit_tools := argument_present (specs, module, "tools");
 
          if not (hit_build or else hit_both or else hit_run) then
             hit_both := True;
@@ -2049,13 +2055,18 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dependency);
+         add_buildrun_depends (specs, dev_subpackage);
+         add_buildrun_depends (specs, primary_subpackage);
       elsif hit_build then
-         add_build_depends (specs, dependency);
+         add_build_depends (specs, dev_subpackage);
       else
-         add_run_depends (specs, dependency);
+         add_run_depends (specs, primary_subpackage);
       end if;
-      specs.used_lua := HT.SUS (HT.specific_field (dependency, 1, ":"));
+      if hit_tools then
+         add_buildrun_depends (specs, tools_subpackage);
+      end if;
+
+      specs.used_lua := HT.SUS (primary_subpackage);
    end apply_lua_module;
 
 
@@ -2831,11 +2842,11 @@ package body Port_Specification.Transform is
          begin
             if setting = "5.2" then
                return name_subpackage & "lua52";
-            elsif setting = "5.4" then
-               return name_subpackage & "lua54";
-            else
-               --  ports_default or default_lua ("5.3")
+            elsif setting = "5.3" then
                return name_subpackage & "lua53";
+            else
+               --  ports_default or default_lua ("5.4")
+               return name_subpackage & "lua54";
             end if;
          end;
       elsif trailer = "ruby_default" then
