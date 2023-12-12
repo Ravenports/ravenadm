@@ -2063,7 +2063,7 @@ package body Port_Specification.Transform is
          add_run_depends (specs, primary_subpackage);
       end if;
       if hit_tools then
-         add_buildrun_depends (specs, tools_subpackage);
+         add_build_depends (specs, tools_subpackage);
       end if;
 
       specs.used_lua := HT.SUS (primary_subpackage);
