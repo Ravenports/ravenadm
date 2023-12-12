@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "2";
-   raven_version_minor : constant String := "16";
+   raven_version_minor : constant String := "17";
    copyright_years     : constant String := "2015-2023";
 
    raven_tool        : constant String := "ravenadm";
@@ -32,7 +32,7 @@ package Definitions is
    default_lua       : constant String := "5.3";
    default_perl      : constant String := "5.36";
    default_pgsql     : constant String := "15";
-   default_php       : constant String := "8.1";
+   default_php       : constant String := "8.2";
    default_python3   : constant String := "3.12";
    default_ruby      : constant String := "3.1";
    default_tcltk     : constant String := "8.6";
