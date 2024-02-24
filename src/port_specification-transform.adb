@@ -1935,8 +1935,8 @@ package body Port_Specification.Transform is
                flavor := "v31";
             elsif argument_present (specs, module, "v32") then
                flavor := "v32";
-            elsif argument_present (specs, module, "v30") then
-               flavor := "v30";
+            elsif argument_present (specs, module, "v33") then
+               flavor := "v33";
             end if;
          end if;
          add_buildrun_depends (specs, "ruby-rubygems:single:" & flavor);
@@ -2853,13 +2853,13 @@ package body Port_Specification.Transform is
          declare
             setting : String := HT.USS (Parameters.configuration.def_ruby);
          begin
-            if setting = "3.0" then
-               return name_subpackage & "v30";
+            if setting = "3.1" then
+               return name_subpackage & "v31";
             elsif setting = "3.2" then
                return name_subpackage & "v32";
             else
-               --  ports_default or default_ruby ("3.1")
-               return name_subpackage & "v31";
+               --  ports_default or default_ruby ("3.2")
+               return name_subpackage & "v32";
             end if;
          end;
       elsif trailer = "python_used" then
