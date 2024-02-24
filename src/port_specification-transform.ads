@@ -58,9 +58,9 @@ private
 
    TCL85    : constant String := "tcl85:tools:standard";
    TCL86    : constant String := "tcl86:tools:standard";
-   RUBY30   : constant String := "ruby30:primary:standard";
    RUBY31   : constant String := "ruby31:primary:standard";
    RUBY32   : constant String := "ruby32:primary:standard";
+   RUBY33   : constant String := "ruby33:primary:standard";
    NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:primary:standard";
    GLIBDEV  : constant String := "glib:dev:standard";
