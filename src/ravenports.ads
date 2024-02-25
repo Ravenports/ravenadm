@@ -14,11 +14,11 @@ package Ravenports is
 private
 
    remote_version : constant String :=
-     "https://raw.githubusercontent.com/jrmarino/Ravenports/master/Mk/Misc/latest_release.txt";
+     "https://raw.githubusercontent.com/Ravenports/Ravenports/master/Mk/Misc/latest_release.txt";
 
    conspiracy_version : constant String := "/Mk/Misc/latest_release.txt";
    temporary_ver_loc  : constant String := "/tmp/rp_latest_version.txt";
-   github_archive     : constant String := "https://github.com/jrmarino/Ravenports/archive/";
+   github_archive     : constant String := "https://github.com/Ravenports/Ravenports/archive/";
 
    --  Returns True if the latest Ravenports version information was successfully retrieved
    function fetch_latest_version_info (tmp_location : String) return Boolean;

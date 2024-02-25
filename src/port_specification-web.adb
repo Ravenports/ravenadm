@@ -876,16 +876,16 @@ package body Port_Specification.Web is
       licenses : constant String := list_scheme (specs.get_field_value (sp_licenses),
                                                  specs.get_license_scheme);
       lnk_bs   : constant String :=
-        link ("https://raw.githubusercontent.com/jrmarino/Ravenports/master/" & catport,
+        link ("https://raw.githubusercontent.com/Ravenports/Ravenports/master/" & catport,
               "ghlink", "Buildsheet");
       lnk_bshy : constant String :=
-        link ("https://github.com/jrmarino/Ravenports/commits/master/" & catport,
+        link ("https://github.com/Ravenports/Ravenports/commits/master/" & catport,
               "histlink", "History");
       lnk_port : constant String :=
-        link ("https://github.com/jrmarino/ravensource/tree/master/" & catport,
+        link ("https://github.com/Ravenports/ravensource/tree/master/" & catport,
               "ghlink", "Port Directory");
       lnk_pthy : constant String :=
-        link ("https://github.com/jrmarino/ravensource/commits/master/" & catport,
+        link ("https://github.com/Ravenports/ravensource/commits/master/" & catport,
               "histlink", "History");
    begin
       result := HT.replace_substring (result, "@NAMEBASE@", namebase);
