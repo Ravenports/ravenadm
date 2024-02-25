@@ -2479,13 +2479,13 @@ package body PortScan.Operations is
          function operating_arch return String is
          begin
             case sysrootver.arch is
-               when x86_64  => return "x86-64 ";
-               when i386    => return "x86 ";
-               when aarch64 => return "AArch64 ";
+               when x86_64  => return "x86-64";
+               when i386    => return "x86";
+               when aarch64 => return "AArch64";
             end case;
          end operating_arch;
       begin
-         return operating_system & operating_arch & HT.USS (sysrootver.release);
+         return operating_system & operating_arch & " REL " & HT.USS (sysrootver.release);
       end platform_value;
    begin
       TIO.Create (File => jsonfile, Mode => TIO.Out_File, Name => filename);
