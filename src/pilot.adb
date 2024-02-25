@@ -984,7 +984,7 @@ package body Pilot is
          OPS.run_start_hook;
          REP.initialize (testmode);
          CYC.initialize (testmode);
-         OPS.initialize_web_report (num_builders);
+         OPS.initialize_web_report (num_builders, sysrootver);
          OPS.initialize_display (num_builders);
          OPS.parallel_bulk_run (num_builders, sysrootver);
          --  The parallel_bulk_run contains the end_hook activation

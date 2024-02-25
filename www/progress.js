@@ -75,7 +75,8 @@ function process_summary(data) {
 	run_active = parseInt (data.active);
 	$('#profile').html(data.profile);
 	$('#kickoff').html(data.kickoff);
-	$('#polling').html(run_active ? "Active" : "Complete");
+	$('#polling').html(run_active ? "(active)" : "(complete)");
+	$('#platform').html(data.platform);
 	if (data.stats) {
 		$.each(data.stats, function(status, count) {
 			html = count;

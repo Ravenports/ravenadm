@@ -73,7 +73,9 @@ package PortScan.Operations is
 
    --  Unconditionally copies web assets to <log directory/report directory
    --  It also provides an initial summary.json data file just the report has something to load
-   procedure initialize_web_report (num_builders : builders);
+   procedure initialize_web_report
+     (num_builders : builders;
+      sysrootver   : sysroot_characteristics);
 
    --  Kicks off curses or sets color support off.  Do it before
    --  calling parallel_bulk_run.
@@ -211,7 +213,8 @@ private
      (active            : Boolean;
       states            : dim_builder_state;
       num_builders      : builders;
-      num_history_files : Natural);
+      num_history_files : Natural;
+      sysrootver        : sysroot_characteristics);
 
    procedure record_history_skipped
      (elapsed   : String;

@@ -352,3 +352,7 @@ br.clear {
 	background-color: #FFC;
 	border: 0;
 }
+
+#polling {
+	padding-left: 8px;
+}

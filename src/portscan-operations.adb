@@ -461,7 +461,8 @@ package body PortScan.Operations is
                   write_summary_json (active            => True,
                                       states            => builder_states,
                                       num_builders      => num_builders,
-                                      num_history_files => history.segment);
+                                      num_history_files => history.segment,
+                                      sysrootver        => sysrootver);
                else
                   cntwww := cntwww + 1;
                end if;
@@ -484,7 +485,8 @@ package body PortScan.Operations is
       write_summary_json (active            => False,
                           states            => builder_states,
                           num_builders      => num_builders,
-                          num_history_files => history.segment);
+                          num_history_files => history.segment,
+                          sysrootver        => sysrootver);
       run_hook (run_end,
                   "PORTS_BUILT=" & HT.int2str (LOG.port_counter_value (success)) &
                   " PORTS_FAILED=" & HT.int2str (LOG.port_counter_value (failure)) &
@@ -2402,7 +2404,10 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    --  initialize_web_report
    --------------------------------------------------------------------------------------------
-   procedure initialize_web_report (num_builders : builders) is
+   procedure initialize_web_report
+     (num_builders : builders;
+      sysrootver   : sysroot_characteristics)
+   is
       idle_slaves  : constant dim_builder_state := (others => idle);
       reportdir    : constant String := HT.USS (PM.configuration.dir_logs);
       sharedir     : constant String := host_localbase & "/share/ravenadm";
@@ -2420,7 +2425,8 @@ package body PortScan.Operations is
       write_summary_json (active            => True,
                           states            => idle_slaves,
                           num_builders      => num_builders,
-                          num_history_files => 0);
+                          num_history_files => 0,
+                          sysrootver        => sysrootver);
    end initialize_web_report;
 
 
@@ -2431,9 +2437,11 @@ package body PortScan.Operations is
      (active            : Boolean;
       states            : dim_builder_state;
       num_builders      : builders;
-      num_history_files : Natural)
+      num_history_files : Natural;
+      sysrootver        : sysroot_characteristics)
    is
       function TF (value : Boolean) return Natural;
+      function platform_value return String;
 
       jsonfile : TIO.File_Type;
       filename : constant String := HT.USS (PM.configuration.dir_logs) & "/summary.json";
@@ -2448,6 +2456,37 @@ package body PortScan.Operations is
             return 0;
          end if;
       end TF;
+
+      function platform_value return String
+      is
+         function operating_system return String;
+         function operating_arch return String;
+
+         function operating_system return String is
+         begin
+            case platform_type is
+               when freebsd     => return "FreeBSD/";
+               when dragonfly   => return "DragonFly/";
+               when netbsd      => return "NetBSD/";
+               when openbsd     => return "OpenBSD/";
+               when midnightbsd => return "MidnightBSD/";
+               when sunos       => return "Solaris/";
+               when linux       => return "Linux/";
+               when macos       => return "Darwin/";
+            end case;
+         end operating_system;
+
+         function operating_arch return String is
+         begin
+            case sysrootver.arch is
+               when x86_64  => return "x86-64 ";
+               when i386    => return "x86 ";
+               when aarch64 => return "AArch64 ";
+            end case;
+         end operating_arch;
+      begin
+         return operating_system & operating_arch & HT.USS (sysrootver.release);
+      end platform_value;
    begin
       TIO.Create (File => jsonfile, Mode => TIO.Out_File, Name => filename);
       TIO.Put (jsonfile, "{" & LAT.LF &
@@ -2457,6 +2496,7 @@ package body PortScan.Operations is
            " ," & nv ("kickoff", LOG.www_timestamp_start_time) & LAT.LF &
            " ," & nv ("kfiles", num_history_files) & LAT.LF &
            " ," & nv ("active", TF (active)) & LAT.LF &
+           " ," & nv ("platform", platform_value) & LAT.LF &
            " ," & LAT.Quotation & "stats" & LAT.Quotation & LAT.Colon & "{" & LAT.LF);
       TIO.Put
         (jsonfile,
