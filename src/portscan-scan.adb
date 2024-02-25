@@ -1134,6 +1134,7 @@ package body PortScan.Scan is
    procedure generate_conspiracy_index (sysrootver : sysroot_characteristics)
    is
       procedure scan_port (position : string_crate.Cursor);
+      procedure record_subpackages (customspec : PSP.Portspecs);
 
       conspiracy : constant String := HT.USS (PM.configuration.dir_conspiracy);
       misc_dir   : constant String := conspiracy & "/Mk/Misc/";
@@ -1141,13 +1142,40 @@ package body PortScan.Scan is
       finalfpceq : constant String := misc_dir & "fpc_equivalents";
       summary    : constant String := misc_dir & "summary.txt";
       repology   : constant String := misc_dir & "repology.json";
+      rvn_index  : constant String := misc_dir & "rvnindex.txt";
       indexfile  : TIO.File_Type;
       fpcfile    : TIO.File_Type;
       repofile   : TIO.File_Type;
+      rvnfile    : TIO.File_Type;
       bucket     : bucket_code;
       total_ports    : Natural := 0;
       total_variants : Natural := 0;
       total_subpkgs  : Natural := 0;
+
+      procedure record_subpackages (customspec : PSP.Portspecs)
+      is
+         num_variants : constant Natural := customspec.get_number_of_variants;
+      begin
+         for variant_index in 1 .. num_variants loop
+            declare
+               variant : constant String :=
+                 customspec.get_list_item (PSP.sp_variants, variant_index);
+               num_subpkgs : constant Natural := customspec.get_subpackage_length (variant);
+            begin
+               for subpkg_index in 1 .. num_subpkgs loop
+                  declare
+                     line : HT.Text := HT.SUS (customspec.get_namebase);
+                     subpkg  : constant String :=
+                       customspec.get_subpackage_item (variant, subpkg_index);
+                  begin
+                     HT.SU.Append (line, '-' & subpkg & '-' & variant);
+                     HT.SU.Append (line, ' ' & customspec.get_field_value (PSP.sp_version));
+                     TIO.Put_Line (rvnfile, HT.USS (line));
+                  end;
+               end loop;
+            end;
+         end loop;
+      end record_subpackages;
 
       procedure scan_port (position : string_crate.Cursor)
       is
@@ -1199,6 +1227,7 @@ package body PortScan.Scan is
                dossier => repofile,
                bucket  => bucket,
                index   => total_ports);
+            record_subpackages (customspec);
          end;
       end scan_port;
    begin
@@ -1215,6 +1244,10 @@ package body PortScan.Scan is
       TIO.Create (File => repofile,
                   Mode => TIO.Out_File,
                   Name => repology);
+
+      TIO.Create (File => rvnfile,
+                  Mode => TIO.Out_File,
+                  Name => rvn_index);
 
       TIO.Put
         (repofile,
@@ -1255,6 +1288,7 @@ package body PortScan.Scan is
 
       TIO.Close (indexfile);
       TIO.Close (fpcfile);
+      TIO.Close (rvnfile);
       LOG.set_scan_complete (CAL.Clock);
 
       TIO.Put_Line ("Index successfully generated.");
@@ -1297,6 +1331,9 @@ package body PortScan.Scan is
          end if;
          if TIO.Is_Open (repofile) then
             TIO.Close (repofile);
+         end if;
+         if TIO.Is_Open (rvnfile) then
+            TIO.Close (rvnfile);
          end if;
          TIO.Put_Line ("generate_conspiracy_index failure: " & EX.Exception_Message (issue));
    end generate_conspiracy_index;
