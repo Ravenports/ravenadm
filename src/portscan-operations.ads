@@ -174,7 +174,7 @@ private
 
    package subpackage_queue is new CON.Vectors
      (Element_Type => subpackage_identifier,
-      Index_Type   => port_index);
+      Index_Type   => built_package_id);
 
    pkgscan_progress : dim_progress := (others => 0);
    pkgscan_total    : Natural := 0;
