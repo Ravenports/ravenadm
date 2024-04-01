@@ -2884,6 +2884,8 @@ package body Port_Specification.Transform is
       procedure check_build    (position : string_crate.Cursor);
       procedure check_buildrun (position : string_crate.Cursor);
       procedure check_run      (position : string_crate.Cursor);
+      procedure check_extradep (position : list_crate.Cursor);
+      procedure extradep2      (Key : HT.Text; Element : in out group_list);
       procedure alter (Element : in out HT.Text);
 
       transformed_dep : HT.Text;
@@ -2930,10 +2932,33 @@ package body Port_Specification.Transform is
             specs.run_deps.Update_Element (position, alter'Access);
          end if;
       end check_run;
+
+      procedure check_extradep (position : list_crate.Cursor) is
+      begin
+         specs.extra_rundeps.Update_Element (position, extradep2'Access);
+      end check_extradep;
+
+      procedure extradep2 (Key : HT.Text; Element : in out group_list)
+      is
+         procedure check_payload (position2 : string_crate.Cursor);
+            procedure check_payload (position2 : string_crate.Cursor)
+            is
+               dep : constant String := HT.USS (string_crate.Element (position2));
+               xdep : String := transform_defaults (dep, pyx, plx, lux, rbx);
+            begin
+               if xdep /= dep then
+                  transformed_dep := HT.SUS (xdep);
+                  Element.list.Update_Element (position2, alter'Access);
+               end if;
+            end check_payload;
+      begin
+         Element.list.Iterate (check_payload'Access);
+      end extradep2;
    begin
       specs.build_deps.Iterate (check_build'Access);
       specs.buildrun_deps.Iterate (check_buildrun'Access);
       specs.run_deps.Iterate (check_run'Access);
+      specs.extra_rundeps.Iterate (check_extradep'Access);
    end apply_default_version_transformations;
 
 
