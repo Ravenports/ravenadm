@@ -129,7 +129,7 @@ table a {
    font-weight: bold;
    color: #148F77;
    width: 800px;
-   padding: 0 0 0 60px;
+   padding: 0;
    text-align: center;
    line-height: 70px;
 }
