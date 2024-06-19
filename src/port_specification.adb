@@ -3702,7 +3702,7 @@ package body Port_Specification is
          HT.leads (value, "oracle-") and then
              (value = "oracle-5.7" or else
               value = "oracle-8.0" or else
-              value = "oracle-8.1")
+              value = "oracle-8.4")
         )
         or else
             (HT.leads (value, "mariadb-") and then

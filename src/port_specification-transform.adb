@@ -3315,8 +3315,8 @@ package body Port_Specification.Transform is
    begin
       if setting = "oracle-5.7" then
          return "mysql57";
-      elsif setting = "oracle-8.1" then
-         return "mysql81";
+      elsif setting = "oracle-8.4" then
+         return "mysql84";
       elsif setting = "mariadb-10.4" then
          return "mariadb104";
       elsif setting = "mariadb-10.5" then
