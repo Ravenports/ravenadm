@@ -1211,6 +1211,9 @@ package body Port_Specification.Transform is
               subpackage /= spkg_complete and then
               subpackage /= spkg_examples and then
               subpackage /= spkg_nls and then
+              subpackage /= spkg_info and then
+              subpackage /= spkg_man and then
+              subpackage /= spkg_dev and then
               subpackage /= spkg_docs
             then
                prime_pkg := HT.SUS (subpackage);
