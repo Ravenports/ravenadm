@@ -4829,7 +4829,7 @@ package body Port_Specification is
       if specs.uses_base.Contains (HT.SUS (fonts_module)) then
          --  Rules for fonts module:
          --  Must be blank or have exactly one argument
-         --  The one argument must be "fc", "fontsdir", or "fcfontsdir" only
+         --  The one argument must be "fc", or "fontsdir" only
          declare
             fonts_args : String := retrieve_module_arguments (specs, fonts_module);
             num_commas : Natural;
@@ -4841,8 +4841,7 @@ package body Port_Specification is
             end if;
             if fonts_args /= "" and then
               fonts_args /= "fc" and then
-              fonts_args /= "fontsdir" and then
-              fonts_args /= "fcfontsdir"
+              fonts_args /= "fontsdir"
             then
                TIO.Put_Line
                  (fonts_module & " module has unrecognized argument '" & fonts_args & "'");
