@@ -40,37 +40,6 @@ package Utilities is
    --  escaped double-quotes inside quotes with an "X" as well.
    function mask_quoted_string (raw : String) return String;
 
-   --  Quick formatting of json value
-   function json_nvpair_integer
-     (name    : String;
-      value   : Integer;
-      index   : Positive;
-      padding : Natural) return String;
-
-   --  Quick formatting of json value
-   function json_nvpair_string
-     (name    : String;
-      value   : String;
-      index   : Positive;
-      padding : Natural) return String;
-
-   --  Quick formatting of json value
-   function json_nvpair_complex
-     (name    : String;
-      value   : String;
-      index   : Positive;
-      padding : Natural) return String;
-
-   --  Quick formatting of json line containing just the name.
-   --  Used when value is complex such as object or array which appear on separate lines.
-   function json_name_complex (name : String; index : Positive; padding : Natural) return String;
-
-   --  Quickly formats open curly or closed curly bracket for json object definition
-   function json_object (initiating : Boolean; padding, index : Natural) return String;
-
-   --  Quickly formats open square or closed square brack for json array definition
-   function json_array (initiating : Boolean; padding : Natural) return String;
-
    --  Convert a string of digits representing unix epoch into Ada Time type
    function convert_unixtime (unix_string : String) return CAL.Time;
 
