@@ -2762,7 +2762,6 @@ package body Port_Specification is
 
       procedure dump_license (position : string_crate.Cursor)
       is
-         lic_desc : HT.Text;
       begin
          if not HT.IsBlank (joined) then
             HT.SU.Append (joined, ", ");
@@ -2778,14 +2777,14 @@ package body Port_Specification is
                raw : String := HT.USS (string_crate.Element (position));
             begin
                if HT.leads (raw, lic) then
-                  lic_desc := HT.SUS (HT.part_2 (raw, ":"));
+                  --  part_2(raw) is already wrapped with double quotes
+                  HT.SU.Append (joined, HT.part_2 (raw, ":"));
                end if;
             end scan_lic_names;
          begin
             case lictype is
                when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
                   specs.lic_names.Iterate (scan_lic_names'Access);
-                  HT.SU.Append (joined, lic_desc);
                when others =>
                   HT.SU.Append (joined, LAT.Quotation & lic & LAT.Quotation);
             end case;

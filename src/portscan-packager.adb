@@ -4,6 +4,7 @@
 with File_Operations;
 with PortScan.Log;
 with Parameters;
+with ThickUCL.Emitter;
 with Unix;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
@@ -30,7 +31,7 @@ package body PortScan.Packager is
       port_prefix   : String;
       rootdir       : String) return Boolean
    is
-      procedure metadata   (position : subpackage_crate.Cursor);
+      procedure create_metadata_file (position : subpackage_crate.Cursor);
       procedure package_it (position : subpackage_crate.Cursor);
       procedure move_it_outside_sysroot (position : subpackage_crate.Cursor);
 
@@ -43,88 +44,220 @@ package body PortScan.Packager is
       sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
       realpkgdir : constant String := HT.USS (PM.configuration.dir_packages);
       stagedir   : constant String := conbase & "/stage";
-      display    : constant String := "/+DISPLAY";
       pkgvers    : constant String := HT.USS (all_ports (seq_id).pkgversion);
       usrgrp_pkg : constant String := specification.get_field_value (PSP.sp_ug_pkg);
-      ug_install : constant String := wrkdir & "/users-groups-install.sh";
-      ug_desinst : constant String := wrkdir & "/users-groups-deinstall.sh";
       still_good : Boolean := True;
 
-      procedure metadata (position : subpackage_crate.Cursor)
+      --  [[ Metadata format ]]
+      --  namebase        : pkg-namebase <string>
+      --  subpackage      : pkg-subpackage <string>
+      --  variant         : pkg-variant <string>
+      --  version         : pkg-version <string>
+      --  comment         : comment-string <string>
+      --  desc            : description <multiline string>
+      --  www             : url <string>
+      --  maintainer      : mail-address <string>
+      --  prefix          : <skip, autoset>
+      --  flatsize        : <skip, autoset>
+      --  abi             : <skip, autoset>
+      --  deps            : object { n-s-v => version }
+      --  options         : object { option-name => on/off or T/F }
+      --  categories      : array of <string>
+      --  licencelogic    : ("dual"|"single"|"multi")
+      --  licenses        : array of <string>
+      --  annotations     : object { tag => note }
+      --  users           : array of <string>
+      --  groups          : array of <string>
+      --  shlibs_provided : <skip, autoset>  array of <string>
+      --  shlibs_required : <skip, autoset>  array of <string>
+      --  shlibs_adjacent : <skip, autoset>  array of <string>
+      --  scripts         : object { script-type => { args => <string>, code => <string> }}
+      --  directories     : <skip, autoset> array of object { group, owner, perms, path }
+      --  messages        : array of objects
+      --  triggers        : array of object { cleanup, trigger,
+      --                                      (dir_path|file_path|file_glob|file_regexp)}
+
+      procedure create_metadata_file (position : subpackage_crate.Cursor)
       is
-         type three is range 1 .. 3;
-         function convert_prepost (prepost : three) return String;
-         function convert_stage   (stage   : three) return String;
-         subpackage    : constant String :=
-                         HT.USS (subpackage_crate.Element (position).subpackage);
-         message_file  : constant String := wrkdir & "/.PKG_DISPLAY." & subpackage;
-         descript_file : constant String := wrkdir & "/.PKG_DESC." & subpackage;
-         scr_preinst   : constant String := spkgdir & subpackage & "/pkg-pre-install";
-         scr_pstdeinst : constant String := spkgdir & subpackage & "/pkg-post-deinstall";
+         function short_description return String;
+         function long_description return String;
+         procedure conditional_single (name : String; value : String);
+         procedure conditional_array (name : String; concatenated : String; quoted : Boolean);
+         procedure insert_annotations;
+         procedure insert_options;
+         procedure insert_dependencies;
 
-         descript : String := "/+DESC";
-         manifest : String := "/+MANIFEST";
+         myrec : subpackage_record renames subpackage_crate.Element (position);
+         subpackage : constant String := HT.USS (myrec.subpackage);
+         variant    : constant String := HT.USS (all_ports (seq_id).port_variant);
+         metatree : ThickUCL.UclTree;
 
-         function convert_prepost (prepost : three) return String is
+         function short_description return String is
          begin
-            case prepost is
-               when 1 => return "pre-";
-               when 2 => return "";
-               when 3 => return "post-";
-            end case;
-         end convert_prepost;
+            if specification.get_subpackage_length (variant) = 1 then
+               return specification.get_tagline (variant);
+            end if;
+            return specification.get_tagline (variant) & " (" & subpackage & ")";
+         end short_description;
 
-         function convert_stage (stage   : three) return String is
+         procedure conditional_single (name : String; value : String) is
          begin
-            case stage is
-               when 1 => return "install";
-               when 2 => return "upgrade";
-               when 3 => return "deinstall";
-            end case;
-         end convert_stage;
-      begin
-         DIR.Create_Path (spkgdir & subpackage);
-         if DIR.Exists (message_file) then
-            DIR.Copy_File (Source_Name => message_file,
-                           Target_Name => spkgdir & subpackage & display);
-         end if;
-         if DIR.Exists (descript_file) then
-            DIR.Copy_File (Source_Name => descript_file,
-                           Target_Name => spkgdir & subpackage & descript);
-         end if;
+            if value = "" then
+               return;
+            end if;
+            metatree.insert (name, value);
+         end conditional_single;
 
-         for action in three'Range loop
-            for psp in three'Range loop
-               declare
-                  script_file : String := wrkdir & "/pkg-" & convert_prepost (psp) &
-                                          convert_stage (action) & "." & subpackage;
-                  pkg_script  : String := spkgdir & subpackage & "/pkg-" & convert_prepost (psp) &
-                                          convert_stage (action);
-               begin
-                  if DIR.Exists (script_file) then
-                     DIR.Copy_File (Source_Name => script_file,
-                                    Target_Name => pkg_script);
+         procedure conditional_array (name : String; concatenated : String; quoted : Boolean)
+         is
+            function stripped_field (field : Natural) return String;
+            function stripped_field (field : Natural) return String
+            is
+               namestr : constant String :=  HT.specific_field (concatenated, field, ", ");
+            begin
+               if quoted then
+                  if namestr'Length <= 2 then
+                     return "";
                   end if;
+                  return namestr (namestr'First + 1 .. namestr'Last - 1);
+               end if;
+               return namestr;
+            end stripped_field;
+
+         begin
+            if concatenated = "" then
+               return;
+            end if;
+            metatree.start_array (name);
+            declare
+               num_fields : constant Natural := HT.count_char (concatenated, ',') + 1;
+            begin
+               for field in 1 .. num_fields loop
+                  metatree.insert ("", stripped_field (field));
+               end loop;
+            end;
+            metatree.close_array;
+         end conditional_array;
+
+         function long_description return String
+         is
+            description_filename : constant String := wrkdir & "/.PKG_DISPLAY." & subpackage;
+         begin
+            if DIR.Exists (description_filename) then
+               return FOP.get_file_contents (description_filename);
+            end if;
+            return "Developer error: " & subpackage & " subpackage description missing.";
+         end long_description;
+
+         procedure insert_options
+         is
+            function opt_value (raw_value : String) return Boolean;
+            function opt_value (raw_value : String) return Boolean is
+            begin
+               return raw_value (raw_value'First .. raw_value'First + 1) = "on";
+            end opt_value;
+         begin
+            metatree.start_object ("options");
+            if specification.global_options_present then
+               declare
+                  --  examples: "PERL_536: off, PERL_538: on,"   (trailing comma)
+                  opts : constant String := specification.get_options_list (variant);
+                  num_opts : constant Natural := HT.count_char (opts, ',');
+               begin
+                  for index in 1 .. num_opts loop
+                     declare
+                        field : constant String := HT.specific_field (opts, index, ", ");
+                        key   : constant String := HT.part_1 (field, ": ");
+                        value : constant Boolean := opt_value (HT.part_2 (field, ": "));
+                     begin
+                        metatree.insert (key, value);
+                     end;
+                  end loop;
+               end;
+            end if;
+            metatree.close_object;
+         end insert_options;
+
+         procedure insert_annotations
+         is
+            num_notes : constant Natural := specification.get_list_length (PSP.sp_notes);
+         begin
+            if num_notes = 0 then
+               return;
+            end if;
+            metatree.start_object ("annotations");
+            for note in 1 .. num_notes loop
+               declare
+                  nvpair : constant String := specification.get_list_item (PSP.sp_notes, note);
+                  key    : constant String := HT.part_1 (nvpair, "=");
+                  value  : constant String := HT.part_2 (nvpair, "=");
+               begin
+                  metatree.insert (key, value);
                end;
             end loop;
-         end loop;
+            metatree.close_object;
+         end insert_annotations;
 
-         if subpackage = usrgrp_pkg then
-            if DIR.Exists (ug_install) then
-               FOP.concatenate_file (basefile => scr_preinst, another_file => ug_install);
-            end if;
-            if DIR.Exists (ug_desinst) then
-               FOP.concatenate_file (basefile => scr_pstdeinst, another_file => ug_desinst);
-            end if;
-         end if;
+         procedure insert_dependencies
+         is
+            procedure scan (position : subpackage_crate.Cursor);
+            procedure assemble_origins (dep_position : spkg_id_crate.Cursor);
 
-         write_package_manifest (spec        => specification,
-                                 port_prefix => port_prefix,
-                                 subpackage  => subpackage,
-                                 seq_id      => seq_id,
-                                 pkgversion  => pkgvers,
-                                 filename    => spkgdir & subpackage & manifest);
-      end metadata;
+            found_subpackage : Boolean := False;
+
+            procedure scan (position : subpackage_crate.Cursor)
+            is
+               rec : subpackage_record renames subpackage_crate.Element (position);
+            begin
+               if not found_subpackage then
+                  if HT.equivalent (rec.subpackage, subpackage) then
+                     found_subpackage := True;
+                     rec.spkg_run_deps.Iterate (assemble_origins'Access);
+                  end if;
+               end if;
+            end scan;
+
+            procedure assemble_origins (dep_position : spkg_id_crate.Cursor)
+            is
+               sprec : subpackage_identifier renames spkg_id_crate.Element (dep_position);
+               n     : constant String := HT.USS (all_ports (sprec.port).port_namebase);
+               s     : constant String := HT.USS (sprec.subpackage);
+               v     : constant String := HT.USS (all_ports (sprec.port).port_variant);
+               ver   : constant String := HT.USS (all_ports (sprec.port).pkgversion);
+            begin
+               metatree.insert (n & LAT.Hyphen & s & LAT.Hyphen & v, ver);
+            end assemble_origins;
+         begin
+            metatree.start_object ("deps");
+            all_ports (seq_id).subpackages.Iterate (scan'Access);
+            metatree.close_object;
+         end insert_dependencies;
+      begin
+         metatree.insert ("namebase", namebase);
+         metatree.insert ("subpackage", subpackage);
+         metatree.insert ("variant", variant);
+         metatree.insert ("version", HT.USS (all_ports (seq_id).pkgversion));
+         metatree.insert ("comment", short_description);
+         metatree.insert ("maintainer", specification.get_field_value (PSP.sp_contacts));
+         metatree.insert ("licenselogic", specification.get_license_scheme);
+         metatree.insert ("desc", long_description);
+         conditional_single ("www", specification.get_field_value (PSP.sp_homepage));
+         conditional_array ("categories", specification.get_field_value (PSP.sp_keywords), False);
+         conditional_array ("licenses", specification.get_field_value (PSP.sp_licenses), True);
+         conditional_array ("users", specification.get_field_value (PSP.sp_users), False);
+         conditional_array ("groups", specification.get_field_value (PSP.sp_groups), False);
+         insert_options;
+         insert_annotations;
+
+         declare
+            meta_contents : constant String := ThickUCL.Emitter.emit_ucl (metatree);
+            filename      : constant String := spkgdir & subpackage & ".ucl";
+         begin
+            FOP.dump_contents_to_file (meta_contents, filename);
+         end;
+
+      end create_metadata_file;
+
 
       procedure package_it (position : subpackage_crate.Cursor)
       is
@@ -212,12 +345,11 @@ package body PortScan.Packager is
    begin
       LOG.log_phase_begin (log_handle, phase_name);
 
-      all_ports (seq_id).subpackages.Iterate (metadata'Access);
+      DIR.Create_Path (spkgdir);
+      all_ports (seq_id).subpackages.Iterate (create_metadata_file'Access);
 
       check_deprecation (specification, log_handle);
-      if not create_package_directory_if_necessary (log_handle) or else
-        not create_latest_package_directory_too (log_handle)
-      then
+      if not create_package_directory_if_necessary (log_handle) then
          return False;
       end if;
 
@@ -251,25 +383,6 @@ package body PortScan.Packager is
          TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir);
          return False;
    end create_package_directory_if_necessary;
-
-
-   --------------------------------------------------------------------------------------------
-   --  create_package_directory_if_necessary
-   --------------------------------------------------------------------------------------------
-   function create_latest_package_directory_too (log_handle : TIO.File_Type) return Boolean
-   is
-      packagedir : String := HT.USS (PM.configuration.dir_packages) & "/Latest";
-   begin
-      if DIR.Exists (packagedir) then
-         return True;
-      end if;
-      DIR.Create_Directory (packagedir);
-      return True;
-   exception
-      when others =>
-         TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir);
-         return False;
-   end create_latest_package_directory_too;
 
 
    --------------------------------------------------------------------------------------------
@@ -309,212 +422,6 @@ package body PortScan.Packager is
            );
       end if;
    end check_deprecation;
-
-
-   --------------------------------------------------------------------------------------------
-   --  quote
-   --------------------------------------------------------------------------------------------
-   function quote (thetext : String) return String is
-   begin
-      return LAT.Quotation & thetext & LAT.Quotation;
-   end quote;
-
-
-   --------------------------------------------------------------------------------------------
-   --  write_package_manifest
-   --------------------------------------------------------------------------------------------
-   procedure write_package_manifest
-     (spec        : PSP.Portspecs;
-      port_prefix : String;
-      subpackage  : String;
-      seq_id      : port_id;
-      pkgversion  : String;
-      filename    : String)
-   is
-      procedure single_if_defined (name, value, not_value : String);
-      procedure array_if_defined (name, value : String);
-      function short_desc return String;
-
-      file_handle : TIO.File_Type;
-      variant     : String := HT.USS (all_ports (seq_id).port_variant);
-
-      procedure single_if_defined (name, value, not_value : String) is
-      begin
-         if value /= "" and then value /= not_value
-         then
-            TIO.Put_Line (file_handle, name & ": " & quote (value));
-         end if;
-      end single_if_defined;
-
-      procedure array_if_defined (name, value : String)
-      is
-         --  No identified need for quoting
-      begin
-         if value /= "" then
-            TIO.Put_Line (file_handle, name & ": [ " & value & " ]");
-         end if;
-      end array_if_defined;
-
-      function short_desc return String is
-      begin
-         if spec.get_subpackage_length (variant) = 1 then
-            return spec.get_tagline (variant);
-         else
-            return spec.get_tagline (variant) & " (" & subpackage & ")";
-         end if;
-      end short_desc;
-
-      name    : String := quote (spec.get_namebase & "-" & subpackage & "-" & variant);
-      origin  : String := quote (spec.get_namebase & ":" & variant);
-
-   begin
-      TIO.Create (File => file_handle,
-                  Mode => TIO.Out_File,
-                  Name => filename);
-      TIO.Put_Line
-        (file_handle,
-         LAT.Left_Curly_Bracket & LAT.LF &
-           "name: " & name & LAT.LF &
-           "version: " & quote (pkgversion) & LAT.LF &
-           "origin: " & origin & LAT.LF &
-           "comment: <<EOD" & LAT.LF &
-           short_desc & LAT.LF &
-           "EOD" & LAT.LF &
-           "maintainer: " & quote (spec.get_field_value (PSP.sp_contacts)) & LAT.LF &
-           "prefix: " & quote (port_prefix) & LAT.LF &
-           "categories: [ " & spec.get_field_value (PSP.sp_keywords) & " ]" & LAT.LF &
-           "licenselogic: " & quote (spec.get_license_scheme)
-        );
-      --  We prefer "none" to "WWW : UNKNOWN" in the package manifest
-      single_if_defined ("www",      spec.get_field_value (PSP.sp_homepage), "");
-      array_if_defined  ("licenses", spec.get_field_value (PSP.sp_licenses));
-      array_if_defined  ("users",    spec.get_field_value (PSP.sp_users));
-      array_if_defined  ("groups",   spec.get_field_value (PSP.sp_groups));
-      TIO.Put_Line (file_handle, "deps: {");
-      write_down_run_dependencies (file_handle, seq_id, subpackage);
-      TIO.Put_Line (file_handle, "}");
-      TIO.Put_Line (file_handle, "options: {"  & spec.get_options_list (variant) & " }");
-      write_package_annotations (spec, file_handle);
-
-      --  Closing Curly Brace for manifest
-      TIO.Put_Line (file_handle, "}");
-      TIO.Close (file_handle);
-
-   exception
-      when others =>
-         if TIO.Is_Open (file_handle) then
-            TIO.Close (file_handle);
-         end if;
-   end write_package_manifest;
-
-
-   --------------------------------------------------------------------------------------------
-   --  write_complete_metapackage_deps
-   --------------------------------------------------------------------------------------------
-   procedure write_complete_metapackage_deps
-     (spec        : PSP.Portspecs;
-      file_handle : TIO.File_Type;
-      variant     : String;
-      pkgversion  : String)
-   is
-      namebase        : constant String  := spec.get_namebase;
-      num_subpackages : constant Natural := spec.get_subpackage_length (variant);
-   begin
-      for spkg in 1 .. num_subpackages loop
-         declare
-            subpackage : constant String := spec.get_subpackage_item (variant, spkg);
-         begin
-            if subpackage /= spkg_complete then
-               TIO.Put_Line
-                 (file_handle, "  " &
-                    quote (namebase & LAT.Hyphen & subpackage & LAT.Hyphen & variant) & " : {");
-               TIO.Put_Line
-                 (file_handle,
-                    "    version : " & quote (pkgversion) & "," & LAT.LF &
-                    "    origin : " & quote (namebase & LAT.Colon & variant) & LAT.LF &
-                    "  },");
-            end if;
-         end;
-      end loop;
-   end write_complete_metapackage_deps;
-
-
-   --------------------------------------------------------------------------------------------
-   --  write_down_run_dependencies
-   --------------------------------------------------------------------------------------------
-   procedure write_down_run_dependencies
-     (file_handle : TIO.File_Type;
-      seq_id      : port_id;
-      subpackage  : String)
-   is
-      procedure scan (position : subpackage_crate.Cursor);
-      procedure write_pkg_dep (pkgname, pkgversion, portkey : String);
-      procedure assemble_origins (dep_position : spkg_id_crate.Cursor);
-
-      found_subpackage : Boolean := False;
-
-      procedure write_pkg_dep (pkgname, pkgversion, portkey : String) is
-      begin
-         TIO.Put_Line (file_handle, "  " & quote (pkgname) & " : {");
-         TIO.Put_Line (file_handle,
-                         "    version : " & quote (pkgversion) & "," & LAT.LF &
-                         "    origin : " & quote (portkey) & LAT.LF &
-                         "  },");
-      end write_pkg_dep;
-
-      procedure assemble_origins (dep_position : spkg_id_crate.Cursor)
-      is
-         sprec      : subpackage_identifier renames spkg_id_crate.Element (dep_position);
-         namebase   : String := HT.USS (all_ports (sprec.port).port_namebase);
-         variant    : String := HT.USS (all_ports (sprec.port).port_variant);
-         portkey    : String := namebase & LAT.Colon & variant;
-         pkgversion : String := HT.USS (all_ports (sprec.port).pkgversion);
-         pkgname    : String := namebase & LAT.Hyphen & HT.USS (sprec.subpackage) & LAT.Hyphen &
-                                variant;
-      begin
-         write_pkg_dep (pkgname, pkgversion, portkey);
-      end assemble_origins;
-
-      procedure scan (position : subpackage_crate.Cursor)
-      is
-         rec : subpackage_record renames subpackage_crate.Element (position);
-      begin
-         if not found_subpackage then
-            if HT.equivalent (rec.subpackage, subpackage) then
-               found_subpackage := True;
-               rec.spkg_run_deps.Iterate (assemble_origins'Access);
-            end if;
-         end if;
-      end scan;
-   begin
-      all_ports (seq_id).subpackages.Iterate (scan'Access);
-   end write_down_run_dependencies;
-
-
-   --------------------------------------------------------------------------------------------
-   --  write_package_annotations
-   --------------------------------------------------------------------------------------------
-   procedure write_package_annotations
-     (spec        : PSP.Portspecs;
-      file_handle : TIO.File_Type)
-   is
-      num_notes : constant Natural := spec.get_list_length (PSP.sp_notes);
-   begin
-      if num_notes = 0 then
-         return;
-      end if;
-      TIO.Put_Line (file_handle, "annotations: {");
-      for note in 1 .. num_notes loop
-         declare
-            nvpair : String := spec.get_list_item (PSP.sp_notes, note);
-            key    : String := HT.part_1 (nvpair, "=");
-            value  : String := HT.part_2 (nvpair, "=");
-         begin
-            TIO.Put_Line (file_handle, key & ": <<EOD" & LAT.LF & value & LAT.LF & "EOD");
-         end;
-      end loop;
-      TIO.Put_Line (file_handle, "}");
-   end write_package_annotations;
 
 
    --------------------------------------------------------------------------------------------

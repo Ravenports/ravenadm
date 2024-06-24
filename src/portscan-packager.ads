@@ -19,15 +19,6 @@ package PortScan.Packager is
 
 private
 
-   --  create +MANIFEST file for each subpackage
-   procedure write_package_manifest
-     (spec          : PSP.Portspecs;
-      port_prefix   : String;
-      subpackage    : String;
-      seq_id        : port_id;
-      pkgversion    : String;
-      filename      : String);
-
    --  Alert if port is deprecated
    procedure check_deprecation (spec : PSP.Portspecs; log_handle : TIO.File_Type);
 
@@ -37,31 +28,7 @@ private
    --  Returns true if package directory exists or if it was successfully created.
    function create_package_directory_if_necessary (log_handle : TIO.File_Type) return Boolean;
 
-   --  Returns true if the latest package directory exists or if it was successfully created.
-   function create_latest_package_directory_too (log_handle : TIO.File_Type) return Boolean;
-
    --  Used to launch root commands (no watchdog)
    function execute_command (command : String; name_of_log : String) return Boolean;
-
-   --  Puts quotation marks around given string
-   function quote (thetext : String) return String;
-
-   --  Handle "complete" metapackage deps case for the metadata file
-   procedure write_complete_metapackage_deps
-     (spec        : PSP.Portspecs;
-      file_handle : TIO.File_Type;
-      variant     : String;
-      pkgversion  : String);
-
-   --  Document buildrun + run dependencies in the "deps" category of the manifest.
-   procedure write_down_run_dependencies
-     (file_handle : TIO.File_Type;
-      seq_id      : port_id;
-      subpackage  : String);
-
-   --  If there are any package notes, write them to the manifest
-   procedure write_package_annotations
-     (spec        : PSP.Portspecs;
-      file_handle : TIO.File_Type);
 
 end PortScan.Packager;
