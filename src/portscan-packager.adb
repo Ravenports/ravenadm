@@ -5,6 +5,7 @@ with File_Operations;
 with PortScan.Log;
 with Parameters;
 with ThickUCL.Emitter;
+with ThickUCL.Files;
 with Unix;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
@@ -36,11 +37,12 @@ package body PortScan.Packager is
       procedure move_it_outside_sysroot (position : subpackage_crate.Cursor);
 
       namebase   : constant String := HT.USS (all_ports (seq_id).port_namebase);
-      conbase    : constant String := "/construction/" & namebase;
-      spkgdir    : constant String := rootdir & "/construction/metadata/";
+      construct  : constant String := "/construction/";
+      conbase    : constant String := construct & namebase;
       wrkdir     : constant String := rootdir & conbase;
-      chspkgdir  : constant String := "/construction/metadata/";
-      newpkgdir  : constant String := "/construction/new_packages";
+      chspkgdir  : constant String := construct & "metadata/";
+      newpkgdir  : constant String := construct & "new_packages";
+      spkgdir    : constant String := rootdir & chspkgdir;
       sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
       realpkgdir : constant String := HT.USS (PM.configuration.dir_packages);
       stagedir   : constant String := conbase & "/stage";
@@ -86,6 +88,7 @@ package body PortScan.Packager is
          procedure insert_annotations;
          procedure insert_options;
          procedure insert_dependencies;
+         procedure insert_trigger_set;
 
          myrec : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (myrec.subpackage);
@@ -232,6 +235,172 @@ package body PortScan.Packager is
             all_ports (seq_id).subpackages.Iterate (scan'Access);
             metatree.close_object;
          end insert_dependencies;
+
+         procedure insert_trigger_set
+         is
+            --  trigger file has already been validated during the specification build
+            --  Basic version: single object
+            --  Advanced version: array of objects
+
+            procedure check_key (Position : ThickUCL.jar_string.Cursor);
+            procedure transfer_base_string (key : String);
+            procedure transfer_base_array (key : String);
+            procedure transfer_second_string (key : String; sondx : ThickUCL.object_index);
+            procedure transfer_second_array (key : String; sondx : ThickUCL.object_index);
+
+            trigger_metadata : ThickUCL.UclTree;
+            file_location : constant String := wrkdir & "/.PKG_TRIGGER." & subpackage;
+            object_keys   : ThickUCL.jar_string.Vector;
+            second_keys   : ThickUCL.jar_string.Vector;
+            ondx          : ThickUCL.object_index;
+            valid_trigger : Boolean := True;
+            KEY_CLEANUP   : constant String := "cleanup";
+            KEY_TRIGGER   : constant String := "trigger";
+            KEY_DIR_PATH  : constant String := "dir_path";
+            KEY_FILE_PATH : constant String := "file_path";
+            KEY_FILE_GLOB : constant String := "file_glob";
+            KEY_FILE_REGX : constant String := "file_regexp";
+
+            procedure check_key (Position : ThickUCL.jar_string.Cursor)
+            is
+               key : constant String := HT.USS (ThickUCL.jar_string.Element (Position).payload);
+            begin
+               if key = KEY_DIR_PATH or else
+                 key = KEY_FILE_PATH or else
+                 key = KEY_FILE_GLOB or else
+                 key = KEY_FILE_REGX or else
+                 key = KEY_TRIGGER or else
+                 key = KEY_CLEANUP
+               then
+                  null;
+               else
+                  valid_trigger := False;
+               end if;
+            end check_key;
+
+            procedure transfer_base_string (key : String) is
+            begin
+               case trigger_metadata.get_data_type (key) is
+                  when ThickUCL.data_string =>
+                     declare
+                        value : constant String := trigger_metadata.get_base_value (key);
+                     begin
+                        metatree.insert (key, value);
+                     end;
+                  when others => null;
+               end case;
+            end transfer_base_string;
+
+            procedure transfer_base_array (key : String)
+            is
+               andx : ThickUCL.array_index;
+               num_elements : Natural;
+            begin
+               case trigger_metadata.get_data_type (key) is
+                  when ThickUCL.data_array =>
+                     andx := trigger_metadata.get_index_of_base_array (key);
+                     num_elements := trigger_metadata.get_number_of_array_elements (andx);
+                     metatree.start_array (key);
+                     for x in 0 .. num_elements - 1 loop
+                        declare
+                           value : constant String :=
+                             trigger_metadata.get_array_element_value (andx, x);
+                        begin
+                           metatree.insert ("", value);
+                        end;
+                     end loop;
+                  when others => null;
+               end case;
+               metatree.close_array;
+            end transfer_base_array;
+
+            procedure transfer_second_string (key : String; sondx : ThickUCL.object_index) is
+            begin
+               case trigger_metadata.get_object_data_type (sondx, key) is
+                  when ThickUCL.data_object =>
+                     declare
+                        value : constant String := trigger_metadata.get_object_value (sondx, key);
+                     begin
+                        metatree.insert (key, value);
+                     end;
+                  when others => null;
+               end case;
+            end transfer_second_string;
+
+            procedure transfer_second_array (key : String; sondx : ThickUCL.object_index)
+            is
+               andx : ThickUCL.array_index;
+               num_elements : Natural;
+            begin
+               case trigger_metadata.get_object_data_type (sondx, key) is
+                  when ThickUCL.data_array =>
+                     andx := trigger_metadata.get_object_array (sondx, key);
+                     num_elements := trigger_metadata.get_number_of_array_elements (andx);
+                     metatree.start_array (key);
+                     for x in 0 .. num_elements - 1 loop
+                        declare
+                           value : constant String :=
+                             trigger_metadata.get_array_element_value (andx, x);
+                        begin
+                           metatree.insert ("", value);
+                        end;
+                     end loop;
+                  when others => null;
+               end case;
+               metatree.close_array;
+            end transfer_second_array;
+         begin
+            if not DIR.Exists (file_location) then
+               return;
+            end if;
+            metatree.start_array ("triggers");
+            begin
+               ThickUCL.Files.parse_ucl_file (trigger_metadata, file_location, "");
+               trigger_metadata.get_base_object_keys (object_keys);
+               object_keys.Iterate (check_key'Access);
+               if valid_trigger then
+                  metatree.start_object ("");
+                  transfer_base_array (KEY_DIR_PATH);
+                  transfer_base_array (KEY_FILE_PATH);
+                  transfer_base_array (KEY_FILE_GLOB);
+                  transfer_base_array (KEY_FILE_REGX);
+                  transfer_base_string (KEY_CLEANUP);
+                  transfer_base_string (KEY_TRIGGER);
+                  metatree.close_object;
+               else
+                  --  object of objects
+                  trigger_metadata.get_base_object_keys (second_keys);
+                  for x in 0 .. Natural (second_keys.Length) - 1 loop
+                     declare
+                        key2 : constant String := HT.USS (second_keys.Element (x).payload);
+                     begin
+                        valid_trigger := True;
+                        case trigger_metadata.get_data_type (key2) is
+                           when ThickUCL.data_object =>
+                              ondx := trigger_metadata.get_index_of_base_ucl_object (key2);
+                              trigger_metadata.get_object_object_keys (ondx, object_keys);
+                              object_keys.Iterate (check_key'Access);
+                              if valid_trigger then
+                                 metatree.start_object ("");
+                                 transfer_second_array (KEY_DIR_PATH, ondx);
+                                 transfer_second_array (KEY_FILE_PATH, ondx);
+                                 transfer_second_array (KEY_FILE_GLOB, ondx);
+                                 transfer_second_array (KEY_FILE_REGX, ondx);
+                                 transfer_second_string (KEY_CLEANUP, ondx);
+                                 transfer_second_string (KEY_TRIGGER, ondx);
+                                 metatree.close_object;
+                              end if;
+                           when others => null;
+                        end case;
+                     end;
+                  end loop;
+               end if;
+            exception
+               when ThickUCL.Files.ucl_file_unparseable =>
+                  null;  --  should not happen since it's already been validated
+            end;
+            metatree.close_array;
+         end insert_trigger_set;
       begin
          metatree.insert ("namebase", namebase);
          metatree.insert ("subpackage", subpackage);
@@ -248,6 +417,7 @@ package body PortScan.Packager is
          conditional_array ("groups", specification.get_field_value (PSP.sp_groups), False);
          insert_options;
          insert_annotations;
+         insert_trigger_set;
 
          declare
             meta_contents : constant String := ThickUCL.Emitter.emit_ucl (metatree);

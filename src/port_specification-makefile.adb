@@ -1218,9 +1218,9 @@ package body Port_Specification.Makefile is
       --  Some modules are implemented entirely in ravenadm, so don't output them
       --  to the makefile which add unnecessary includes commands.
 
-      total_modules : constant Positive := 30;
+      total_modules : constant Positive := 32;
 
-      subtype uses_string is String (1 .. 15);
+      subtype uses_string is String (1 .. 13);
 
       --  Keep in alphabetical order for future conversion to binary search
       all_keywords : constant array (1 .. total_modules) of uses_string :=
