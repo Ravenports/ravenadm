@@ -323,26 +323,22 @@ package body PortScan.Packager is
       is
          subpackage   : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
          package_list : constant String := conbase & "/.manifest." & subpackage & ".mktmp";
-         FORCE_POST_PATTERNS : constant String := "rmdir mkfontscale mkfontdir fc-cache " &
-           "fonts.dir fonts.scale gtk-update-icon-cache gio-querymodules gtk-query-immodules " &
-           "load-octave-pkg ocamlfind update-desktop-database update-mime-database " &
-           "gdk-pixbuf-query-loaders catalog.ports glib-compile-schemas ccache-update-links";
-         MORE_ENV : constant String :=
-           " RAVENSW_DBDIR=/var/db/pkg8" &
+         MORE_ENV     : constant String :=
+           " RVN_DBDIR=/var/db/pkg8" &
            " PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
-         PKG_CREATE : constant String := "/usr/bin/ravensw create";
-         PKG_CREATE_ARGS : constant String :=
-           " --root-dir " & stagedir &
-           " --metadata " & chspkgdir & subpackage &
-           " --plist " & package_list &
+         RVN_CREATE : constant String := "/usr/bin/rvn create";
+         RVN_CREATE_ARGS : constant String :=
            " --out-dir " & newpkgdir &
+           " --root-dir " & stagedir &
+           " --prefix " & port_prefix &
+           " --whitelist " & package_list &
+           " --metadata " & spkgdir & subpackage & ".ucl" &
            " --verbose ";
          namebase : constant String := specification.get_namebase;
-         pkgname : String := namebase & "-" & subpackage & "-" &
-           HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers;
-         package_cmd : constant String := PM.chroot_cmd & rootdir & " /usr/bin/env FORCE_POST=" &
-           LAT.Quotation & FORCE_POST_PATTERNS & LAT.Quotation & MORE_ENV &
-           PKG_CREATE & PKG_CREATE_ARGS & pkgname;
+         filename : constant String := namebase & "-" & subpackage & "-" &
+           HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
+         package_cmd : constant String := PM.chroot_cmd & rootdir & " /usr/bin/env " & MORE_ENV &
+           RVN_CREATE & RVN_CREATE_ARGS;
       begin
          if still_good then
 
@@ -352,7 +348,7 @@ package body PortScan.Packager is
                  (log_handle, "=> The package list " & package_list & " for the " &
                     subpackage & " subpackage does not exist.");
             end if;
-            TIO.Put_Line (log_handle, "===>  Building " & pkgname & " subpackage");
+            TIO.Put_Line (log_handle, "===>  Creating " & filename & " package");
             TIO.Close (log_handle);
 
             still_good := execute_command (package_cmd, log_name);
@@ -370,8 +366,7 @@ package body PortScan.Packager is
          pkgarchive : String := namebase & "-" & subpackage & "-" &
                       HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
          built_loc  : constant String := rootdir & newpkgdir & "/" & pkgarchive;
-         final_loc  : constant String := realpkgdir & "/All/" & pkgarchive;
-         link_loc   : constant String := realpkgdir & "/Latest/" & pkgarchive;
+         final_loc  : constant String := realpkgdir & "/files/" & pkgarchive;
          mv_program : constant String := sysroot & "/bin/mv ";
          mv_command : constant String := mv_program & " " & built_loc & " " & final_loc;
          cmd_output : HT.Text;
@@ -382,18 +377,6 @@ package body PortScan.Packager is
                still_good := False;
                TIO.Put_Line (log_handle, "Failed to move " & built_loc & " to " & final_loc);
                TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
-            end if;
-            if still_good and then namebase = "ravensw" then
-               if DIR.Exists (link_loc) then
-                  DIR.Delete_File (link_loc);
-               end if;
-               still_good := Unix.create_symlink
-                 (actual_file => "../All/" & pkgarchive,
-                  link_to_create => link_loc);
-               if not still_good then
-                  TIO.Put_Line (log_handle, "Failed to create link " & link_loc &
-                                  " to ../All/" & pkgarchive);
-               end if;
             end if;
          end if;
       end move_it_outside_sysroot;
@@ -427,16 +410,17 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    function create_package_directory_if_necessary (log_handle : TIO.File_Type) return Boolean
    is
-      packagedir : String := HT.USS (PM.configuration.dir_repository);
+      packagedir : constant String := HT.USS (PM.configuration.dir_repository);
+      packagedir_files : constant String := packagedir & "/files";
    begin
-      if DIR.Exists (packagedir) then
+      if DIR.Exists (packagedir_files) then
          return True;
       end if;
-      DIR.Create_Directory (packagedir);
+      DIR.Create_Path (packagedir_files);
       return True;
    exception
       when others =>
-         TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir);
+         TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir_files);
          return False;
    end create_package_directory_if_necessary;
 

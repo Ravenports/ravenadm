@@ -181,20 +181,6 @@ package body Repository is
 
 
    --------------------------------------------------------------------------------------------
-   --  host_pkg8_conservative_upgrade_set
-   --------------------------------------------------------------------------------------------
-   function host_pkg8_conservative_upgrade_set return Boolean
-   is
-      command : constant String := host_pkg8 & " config CONSERVATIVE_UPGRADE";
-      content : HT.Text;
-      status  : Integer;
-   begin
-      content := Unix.piped_command (command, status);
-      return (HT.first_line (HT.USS (content)) = "yes");
-   end host_pkg8_conservative_upgrade_set;
-
-
-   --------------------------------------------------------------------------------------------
    --  get_repos_dir
    --------------------------------------------------------------------------------------------
    function get_repos_dir return String

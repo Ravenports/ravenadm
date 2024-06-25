@@ -5,9 +5,6 @@ with Definitions; use Definitions;
 
 package Repository is
 
-   --  returns True if CONSERVATIVE_UPGRADE option on host pkg(8) is enabled
-   function host_pkg8_conservative_upgrade_set return Boolean;
-
    --  Create a pkg repo conf file (requires root permission)
    function write_pkg_repos_configuration_file return Boolean;
 

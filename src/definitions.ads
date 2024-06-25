@@ -50,7 +50,7 @@ package Definitions is
    previous_compiler : constant String := "11.2.0";
    previous_comppath : constant String := previous_default;
 
-   arc_ext           : constant String := ".tzst";
+   arc_ext           : constant String := ".rvn";
    jobs_per_cpu      : constant := 2;
    task_stack_limit  : constant := 10_000_000;
 
@@ -66,7 +66,7 @@ package Definitions is
    platform_type  : constant supported_opsys := dragonfly;
    host_localbase : constant String := "/raven";
    raven_var      : constant String := "/var/ravenports";
-   host_pkg8      : constant String := host_localbase & "/sbin/ravensw";
+   host_rvn       : constant String := host_localbase & "/sbin/rvn";
    ravenexec      : constant String := host_localbase & "/libexec/ravenexec";
 
 end Definitions;

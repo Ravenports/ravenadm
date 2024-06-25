@@ -1154,7 +1154,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function located_external_repository return Boolean
    is
-      command : constant String := host_pkg8 & " -vv";
+      command : constant String := host_rvn & " -vv";
       found   : Boolean := False;
       inspect : Boolean := False;
       status  : Integer;
@@ -1542,7 +1542,7 @@ package body PortScan.Operations is
       is
          id      : constant port_index := subpackage_queue.Element (cursor).id;
          subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
-         pkgbase : constant String := " " & calculate_package_name (id, subpkg);
+         pkgbase : constant String := " " & calculate_nsv (id, subpkg);
       begin
          HT.SU.Append (package_list, pkgbase);
       end fetch;
@@ -1676,10 +1676,11 @@ package body PortScan.Operations is
       else
          rank_queue.Iterate (prune_packages'Access);
          fetch_list.Iterate (fetch'Access);
-         if not HT.equivalent (package_list, HT.blank) then
+         if not HT.IsBlank (package_list) then
             declare
-               cmd : constant String := host_pkg8 & " fetch -r " &
-                 HT.USS (external_repository) & " -U -y --output " &
+               cmd : constant String :=
+                 host_rvn & " fetch --repository " &  HT.USS (external_repository) &
+                 "--no-repo-update --yes --exact-match --output " &
                  HT.USS (PM.configuration.dir_packages) & HT.USS (package_list);
             begin
                if Unix.external_command (cmd) then
@@ -1714,7 +1715,8 @@ package body PortScan.Operations is
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
+      rvnprog   : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command  : constant String := rvnprog & " query
       command  : constant String := pkg8 & " query -F "  & fullpath & " %dn-%dv@%do";
       remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
                                     " -U %dn-%dv@%do " & pkg_base;

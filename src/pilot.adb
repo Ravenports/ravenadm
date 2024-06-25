@@ -865,7 +865,7 @@ package body Pilot is
       block_remote : Boolean := True;
       force_compiler_build : Boolean := False;
       force_binutils_build : Boolean := False;
-      update_external_repo : constant String := host_pkg8 & " update --quiet --repository ";
+      update_external_repo : constant String := host_rvn & " catalog --quiet --repository ";
       no_packages : constant String := "No prebuilt packages will be used as a result.";
 
    begin

@@ -194,7 +194,7 @@ private
    --  copy <profile>-libmap.conf to slave
    procedure install_libmap_conf (path_to_etc : String);
 
-   --  copy ldconfig hints to /var/run (for ravensw (for now))
+   --  copy ldconfig hints to /var/run (for rvn (for now))
    procedure copy_ldconfig_hints (path_to_varrun : String);
 
    --  If existing, copy unkindness GID and UID definitions to /construction

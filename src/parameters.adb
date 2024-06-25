@@ -683,8 +683,7 @@ package body Parameters is
 
       --  Derived configuration
       configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/All");
-      configuration.sysroot_pkg8   := HT.SUS (HT.USS (configuration.dir_sysroot) &
-                                                "/usr/bin/ravensw");
+      configuration.sysroot_rvn    := HT.SUS (HT.USS (configuration.dir_sysroot) & "/usr/bin/rvn");
       configuration.dir_logs       := HT.SUS (HT.USS (configuration.dir_profile) & "/logs");
       configuration.dir_options    := HT.SUS (HT.USS (configuration.dir_profile) & "/options");
 

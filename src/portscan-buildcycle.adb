@@ -420,7 +420,7 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (test);
       root       : constant String := get_root (id);
       phase_name : constant String := "test / deinstall all packages";
-      PKG_RM_ALL : constant String := "/usr/bin/ravensw delete -a -y ";
+      PKG_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes ";
       command    : constant String := PM.chroot_cmd & root & environ & PKG_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
@@ -674,8 +674,8 @@ package body PortScan.Buildcycle is
       SHLL : constant String := "SHELL=/bin/sh ";
       RAVN : constant String := "RAVENADM=building ";
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
-      PKG8 : constant String := "RAVENSW_DBDIR=/var/db/pkg8 " &
-                                "RAVENSW_CACHEDIR=/var/cache/pkg8 ";
+      PKG8 : constant String := "RVN_DBDIR=/var/db/rvn " &
+                                "RVN_CACHEDIR=/var/cache/rvn ";
       CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog ";
       SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog ";
       CENV : constant String := HT.USS (customenv);
@@ -753,7 +753,7 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (deinstall);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_DELETE : constant String := "/usr/bin/ravensw delete -f -y ";
+      PKG_DELETE : constant String := "/usr/bin/rvn remove --force --yes ";
       still_good : Boolean := True;
       dyn_good   : Boolean;
       timed_out  : Boolean;

@@ -59,8 +59,11 @@ package PortScan is
    --  Given a port ID, attempt to return 2-character bucket
    function get_bucket (id : port_id) return String;
 
-   --  Given an ID and specifying a subpackage, this function returns the package file name.
+   --  Given an ID and specifying a subpackage, this function returns the package file name (NSVV).
    function calculate_package_name (id : port_id; subpackage : String) return String;
+
+   --  Given an ID and specifying a subpackage, this function returns the NSV identifier
+   function calculate_nsv (id : port_id; subpackage : String) return String;
 
    --  Takes origin tuplet (namebase:subpkg:variant) and returns namebase:variant
    function convert_depend_origin_to_portkey (origin : String) return String;

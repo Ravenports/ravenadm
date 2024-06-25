@@ -215,6 +215,18 @@ package body PortScan is
    end calculate_package_name;
 
 
+   ---------------------
+   --  calculate_nsv  --
+   ---------------------
+   function calculate_nsv (id : port_id; subpackage : String) return String
+   is
+      namebase : constant String := HT.USS (all_ports (id).port_namebase);
+      variant  : constant String := HT.USS (all_ports (id).port_variant);
+   begin
+      return namebase & "-" & subpackage & "-" & variant;
+   end calculate_nsv;
+
+
    --------------------------------------------------------------------------------------------
    --  convert_depend_origin_to_portkey
    --------------------------------------------------------------------------------------------
