@@ -22,9 +22,6 @@ private
    --  Alert if port is deprecated
    procedure check_deprecation (spec : PSP.Portspecs; log_handle : TIO.File_Type);
 
-   --  remove filename if it's zero-length, otherwise dump it to the log
-   procedure dump_pkg_message_to_log (display_file : String; log_handle : TIO.File_Type);
-
    --  Returns true if package directory exists or if it was successfully created.
    function create_package_directory_if_necessary (log_handle : TIO.File_Type) return Boolean;
 

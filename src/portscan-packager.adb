@@ -90,6 +90,7 @@ package body PortScan.Packager is
          procedure insert_options;
          procedure insert_dependencies;
          procedure insert_trigger_set;
+         procedure insert_message_set;
 
          myrec : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (myrec.subpackage);
@@ -240,7 +241,7 @@ package body PortScan.Packager is
          procedure insert_trigger_set
          is
             trigger_metadata : ThickUCL.UclTree;
-            file_location : constant String := wrkdir & "/.PKG_TRIGGER." & subpackage;
+            file_location : constant String := wrkdir & "/.PKG_TRIGGERS." & subpackage;
          begin
             if not DIR.Exists (file_location) then
                return;
@@ -253,6 +254,23 @@ package body PortScan.Packager is
             when ThickUCL.Files.ucl_file_unparseable =>
                null;  --  should not happen since it's already been validated
          end insert_trigger_set;
+
+         procedure insert_message_set
+         is
+            message_metadata : ThickUCL.UclTree;
+            file_location : constant String := wrkdir & "/.PKG_MESSAGES." & subpackage;
+         begin
+            if not DIR.Exists (file_location) then
+               return;
+            end if;
+            ThickUCL.Files.parse_ucl_file (message_metadata, file_location, "");
+            if ucl_operations.trigger_file_is_valid (message_metadata) then
+               ucl_operations.transfer_triggers (message_metadata, metatree);
+            end if;
+         exception
+            when ThickUCL.Files.ucl_file_unparseable =>
+               null;  --  should not happen since it's already been validated
+         end insert_message_set;
       begin
          metatree.insert ("namebase", namebase);
          metatree.insert ("subpackage", subpackage);
@@ -270,6 +288,7 @@ package body PortScan.Packager is
          insert_options;
          insert_annotations;
          insert_trigger_set;
+         insert_message_set;
 
          declare
             meta_contents : constant String := ThickUCL.Emitter.emit_ucl (metatree);
@@ -307,10 +326,6 @@ package body PortScan.Packager is
            PKG_CREATE & PKG_CREATE_ARGS & pkgname;
       begin
          if still_good then
-            if DIR.Exists (spkgdir & subpackage & display) then
-               dump_pkg_message_to_log (display_file => spkgdir & subpackage & display,
-                                        log_handle   => log_handle);
-            end if;
 
             if not DIR.Exists (rootdir & package_list) then
                still_good := False;
@@ -405,25 +420,6 @@ package body PortScan.Packager is
          TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir);
          return False;
    end create_package_directory_if_necessary;
-
-
-   --------------------------------------------------------------------------------------------
-   --  dump_pkg_message_to_log
-   --------------------------------------------------------------------------------------------
-   procedure dump_pkg_message_to_log (display_file : String; log_handle : TIO.File_Type)
-   is
-      File_Size : Natural := Natural (DIR.Size (display_file));
-   begin
-      if File_Size = 0 then
-         DIR.Delete_File (display_file);
-      else
-         declare
-            contents : String := FOP.get_file_contents (display_file);
-         begin
-            TIO.Put_Line (log_handle, contents);
-         end;
-      end if;
-   end dump_pkg_message_to_log;
 
 
    --------------------------------------------------------------------------------------------
