@@ -674,7 +674,7 @@ package body PortScan.Buildcycle is
       SHLL : constant String := "SHELL=/bin/sh ";
       RAVN : constant String := "RAVENADM=building ";
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
-      PKG8 : constant String := "RVN_DBDIR=/var/db/rvn " &
+      RVN8 : constant String := "RVN_DBDIR=/var/db/rvn " &
                                 "RVN_CACHEDIR=/var/cache/rvn ";
       CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog ";
       SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog ";
@@ -682,7 +682,7 @@ package body PortScan.Buildcycle is
       DYLD : constant String := dyld_fallback;
    begin
       return " /usr/bin/env -i " &
-        CENV & LANG & TERM & SHLL & USER & HOME & SGML & CXML & RAVN & SSLV & PKG8 & DYLD & PATH;
+        CENV & LANG & TERM & SHLL & USER & HOME & SGML & CXML & RAVN & SSLV & RVN8 & DYLD & PATH;
    end environment_override;
 
 
@@ -885,9 +885,10 @@ package body PortScan.Buildcycle is
       is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
-         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
+         pkg_nsv    : constant String := calculate_nsv (trackers (id).seq_id, subpackage);
+         pkgname    : constant String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := PM.chroot_cmd & root & environ &
-                                         "/usr/bin/ravensw query %Fp " & pkgname;
+                      "/usr/bin/rvn query --exact-match '{xfile:path}' " & pkg_nsv;
          comres     : String :=  generic_system_command (command);
          markers    : HT.Line_Markers;
       begin

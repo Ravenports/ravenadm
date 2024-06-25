@@ -7,7 +7,7 @@ with Parameters;
 with ThickUCL.Emitter;
 with ThickUCL.Files;
 with Unix;
-with ucl_operations;
+with UCL_Operations;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Text_IO;
@@ -248,8 +248,8 @@ package body PortScan.Packager is
                return;
             end if;
             ThickUCL.Files.parse_ucl_file (trigger_metadata, file_location, "");
-            if ucl_operations.trigger_file_is_valid (trigger_metadata) then
-               ucl_operations.transfer_triggers (trigger_metadata, metatree);
+            if UCL_Operations.trigger_file_is_valid (trigger_metadata) then
+               UCL_Operations.transfer_triggers (trigger_metadata, metatree);
             end if;
          exception
             when ThickUCL.Files.ucl_file_unparseable =>
@@ -265,8 +265,8 @@ package body PortScan.Packager is
                return;
             end if;
             ThickUCL.Files.parse_ucl_file (message_metadata, file_location, "");
-            if ucl_operations.message_file_is_valid (message_metadata) then
-               ucl_operations.transfer_messages (message_metadata, metatree);
+            if UCL_Operations.message_file_is_valid (message_metadata) then
+               UCL_Operations.transfer_messages (message_metadata, metatree);
             end if;
          exception
             when ThickUCL.Files.ucl_file_unparseable =>
@@ -282,8 +282,8 @@ package body PortScan.Packager is
                return;
             end if;
             ThickUCL.Files.parse_ucl_file (script_metadata, file_location, "");
-            if ucl_operations.script_file_is_valid (script_metadata) then
-               ucl_operations.transfer_scripts (script_metadata, metatree);
+            if UCL_Operations.script_file_is_valid (script_metadata) then
+               UCL_Operations.transfer_scripts (script_metadata, metatree);
             end if;
          exception
             when ThickUCL.Files.ucl_file_unparseable =>
@@ -318,15 +318,14 @@ package body PortScan.Packager is
 
       end create_metadata_file;
 
-
       procedure package_it (position : subpackage_crate.Cursor)
       is
          subpackage   : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
          package_list : constant String := conbase & "/.manifest." & subpackage & ".mktmp";
-         MORE_ENV     : constant String :=
-           " RVN_DBDIR=/var/db/pkg8" &
-           " PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
-         RVN_CREATE : constant String := "/usr/bin/rvn create";
+         OVERRIDES    : constant String :=
+           "-o RVN_DBDIR=/var/db/rvn " &
+           "-o PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
+         RVN_CREATE : constant String := "/usr/bin/rvn " & OVERRIDES & "create";
          RVN_CREATE_ARGS : constant String :=
            " --out-dir " & newpkgdir &
            " --root-dir " & stagedir &
@@ -337,8 +336,7 @@ package body PortScan.Packager is
          namebase : constant String := specification.get_namebase;
          filename : constant String := namebase & "-" & subpackage & "-" &
            HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
-         package_cmd : constant String := PM.chroot_cmd & rootdir & " /usr/bin/env " & MORE_ENV &
-           RVN_CREATE & RVN_CREATE_ARGS;
+         package_cmd : constant String := PM.chroot_cmd & rootdir & RVN_CREATE & RVN_CREATE_ARGS;
       begin
          if still_good then
 

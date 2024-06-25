@@ -1542,9 +1542,9 @@ package body PortScan.Operations is
       is
          id      : constant port_index := subpackage_queue.Element (cursor).id;
          subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
-         pkgbase : constant String := " " & calculate_nsv (id, subpkg);
+         pkg_nsv : constant String := " " & calculate_nsv (id, subpkg);
       begin
-         HT.SU.Append (package_list, pkgbase);
+         HT.SU.Append (package_list, pkg_nsv);
       end fetch;
 
       procedure check (cursor : subpackage_queue.Cursor)
@@ -1711,15 +1711,27 @@ package body PortScan.Operations is
       id         : port_id;
       subpackage : String) return HT.Text
    is
+      --  $rvn info --quiet --dependencies --file WebP-primary-standard-1.4.0.rvn
+      --  freeglut-primary-standard
+      --  giflib-primary-standard
+      --  jpeg-turbo-primary-standard
+      --  png-primary-standard
+      --  tiff-primary-standard
+      --
+      --  $rvn rquery --no-repo-update '{xdep:nsv}' xz-complete-standard
+      --  xz-docs-standard
+      --  xz-man-standard
+      --  xz-primary-standard
+      --  xz-tools-standard
+
       rec : port_record renames all_ports (id);
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
-      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
+      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
+      fullpath : constant String := repository & "/files/" & pkg_base & arc_ext;
       rvnprog   : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command  : constant String := rvnprog & " query
-      command  : constant String := pkg8 & " query -F "  & fullpath & " %dn-%dv@%do";
-      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
-                                    " -U %dn-%dv@%do " & pkg_base;
+      command  : constant String := rvnprog & " info --quiet --dependencies --file " & fullpath;
+      remocmd  : constant String := rvnprog & " rquery --no-repo-update '{xdep:nsv}' " & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
    begin
