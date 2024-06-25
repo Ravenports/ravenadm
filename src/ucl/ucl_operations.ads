@@ -3,7 +3,7 @@
 
 with ThickUCL;
 
-package ucl_operations is
+package UCL_Operations is
 
    --  Returns true if trigger_metadata represents a set of valid triggers
    function trigger_file_is_valid
@@ -30,6 +30,14 @@ package ucl_operations is
      (script_metadata  : ThickUCL.UclTree;
       metatree         : in out ThickUCL.UclTree);
 
+   --  Scans for files in <ravensrcdir>/files
+   --  Looks for triggers-*.ucl(.in)
+   --  Looks for messages-*.ucl(.in)
+   --  Looks for scripts-*.ucl(.in)
+   --  For each found, runs validation check.
+   --  If any check fails, send error message to standard out and set to False.
+   function port_ucl_files_valid
+     (ravensrcdir : String) return Boolean;
 
 private
 
@@ -60,4 +68,4 @@ private
      (script_metadata : ThickUCL.UclTree;
       ondx : ThickUCL.object_index) return Boolean;
 
-end ucl_operations;
+end UCL_Operations;

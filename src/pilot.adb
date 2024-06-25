@@ -31,6 +31,7 @@ with Package_Manifests;
 with Options_Dialog_Console;
 with Ravenports;
 with Repository;
+with UCL_Operations;
 
 package body Pilot is
 
@@ -391,6 +392,11 @@ package body Pilot is
          os_major      => HT.USS (sysrootver.major));
 
       if not specification.post_transform_option_group_defaults_passes then
+         successful := False;
+         return;
+      end if;
+
+      if not UCL_Operations.port_ucl_files_valid (ravensrcdir) then
          successful := False;
          return;
       end if;

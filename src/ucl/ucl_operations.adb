@@ -1,11 +1,18 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: /License.txt
 
+with Ada.Text_IO;
+with Ada.Directories;
+with Ada.Containers.Vectors;
+with ThickUCL.Files;
 with HelperText;
 
-package body ucl_operations is
+package body UCL_Operations is
 
-   package HT renames HelperText;
+   package HT  renames HelperText;
+   package DIR renames Ada.Directories;
+   package CON renames Ada.Containers;
+   package TIO renames Ada.Text_IO;
 
    -------------------------
    --  transfer_triggers  --
@@ -542,4 +549,131 @@ package body ucl_operations is
    end valid_script_object;
 
 
-end ucl_operations;
+   ----------------------------
+   --  port_ucl_files_valid  --
+   ----------------------------
+   function port_ucl_files_valid (ravensrcdir : String) return Boolean
+   is
+      package file_set is new CON.Vectors
+        (Element_Type => HT.Text,
+         Index_Type   => Natural,
+         "="          => HT.SU."=");
+
+      procedure gather_ucl_files (pattern : String);
+      procedure check_triggers (Position : file_set.Cursor);
+      procedure check_messages (Position : file_set.Cursor);
+      procedure check_scripts  (Position : file_set.Cursor);
+
+      ucl_files : file_set.Vector;
+      all_valid : Boolean := True;
+      baducl    : constant String := "Invalid UCL format: files/";
+      filesdir  : constant String := ravensrcdir & "/files";
+      filter    : constant DIR.Filter_Type := (DIR.Directory     => False,
+                                               DIR.Ordinary_File => True,
+                                               DIR.Special_File  => False);
+
+      procedure gather_ucl_files (pattern : String)
+      is
+         Search  : DIR.Search_Type;
+         Dir_Ent : DIR.Directory_Entry_Type;
+      begin
+         ucl_files.Clear;
+         DIR.Start_Search (Search    => Search,
+                           Directory => filesdir,
+                           Pattern   => pattern,
+                           Filter    => filter);
+         while DIR.More_Entries (Search => Search) loop
+            DIR.Get_Next_Entry (Search => Search, Directory_Entry => Dir_Ent);
+            ucl_files.Append (HT.SUS (DIR.Simple_Name (Dir_Ent)));
+         end loop;
+         DIR.End_Search (Search);
+      end gather_ucl_files;
+
+      procedure check_triggers (Position : file_set.Cursor)
+      is
+         full_path : constant String := ravensrcdir & "/" & HT.USS (file_set.Element (Position));
+         trigger_metadata : ThickUCL.UclTree;
+      begin
+         if HT.trails (full_path, ".ucl") or else HT.trails (full_path, ".ucl.in") then
+            begin
+               ThickUCL.Files.parse_ucl_file (trigger_metadata, full_path, "");
+               if not trigger_file_is_valid (trigger_metadata) then
+                  TIO.Put_Line ("Invalid scheme for trigger: files/" &
+                                  HT.USS (file_set.Element (Position)));
+                  all_valid := False;
+               end if;
+            exception
+               when ThickUCL.Files.ucl_file_unparseable =>
+                  TIO.Put_Line (baducl &  HT.USS (file_set.Element (Position)));
+                  all_valid := False;
+            end;
+         end if;
+      end check_triggers;
+
+      procedure check_messages (Position : file_set.Cursor)
+      is
+         full_path : constant String := ravensrcdir & "/" & HT.USS (file_set.Element (Position));
+         message_metadata : ThickUCL.UclTree;
+      begin
+         if HT.trails (full_path, ".ucl") or else HT.trails (full_path, ".ucl.in") then
+            begin
+               ThickUCL.Files.parse_ucl_file (message_metadata, full_path, "");
+               if not message_file_is_valid (message_metadata) then
+                  TIO.Put_Line ("Invalid scheme for message: files/" &
+                                  HT.USS (file_set.Element (Position)));
+                  all_valid := False;
+               end if;
+            exception
+               when ThickUCL.Files.ucl_file_unparseable =>
+                  TIO.Put_Line (baducl &  HT.USS (file_set.Element (Position)));
+                  all_valid := False;
+            end;
+         end if;
+      end check_messages;
+
+      procedure check_scripts  (Position : file_set.Cursor)
+      is
+         full_path : constant String := ravensrcdir & "/" & HT.USS (file_set.Element (Position));
+         script_metadata : ThickUCL.UclTree;
+      begin
+         if HT.trails (full_path, ".ucl") or else HT.trails (full_path, ".ucl.in") then
+            begin
+               ThickUCL.Files.parse_ucl_file (script_metadata, full_path, "");
+               if not script_file_is_valid (script_metadata) then
+                  TIO.Put_Line ("Invalid scheme for script: files/" &
+                                  HT.USS (file_set.Element (Position)));
+                  all_valid := False;
+               end if;
+            exception
+               when ThickUCL.Files.ucl_file_unparseable =>
+                  TIO.Put_Line (baducl &  HT.USS (file_set.Element (Position)));
+                  all_valid := False;
+            end;
+         end if;
+      end check_scripts;
+   begin
+      if not DIR.Exists (filesdir) then
+         return True;
+      end if;
+      case DIR.Kind (filesdir) is
+         when DIR.Directory => null;
+         when others =>
+            TIO.Put_Line ("Fatal: " & ravensrcdir & " is not a directory.");
+            return False;
+      end case;
+
+      gather_ucl_files ("triggers-*");
+      ucl_files.Iterate (check_triggers'Access);
+
+      gather_ucl_files ("messages-*");
+      ucl_files.Iterate (check_messages'Access);
+
+      gather_ucl_files ("scripts-*");
+      ucl_files.Iterate (check_scripts'Access);
+
+      return all_valid;
+
+   end port_ucl_files_valid;
+
+
+end UCL_Operations;
