@@ -1,12 +1,11 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
---  GCC 6.0 only
---  pragma Suppress (Tampering_Check);
-
 with Definitions; use Definitions;
 with HelperText;
 with Ada.Text_IO;
+
+with admtypes; use admtypes;
 
 private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Ordered_Sets;
@@ -66,7 +65,7 @@ package PortScan is
    function calculate_nsv (id : port_id; subpackage : String) return String;
 
    --  Takes origin tuplet (namebase:subpkg:variant) and returns namebase:variant
-   function convert_depend_origin_to_portkey (origin : String) return String;
+   function convert_colon_nsv_to_portkey (origin : String) return String;
 
    --  Takes origin tuplet (namebase-subpkg-variant-version.tzst) and returns subpkg
    function subpackage_from_pkgname (pkgname : String) return String;
@@ -129,17 +128,10 @@ private
      (Element_Type => port_index,
       Index_Type   => port_index);
 
-   package string_crate is new CON.Vectors
-     (Element_Type => HT.Text,
-      Index_Type   => port_index,
-      "="          => HT.SU."=");
-
    package built_package_crate is new CON.Vectors
      (Index_Type   => built_package_id,
       Element_Type => HT.Text,
       "="          => HT.SU."=");
-
-   package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
 
    package ranking_crate is new CON.Ordered_Sets
      (Element_Type => queue_record);

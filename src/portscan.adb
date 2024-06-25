@@ -228,9 +228,9 @@ package body PortScan is
 
 
    --------------------------------------------------------------------------------------------
-   --  convert_depend_origin_to_portkey
+   --  convert_colon_nsv_to_portkey
    --------------------------------------------------------------------------------------------
-   function convert_depend_origin_to_portkey (origin : String) return String
+   function convert_colon_nsv_to_portkey (origin : String) return String
    is
       --  expected format: namebase:subpackage:variant
       numcolons : Natural := HT.count_char (origin, LAT.Colon);

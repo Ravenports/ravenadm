@@ -3477,18 +3477,17 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  combined_dependency_origins
+   --  combined_dependency_nsv
    --------------------------------------------------------------------------------------------
-   function combined_dependency_origins
-     (specs        : Portspecs;
-      include_run  : Boolean;
-      limit_to_run : Boolean) return String
+   procedure combined_dependency_nsv
+     (specs          : Portspecs;
+      include_run    : Boolean;
+      limit_to_run   : Boolean;
+      dependency_set : in out string_crate.Vector)
    is
       procedure scan  (position : string_crate.Cursor);
-      procedure print (position : string_crate.Cursor);
       procedure scan_package (position : list_crate.Cursor);
 
-      combined : string_crate.Vector;
       result   : HT.Text;
 
       procedure scan (position : string_crate.Cursor)
@@ -3500,18 +3499,11 @@ package body Port_Specification is
          dep_namebase : constant String :=  HT.specific_field (HT.USS (text_value), 1, ":");
       begin
          if not HT.equivalent (specs.namebase, dep_namebase) then
-            if not combined.Contains (text_value) then
-               combined.Append (text_value);
+            if not dependency_set.Contains (text_value) then
+               dependency_set.Append (text_value);
             end if;
          end if;
       end scan;
-
-      procedure print (position : string_crate.Cursor)
-      is
-         text_value : HT.Text renames string_crate.Element (position);
-      begin
-         HT.SU.Append (result, HT.USS (text_value) & LAT.LF);
-      end print;
 
       procedure scan_package (position : list_crate.Cursor)
       is
@@ -3531,10 +3523,7 @@ package body Port_Specification is
          specs.run_deps.Iterate (scan'Access);
          specs.extra_rundeps.Iterate (scan_package'Access);
       end if;
-
-      combined.Iterate (print'Access);
-      return HT.USS (result);
-   end combined_dependency_origins;
+   end combined_dependency_nsv;
 
 
    --------------------------------------------------------------------------------------------

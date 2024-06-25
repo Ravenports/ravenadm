@@ -81,7 +81,7 @@ private
    type folder is (bin, libexec, usr, lib, lib64,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
-                   proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain,
+                   proc, root, tmp, var, wrkdirs, port, ccache, repofiles, localbase, toolchain,
                    devices, frameworks);
    subtype safefolders is folder range bin .. ccache;
 
@@ -108,6 +108,7 @@ private
    root_packages    : constant String := "/packages";
    root_distfiles   : constant String := "/distfiles";
    root_ccache      : constant String := "/ccache";
+   root_repofiles   : constant String := "/repo/files";
    bsd_localbase    : constant String := "/usr/local";
    toolchain_dir    : constant String := "/toolchain";
    root_devices     : constant String := "/devices";
@@ -235,5 +236,8 @@ private
 
    --  Search keywork ucl files for %LOCALBASE% pattern and replace it with configure localbase
    procedure process_keyword_files (slave_mk : String; localbase : String);
+
+   --  create /etc/repo.conf in slave
+   procedure create_repo_conf (path_to_etc : String);
 
 end Replicant;

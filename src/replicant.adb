@@ -840,6 +840,7 @@ package body Replicant is
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
          when devices     => return mount_base & root_devices;
+         when repofiles   => return mount_base & root_repofiles;
          when frameworks  => return mount_base & root_frameworks;
          when localbase   => return mount_base & HT.USS (PM.configuration.dir_localbase);
          when toolchain   => return mount_base & HT.USS (PM.configuration.dir_localbase) &
@@ -1095,6 +1096,7 @@ package body Replicant is
       create_etc_shells        (etc_path);
       create_sun_files         (etc_path);
       create_etc_localtime     (etc_path);
+      create_repo_conf         (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
 
    exception
@@ -1529,6 +1531,24 @@ package body Replicant is
       end if;
       TIO.Close (shells);
    end create_etc_shells;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_repo_conf
+   --------------------------------------------------------------------------------------------
+   procedure create_repo_conf (path_to_etc : String)
+   is
+      conf : TIO.File_Type;
+      reposdir : constant String := path_to_etc & "/repos";
+   begin
+      DIR.Create_Path (reposdir);
+      TIO.Create (conf, TIO.Out_File, reposdir & "/repo.conf");
+      TIO.Put_Line (conf, "local: {");
+      TIO.Put_Line (conf, "   url: file:///repo");
+      TIO.Put_Line (conf, "   enabled: true");
+      TIO.Put_Line (conf, "}");
+      TIO.Close (conf);
+   end create_repo_conf;
 
 
    --------------------------------------------------------------------------------------------

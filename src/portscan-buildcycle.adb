@@ -311,42 +311,6 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
-   --  pkg_install_subroutine
-   --------------------------------------------------------------------------------------------
-   function pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean
-   is
-      timed_out  : Boolean;
-      time_limit : execution_limit  := max_time_without_output (install);
-      PKG_ADD    : constant String  := "/usr/bin/ravensw add ";
-      portkey    : constant String  := convert_depend_origin_to_portkey (line);
-      ptid       : constant port_id := ports_keys (HT.SUS (portkey));
-      pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
-      pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
-      pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
-      fullpath   : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
-      command    : constant String  := PM.chroot_cmd & root & env_vars & "ALTABI=ACCEPT-ALL " &
-                                       PKG_ADD & "/packages/All/" & pkgfile;
-      still_good : Boolean := True;
-   begin
-      if DIR.Exists (fullpath) then
-         TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
-         TIO.Close (trackers (id).log_handle);
-         still_good := generic_execute (id, command, timed_out, time_limit);
-         TIO.Open (File => trackers (id).log_handle,
-                   Mode => TIO.Append_File,
-                   Name => LOG.log_name (trackers (id).seq_id));
-         if timed_out then
-            TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-         end if;
-      else
-         still_good := False;
-         TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
-      end if;
-      return still_good;
-   end pkg_install_subroutine;
-
-
-   --------------------------------------------------------------------------------------------
    --  exec_phase_depends
    --------------------------------------------------------------------------------------------
    function  exec_phase_depends
@@ -355,24 +319,162 @@ package body PortScan.Buildcycle is
       id            : builders;
       environ       : String) return Boolean
    is
+      procedure copy_to_local_repo (Position : string_crate.Cursor);
+      procedure check_run_depends (Position : string_crate.Cursor);
+      procedure clone_to_queue (Position : string_crate.Cursor);
+      procedure mark_seen (Position : string_crate.Cursor);
+      procedure generate_local_repo;
+      procedure install_catalog;
+      procedure install_dependency_pyramid;
+
       root       : constant String := get_root (id);
+      time_limit : constant execution_limit := max_time_without_output (install);
       still_good : Boolean := True;
-      markers    : HT.Line_Markers;
-      block      : constant String :=
-        specification.combined_dependency_origins (include_run  => not testing,
-                                                   limit_to_run => False);
+      depend_set : string_crate.Vector;
+      ondeck     : string_crate.Vector;
+      queue      : string_crate.Vector;
+      seen       : string_crate.Vector;
+      exact_list : HT.Text := HT.SU.Null_Unbounded_String;
+
+      procedure clone_to_queue (Position : string_crate.Cursor)
+      is
+         colon_nsv : HT.Text renames string_crate.Element (Position);
+      begin
+         queue.Append (colon_nsv);
+      end clone_to_queue;
+
+      procedure mark_seen (Position : string_crate.Cursor)
+      is
+         --  Only run for top-level dependencies, so piggy-back to build the install list.
+         colon_nsv : HT.Text renames string_crate.Element (Position);
+         pkgname   : constant String := HT.replace_all (HT.USS (colon_nsv), LAT.Colon, LAT.Hyphen);
+      begin
+         seen.Append (colon_nsv);
+         HT.SU.Append (exact_list, " " & pkgname);
+      end mark_seen;
+
+      procedure copy_to_local_repo (Position : string_crate.Cursor)
+      is
+         colon_nsv  : constant String  := HT.USS (string_crate.Element (Position));
+         portkey    : constant String  := convert_colon_nsv_to_portkey (colon_nsv);
+         ptid       : constant port_id := ports_keys (HT.SUS (portkey));
+         pkgname    : constant String  := HT.replace_all (colon_nsv, LAT.Colon, LAT.Hyphen);
+         pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
+         pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
+         systempath : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
+         slavepath  : constant String  := root & "/repo/files/" & pkgfile;
+      begin
+         if DIR.Exists (systempath) then
+            DIR.Copy_File (Source_Name => systempath, Target_Name => slavepath);
+         else
+            still_good := False;
+            TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
+         end if;
+      end copy_to_local_repo;
+
+      procedure check_run_depends (Position : string_crate.Cursor)
+      is
+         procedure search_subpkg (subpos : subpackage_crate.Cursor);
+
+         colon_nsv  : constant String  := HT.USS (string_crate.Element (Position));
+         portkey    : constant String  := convert_colon_nsv_to_portkey (colon_nsv);
+         ptid       : constant port_id := ports_keys (HT.SUS (portkey));
+         xx_subpkg  : constant String  := HT.specific_field (colon_nsv, 2, ":");
+
+         procedure search_subpkg (subpos : subpackage_crate.Cursor)
+         is
+            procedure quantum (rpos : spkg_id_crate.Cursor);
+
+            myrec : subpackage_record renames subpackage_crate.Element (subpos);
+
+            procedure quantum (rpos : spkg_id_crate.Cursor)
+            is
+               qrec : subpackage_identifier renames spkg_id_crate.Element (rpos);
+               rdid : port_index := qrec.port;
+            begin
+               declare
+                  rdn : constant String := HT.USS (all_ports (rdid).port_namebase);
+                  rds : constant String := HT.USS (qrec.subpackage);
+                  rdv : constant String := HT.USS (all_ports (rdid).port_variant);
+                  rdnsv : constant HT.Text := HT.SUS (rdn & ":" & rds & ":" & rdv);
+               begin
+                  if not seen.Contains (rdnsv) then
+                     seen.Append (rdnsv);
+                     ondeck.Append (rdnsv);
+                     depend_set.Append (rdnsv);
+                  end if;
+               end;
+            end quantum;
+         begin
+            if HT.equivalent (myrec.subpackage, xx_subpkg) then
+               myrec.spkg_run_deps.Iterate (quantum'Access);
+            end if;
+         end search_subpkg;
+      begin
+         all_ports (ptid).subpackages.Iterate (search_subpkg'Access);
+      end check_run_depends;
+
+      procedure generate_local_repo
+      is
+         cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
+         command    : constant String := PM.chroot_cmd & root & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end generate_local_repo;
+
+      procedure install_catalog
+      is
+         cmd        : constant String := "/usr/bin/rvn -R /etc/repos catalog --force";
+         command    : constant String := PM.chroot_cmd & root & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end install_catalog;
+
+      procedure install_dependency_pyramid
+      is
+         cmd        : constant String := "/usr/bin/rvn -R /etc/repos install --exact-match --yes";
+         command    : constant String := PM.chroot_cmd & root & cmd & HT.USS (exact_list);
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end install_dependency_pyramid;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      HT.initialize_markers (block, markers);
+      specification.combined_dependency_nsv (include_run => not testing,
+                                             limit_to_run => False,
+                                             dependency_set => depend_set);
+      if depend_set.Is_Empty then
+         TIO.Put_Line (trackers (id).log_handle, "This package has no dependency requirements.");
+         LOG.log_phase_end (trackers (id).log_handle);
+         return still_good;
+      end if;
+
+      --  Recursively get child-dependencies.
+      seen.Clear;
+      queue.Clear;
+      depend_set.Iterate (clone_to_queue'Access);
+      depend_set.Iterate (mark_seen'Access);
       loop
-         exit when not still_good;
-         exit when not HT.next_line_present (block, markers);
-         declare
-            line : constant String  := HT.extract_line (block, markers);
-         begin
-            still_good := pkg_install_subroutine (id, root, environ, line);
-         end;
+         ondeck.Clear;
+         queue.Iterate (check_run_depends'Access);
+         exit when ondeck.Is_Empty;
+         queue.Clear;
+         ondeck.Iterate (clone_to_queue'Access);
       end loop;
+
+      depend_set.Iterate (copy_to_local_repo'Access);
+      if still_good then
+         generate_local_repo;
+      end if;
+      if still_good then
+         install_catalog;
+      end if;
+      if still_good then
+         install_dependency_pyramid;
+      end if;
+
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_depends;

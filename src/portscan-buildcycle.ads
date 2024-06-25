@@ -117,7 +117,6 @@ private
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
    function  get_port_prefix (id : builders; environ : String) return String;
-   function  pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean;
 
    function  environment_override (toolchain   : Boolean;
                                    ssl_variant : String;
