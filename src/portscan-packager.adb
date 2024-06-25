@@ -91,6 +91,7 @@ package body PortScan.Packager is
          procedure insert_dependencies;
          procedure insert_trigger_set;
          procedure insert_message_set;
+         procedure insert_script_set;
 
          myrec : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (myrec.subpackage);
@@ -264,13 +265,30 @@ package body PortScan.Packager is
                return;
             end if;
             ThickUCL.Files.parse_ucl_file (message_metadata, file_location, "");
-            if ucl_operations.trigger_file_is_valid (message_metadata) then
-               ucl_operations.transfer_triggers (message_metadata, metatree);
+            if ucl_operations.message_file_is_valid (message_metadata) then
+               ucl_operations.transfer_messages (message_metadata, metatree);
             end if;
          exception
             when ThickUCL.Files.ucl_file_unparseable =>
                null;  --  should not happen since it's already been validated
          end insert_message_set;
+
+         procedure insert_script_set
+         is
+            script_metadata : ThickUCL.UclTree;
+            file_location : constant String := wrkdir & "/.PKG_SCRIPTS." & subpackage;
+         begin
+            if not DIR.Exists (file_location) then
+               return;
+            end if;
+            ThickUCL.Files.parse_ucl_file (script_metadata, file_location, "");
+            if ucl_operations.script_file_is_valid (script_metadata) then
+               ucl_operations.transfer_scripts (script_metadata, metatree);
+            end if;
+         exception
+            when ThickUCL.Files.ucl_file_unparseable =>
+               null;  --  should not happen since it's already been validated
+         end insert_script_set;
       begin
          metatree.insert ("namebase", namebase);
          metatree.insert ("subpackage", subpackage);
@@ -289,6 +307,7 @@ package body PortScan.Packager is
          insert_annotations;
          insert_trigger_set;
          insert_message_set;
+         insert_script_set;
 
          declare
             meta_contents : constant String := ThickUCL.Emitter.emit_ucl (metatree);

@@ -8,7 +8,7 @@ project Ravenadm is
    for Languages use ("Ada", "C");
 
    package Compiler is
-      for Default_Switches ("ada") use ("-gnatyaAbBcdehfiklM99nOprsStx", "-g", "-fstack-check");
+      for Default_Switches ("ada") use ("-g", "-fstack-check", "-gnatyaAbBcdehfiklnOprsStxM100");
    end Compiler;
 
 end Ravenadm;

@@ -18,7 +18,6 @@ package body ucl_operations is
       procedure transfer_second_string (key : String; sondx : ThickUCL.object_index);
       procedure transfer_second_array (key : String; sondx : ThickUCL.object_index);
 
-      object_keys   : ThickUCL.jar_string.Vector;
       second_keys   : ThickUCL.jar_string.Vector;
       ondx          : ThickUCL.object_index;
 
@@ -73,7 +72,6 @@ package body ucl_operations is
             case trigger_metadata.get_data_type (key2) is
                when ThickUCL.data_object =>
                   ondx := trigger_metadata.get_index_of_base_ucl_object (key2);
-                  trigger_metadata.get_object_object_keys (ondx, object_keys);
                   metatree.start_object ("");
                   transfer_second_array (KEY_DIR_PATH, ondx);
                   transfer_second_array (KEY_FILE_PATH, ondx);
@@ -101,7 +99,6 @@ package body ucl_operations is
       --  The message_metadata needs to validated before calling this procedure
       procedure transfer_second_string (key : String; sondx : ThickUCL.object_index);
 
-      object_keys   : ThickUCL.jar_string.Vector;
       second_keys   : ThickUCL.jar_string.Vector;
       ondx          : ThickUCL.object_index;
 
@@ -128,7 +125,6 @@ package body ucl_operations is
             case message_metadata.get_data_type (key2) is
                when ThickUCL.data_object =>
                   ondx := message_metadata.get_index_of_base_ucl_object (key2);
-                  message_metadata.get_object_object_keys (ondx, object_keys);
                   metatree.start_object ("");
                   transfer_second_string (KEY_MESSAGE, ondx);
                   transfer_second_string (KEY_TYPE, ondx);
@@ -142,6 +138,62 @@ package body ucl_operations is
 
       metatree.close_array;
    end transfer_messages;
+
+
+   ------------------------
+   --  transfer_scripts  --
+   ------------------------
+   procedure transfer_scripts
+     (script_metadata  : ThickUCL.UclTree;
+      metatree         : in out ThickUCL.UclTree)
+   is
+      --  The script_metadata needs to validated before calling this procedure
+      procedure transfer_second_string (key : String; sondx : ThickUCL.object_index);
+
+      second_keys : ThickUCL.jar_string.Vector;
+
+      procedure transfer_second_string (key : String; sondx : ThickUCL.object_index) is
+      begin
+         case script_metadata.get_object_data_type (sondx, key) is
+            when ThickUCL.data_string =>
+               declare
+                  value : constant String := script_metadata.get_object_value (sondx, key);
+               begin
+                  metatree.insert (key, value);
+               end;
+            when others => null;
+         end case;
+      end transfer_second_string;
+   begin
+      metatree.start_object ("scripts");
+
+      script_metadata.get_base_object_keys (second_keys);
+      for x in 0 .. Natural (second_keys.Length) - 1 loop
+         declare
+            key2 : constant String := HT.USS (second_keys.Element (x).payload);
+            andx : ThickUCL.array_index;
+            ondx : ThickUCL.object_index;
+            num_scripts : Natural;
+         begin
+            metatree.start_array (key2);
+            case script_metadata.get_data_type (key2) is
+               when ThickUCL.data_array =>
+                  andx := script_metadata.get_index_of_base_array (key2);
+                  num_scripts := script_metadata.get_number_of_array_elements (andx);
+                  for y in 0 .. num_scripts - 1 loop
+                     ondx := script_metadata.get_array_element_object (andx, y);
+                     metatree.start_object ("");
+                     transfer_second_string (KEY_ARGS, ondx);
+                     transfer_second_string (KEY_CODE, ondx);
+                     metatree.close_object;
+                  end loop;
+               when others => null;
+            end case;
+            metatree.close_array;
+         end;
+      end loop;
+      metatree.close_object;
+   end transfer_scripts;
 
 
    ----------------------------
@@ -335,8 +387,7 @@ package body ucl_operations is
    -----------------------------
    --  message_file_is_valid  --
    -----------------------------
-   function message_file_is_valid
-     (message_metadata : ThickUCL.UclTree) return Boolean
+   function message_file_is_valid (message_metadata : ThickUCL.UclTree) return Boolean
    is
       --  Entry: message_metadata is result of successful parse of UCL file
       --  Expected format: collection of 1 or more message objects
@@ -366,6 +417,129 @@ package body ucl_operations is
       end loop;
       return global_valid;
    end message_file_is_valid;
+
+
+   ----------------------------
+   --  script_file_is_valid  --
+   ----------------------------
+   function script_file_is_valid (script_metadata : ThickUCL.UclTree) return Boolean
+   is
+      --  Entry: script_metadata is result of successful parse of UCL file
+      --  Expected format: object of 1 or more named arrays of objects
+      --  The arrays cannot be empty
+
+      function phase_key_is_valid (phase_key : String) return Boolean;
+
+      second_keys   : ThickUCL.jar_string.Vector;
+      global_valid  : Boolean := True;
+
+      function phase_key_is_valid (phase_key : String) return Boolean
+      is
+         found : Boolean := False;
+      begin
+         if phase_key = "pre-install" or else
+           phase_key = "post-install" or else
+           phase_key = "pre-deinstall" or else
+           phase_key = "post-deinstall" or else
+           phase_key = "pre-install-lua" or else
+           phase_key = "post-install-lua" or else
+           phase_key = "pre-deinstall-lua" or else
+           phase_key = "post-deinstall-lua"
+         then
+            found := True;
+         end if;
+         return found;
+      end phase_key_is_valid;
+   begin
+      script_metadata.get_base_object_keys (second_keys);
+      for x in 0 .. Natural (second_keys.Length) - 1 loop
+         if global_valid then
+            declare
+               key2 : constant String := HT.USS (second_keys.Element (x).payload);
+               andx : ThickUCL.array_index;
+               ondx : ThickUCL.object_index;
+               num_scripts : Natural;
+            begin
+               if phase_key_is_valid (key2) then
+                  case script_metadata.get_data_type (key2) is
+                     when ThickUCL.data_array =>
+                        andx := script_metadata.get_index_of_base_array (key2);
+                        num_scripts := script_metadata.get_number_of_array_elements (andx);
+                        if num_scripts > 0 then
+                           for y in 0 .. num_scripts - 1 loop
+                              case script_metadata.get_array_element_type (andx, y) is
+                                 when ThickUCL.data_object =>
+                                    ondx := script_metadata.get_array_element_object (andx, y);
+                                    if not valid_script_object (script_metadata, ondx) then
+                                       global_valid := False;
+                                    end if;
+                                 when others =>
+                                    global_valid := False;
+                              end case;
+                           end loop;
+                        else
+                           global_valid := False;
+                        end if;
+                     when others =>
+                        global_valid := False;
+                  end case;
+               else
+                  global_valid := False;
+               end if;
+            end;
+         end if;
+      end loop;
+      return global_valid;
+   end script_file_is_valid;
+
+
+   ---------------------------
+   --  valid_script_object  --
+   ---------------------------
+   function valid_script_object
+     (script_metadata : ThickUCL.UclTree;
+      ondx : ThickUCL.object_index) return Boolean
+   is
+      procedure check_key (Position : ThickUCL.jar_string.Cursor);
+
+      --  required: code
+      --  required: args
+
+      object_keys   : ThickUCL.jar_string.Vector;
+      valid_script  : Boolean := True;
+      found_code    : Boolean := False;
+      found_args    : Boolean := False;
+      bad_data_type : Boolean := False;
+
+      procedure check_key (Position : ThickUCL.jar_string.Cursor)
+      is
+         key : constant String := HT.USS (ThickUCL.jar_string.Element (Position).payload);
+      begin
+         if key = KEY_CODE or else
+           key = KEY_ARGS
+         then
+            case script_metadata.get_object_data_type (ondx, key) is
+               when ThickUCL.data_string =>
+                  if key = KEY_CODE then
+                     found_code := True;
+                  elsif key = KEY_ARGS then
+                     found_args := True;
+                  end if;
+               when others =>
+                  bad_data_type := True;
+            end case;
+         else
+            valid_script := False;
+         end if;
+      end check_key;
+   begin
+      script_metadata.get_object_object_keys (ondx, object_keys);
+      object_keys.Iterate (check_key'Access);
+      if bad_data_type or else not found_code or else not found_args then
+         return False;
+      end if;
+      return valid_script;
+   end valid_script_object;
 
 
 end ucl_operations;

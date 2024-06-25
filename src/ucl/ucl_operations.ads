@@ -12,6 +12,9 @@ package ucl_operations is
    function message_file_is_valid
      (message_metadata : ThickUCL.UclTree) return Boolean;
 
+   function script_file_is_valid
+     (script_metadata : ThickUCL.UclTree) return Boolean;
+
    --  Transfer data from trigger file to the package metadata
    procedure transfer_triggers
      (trigger_metadata : ThickUCL.UclTree;
@@ -21,6 +24,12 @@ package ucl_operations is
    procedure transfer_messages
      (message_metadata : ThickUCL.UclTree;
       metatree         : in out ThickUCL.UclTree);
+
+   --  Transfer data from script file to the package metadata
+   procedure transfer_scripts
+     (script_metadata  : ThickUCL.UclTree;
+      metatree         : in out ThickUCL.UclTree);
+
 
 private
 
@@ -36,12 +45,19 @@ private
    KEY_MINVER    : constant String := "min_version";
    KEY_MAXVER    : constant String := "max_version";
 
+   KEY_CODE      : constant String := "code";
+   KEY_ARGS      : constant String := "args";
+
    function valid_trigger_object
      (trigger_metadata : ThickUCL.UclTree;
       ondx : ThickUCL.object_index) return Boolean;
 
    function valid_message_object
      (message_metadata : ThickUCL.UclTree;
+      ondx : ThickUCL.object_index) return Boolean;
+
+   function valid_script_object
+     (script_metadata : ThickUCL.UclTree;
       ondx : ThickUCL.object_index) return Boolean;
 
 end ucl_operations;

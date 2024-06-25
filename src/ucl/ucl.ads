@@ -4,6 +4,7 @@
 with libucl;
 with System;
 with Ada.Real_Time;
+with Interfaces.C;
 
 package Ucl is
 
@@ -176,5 +177,7 @@ private
      (txt   : String;
       flags : libucl.ucl_string_flags)
       return access libucl.ucl_object_t;
+
+   function convert_c_boolean (original : Interfaces.C.unsigned_char) return Boolean;
 
 end Ucl;
