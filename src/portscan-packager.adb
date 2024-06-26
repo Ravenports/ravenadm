@@ -42,7 +42,7 @@ package body PortScan.Packager is
       conbase    : constant String := construct & namebase;
       wrkdir     : constant String := rootdir & conbase;
       chspkgdir  : constant String := construct & "metadata/";
-      newpkgdir  : constant String := construct & "new_packages";
+      rfilesdir  : constant String := "/repo/files";
       spkgdir    : constant String := rootdir & chspkgdir;
       sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
       realpkgdir : constant String := HT.USS (PM.configuration.dir_packages);
@@ -327,7 +327,7 @@ package body PortScan.Packager is
            "-o PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
          RVN_CREATE : constant String := "/usr/bin/rvn " & OVERRIDES & "create";
          RVN_CREATE_ARGS : constant String :=
-           " --out-dir " & newpkgdir &
+           " --out-dir " & rfilesdir &
            " --root-dir " & stagedir &
            " --prefix " & port_prefix &
            " --whitelist " & package_list &
@@ -363,7 +363,7 @@ package body PortScan.Packager is
          namebase   : constant String := specification.get_namebase;
          pkgarchive : String := namebase & "-" & subpackage & "-" &
                       HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
-         built_loc  : constant String := rootdir & newpkgdir & "/" & pkgarchive;
+         built_loc  : constant String := rootdir & rfilesdir & "/" & pkgarchive;
          final_loc  : constant String := realpkgdir & "/files/" & pkgarchive;
          mv_program : constant String := sysroot & "/bin/mv ";
          mv_command : constant String := mv_program & " " & built_loc & " " & final_loc;
@@ -390,7 +390,6 @@ package body PortScan.Packager is
          return False;
       end if;
 
-      DIR.Create_Directory (rootdir & newpkgdir);
       all_ports (seq_id).subpackages.Iterate (package_it'Access);
       all_ports (seq_id).subpackages.Iterate (move_it_outside_sysroot'Access);
       LOG.log_phase_end (log_handle);
