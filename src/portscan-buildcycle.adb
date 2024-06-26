@@ -103,9 +103,6 @@ package body PortScan.Buildcycle is
                REP.unhook_toolchain (id);
                if R and then testing then
                   R := deinstall_all_packages (id, env_nochain);
-                  if R then
-                     R := install_run_depends (specification, id, env_nochain);
-                  end if;
                end if;
 
             when pkg_package =>
@@ -325,9 +322,11 @@ package body PortScan.Buildcycle is
       procedure mark_seen (Position : string_crate.Cursor);
       procedure generate_local_repo;
       procedure install_catalog;
+      procedure prefetch_all_packages;
       procedure install_dependency_pyramid;
 
       root       : constant String := get_root (id);
+      rvn_repos  : constant String := "/usr/bin/rvn -R /etc/repos ";
       time_limit : constant execution_limit := max_time_without_output (install);
       still_good : Boolean := True;
       depend_set : string_crate.Vector;
@@ -417,7 +416,7 @@ package body PortScan.Buildcycle is
       procedure generate_local_repo
       is
          cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
-         command    : constant String := PM.chroot_cmd & root & cmd;
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
          timed_out  : Boolean;
       begin
          still_good := generic_execute (id, command, timed_out, time_limit);
@@ -425,17 +424,26 @@ package body PortScan.Buildcycle is
 
       procedure install_catalog
       is
-         cmd        : constant String := "/usr/bin/rvn -R /etc/repos catalog --force";
-         command    : constant String := PM.chroot_cmd & root & cmd;
+         cmd        : constant String := rvn_repos & "catalog --force";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
          timed_out  : Boolean;
       begin
          still_good := generic_execute (id, command, timed_out, time_limit);
       end install_catalog;
 
+      procedure prefetch_all_packages
+      is
+         cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end prefetch_all_packages;
+
       procedure install_dependency_pyramid
       is
-         cmd        : constant String := "/usr/bin/rvn -R /etc/repos install --exact-match --yes";
-         command    : constant String := PM.chroot_cmd & root & cmd & HT.USS (exact_list);
+         cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd & HT.USS (exact_list);
          timed_out  : Boolean;
       begin
          still_good := generic_execute (id, command, timed_out, time_limit);
@@ -465,6 +473,8 @@ package body PortScan.Buildcycle is
       end loop;
 
       depend_set.Iterate (copy_to_local_repo'Access);
+      TIO.Close (trackers (id).log_handle);
+
       if still_good then
          generate_local_repo;
       end if;
@@ -472,44 +482,14 @@ package body PortScan.Buildcycle is
          install_catalog;
       end if;
       if still_good then
+         prefetch_all_packages;
+      end if;
+      if still_good then
          install_dependency_pyramid;
       end if;
 
-      LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_depends;
-
-
-   --------------------------------------------------------------------------------------------
-   --  install_run_depends
-   --------------------------------------------------------------------------------------------
-   function  install_run_depends
-     (specification : PSP.Portspecs;
-      id            : builders;
-      environ       : String) return Boolean
-   is
-      phase_name : constant String := "test / install run dependencies";
-      root       : constant String := get_root (id);
-      still_good : Boolean := True;
-      markers    : HT.Line_Markers;
-      block      : constant String :=
-        specification.combined_dependency_origins (include_run  => True,
-                                                   limit_to_run => True);
-   begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      HT.initialize_markers (block, markers);
-      loop
-         exit when not still_good;
-         exit when not HT.next_line_present (block, markers);
-         declare
-            line : constant String  := HT.extract_line (block, markers);
-         begin
-            still_good := pkg_install_subroutine (id, root, environ, line);
-         end;
-      end loop;
-      LOG.log_phase_end (trackers (id).log_handle);
-      return still_good;
-   end install_run_depends;
 
 
    --------------------------------------------------------------------------------------------
@@ -522,13 +502,13 @@ package body PortScan.Buildcycle is
       time_limit : execution_limit := max_time_without_output (test);
       root       : constant String := get_root (id);
       phase_name : constant String := "test / deinstall all packages";
-      PKG_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes ";
-      command    : constant String := PM.chroot_cmd & root & environ & PKG_RM_ALL;
+      CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify";
+      command    : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      TIO.Put_Line (trackers (id).log_handle, "===>  Autoremoving orphaned packages");
+      TIO.Put_Line (trackers (id).log_handle, "===>  Removing all packages");
       TIO.Close (trackers (id).log_handle);
       still_good := generic_execute (id, command, timed_out, time_limit);
       TIO.Open (File => trackers (id).log_handle,
@@ -547,38 +527,87 @@ package body PortScan.Buildcycle is
       pkgversion    : String;
       environ       : String) return Boolean
    is
-      procedure install_it (position : subpackage_crate.Cursor);
+      procedure generate_local_repo;
+      procedure install_catalog;
+      procedure prefetch_all_packages;
+      procedure install_built_package;
+      procedure build_list (position : subpackage_crate.Cursor);
 
       time_limit : execution_limit := max_time_without_output (install);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_ADD    : constant String := "/usr/bin/ravensw add ";
+      variant    : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
+      rvn_repos  : constant String := "/usr/bin/rvn -R /etc/repos ";
+      INST_PRIME : constant String := "install --no-repo-update --exact-match --yes";
+      exact_list : HT.Text := HT.SU.Null_Unbounded_String;
       still_good : Boolean := True;
-      timed_out  : Boolean;
 
-      procedure install_it (position : subpackage_crate.Cursor)
+      procedure generate_local_repo
+      is
+         cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end generate_local_repo;
+
+      procedure install_catalog
+      is
+         cmd        : constant String := rvn_repos & "catalog --force";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end install_catalog;
+
+      procedure prefetch_all_packages
+      is
+         cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end prefetch_all_packages;
+
+      procedure build_list (position : subpackage_crate.Cursor)
       is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String :=  HT.USS (rec.subpackage);
-         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         PKG_FILE   : constant String := "/packages/All/" & pkgname & arc_ext;
-         command    : constant String := PM.chroot_cmd & root & environ & PKG_ADD & PKG_FILE;
+         pkgname    : String := calculate_nsv (trackers (id).seq_id, subpackage);
       begin
-         if still_good then
-            TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
-            TIO.Close (trackers (id).log_handle);
-            still_good := generic_execute (id, command, timed_out, time_limit);
-            TIO.Open (File => trackers (id).log_handle,
-                      Mode => TIO.Append_File,
-                      Name => LOG.log_name (trackers (id).seq_id));
-            if timed_out then
-               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-            end if;
+         HT.SU.Append (exact_list, " " & pkgname);
+      end build_list;
+
+      procedure install_built_package
+      is
+         cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd & HT.USS (exact_list);
+         timed_out  : Boolean;
+      begin
+         TIO.Put_Line (trackers (id).log_handle,
+                       "===>  Install the " & variant & " variant of the " & namebase & " package");
+         TIO.Close (trackers (id).log_handle);
+         still_good := generic_execute (id, command, timed_out, time_limit);
+         TIO.Open (File => trackers (id).log_handle,
+                   Mode => TIO.Append_File,
+                   Name => LOG.log_name (trackers (id).seq_id));
+         if timed_out then
+            TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
          end if;
-      end install_it;
+      end install_built_package;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (install));
-      all_ports (trackers (id).seq_id).subpackages.Iterate (install_it'Access);
+      generate_local_repo;
+      if still_good then
+         install_catalog;
+      end if;
+      if still_good then
+         prefetch_all_packages;
+      end if;
+      if still_good then
+         all_ports (trackers (id).seq_id).subpackages.Iterate (build_list'Access);
+         install_built_package;
+      end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_install;

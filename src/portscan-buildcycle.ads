@@ -145,11 +145,6 @@ private
      (id            : builders;
       environ       : String) return Boolean;
 
-   function  install_run_depends
-     (specification : PSP.Portspecs;
-      id            : builders;
-      environ       : String) return Boolean;
-
    function  generic_execute
      (id            : builders;
       command       : String;
