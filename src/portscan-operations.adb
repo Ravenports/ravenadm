@@ -1729,9 +1729,9 @@ package body PortScan.Operations is
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
       pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/files/" & pkg_base & arc_ext;
-      rvnprog   : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command  : constant String := rvnprog & " info --quiet --dependencies --file " & fullpath;
-      remocmd  : constant String := rvnprog & " rquery --no-repo-update '{xdep:nsv}' " & pkg_nsv;
+      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command  : constant String := rvn8 & " -C '' info -q --dependencies --file " & fullpath;
+      remocmd  : constant String := rvn8 & " -C '' rquery -U '{xdep:nsv}' -E " & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
    begin
@@ -1958,11 +1958,12 @@ package body PortScan.Operations is
       rec : port_record renames all_ports (id);
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
-      command  : constant String := pkg8 & " query -F "  & fullpath & " %q";
-      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
-                                    " -U %q " & pkg_base;
+      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command  : constant String := rvn8 & " -C '' info -qw --file "  & fullpath;
+      remocmd  : constant String := rvn8 & " -C '' rquery -U '{abi}' --exact-match " & pkg_nsv;
+
       status : Integer;
       comres : HT.Text;
    begin
@@ -2006,11 +2007,12 @@ package body PortScan.Operations is
       rec : port_record renames all_ports (id);
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
-      command  : constant String := pkg8 & " query -F "  & fullpath & " %Ok:%Ov";
-      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
-                                    " -U %Ok:%Ov " & pkg_base;
+      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      optform  : constant String := "'{xopt:key} => {xopt:val}'";
+      command  : constant String := rvn8 & " -C '' info -oq --file " & fullpath;
+      remocmd  : constant String := rvn8 & " -C '' rquery -U " & optform & " -E " & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
       counter  : Natural := 0;
@@ -2057,8 +2059,8 @@ package body PortScan.Operations is
             exit when not HT.next_line_present (command_result, markers);
             declare
                line     : constant String := HT.extract_line (command_result, markers);
-               namekey  : constant String := HT.part_1 (line, ":");
-               knob     : constant String := HT.part_2 (line, ":");
+               namekey  : constant String := HT.part_1 (line, " => ");
+               knob     : constant String := HT.lowercase (HT.part_2 (line, " => "));
                nametext : HT.Text := HT.SUS (namekey);
                knobval  : Boolean;
             begin
@@ -2066,9 +2068,9 @@ package body PortScan.Operations is
                if HT.count_char (line, LAT.Colon) /= 1 then
                   raise unknown_format with line;
                end if;
-               if knob = "on" then
+               if knob = "on" or else knob = "true" then
                   knobval := True;
-               elsif knob = "off" then
+               elsif knob = "off" or else knob = "false" then
                   knobval := False;
                else
                   raise unknown_format with "knob=" & knob & "(" & line & ")";
