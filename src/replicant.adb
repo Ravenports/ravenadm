@@ -856,7 +856,6 @@ package body Replicant is
    begin
       case point is
          when xports    => return HT.USS (PM.configuration.dir_conspiracy);
-         when packages  => return HT.USS (PM.configuration.dir_packages);
          when toolchain => return HT.USS (PM.configuration.dir_toolchain);
          when distfiles => return HT.USS (PM.configuration.dir_distfiles);
          when ccache    => return HT.USS (PM.configuration.dir_ccache);
@@ -1067,7 +1066,6 @@ package body Replicant is
       folder_access (location (slave_base, home), lock);
       folder_access (location (slave_base, root), lock);
 
-      mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readonly);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
       if need_procfs or else

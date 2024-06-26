@@ -244,7 +244,7 @@ package body PortScan is
       begin
          return namebase & LAT.Colon & variant;
       end;
-   end convert_depend_origin_to_portkey;
+   end convert_colon_nsv_to_portkey;
 
 
    --------------------------------------------------------------------------------------------
