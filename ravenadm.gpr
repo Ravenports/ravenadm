@@ -11,5 +11,9 @@ project Ravenadm is
       for Default_Switches ("ada") use ("-g", "-fstack-check", "-gnatyaAbBcdehfiklnOprsStxM100");
    end Compiler;
 
+   package Linker is
+      for Switches ("ada") use ("-lucl_pic", "-lm");
+   end Linker;
+
 end Ravenadm;
 

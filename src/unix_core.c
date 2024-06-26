@@ -22,10 +22,12 @@
  || defined __sun__
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/fcntl.h>
 
 #ifdef __sun__
 #define u_int8_t	uint8_t
