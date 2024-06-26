@@ -3,6 +3,9 @@
 
 with Definitions; use Definitions;
 
+private with Parameters;
+private with HelperText;
+
 package Repository is
 
    --  Rebuild the local repository with pkg(8)
@@ -10,16 +13,19 @@ package Repository is
 
 private
 
+   package PM renames Parameters;
+   package HT renames HelperText;
+
    bad_command : exception;
 
-   sorry : constant String := "The generated repository will not be signed due " &
-                              "to the misconfiguration.";
+   --  ${LOCALBASE}/etc/raven/[profile]-
+   cfgfile_prefix : constant String :=
+     PM.raven_confdir & "/" & HT.USS (PM.configuration.profile) & "-";
 
-   --  Return the contents of the profile's signing command
-   function signing_command return String;
-
-   --  Return the contents of the profile's fingerprint
-   function profile_fingerprint return String;
+   cfg_sign_command : constant String := cfgfile_prefix & "signing_command";
+   cfg_fingerprint  : constant String := cfgfile_prefix & "fingerprint";
+   cfg_key_private  : constant String := cfgfile_prefix & "private.key";
+   cfg_key_public   : constant String := cfgfile_prefix & "public.key";
 
    --  The check for existence of both [profile]-signing_command and
    --  [profile]-fingerprint.  If only one exists, a non-fatal notice is
@@ -35,24 +41,19 @@ private
    --  Returns False with fatal fail, otherwises it always returns True
    function acceptable_RSA_signing_support return Boolean;
 
-      --  Return True if repo is configured to be built with RSA
-   function set_raven_conf_with_RSA return Boolean;
-
-   --  Returns ${LOCALBASE}/etc/raven/[profile]-
-   function get_file_prefix return String;
-
-   --  Returns octal failure of file permissions or "000" upon command failure
-   function file_permissions (full_path : String) return String;
-
    --  This routine first removes all invalid packages (package from removed
    --  port or older version) and inserts the origins of the remaining packages
    --  into the port list for a limited tree scan.
    procedure preclean_repository (repository : String);
 
-   --  The actual command to build a local repository (Returns True on success)
-   function build_repository (sign_command : String := "") return Boolean;
+   --  The actual command to assemble a catalog and sign it via an external server
+   function externally_sign_repository return Boolean;
 
-   --  generic command, throws exception if exit code is not zero
-   procedure silent_exec (command : String);
+   --  The actual command to assemble a catalog and sign it with a private RSA key
+   --  and generate a fingerprint file if the public RSA key is also provided.
+   function locally_sign_repository return Boolean;
+
+   --  The actual command to assemble an unsigned repository
+   function build_repository return Boolean;
 
 end Repository;

@@ -2,46 +2,17 @@
 --  Reference: ../License.txt
 
 with Unix;
-with Parameters;
-with HelperText;
 with File_Operations;
 with PortScan.Scan;
 with PortScan.Operations;
-with Ada.Characters.Latin_1;
 with Ada.Directories;
-with Ada.Exceptions;
 with Ada.Text_IO;
 
 package body Repository is
 
-   package PM  renames Parameters;
-   package HT  renames HelperText;
    package FOP renames File_Operations;
-   package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
-   package EX  renames Ada.Exceptions;
    package TIO renames Ada.Text_IO;
-
-   --------------------------------------------------------------------------------------------
-   --  signing_command
-   --------------------------------------------------------------------------------------------
-   function signing_command return String
-   is
-      filename : constant String := get_file_prefix & "-signing_command";
-   begin
-      return FOP.head_n1 (filename);
-   end signing_command;
-
-
-   --------------------------------------------------------------------------------------------
-   --  profile_fingerprint
-   --------------------------------------------------------------------------------------------
-   function profile_fingerprint return String
-   is
-      filename : constant String := get_file_prefix & "-fingerprint";
-   begin
-      return FOP.head_n1 (filename);
-   end profile_fingerprint;
 
 
    --------------------------------------------------------------------------------------------
@@ -49,31 +20,26 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    function valid_signing_command return Boolean
    is
-      file_prefix   : constant String := get_file_prefix;
-      fingerprint   : constant String := file_prefix & "fingerprint";
-      ext_command   : constant String := file_prefix & "signing_command";
-      found_finger  : constant Boolean := DIR.Exists (fingerprint);
-      found_command : constant Boolean := DIR.Exists (ext_command);
+      found_command : constant Boolean := DIR.Exists (cfg_sign_command);
    begin
-      if found_finger and then found_command then
-         if HT.IsBlank (FOP.head_n1 (fingerprint)) or else
-           HT.IsBlank (FOP.head_n1 (ext_command))
-         then
-            TIO.Put_Line ("At least one of the profile signing command files is blank");
-            TIO.Put_Line (sorry);
-            return False;
-         end if;
-         return True;
-      end if;
+      if found_command then
+         --  The signing command must contain "{}" which is a replacement token for the digest
+         --  to be signed.  Verify the command contains that token.
 
-      if found_finger then
-         TIO.Put_Line ("The profile fingerprint was found but not the signing command");
-         TIO.Put_Line (sorry);
-      elsif found_command then
-         TIO.Put_Line ("The profile signing command was found but not the fingerprint");
-         TIO.Put_Line (sorry);
+         declare
+            sc : constant String := FOP.head_n1 (cfg_sign_command);
+         begin
+            if not HT.contains (sc, "{}") then
+               TIO.Put_Line ("Invalid signing command found: missing {} token.");
+               return False;
+            end if;
+            if HT.contains (sc, "'") then
+               TIO.Put_Line ("Invalid signing command found: contains apostrophe.");
+               return False;
+            end if;
+            return True;
+         end;
       end if;
-
       return False;
    end valid_signing_command;
 
@@ -83,101 +49,21 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    function acceptable_RSA_signing_support return Boolean
    is
-      file_prefix   : constant String := get_file_prefix;
-      key_private   : constant String := file_prefix & "private.key";
-      key_public    : constant String := file_prefix & "public.key";
-      found_private : constant Boolean := DIR.Exists (key_private);
-      found_public  : constant Boolean := DIR.Exists (key_public);
+      found_private : constant Boolean := DIR.Exists (cfg_key_private);
    begin
-      if not found_private and then not found_public then
-         return True;
-      end if;
-      if found_public and then not found_private then
-         TIO.Put_Line ("A public RSA key file has been found without a " &
-                         "corresponding private key file.");
-         TIO.Put_Line (sorry);
-         return True;
-      end if;
-      if found_private and then not found_public then
-         TIO.Put_Line ("A private RSA key file has been found without a " &
-                         "corresponding public key file.");
-         TIO.Put_Line (sorry);
-         return True;
-      end if;
-      declare
-         mode : constant String := file_permissions (key_private);
-      begin
-         if mode /= "400" then
-            TIO.Put_Line ("The private RSA key file has insecure file permissions (" & mode & ")");
-            TIO.Put_Line ("Please change the file mode of " & key_private &
+      if found_private then
+         if not Unix.file_secure (cfg_key_private) then
+            TIO.Put_Line ("The private RSA key file has insecure file permissions");
+            TIO.Put_Line ("Please change the file mode of " & cfg_key_private &
                             " to 400 before continuing.");
             return False;
          end if;
-      end;
+      else
+         return False;
+      end if;
+
       return True;
    end acceptable_RSA_signing_support;
-
-
-   --------------------------------------------------------------------------------------------
-   --  set_raven_conf_with_RSA
-   --------------------------------------------------------------------------------------------
-   function set_raven_conf_with_RSA return Boolean
-   is
-      file_prefix   : constant String := get_file_prefix;
-      key_private   : constant String := file_prefix & "private.key";
-      key_public    : constant String := file_prefix & "public.key";
-      found_private : constant Boolean := DIR.Exists (key_private);
-      found_public  : constant Boolean := DIR.Exists (key_public);
-   begin
-      return
-        found_public and then
-        found_private and then
-        file_permissions (key_private) = "400";
-   end set_raven_conf_with_RSA;
-
-
-   --------------------------------------------------------------------------------------------
-   --  get_file_prefix
-   --------------------------------------------------------------------------------------------
-   function get_file_prefix return String is
-   begin
-      return PM.raven_confdir & "/" & HT.USS (PM.configuration.profile) & "-";
-   end get_file_prefix;
-
-
-   --------------------------------------------------------------------------------------------
-   --  file_permissions
-   --------------------------------------------------------------------------------------------
-   function file_permissions (full_path : String) return String
-   is
-      function OS_command return String;
-
-      content  : HT.Text;
-      status   : Integer;
-
-      function OS_command return String is
-      begin
-         case platform_type is
-            when dragonfly |
-                 freebsd   |
-                 netbsd    |
-                 openbsd   |
-                 macos     |
-               midnightbsd => return "/usr/bin/stat -f %Lp ";
-            when linux     |
-                 sunos     => return "/usr/bin/stat -L --format=%a ";
-         end case;
-      end OS_command;
-
-      command : constant String := HT.USS (PM.configuration.dir_sysroot) & OS_command & full_path;
-
-   begin
-      content := Unix.piped_command (command, status);
-      if status /= 0 then
-         return "000";
-      end if;
-      return HT.first_line (HT.USS (content));
-   end file_permissions;
 
 
    --------------------------------------------------------------------------------------------
@@ -202,9 +88,6 @@ package body Repository is
       ------------------------------------------------------------
       repo       : constant String := HT.USS (PM.configuration.dir_repository);
       main       : constant String := HT.USS (PM.configuration.dir_packages);
-      xz_meta    : constant String := main & "/meta.tzst";
-      xz_digest  : constant String := main & "/digests.tzst";
-      xz_pkgsite : constant String := main & "/packagesite.tzst";
       bs_error   : constant String := "Rebuild Repository: Failed to bootstrap builder";
       build_res  : Boolean;
    begin
@@ -212,72 +95,81 @@ package body Repository is
          preclean_repository (repo);
       end if;
 
-      if DIR.Exists (xz_meta) then
-         DIR.Delete_File (xz_meta);
-      end if;
-      if DIR.Exists (xz_digest) then
-         DIR.Delete_File (xz_digest);
-      end if;
-      if DIR.Exists (xz_pkgsite) then
-         DIR.Delete_File (xz_pkgsite);
-      end if;
+      --  Priority:
+      --  1.  Build with signing server (fingerprint generated)
+      --  2.  Build with public and private key (fingerprint generated)
+      --  3.  Build with private key only
+      --  4.  Build without signature
+
       if valid_signing_command then
-         build_res := build_repository (signing_command);
+         build_res := externally_sign_repository;
       elsif acceptable_RSA_signing_support then
-         build_res := build_repository;
+         build_res := locally_sign_repository;
       else
-         build_res := False;
+         build_res := build_repository;
       end if;
       if build_res then
-         TIO.Put_Line ("Local repository successfully rebuilt.");
+         TIO.Put_Line ("Local repository successfully generated.");
       else
-         TIO.Put_Line ("Failed to rebuild repository.");
+         TIO.Put_Line ("Failed to generate local repository.");
       end if;
    end rebuild_local_respository;
 
 
    --------------------------------------------------------------------------------------------
-   --  silent_exec
+   --  externally_sign_repository
    --------------------------------------------------------------------------------------------
-   procedure silent_exec (command : String)
+   function externally_sign_repository return Boolean
    is
-      cmd_output : HT.Text;
-      success    : Boolean := Unix.piped_mute_command (command, cmd_output);
+      sc       : constant String := FOP.head_n1 (cfg_sign_command);
+      repopath : constant String := HT.USS (PM.configuration.dir_packages);
+      command  : constant String := host_rvn & " genrepo --external '" & sc &
+        "' --fingerprint " & cfg_fingerprint & " " & repopath;
    begin
-      if not success then
-         raise bad_command with command & " => failed: " & HT.USS (cmd_output);
-      end if;
-   end silent_exec;
+      TIO.Put_Line ("Assembling externally-signed repository ...");
+      return Unix.external_command (command);
+   end externally_sign_repository;
+
+
+   --------------------------------------------------------------------------------------------
+   --  locally_sign_repository
+   --------------------------------------------------------------------------------------------
+   function locally_sign_repository return Boolean
+   is
+      function get_command return String;
+
+      repopath : constant String := HT.USS (PM.configuration.dir_packages);
+      found_public : constant Boolean := DIR.Exists (cfg_key_public);
+
+      function get_command return String is
+      begin
+         if found_public then
+            return host_rvn & " genrepo --key " & cfg_key_private &
+              " --pubkey " & cfg_key_public &
+              " --fingerprint " & cfg_fingerprint & " " & repopath;
+         end if;
+         return host_rvn & " genrepo --key " & cfg_key_private & " " & repopath;
+      end get_command;
+   begin
+      declare
+         command : constant String := get_command;
+      begin
+         TIO.Put_Line ("Assembling RSA-signed repository ...");
+         return Unix.external_command (command);
+      end;
+   end locally_sign_repository;
 
 
    --------------------------------------------------------------------------------------------
    --  build_repository
    --------------------------------------------------------------------------------------------
-   function build_repository (sign_command : String := "") return Boolean
+   function build_repository return Boolean
    is
-      key_private : constant String := get_file_prefix & "private.key";
-      use_key : constant Boolean := DIR.Exists (key_private);
-      use_cmd : constant Boolean := (sign_command /= "");
       pkgdir  : constant String := HT.USS (PM.configuration.dir_packages);
-      command : constant String := host_pkg8 & " repo -q " & pkgdir;
-      sc_cmd  : constant String := command & " signing_command: " & sign_command;
-      cmd_out : HT.Text;
+      command : constant String := host_rvn & " genrepo " & pkgdir;
    begin
-      if use_key then
-         TIO.Put_Line ("Rebuilding RSA-signed local repository ...");
-         silent_exec (command & " " & key_private);
-      elsif use_cmd then
-         TIO.Put_Line ("Rebuilding externally-signed local repository ...");
-         silent_exec (sc_cmd);
-      else
-         TIO.Put_Line ("Rebuilding local repository ...");
-         silent_exec (command);
-      end if;
-      return True;
-   exception
-      when quepaso : others =>
-         TIO.Put_Line (EX.Exception_Message (quepaso));
-         return False;
+      TIO.Put_Line ("Assembling unsigned repository ...");
+      return Unix.external_command (command);
    end build_repository;
 
 end Repository;

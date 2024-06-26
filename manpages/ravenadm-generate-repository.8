@@ -1,10 +1,10 @@
-.Dd January 25, 2019
+.Dd June 26, 2024
 .Dt GENERATE-REPOSITORY 8
 .Os
 .Sh NAME
 .Nm "ravenadm generate-repository"
 .Nd create
-.Xr pkg 8
+.Xr rvn 8
 repository catalog
 .Sh SYNOPSIS
 .Nm
@@ -12,62 +12,74 @@ repository catalog
 The
 .Nm
 command is a wrapper that executes the
-.Em repo
+.Em genrepo
 command of
-.Xr pkg 8 ,
+.Xr rvn 8 ,
 which is used to create a catalog of the packages built by ravenadm.
 Prior to creating the repository, ravenadm will delete all obsolete packages
-to prevent them from ending up in the catalog.
+to prevent their inclusion into the catalog.
 .Pp
-If ravenadm is building packages restricted to the localhost machine,
-building a repository is not strictly necessary.  The root user can install
-packages directory from the ravenadm packages directory using the
-.Em add
-command of
-.Xr pkg 8 ,
-which will automatically pull in dependencies from the same directory.
-However, if packages are being built for multiple clients, creating a
-repository for those clients to use is the recommended approach.
+Starting with version 3.00, installing packages on the machine that built
+them requires the repository catalog to be generated first.
+The catalog generation is a fast multi-cpu process that may use up to 16
+available cores.
 .Sh ENVIRONMENT
 .Bl -tag -width RAVENPROFILE
 .It Ev RAVENPROFILE
 When this environment variable is set, it will override the setting for the
-active profile if the variable contents match a known profile name.  The
-profiles set the path for the packages directory which is used by the
-.Em repo
+active profile if the variable contents match a known profile name.
+The profiles set the path for the packages directory which is used by the
+.Em genrepo
 command of
-.Xr pkg 8 .
+.Xr rvn 8 .
 .El
 .Sh FILES
-The following files affect the creation of the repository catalog:
+The following files are involved with the creation of the repository catalog:
 .Bl -tag -width _profile
+.It <profile>-signing_command
+If present, this file will supercede any present key file listed below.
+This file contains a single line that represents the full command rvn requires
+to communicate with the signing server.
+The command must contain the token "{}" which rvn expands into the catalog
+digest which is the data that gets signed.
+See
+.Xr ravensign 7
+and
+.Xr rvn-genrepo 8
+for more details on how to generate the RSA keys there and set up the
+remote signing server.
+The fingerprint file listed below will be generated every time the repository
+is generated, and the contents of that file should be published or distributed
+to the users.
 .It <profile>-private.key
-This is one of two files required to support the signing of the repository
-by a local RSA key.  It is the output of the
-.Cm openssl genrsa
-command; see the EXAMPLE section for how to generate it.  The file
-permissions are required to be set at 400.  For the default
-profile, the file is normally located at
+This file is required support signing the digest with a local RSA key.
+Only the RSA cipher is supported, and the file must be PEM-encoded.
+See the EXAMPLE section for a demonstration on how to generate it.
+The file permissions must be set to 400.
+For the default profile, the file is normally located at
 .Pa /raven/etc/ravenadm/primary-private.key
 .It <profile>-public.key
-This is the second of two files required to support the signing of the
-repository by a local RSA key.  The command confirms the public counterpart
-of the signing key is available because its path is required for the
-generated pkg repository configuration file.  For the default profile,
-the file is normally located at
+The private key file above may be used without the public key.
+However, if the public key is also present, the fingerprint file listed
+below will be generated every time the
+.Nm
+command generates the repository.
+The owner of the repository will then have the option to distribute either
+the fingerprint configuration file or the public key file to the users
+of the repository.
+This corresponds to the SIGNATURE_TYPE settings of FINGERPRINTS and PUBKEY
+for the repository configuration file.
+For the default profile, the file is normally located at
 .Pa /raven/etc/ravenadm/primary-public.key
-.It <profile>-signing_command
-This is one of two files required to support the signing of the repository
-by an external signing server.  It consists of a single line containing
-the command; see the EXAMPLE section.  For the default profile, the file
-is normally located at
-.Pa /raven/etc/ravenadm/primary-signing_command
 .It <profile>-fingerprint
-This is the second of two files required to support the signing of the
-repository by an external signing server.  It consists of a single line
-containing the SHA 256 hash of the public key that is the counterpart of
-the key that signed the repository.  For the default profile, the file
-is normally located at
+When the repository is signed by a separate server, or it is signed by a
+local RSA key pair, rvn will generate this file that should be distributed
+to the users.
+The users will set SIGNATURE_TYPE to FINGERPRINTS and place the file in the
+directory indicated by the FINGERPRINTS repository configuration item.
+This is required for the user's rvn program to verify the remote repository
+is authentic and has not been tampered with.
+For the default profile, the file will normally be generated as
 .Pa /raven/etc/ravenadm/primary-fingerprint
 .El
 .Sh EXAMPLES
@@ -79,40 +91,26 @@ key, generate the two key files:
 % chmod 0400 primary-private.key
 % openssl rsa -in primary-private.key -out primary-public.key -pubout
 .Ed
-.Pp
-To activate the signing of default profile's repository with an external
-signing server, two files need to be created.  It's assumed the signing
-server has already been configured as described by the
-.Xr pkg-repo 8
-man page, and that the keys are located in the repo.pub and repo.key files.
-On the signing server which is 192.168.0.44 in this example:
-.Bd -literal -offset indent
-% sha256 -q repo.pub > primary-fingerprint
-% echo "/usr/bin/ssh 192.168.0.44 /raven/bin/sign.sh" \\
-  > primary-signing_command
-.Ed
-.Pp
-Then move both files to /raven/etc/ravenadm directory on the build server.
-The build server root user needs to have a passphrase-free SSH key access
-to the signing server in order for ravenadm to sign the repository.
 .Sh SEE ALSO
-.Xr pkg 8 ,
-.Xr pkg-repo 8 ,
+.Xr rvn.conf 5 ,
+.Xr ravensign 7 ,
 .Xr ravenadm 8 ,
 .Xr ravenadm-build 8 ,
 .Xr ravenadm-build-everything 8 ,
-.Xr ravenadm-check-ports 8,
+.Xr ravenadm-check-ports 8 ,
 .Xr ravenadm-configure 8 ,
 .Xr ravenadm-dev 8 ,
 .Xr ravenadm-force 8 ,
 .Xr ravenadm-generate-website 8 ,
 .Xr ravenadm-locate 8 ,
 .Xr ravenadm-purge-distfiles 8 ,
-.Xr ravenadm-purge-logs 8,
+.Xr ravenadm-purge-logs 8 ,
 .Xr ravenadm-set-options 8 ,
 .Xr ravenadm-status 8 ,
 .Xr ravenadm-status-everything 8 ,
 .Xr ravenadm-subpackages 8 ,
 .Xr ravenadm-test 8 ,
 .Xr ravenadm-test-everything 8 ,
-.Xr ravenadm-update-ports 8
+.Xr ravenadm-update-ports 8 ,
+.Xr rvn 8 ,
+.Xr rvn-genrepo 8

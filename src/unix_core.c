@@ -131,5 +131,21 @@ __ignore_background_tty_reads ()
    return 0;
 }
 
+/*
+ * returns 1 if given file has permissions of 400 octal
+ */
+int
+file_at_400 (const char * path) {
+  struct stat sb;
+  unsigned short perms;
+  if (lstat(path, &sb) == 0) {
+    perms = sb.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+    if (perms == 256) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 #endif /* Supported opsys */
 #endif /* _UNIX_CORE_ */

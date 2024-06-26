@@ -13,6 +13,7 @@ package Unix is
    package ICS renames Interfaces.C.Strings;
    package CSM renames Interfaces.C_Streams;
 
+   type permissions is mod 2 ** 16;
    type process_exit is (still_running, exited_normally, exited_with_error);
 
    type Int32 is private;
@@ -80,6 +81,9 @@ package Unix is
    --  to an existing file.
    function target_exists (provided_path : String) return Boolean;
 
+   --  Returns true if given file is set at 400 permissions
+   function file_secure (file_path : String) return Boolean;
+
 private
 
    type uInt8 is mod 2 ** 16;
@@ -127,6 +131,9 @@ private
 
    function unix_access (path : IC.char_array; mode : IC.int) return IC.int;
    pragma Import (C, unix_access, "access");
+
+   function file_at_400 (path : IC.char_array) return IC.int;
+   pragma Import (C, file_at_400);
 
    --  internal pipe close command
    function pipe_close (OpenFile : CSM.FILEs) return Integer;
