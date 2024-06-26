@@ -1572,71 +1572,82 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    function version_difference (id : port_id; kind : out verdiff) return String
    is
-      procedure each_subpackage (position : subpackage_crate.Cursor);
+      --  First check if catalog version already has at least one subpackage existing.
+      --  That's enough to declare the port as a "[R]ebuild".
+      --
+      --  Then search subpackages in order for packages with other versions.  These
+      --  should be sorted so the latest is last.  Return the last version and declare the
+      --  operation as an "[U]pgrade.  It's not necessary to check all subpackages.
+      --
+      --  If we get here, declare the port as a "[N]ew build"
 
-      pkg8    : constant String := HT.USS (PM.configuration.sysroot_pkg8);
-      dir_pkg : constant String := HT.USS (PM.configuration.dir_repository);
-      version : constant String := HT.USS (all_ports (id).pkgversion);
-      origin  : constant String := get_port_variant (id);
-      upgrade : HT.Text;
-      all_present : Boolean := True;
+      procedure look_for_current (position : subpackage_crate.Cursor);
+      procedure look_for_previous (position : subpackage_crate.Cursor);
 
-      procedure each_subpackage (position : subpackage_crate.Cursor)
+      current_found    : Boolean := False;
+      previous_found   : Boolean := False;
+      previous_version : HT.Text := HT.SU.Null_Unbounded_String;
+      current_version  : constant String := HT.USS (all_ports (id).pkgversion);
+      dir_pkg          : constant String := HT.USS (PM.configuration.dir_repository);
+
+      procedure look_for_current (position : subpackage_crate.Cursor)
       is
          rec : subpackage_record renames subpackage_crate.Element (position);
-         subpackage   : String := HT.USS (rec.subpackage);
-         current      : String := calculate_package_name (id, subpackage);
-         base_pattern : String := HT.USS (all_ports (id).port_namebase) & "-" &
-                                  HT.USS (all_ports (id).port_variant) & "-";
-         pattern      : String := base_pattern & "*" & arc_ext;
-         pkg_search   : DIR.Search_Type;
-         dirent       : DIR.Directory_Entry_Type;
+         subpackage : constant String := HT.USS (rec.subpackage);
+         filename   : constant String := calculate_package_name (id, subpackage) & arc_ext;
       begin
-
-         if rec.pkg_present then
-            return;
-         else
-            all_present := False;
+         if not current_found then
+            if DIR.Exists (dir_pkg & "/" & filename) then
+               current_found := True;
+            end if;
          end if;
-         if not HT.IsBlank (upgrade) then
-            return;
+      end look_for_current;
+
+      procedure look_for_previous (position : subpackage_crate.Cursor)
+      is
+         rec : subpackage_record renames subpackage_crate.Element (position);
+         subpackage : constant String := HT.USS (rec.subpackage);
+         pattern    : constant String := calculate_nsv (id, subpackage) & "-*";
+         patternlen : constant Natural := pattern'Length;
+         pkg_search : DIR.Search_Type;
+         dirent     : DIR.Directory_Entry_Type;
+         arcfiles   : string_crate.Vector;
+      begin
+         if not previous_found then
+            DIR.Start_Search (Search    => pkg_search,
+                              Directory => dir_pkg,
+                              Filter    => (DIR.Ordinary_File => True, others => False),
+                              Pattern   => pattern);
+            while DIR.More_Entries (Search => pkg_search) loop
+               DIR.Get_Next_Entry (Search => pkg_search, Directory_Entry => dirent);
+               arcfiles.Append (HT.SUS (DIR.Simple_Name (dirent)));
+            end loop;
+            if not arcfiles.Is_Empty then
+               sorter.Sort (arcfiles);
+               previous_found := True;
+               declare
+                  latest_file : constant String := HT.USS (arcfiles.Last_Element);
+                  ST : constant Natural := latest_file'First + patternlen;
+                  LT : constant Natural := latest_file'Last - arc_ext'Length;
+               begin
+                  previous_version := HT.SUS (latest_file (ST .. LT));
+               end;
+            end if;
          end if;
-
-         DIR.Start_Search (Search    => pkg_search,
-                           Directory => dir_pkg,
-                           Filter    => (DIR.Ordinary_File => True, others => False),
-                           Pattern   => pattern);
-         while DIR.More_Entries (Search => pkg_search) loop
-            DIR.Get_Next_Entry (Search => pkg_search, Directory_Entry => dirent);
-            declare
-               sname      : String := DIR.Simple_Name (dirent);
-               verend     : Natural := sname'Length - arc_ext'Length;
-               command    : String := pkg8 & " query -F "  & dir_pkg & "/" & sname & " %o";
-               status     : Integer;
-               testorigin : HT.Text := Unix.piped_command (command, status);
-            begin
-               if status = 0 and then HT.equivalent (testorigin, origin) then
-                  upgrade := HT.SUS (" (" & sname (base_pattern'Length + 1 .. verend) &
-                                       " => " & version & ")");
-               end if;
-            end;
-         end loop;
-         DIR.End_Search (pkg_search);
-      end each_subpackage;
-
-
+      end look_for_previous;
    begin
-      all_ports (id).subpackages.Iterate (each_subpackage'Access);
-      if all_present then
+      all_ports (id).subpackages.Iterate (look_for_current'Access);
+      if current_found then
          kind := rebuild;
-         return " (rebuild " & version & ")";
+         return " (rebuild " & current_version & ")";
       end if;
-      if not HT.IsBlank (upgrade) then
+      all_ports (id).subpackages.Iterate (look_for_previous'Access);
+      if previous_found then
          kind := change;
-         return HT.USS (upgrade);
+         return " (" & HT.USS (previous_version) & " => " & current_version & ")";
       end if;
       kind := newbuild;
-      return " (new " & version & ")";
+      return " (new " & current_version & ")";
    end version_difference;
 
 
@@ -1675,11 +1686,9 @@ package body PortScan.Scan is
       exception
          when others => goodlog := False;
       end;
-      TIO.Put_Line ("These are the ports that would be built ([N]ew, " &
-                   "[R]ebuild, [U]pgrade):");
+      TIO.Put_Line ("These are the ports that would be built ([N]ew, [R]ebuild, [U]pgrade):");
       rank_queue.Iterate (print'Access);
-      TIO.Put_Line ("Total packages that would be built:" &
-                      rank_queue.Length'Img);
+      TIO.Put_Line ("Total packages that would be built:" & rank_queue.Length'Img);
       if goodlog then
          TIO.Put_Line
            (listlog,
@@ -3231,6 +3240,7 @@ package body PortScan.Scan is
       erase_filename ("04_skipped_list");
       erase_filename ("05_abnormal_command_output");
       erase_filename ("06_obsolete_packages");
+      erase_filename ("07_ncurses_redirection");
 
       if not DIR.Exists (variant_index) then
          return;

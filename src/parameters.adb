@@ -684,7 +684,7 @@ package body Parameters is
       configuration.def_tcl_tk      := default_string (Field_25, ports_default);
 
       --  Derived configuration
-      configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/All");
+      configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/files");
       configuration.sysroot_rvn    := HT.SUS (HT.USS (configuration.dir_sysroot) & "/usr/bin/rvn");
       configuration.dir_logs       := HT.SUS (HT.USS (configuration.dir_profile) & "/logs");
       configuration.dir_options    := HT.SUS (HT.USS (configuration.dir_profile) & "/options");
