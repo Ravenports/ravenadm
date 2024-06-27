@@ -1639,7 +1639,7 @@ package body PortScan.Operations is
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
       pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
-      fullpath : constant String := repository & "/files/" & pkg_base & arc_ext;
+      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
       rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
       command  : constant String := rvn8 & " -C '' info -q --dependencies --file " & fullpath;
       remocmd  : constant String := rvn8 & " rquery -E ' {xdep:nsv}' " & pkg_nsv;
