@@ -64,6 +64,9 @@ package body PortScan.Buildcycle is
                            trackers (id).tail_time);
          return False;
       end if;
+      if testing then
+         mark_file_system (id, "genesis", environ);
+      end if;
       begin
          for phase in phases'Range loop
             phase_trackers (id) := phase;
@@ -91,9 +94,6 @@ package body PortScan.Buildcycle is
                R := exec_phase_build (id, environ);
 
             when stage =>
-               if testing then
-                  mark_file_system (id, "prestage", env_nochain);
-               end if;
                R := exec_phase_generic (id, phase, env_nochain);
 
             when test =>
@@ -489,6 +489,10 @@ package body PortScan.Buildcycle is
          install_dependency_pyramid;
       end if;
 
+      TIO.Open (File => trackers (id).log_handle,
+                Mode => TIO.Append_File,
+                Name => LOG.log_name (trackers (id).seq_id));
+      LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_depends;
 
@@ -893,6 +897,7 @@ package body PortScan.Buildcycle is
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
       variant    : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
       DELETE_CMD : constant String := "/usr/bin/rvn remove --exact-match --yes --skip-verify";
+      CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify";
       still_good : Boolean := True;
       dyn_good   : Boolean;
       timed_out  : Boolean;
@@ -910,14 +915,15 @@ package body PortScan.Buildcycle is
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
       dyn_good := log_linked_libraries (id, pkgversion, environ);
-      all_ports (trackers (id).seq_id).subpackages.Iterate (concatenate'Access);
+      --  all_ports (trackers (id).seq_id).subpackages.Iterate (concatenate'Access);
 
       TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & namebase & ":" & variant);
       TIO.Close (trackers (id).log_handle);
 
       declare
-         command : constant String :=
-           PM.chroot_cmd & root & environ & DELETE_CMD & HT.USS (rem_list);
+         --  command : constant String :=
+         --    PM.chroot_cmd & root & environ & DELETE_CMD & HT.USS (rem_list);
+         command : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
       begin
          still_good := generic_execute (id, command, timed_out, time_limit);
       end;
@@ -930,8 +936,8 @@ package body PortScan.Buildcycle is
       if still_good then
          still_good := detect_leftovers_and_MIA
            (id          => id,
-            action      => "prestage",
-            description => "between staging and package deinstallation",
+            action      => "genesis",
+            description => "between clean builder and package deinstallation",
             environ     => environ);
       end if;
       LOG.log_phase_end (trackers (id).log_handle);

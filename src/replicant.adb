@@ -102,7 +102,7 @@ package body Replicant is
               macos     |
               sunos     => null;
       end case;
-      create_mtree_exc_preinst (mm);
+      create_mtree_exc_genesis (mm);
       create_mtree_exc_preconfig (mm);
 
    end initialize;
@@ -441,16 +441,16 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  create_mtree_exc_preinst
    --------------------------------------------------------------------------------------------
-   procedure create_mtree_exc_preinst (path_to_mm : String)
+   procedure create_mtree_exc_genesis (path_to_mm : String)
    is
       mtreefile : TIO.File_Type;
-      filename  : constant String := path_to_mm & "/mtree.prestage.exclude";
+      filename  : constant String := path_to_mm & "/mtree.genesis.exclude";
    begin
       TIO.Create (File => mtreefile, Mode => TIO.Out_File, Name => filename);
       write_common_mtree_exclude_base (mtreefile);
-      write_preinstall_section (mtreefile);
+      write_genesis_section (mtreefile);
       TIO.Close (mtreefile);
-   end create_mtree_exc_preinst;
+   end create_mtree_exc_genesis;
 
 
    --------------------------------------------------------------------------------------------
@@ -531,7 +531,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  write_preinstall_section
    --------------------------------------------------------------------------------------------
-   procedure write_preinstall_section (mtreefile : TIO.File_Type)
+   procedure write_genesis_section (mtreefile : TIO.File_Type)
    is
       RB : String := LAT.Full_Stop & HT.USS (ravenbase);
    begin
@@ -540,17 +540,18 @@ package body Replicant is
            "./etc/group" & LAT.LF
          & "./etc/make.conf" & LAT.LF
          & "./etc/make.conf.bak" & LAT.LF
-         & "./etc/make.nxb.conf" & LAT.LF
          & "./etc/master.passwd" & LAT.LF
          & "./etc/passwd" & LAT.LF
          & "./etc/pwd.db" & LAT.LF
+         & "./etc/resolv.conf" & LAT.LF
+         & "./etc/resolv.conf.orig" & LAT.LF
          & "./etc/shells" & LAT.LF
          & "./etc/spwd.db" & LAT.LF
          & "./etc/ld.so.conf.d/x86_64-linux-gnu.conf" & LAT.LF
-         & "./var/db" & LAT.LF
+         & "./var/db/rvn" & LAT.LF
          & "./var/log" & LAT.LF
          & "./var/mail" & LAT.LF
-         & "./var/spool" & LAT.LF
+         & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
          & RB & "/etc/gconf/gconf.xml.defaults/%gconf-tree*.xml" & LAT.LF
          & RB & "/lib/gio/modules/giomodule.cache" & LAT.LF
@@ -559,10 +560,9 @@ package body Replicant is
          & RB & "/share/*/info/dir" & LAT.LF
          & RB & "/share/*/info" & LAT.LF
          & RB & "/*/ls-R" & LAT.LF
-         & RB & "/share/octave/octave_packages" & LAT.LF
          & RB & "/share/xml/catalog.ports"
         );
-   end write_preinstall_section;
+   end write_genesis_section;
 
 
    --------------------------------------------------------------------------------------------
@@ -1433,7 +1433,7 @@ package body Replicant is
       pwd    : constant String := "/pwd.db";
       group  : constant String := "/group";
       mtree1 : constant String := "/mtree.preconfig.exclude";
-      mtree2 : constant String := "/mtree.prestage.exclude";
+      mtree2 : constant String := "/mtree.genesis.exclude";
       ldcnf2 : constant String := "/ld.so.conf";
 
       procedure install (filename : String) is

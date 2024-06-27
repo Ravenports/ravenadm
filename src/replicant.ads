@@ -135,9 +135,9 @@ private
 
    --  Used to generic mtree exclusion files
    procedure create_mtree_exc_preconfig (path_to_mm : String);
-   procedure create_mtree_exc_preinst (path_to_mm : String);
+   procedure create_mtree_exc_genesis (path_to_mm : String);
    procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type);
-   procedure write_preinstall_section (mtreefile : TIO.File_Type);
+   procedure write_genesis_section (mtreefile : TIO.File_Type);
 
    --  platform-specific localhost command "umount"
    --  Throws exception if unmount attempt was unsuccessful
