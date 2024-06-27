@@ -81,7 +81,7 @@ private
    type folder is (bin, libexec, usr, lib, lib64,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
-                   proc, root, tmp, var, wrkdirs, port, ccache, repofiles, localbase, toolchain,
+                   proc, root, tmp, var, wrkdirs, port, repofiles, ccache, localbase, toolchain,
                    devices, frameworks);
    subtype safefolders is folder range bin .. ccache;
 
