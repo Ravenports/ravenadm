@@ -806,7 +806,8 @@ package body PortScan.Buildcycle is
       RAVN : constant String := "RAVENADM=building ";
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
       RVN8 : constant String := "RVN_DBDIR=/var/db/rvn " &
-                                "RVN_CACHEDIR=/var/cache/rvn ";
+                                "RVN_CACHEDIR=/var/cache/rvn " &
+                                "PLIST_KEYWORDS_DIR=/xports/Mk/Keywords";
       CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog ";
       SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog ";
       CENV : constant String := HT.USS (customenv);

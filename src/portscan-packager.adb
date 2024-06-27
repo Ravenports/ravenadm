@@ -322,10 +322,7 @@ package body PortScan.Packager is
       is
          subpackage   : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
          package_list : constant String := conbase & "/.manifest." & subpackage & ".mktmp";
-         OVERRIDES    : constant String :=
-           "-o RVN_DBDIR=/var/db/rvn " &
-           "-o PLIST_KEYWORDS_DIR=/xports/Mk/Keywords ";
-         RVN_CREATE : constant String := "/usr/bin/rvn " & OVERRIDES & "create";
+         RVN_CREATE : constant String := "/usr/bin/rvn create";
          RVN_CREATE_ARGS : constant String :=
            " --out-dir " & rfilesdir &
            " --root-dir " & stagedir &
