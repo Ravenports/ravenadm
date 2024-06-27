@@ -1642,7 +1642,7 @@ package body PortScan.Operations is
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
       rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
       command  : constant String := rvn8 & " -C '' info -q --dependencies --file " & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E ' {xdep:nsv}' " & pkg_nsv;
+      remocmd  : constant String := rvn8 & " rquery -E ' {xdep:nsv}-{xrdep:ver}' " & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
    begin
@@ -1724,16 +1724,15 @@ package body PortScan.Operations is
       loop
          exit when not HT.next_line_present (content, markers);
          declare
-            line   : constant String := HT.extract_line (content, markers);
-            deppkg : constant String := HT.part_1 (line, "@");
-            origin : constant String := HT.part_2 (line, "@");
+            deppkg : constant String := HT.extract_line (content, markers);
          begin
-            exit when line = "";
+            exit when deppkg = "";
             declare
                procedure set_available (position : subpackage_crate.Cursor);
 
-               subpackage : String := subpackage_from_pkgname (deppkg);
-               target_id  : port_index := ports_keys.Element (HT.SUS (origin));
+               subpackage : constant String := subpackage_from_pkgname (deppkg);
+               target_key : constant String := convert_pkgname_to_portkey (deppkg);
+               target_id  : port_index := ports_keys.Element (HT.SUS (target_key));
                target_pkg : String := calculate_package_name (target_id, subpackage);
                available  : Boolean;
 
@@ -1756,7 +1755,7 @@ package body PortScan.Operations is
                else
                   --  package seems to have a dependency that has been removed from the conspiracy
                   LOG.obsolete_notice
-                    (message         => origin & " has been removed from Ravenports",
+                    (message         => target_key & " has been removed from Ravenports",
                      write_to_screen => debug_dep_check);
                   return False;
                end if;
@@ -1769,7 +1768,7 @@ package body PortScan.Operations is
                      message         => headport & " package has more dependencies than the " &
                        "port requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
                        "Query: " & LAT.LF & HT.USS (query_result) &
-                       "Tripped on: " & line);
+                       "Tripped on: " & deppkg);
                   all_ports (id).subpackages.Iterate (log_run_deps'Access);
                   return False;
                end if;
@@ -1778,8 +1777,6 @@ package body PortScan.Operations is
                   --  The version that the package requires differs from the
                   --  version that Ravenports will now produce
                   declare
-                     --  If the target package is GCC7, let version mismatches slide.  We are
-                     --  probably bootstrapping a new sysroot compiler
                      nbase   : constant String := HT.USS (all_ports (target_id).port_namebase);
                   begin
                      if nbase /= default_compiler and then
@@ -1787,17 +1784,15 @@ package body PortScan.Operations is
                      then
                         LOG.obsolete_notice
                           (write_to_screen => debug_dep_check,
-                           message         =>  "Current " & headport & " package depends on " &
-                             deppkg & ", but this is a different version than requirement of " &
-                             target_pkg & " (from " & origin & ")");
+                           message  =>  "Current " & headport & " package depends on " & deppkg &
+                             ", but this is a different version than requirement of " & target_pkg);
                         return False;
                      else
                         LOG.obsolete_notice
                           (write_to_screen => debug_dep_check,
-                           message         => "Ignored dependency check failure: " &
-                             "Current " & headport & " package depends on " &
-                             deppkg & ", but this is a different version than requirement of " &
-                             target_pkg & " (from " & origin & ")");
+                           message => "Ignored dependency check failure: Current " & headport &
+                             " package depends on " & deppkg &
+                             ", but this is a different version than requirement of " & target_pkg);
                      end if;
                   end;
                end if;

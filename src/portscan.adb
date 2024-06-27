@@ -252,15 +252,37 @@ package body PortScan is
    --------------------------------------------------------------------------------------------
    function subpackage_from_pkgname (pkgname : String) return String
    is
-      --  expected format: namebase-subpackage-variant-version.tzst
-      --  support namebase-subpackage-variant too
-      numcolons : Natural := HT.count_char (pkgname, LAT.Hyphen);
+      --  expected format: namebase-subpackage-variant-version.rvn
+      --  could be:        np1-np02-subpackage-variant-version.rvn
+      numdash : Natural := HT.count_char (pkgname, LAT.Hyphen);
    begin
-      if numcolons < 3 then
+      if numdash < 3 then
          return "error";
       end if;
       return HT.tail (HT.head (HT.head (pkgname, "-"), "-"), "-");
    end subpackage_from_pkgname;
+
+
+   ------------------------------
+   --  convert_nsv_to_portkey  --
+   ------------------------------
+   function convert_pkgname_to_portkey (pkgname : String) return String
+   is
+      --  expected format: namebase-subpackage-variant
+      --  could be:        np1-np02-subpackage-variant
+      numdash : Natural := HT.count_char (pkgname, LAT.Hyphen);
+   begin
+      if numdash < 3 then
+         return "error";
+      end if;
+      declare
+         nsv      : constant String := HT.head (pkgname, "-");
+         variant  : constant String := HT.tail (nsv, "-");
+         namebase : constant String := HT.head (HT.head (nsv, "-"), "-");
+      begin
+         return namebase & LAT.Colon & variant;
+      end;
+   end convert_pkgname_to_portkey;
 
 
    --------------------------------------------------------------------------------------------

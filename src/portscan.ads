@@ -67,8 +67,11 @@ package PortScan is
    --  Takes origin tuplet (namebase:subpkg:variant) and returns namebase:variant
    function convert_colon_nsv_to_portkey (origin : String) return String;
 
-   --  Takes origin tuplet (namebase-subpkg-variant-version.tzst) and returns subpkg
+   --  Takes nvvv package name (namebase-subpkg-variant-version.rvn) and returns subpkg
    function subpackage_from_pkgname (pkgname : String) return String;
+
+   --  Takes nsvv package name (namebase-subpkg-variant-version) and returns portkey
+   function convert_pkgname_to_portkey (pkgname : String) return String;
 
    --  Insert unique NV pair into portlist and dupelist.
    procedure insert_into_portlist (port_variant : String);
