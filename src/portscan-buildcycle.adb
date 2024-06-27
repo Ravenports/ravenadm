@@ -811,7 +811,9 @@ package body PortScan.Buildcycle is
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
       RVN8 : constant String := "RVN_DBDIR=/var/db/rvn " &
                                 "RVN_CACHEDIR=/var/cache/rvn " &
-                                "KEYWORDS_DIR=/xports/Mk/Keywords ";
+                                "KEYWORDS_DIR=/xports/Mk/Keywords " &
+                                "SKIP_DEV_SUBPKG=false " &
+                                "SKIP_INFO_SUBPKG=false ";
       CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog ";
       SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog ";
       CENV : constant String := HT.USS (customenv);
@@ -884,39 +886,47 @@ package body PortScan.Buildcycle is
       pkgversion    : String;
       environ       : String) return Boolean
    is
-      procedure deinstall_it (position : subpackage_crate.Cursor);
+      procedure concatenate (position : subpackage_crate.Cursor);
 
       time_limit : execution_limit := max_time_without_output (deinstall);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_DELETE : constant String := "/usr/bin/rvn remove --force --yes ";
+      variant    : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
+      DELETE_CMD : constant String := "/usr/bin/rvn remove --exact-match --yes --skip-verify";
       still_good : Boolean := True;
       dyn_good   : Boolean;
       timed_out  : Boolean;
+      rem_list   : HT.Text;
 
-      procedure deinstall_it (position : subpackage_crate.Cursor)
+      procedure concatenate (position : subpackage_crate.Cursor)
       is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
-         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := PM.chroot_cmd & root & environ & PKG_DELETE & pkgname;
+         nsv        : constant String := calculate_nsv (trackers (id).seq_id, subpackage);
       begin
-         if still_good then
-            TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
-            TIO.Close (trackers (id).log_handle);
-            still_good := generic_execute (id, command, timed_out, time_limit);
-            TIO.Open (File => trackers (id).log_handle,
-                      Mode => TIO.Append_File,
-                      Name => LOG.log_name (trackers (id).seq_id));
-            if timed_out then
-               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-            end if;
-         end if;
-      end deinstall_it;
+         HT.SU.Append (rem_list, " " & nsv);
+      end concatenate;
+
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
       dyn_good := log_linked_libraries (id, pkgversion, environ);
-      all_ports (trackers (id).seq_id).subpackages.Iterate (deinstall_it'Access);
+      all_ports (trackers (id).seq_id).subpackages.Iterate (concatenate'Access);
+
+      TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & namebase & ":" & variant);
+      TIO.Close (trackers (id).log_handle);
+
+      declare
+         command : constant String :=
+           PM.chroot_cmd & root & environ & DELETE_CMD & HT.USS (rem_list);
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end;
+
+      TIO.Open (trackers (id).log_handle, TIO.Append_File, LOG.log_name (trackers (id).seq_id));
+      if timed_out then
+         TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+      end if;
+
       if still_good then
          still_good := detect_leftovers_and_MIA
            (id          => id,
