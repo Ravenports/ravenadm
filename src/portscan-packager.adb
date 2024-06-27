@@ -31,7 +31,8 @@ package body PortScan.Packager is
       phase_name    : String;
       seq_id        : port_id;
       port_prefix   : String;
-      rootdir       : String) return Boolean
+      rootdir       : String;
+      environ       : String) return Boolean
    is
       procedure create_metadata_file (position : subpackage_crate.Cursor);
       procedure package_it (position : subpackage_crate.Cursor);
@@ -334,7 +335,7 @@ package body PortScan.Packager is
          filename : constant String := namebase & "-" & subpackage & "-" &
            HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
          package_cmd : constant String :=
-           PM.chroot_cmd & rootdir & " " & RVN_CREATE & RVN_CREATE_ARGS;
+           PM.chroot_cmd & rootdir & environ & RVN_CREATE & RVN_CREATE_ARGS;
       begin
          if still_good then
 

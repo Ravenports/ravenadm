@@ -15,7 +15,8 @@ package PortScan.Packager is
       phase_name    : String;
       seq_id        : port_id;
       port_prefix   : String;
-      rootdir       : String) return Boolean;
+      rootdir       : String;
+      environ       : String) return Boolean;
 
 private
 

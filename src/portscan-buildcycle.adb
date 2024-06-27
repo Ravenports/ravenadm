@@ -112,7 +112,8 @@ package body PortScan.Buildcycle is
                                             phase_name    => phase2str (phase),
                                             seq_id        => trackers (id).seq_id,
                                             port_prefix   => port_prefix,
-                                            rootdir       => get_root (id));
+                                            rootdir       => get_root (id),
+                                            environ       => env_nochain);
 
             when install =>
                if testing then
