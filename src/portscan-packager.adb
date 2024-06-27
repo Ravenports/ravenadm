@@ -329,7 +329,7 @@ package body PortScan.Packager is
            " --root-dir " & stagedir &
            " --prefix " & port_prefix &
            " --whitelist " & package_list &
-           " --metadata " & spkgdir & subpackage & ".ucl" &
+           " --metadata " & chspkgdir & subpackage & ".ucl" &
            " --verbose ";
          namebase : constant String := specification.get_namebase;
          filename : constant String := namebase & "-" & subpackage & "-" &
