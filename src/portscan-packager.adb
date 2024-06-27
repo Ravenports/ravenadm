@@ -304,6 +304,7 @@ package body PortScan.Packager is
          conditional_array ("licenses", specification.get_field_value (PSP.sp_licenses), True);
          conditional_array ("users", specification.get_field_value (PSP.sp_users), False);
          conditional_array ("groups", specification.get_field_value (PSP.sp_groups), False);
+         insert_dependencies;
          insert_options;
          insert_annotations;
          insert_trigger_set;
