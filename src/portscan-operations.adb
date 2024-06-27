@@ -1642,12 +1642,11 @@ package body PortScan.Operations is
       fullpath : constant String := repository & "/files/" & pkg_base & arc_ext;
       rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
       command  : constant String := rvn8 & " -C '' info -q --dependencies --file " & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E --repository " & repository &
-                                    "' {xdep:nsv}' " & pkg_nsv;
+      remocmd  : constant String := rvn8 & " rquery -E ' {xdep:nsv}' " & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
    begin
-      if repository = "" then
+      if repository /= "" then
          comres := Unix.piped_command (command, status);
       else
          --  Support for fetch-prebuilt-package option
@@ -1875,8 +1874,7 @@ package body PortScan.Operations is
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
       rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
       command  : constant String := rvn8 & " -C '' info -qw --file "  & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E --repository " & repository &
-                                    " '{abi}' " & pkg_nsv;
+      remocmd  : constant String := rvn8 & " rquery -E '{abi}' " & pkg_nsv;
 
       status : Integer;
       comres : HT.Text;
@@ -1886,7 +1884,7 @@ package body PortScan.Operations is
          return False;
       end if;
 
-      if repository = "" then
+      if repository /= "" then
          comres := Unix.piped_command (command, status);
       else
           --  Support for fetch-prebuilt-package option
@@ -1921,15 +1919,14 @@ package body PortScan.Operations is
       pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
       rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      optform  : constant String := " '{xopt:key} => {xopt:val}' ";
+      optform  : constant String := "'{xopt:key} => {xopt:val}' ";
       command  : constant String := rvn8 & " -C '' info -oq --file " & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E --repository " & repository &
-                                    optform & pkg_nsv;
+      remocmd  : constant String := rvn8 & " rquery -E " & optform & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
       counter  : Natural := 0;
       required : constant Natural := Natural (all_ports (id).options.Length);
-      extquery : constant Boolean := (repository /= "");
+      extquery : constant Boolean := (repository = "");
    begin
       if id = port_match_failed or else
         not all_ports (id).scanned or else
