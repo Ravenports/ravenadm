@@ -1132,7 +1132,6 @@ package body Replicant is
       end if;
 
       unmount (location (slave_base, distfiles), retry1min);
-      unmount (location (slave_base, packages), retry1min);
 
       if DIR.Exists (slave_base & toolchain_tag) then
          unhook_toolchain (id);
