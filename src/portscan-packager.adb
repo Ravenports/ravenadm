@@ -36,7 +36,7 @@ package body PortScan.Packager is
    is
       procedure create_metadata_file (position : subpackage_crate.Cursor);
       procedure package_it (position : subpackage_crate.Cursor);
-      procedure move_it_outside_sysroot (position : subpackage_crate.Cursor);
+      procedure copy_it_outside_sysroot (position : subpackage_crate.Cursor);
 
       namebase   : constant String := HT.USS (all_ports (seq_id).port_namebase);
       construct  : constant String := "/construction/";
@@ -356,7 +356,7 @@ package body PortScan.Packager is
          end if;
       end package_it;
 
-      procedure move_it_outside_sysroot (position : subpackage_crate.Cursor)
+      procedure copy_it_outside_sysroot (position : subpackage_crate.Cursor)
       is
          subpackage : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
          namebase   : constant String := specification.get_namebase;
@@ -364,19 +364,18 @@ package body PortScan.Packager is
                       HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
          built_loc  : constant String := rootdir & rfilesdir & "/" & pkgarchive;
          final_loc  : constant String := realpkgdir & "/files/" & pkgarchive;
-         mv_program : constant String := sysroot & "/bin/mv ";
-         mv_command : constant String := mv_program & " " & built_loc & " " & final_loc;
+         cp_program : constant String := sysroot & "/bin/cp -RpP ";
+         cp_command : constant String := cp_program & " " & built_loc & " " & final_loc;
          cmd_output : HT.Text;
       begin
          if still_good then
-            --  DIR.Rename fails.  The exception doesn't indicate why.  Use mv instead.
-            if not Unix.piped_mute_command (mv_command, cmd_output) then
+            if not Unix.piped_mute_command (cp_command, cmd_output) then
                still_good := False;
-               TIO.Put_Line (log_handle, "Failed to move " & built_loc & " to " & final_loc);
+               TIO.Put_Line (log_handle, "Failed to copy " & built_loc & " to " & final_loc);
                TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
             end if;
          end if;
-      end move_it_outside_sysroot;
+      end copy_it_outside_sysroot;
 
    begin
       LOG.log_phase_begin (log_handle, phase_name);
@@ -390,7 +389,7 @@ package body PortScan.Packager is
       end if;
 
       all_ports (seq_id).subpackages.Iterate (package_it'Access);
-      all_ports (seq_id).subpackages.Iterate (move_it_outside_sysroot'Access);
+      all_ports (seq_id).subpackages.Iterate (copy_it_outside_sysroot'Access);
       LOG.log_phase_end (log_handle);
 
       return still_good;

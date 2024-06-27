@@ -547,27 +547,30 @@ package body PortScan.Buildcycle is
       is
          cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
          command    : constant String := PM.chroot_cmd & root & environ & cmd;
-         timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+      exception
+         when cycle_cmd_error => still_good := False;
       end generate_local_repo;
 
       procedure install_catalog
       is
          cmd        : constant String := rvn_repos & "catalog --force";
          command    : constant String := PM.chroot_cmd & root & environ & cmd;
-         timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+      exception
+         when cycle_cmd_error => still_good := False;
       end install_catalog;
 
       procedure prefetch_all_packages
       is
          cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
          command    : constant String := PM.chroot_cmd & root & environ & cmd;
-         timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+      exception
+         when cycle_cmd_error => still_good := False;
       end prefetch_all_packages;
 
       procedure build_list (position : subpackage_crate.Cursor)
@@ -1497,17 +1500,13 @@ package body PortScan.Buildcycle is
       description   : String;
       environ       : String) return Boolean
    is
-      package crate is new CON.Vectors (Index_Type   => Positive,
-                                       Element_Type => HT.Text,
-                                       "="          => HT.SU."=");
-      package local_sorter is new crate.Generic_Sorting ("<" => HT.SU."<");
       function  ignore_modifications return Boolean;
-      procedure print (cursor : crate.Cursor);
+      procedure print (cursor : string_crate.Cursor);
       procedure close_active_modifications;
 
       root      : constant String := get_root (id);
       mtfile    : constant String := "/etc/mtree." & action & ".exclude";
-      filename  : constant String := root & "/tmp/mtree." & action;
+      filename  : constant String := "/tmp/mtree." & action;
       command   : constant String := PM.chroot_cmd & root & environ &
                   "/usr/bin/mtree -X " & mtfile & " -f " & filename & " -p /";
       lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
@@ -1519,9 +1518,9 @@ package body PortScan.Buildcycle is
       activemod : Boolean := False;
       modport   : HT.Text := HT.blank;
       reasons   : HT.Text := HT.blank;
-      leftover  : crate.Vector;
-      missing   : crate.Vector;
-      changed   : crate.Vector;
+      leftover  : string_crate.Vector;
+      missing   : string_crate.Vector;
+      changed   : string_crate.Vector;
       markers   : HT.Line_Markers;
 
       --  we can't use generic_system_command because exit code /= 0 normally
@@ -1534,9 +1533,6 @@ package body PortScan.Buildcycle is
          --     #ls-R files from texmf are often regenerated
          --  B) share/xml/catalog.ports
          --     # xmlcatmgr is constantly updating catalog.ports, ignore
-         --  C) share/octave/octave_packages
-         --     # Octave packages database, blank lines can be inserted
-         --     # between pre-install and post-deinstall
          --  D) info/dir | */info/dir
          --  E) lib/gio/modules/giomodule.cache
          --     # gio modules cache could be modified for any gio modules
@@ -1550,7 +1546,6 @@ package body PortScan.Buildcycle is
          fnlen    : constant Natural := filename'Last;
       begin
          if filename = lbase & "/share/xml/catalog.ports" or else
-           filename = lbase & "/share/octave/octave_packages" or else
            filename = lbase & "/share/info/dir" or else
            filename = lbase & "/lib/gio/modules/giomodule.cache" or else
            filename = lbase & "/share/pear/.depdb" or else
@@ -1596,15 +1591,15 @@ package body PortScan.Buildcycle is
          modport := HT.blank;
       end close_active_modifications;
 
-      procedure print (cursor : crate.Cursor)
+      procedure print (cursor : string_crate.Cursor)
       is
-         dossier : constant String := HT.USS (crate.Element (cursor));
+         dossier : constant String := HT.USS (string_crate.Element (cursor));
       begin
          TIO.Put_Line (trackers (id).log_handle, LAT.HT & dossier);
       end print;
 
    begin
-       HT.initialize_markers (comres, markers);
+      HT.initialize_markers (comres, markers);
       loop
          skiprest := False;
          exit when not HT.next_line_present (comres, markers);
@@ -1688,9 +1683,9 @@ package body PortScan.Buildcycle is
          end;
       end loop;
       close_active_modifications;
-      local_sorter.Sort (Container => changed);
-      local_sorter.Sort (Container => missing);
-      local_sorter.Sort (Container => leftover);
+      sorter.Sort (Container => changed);
+      sorter.Sort (Container => missing);
+      sorter.Sort (Container => leftover);
 
       TIO.Put_Line (trackers (id).log_handle,
                     LAT.LF & "=> Checking for system changes " & description);

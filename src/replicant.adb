@@ -512,14 +512,14 @@ package body Replicant is
          & "./dev" & LAT.LF
          & "./distfiles" & LAT.LF
          & "./home" & LAT.LF
-         & "./packages" & LAT.LF
          & "./port" & LAT.LF
          & "./proc" & LAT.LF
+         & "./repo" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
          & write_usr
          & opsys_specific
-         & "./var/db/rvnfontconfig" & LAT.LF
+         & "./var/cache" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
          & "./xports" & LAT.LF
