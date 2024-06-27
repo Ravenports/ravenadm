@@ -336,7 +336,8 @@ package body PortScan.Packager is
          namebase : constant String := specification.get_namebase;
          filename : constant String := namebase & "-" & subpackage & "-" &
            HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
-         package_cmd : constant String := PM.chroot_cmd & rootdir & RVN_CREATE & RVN_CREATE_ARGS;
+         package_cmd : constant String :=
+           PM.chroot_cmd & rootdir & " " & RVN_CREATE & RVN_CREATE_ARGS;
       begin
          if still_good then
 
