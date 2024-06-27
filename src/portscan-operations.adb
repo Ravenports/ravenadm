@@ -1253,40 +1253,17 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure establish_package_architecture (release : String; architecture : supported_arch)
    is
-      function newsuffix return String;
-      function suffix    return String;
+      function arch_component return String;
       function get_version (fileinfo : String; OS : String) return String;
-      procedure craft_common_endings (release : String);
 
-      function suffix return String is
+      function arch_component return String is
       begin
          case architecture is
-            when x86_64  => return "x86:64";
-            when i386    => return "x86:32";
-            when aarch64 => return "aarch64:64";
+            when x86_64  => return ":x86_64:";
+            when i386    => return ":x86:";
+            when aarch64 => return ":arm64:";
          end case;
-      end suffix;
-
-      function newsuffix return String is
-      begin
-         case architecture is
-            when x86_64  => return "amd64";
-            when i386    => return "i386";
-            when aarch64 => return "arm64";
-         end case;
-      end newsuffix;
-
-      procedure craft_common_endings (release : String) is
-      begin
-         HT.SU.Append (abi_formats.calculated_abi, release & ":");
-         HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
-         abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-         abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-         HT.SU.Append (abi_formats.calculated_abi, newsuffix);
-         HT.SU.Append (abi_formats.calculated_alt_abi, suffix);
-         HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-         HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
-      end craft_common_endings;
+      end arch_component;
 
       function get_version (fileinfo : String; OS : String) return String
       is
@@ -1298,74 +1275,13 @@ package body PortScan.Operations is
 
    begin
       case platform_type is
-         when dragonfly =>
-            declare
-               dfly : constant String := "dragonfly:";
-            begin
-               abi_formats.calculated_abi := HT.SUS (dfly);
-               HT.SU.Append (abi_formats.calculated_abi, release & ":");
-               abi_formats.calc_abi_noarch := abi_formats.calculated_abi;
-               HT.SU.Append (abi_formats.calculated_abi, suffix);
-               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-               abi_formats.calculated_alt_abi  := abi_formats.calculated_abi;
-               abi_formats.calc_alt_abi_noarch := abi_formats.calc_abi_noarch;
-            end;
-         when freebsd =>
-            declare
-               fbsd1   : constant String := "FreeBSD:";
-               fbsd2   : constant String := "freebsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (fbsd1);
-               abi_formats.calculated_alt_abi := HT.SUS (fbsd2);
-               craft_common_endings (release);
-            end;
-         when netbsd =>
-            declare
-               net1    : constant String := "NetBSD:";
-               net2    : constant String := "netbsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (net1);
-               abi_formats.calculated_alt_abi := HT.SUS (net2);
-               craft_common_endings (release);
-            end;
-         when openbsd =>
-            declare
-               open1   : constant String := "OpenBSD:";
-               open2   : constant String := "openbsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (open1);
-               abi_formats.calculated_alt_abi := HT.SUS (open2);
-               craft_common_endings (release);
-            end;
-         when midnightbsd =>
-            declare
-               mbsd1   : constant String := "MidnightBSD:";
-               mbsd2   : constant String := "midnightbsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (mbsd1);
-               abi_formats.calculated_alt_abi := HT.SUS (mbsd2);
-               craft_common_endings (release);
-            end;
-         when sunos =>
-            declare
-               sol1    : constant String := "Solaris:";
-               sol2    : constant String := "solaris:";
-               solrel  : constant String := "10";  --  hardcoded in pkg(8), release=5.10
-            begin
-               abi_formats.calculated_abi     := HT.SUS (sol1);
-               abi_formats.calculated_alt_abi := HT.SUS (sol2);
-               craft_common_endings (solrel);
-            end;
-         when macos =>
-            --  Hardcode i386 for now until pkg(8) fixed to provide correct arch
-            abi_formats.calculated_abi     := HT.SUS ("Darwin:" & release & ":");
-            abi_formats.calculated_alt_abi := HT.SUS ("darwin:" & release & ":");
-            abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-            abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-            HT.SU.Append (abi_formats.calculated_abi, "i386");
-            HT.SU.Append (abi_formats.calculated_alt_abi, "i386:32");
-            HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-            HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+         when dragonfly   => calculated_abi := HT.SUS ("dragonfly" & arch_component & release);
+         when freebsd     => calculated_abi := HT.SUS ("freebsd" & arch_component & release);
+         when netbsd      => calculated_abi := HT.SUS ("netbsd" & arch_component & release);
+         when openbsd     => calculated_abi := HT.SUS ("openbsd" & arch_component & release);
+         when midnightbsd => calculated_abi := HT.SUS ("midnightbsd" & arch_component & release);
+         when sunos       => calculated_abi := HT.SUS ("solaris" & arch_component & "10");
+         when macos       => calculated_abi := HT.SUS ("darwin:x86:" & release);
          when linux =>
             declare
                sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
@@ -1376,17 +1292,12 @@ package body PortScan.Operations is
             begin
                UN := Unix.piped_command (command, status);
                declare
-                  gnu1   : constant String := "Linux:";
-                  gnu2   : constant String := "linux:";
                   gnurel : constant String := get_version (HT.USS (UN), "GNU/Linux ");
                begin
-                  abi_formats.calculated_abi     := HT.SUS (gnu1);
-                  abi_formats.calculated_alt_abi := HT.SUS (gnu2);
-                  craft_common_endings (gnurel);
+                  calculated_abi := HT.SUS ("linux" & arch_component & gnurel);
                end;
             end;
       end case;
-
    end establish_package_architecture;
 
 
@@ -1983,11 +1894,7 @@ package body PortScan.Operations is
       declare
          topline : String := HT.first_line (HT.USS (comres));
       begin
-         if HT.equivalent (abi_formats.calculated_abi, topline) or else
-           HT.equivalent (abi_formats.calculated_alt_abi, topline) or else
-           HT.equivalent (abi_formats.calc_abi_noarch, topline) or else
-           HT.equivalent (abi_formats.calc_alt_abi_noarch, topline)
-         then
+         if HT.equivalent (calculated_abi, topline) then
             return True;
          end if;
       end;

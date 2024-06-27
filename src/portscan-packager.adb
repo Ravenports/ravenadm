@@ -148,7 +148,7 @@ package body PortScan.Packager is
 
          function long_description return String
          is
-            description_filename : constant String := wrkdir & "/.PKG_DISPLAY." & subpackage;
+            description_filename : constant String := wrkdir & "/.PKG_DESC." & subpackage;
          begin
             if DIR.Exists (description_filename) then
                return FOP.get_file_contents (description_filename);
