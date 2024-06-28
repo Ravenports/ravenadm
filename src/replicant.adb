@@ -514,6 +514,9 @@ package body Replicant is
          & "./home" & LAT.LF
          & "./port" & LAT.LF
          & "./proc" & LAT.LF
+         & RB & "/lib/python*/__pycache__" & LAT.LF
+         & RB & "/lib/python*/*/__pycache__" & LAT.LF
+         & RB & "/lib/python*/*/*/__pycache__" & LAT.LF
          & "./repo" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
@@ -540,6 +543,7 @@ package body Replicant is
          & "./etc/make.conf" & LAT.LF
          & "./etc/make.conf.bak" & LAT.LF
          & "./etc/master.passwd" & LAT.LF
+         & "./etc/mtree.*" & LAT.LF
          & "./etc/passwd" & LAT.LF
          & "./etc/pwd.db" & LAT.LF
          & "./etc/resolv.conf" & LAT.LF
