@@ -591,7 +591,8 @@ package body UCL_Operations is
 
       procedure check_triggers (Position : file_set.Cursor)
       is
-         full_path : constant String := ravensrcdir & "/" & HT.USS (file_set.Element (Position));
+         full_path : constant String :=
+           ravensrcdir & "/files/" & HT.USS (file_set.Element (Position));
          trigger_metadata : ThickUCL.UclTree;
       begin
          if HT.trails (full_path, ".ucl") or else HT.trails (full_path, ".ucl.in") then
@@ -612,7 +613,8 @@ package body UCL_Operations is
 
       procedure check_messages (Position : file_set.Cursor)
       is
-         full_path : constant String := ravensrcdir & "/" & HT.USS (file_set.Element (Position));
+         full_path : constant String :=
+           ravensrcdir & "/files/" & HT.USS (file_set.Element (Position));
          message_metadata : ThickUCL.UclTree;
       begin
          if HT.trails (full_path, ".ucl") or else HT.trails (full_path, ".ucl.in") then
@@ -633,7 +635,8 @@ package body UCL_Operations is
 
       procedure check_scripts  (Position : file_set.Cursor)
       is
-         full_path : constant String := ravensrcdir & "/" & HT.USS (file_set.Element (Position));
+         full_path : constant String :=
+           ravensrcdir & "/files/" & HT.USS (file_set.Element (Position));
          script_metadata : ThickUCL.UclTree;
       begin
          if HT.trails (full_path, ".ucl") or else HT.trails (full_path, ".ucl.in") then
