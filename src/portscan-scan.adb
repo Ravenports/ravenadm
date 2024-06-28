@@ -1461,7 +1461,8 @@ package body PortScan.Scan is
                            PSB.generator (specs       => specification,
                                           ravensrcdir => sourcedir,
                                           output_file => output_file);
-                           TIO.Put_Line (catport & " buildsheet generated");
+                           --  We have so many now, just quietly succeed
+                           --  TIO.Put_Line (catport & " buildsheet generated");
                         end;
                      end if;
                   end;
