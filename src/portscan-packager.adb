@@ -174,7 +174,7 @@ package body PortScan.Packager is
                   for index in 1 .. num_opts loop
                      declare
                         field : constant String := HT.specific_field (opts, index, ", ");
-                        key   : constant String := HT.part_1 (field, ": ");
+                        key   : constant String := HT.trim (HT.part_1 (field, ": "));
                         value : constant Boolean := opt_value (HT.part_2 (field, ": "));
                      begin
                         metatree.insert (key, value);

@@ -1963,57 +1963,61 @@ package body PortScan.Operations is
             exit when not HT.next_line_present (command_result, markers);
             declare
                line     : constant String := HT.extract_line (command_result, markers);
-               namekey  : constant String := HT.part_1 (line, " => ");
-               knob     : constant String := HT.lowercase (HT.part_2 (line, " => "));
-               nametext : HT.Text := HT.SUS (namekey);
-               knobval  : Boolean;
+               delimit  : constant String := " => ";
             begin
                exit when line = "";
-               if HT.count_char (line, LAT.Colon) /= 1 then
+               if not HT.contains (line, delimit) then
                   raise unknown_format with line;
                end if;
-               if knob = "on" or else knob = "true" then
-                  knobval := True;
-               elsif knob = "off" or else knob = "false" then
-                  knobval := False;
-               else
-                  raise unknown_format with "knob=" & knob & "(" & line & ")";
-               end if;
+               declare
+                  namekey  : constant String := HT.part_1 (line, delimit);
+                  knob     : constant String := HT.lowercase (HT.part_2 (line, delimit));
+                  nametext : HT.Text := HT.SUS (namekey);
+                  knobval  : Boolean;
+               begin
+                  if knob = "on" or else knob = "true" then
+                     knobval := True;
+                  elsif knob = "off" or else knob = "false" then
+                     knobval := False;
+                  else
+                     raise unknown_format with "knob=" & knob & "(" & line & ")";
+                  end if;
 
-               counter := counter + 1;
-               if counter > required then
-                  --  package has more options than we are looking for
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_opt_check,
-                     message => "options " & namekey & LAT.LF & pkg_base &
-                       " has more options than required (" & HT.int2str (required) & ")");
-                  return False;
-               end if;
-
-               if all_ports (id).options.Contains (nametext) then
-                  if knobval /= all_ports (id).options.Element (nametext) then
-                     --  port option value doesn't match package option value
-                     if knobval then
-                        LOG.obsolete_notice
-                          (write_to_screen => debug_opt_check,
-                           message => pkg_base & " " & namekey &
-                             " is ON but specifcation says it must be OFF");
-                     else
-                        LOG.obsolete_notice
-                          (write_to_screen => debug_opt_check,
-                           message => pkg_base & " " & namekey &
-                             " is OFF but specifcation says it must be ON");
-                     end if;
+                  counter := counter + 1;
+                  if counter > required then
+                     --  package has more options than we are looking for
+                     LOG.obsolete_notice
+                       (write_to_screen => debug_opt_check,
+                        message => "options " & namekey & LAT.LF & pkg_base &
+                          " has more options than required (" & HT.int2str (required) & ")");
                      return False;
                   end if;
-               else
-                  --  Name of package option not found in port options
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_opt_check,
-                     message => pkg_base & " option " & namekey &
-                       " is no longer present in the specification");
-                  return False;
-               end if;
+
+                  if all_ports (id).options.Contains (nametext) then
+                     if knobval /= all_ports (id).options.Element (nametext) then
+                        --  port option value doesn't match package option value
+                        if knobval then
+                           LOG.obsolete_notice
+                             (write_to_screen => debug_opt_check,
+                              message => pkg_base & " " & namekey &
+                                " is ON but specifcation says it must be OFF");
+                        else
+                           LOG.obsolete_notice
+                             (write_to_screen => debug_opt_check,
+                              message => pkg_base & " " & namekey &
+                                " is OFF but specifcation says it must be ON");
+                        end if;
+                        return False;
+                     end if;
+                  else
+                     --  Name of package option not found in port options
+                     LOG.obsolete_notice
+                       (write_to_screen => debug_opt_check,
+                        message => pkg_base & " option " & namekey &
+                          " is no longer present in the specification");
+                     return False;
+                  end if;
+               end;
             end;
          end loop;
 
@@ -2033,7 +2037,7 @@ package body PortScan.Operations is
       when issue : others =>
          LOG.obsolete_notice
            (write_to_screen => debug_opt_check,
-            message => "option check exception" & LAT.LF & EX.Exception_Message (issue));
+            message => "option check exception" & LAT.LF & EX.Exception_Information (issue));
          return False;
    end passed_option_check;
 
