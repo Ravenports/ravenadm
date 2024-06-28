@@ -522,8 +522,7 @@ package body Replicant is
          & "./var/cache" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
-         & "./xports" & LAT.LF
-         & RB & "/toolchain"
+         & "./xports"
         );
    end write_common_mtree_exclude_base;
 
@@ -992,13 +991,9 @@ package body Replicant is
             case platform_type is
                when macos | openbsd =>
                   set_folder_mode (slave_base & lbase, unlock);
-                  forge_directory (location (slave_base, toolchain));
                when others =>
                   forge_directory (location (slave_local, toolchain));
-                  mount_nullfs (slave_local, slave_base & lbase, readwrite);
             end case;
-         else
-            forge_directory (location (slave_base, toolchain));
          end if;
       else
          --  Limit slave to 24Gb, covers localbase + construction mainly
@@ -1006,7 +1001,6 @@ package body Replicant is
          if lbase = bsd_localbase then
             mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
          end if;
-         forge_directory (location (slave_base, toolchain));
       end if;
 
       for mnt in safefolders'Range loop
@@ -1189,6 +1183,7 @@ package body Replicant is
       use type DIR.File_Kind;
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
+      lbase      : constant String := HT.USS (PM.configuration.dir_localbase);
       forged     : TIO.File_Type;
    begin
       --  When hook_toolchain is called, there very well may be installed packages that
@@ -1198,6 +1193,22 @@ package body Replicant is
       --  For NFS-mount systems, the toolchain is hardlink-copied at toolchain-off.  The
       --  toolchain and toolchain-off are renamed toolchain-packages and toolchain respectively.
       --  This is reversed during unhooking.
+
+      if PM.configuration.avoid_tmpfs then
+         if lbase = bsd_localbase then
+            case platform_type is
+               when macos | openbsd =>
+                  forge_directory (location (slave_base, toolchain));
+               when others =>
+                  mount_nullfs (slave_base & "_localbase", slave_base & lbase, readwrite);
+            end case;
+         else
+            forge_directory (location (slave_base, toolchain));
+         end if;
+      else
+         forge_directory (location (slave_base, toolchain));
+      end if;
+
       case platform_type is
          when macos | openbsd =>
             DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-packaged");
