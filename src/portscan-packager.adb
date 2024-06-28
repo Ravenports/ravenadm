@@ -210,17 +210,14 @@ package body PortScan.Packager is
             procedure scan (position : subpackage_crate.Cursor);
             procedure assemble_origins (dep_position : spkg_id_crate.Cursor);
 
-            found_subpackage : Boolean := False;
+            already_inserted : string_crate.Vector;
 
             procedure scan (position : subpackage_crate.Cursor)
             is
                rec : subpackage_record renames subpackage_crate.Element (position);
             begin
-               if not found_subpackage then
-                  if HT.equivalent (rec.subpackage, subpackage) then
-                     found_subpackage := True;
-                     rec.spkg_run_deps.Iterate (assemble_origins'Access);
-                  end if;
+               if HT.equivalent (rec.subpackage, subpackage) then
+                  rec.spkg_run_deps.Iterate (assemble_origins'Access);
                end if;
             end scan;
 
@@ -230,9 +227,13 @@ package body PortScan.Packager is
                n     : constant String := HT.USS (all_ports (sprec.port).port_namebase);
                s     : constant String := HT.USS (sprec.subpackage);
                v     : constant String := HT.USS (all_ports (sprec.port).port_variant);
+               dkey  : constant String := n & LAT.Hyphen & s & LAT.Hyphen & v;
                ver   : constant String := HT.USS (all_ports (sprec.port).pkgversion);
             begin
-               metatree.insert (n & LAT.Hyphen & s & LAT.Hyphen & v, ver);
+               if not already_inserted.Contains (HT.SUS (dkey)) then
+                  metatree.insert (dkey, ver);
+                  already_inserted.Append (HT.SUS (dkey));
+               end if;
             end assemble_origins;
          begin
             metatree.start_object ("deps");

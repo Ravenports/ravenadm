@@ -1176,15 +1176,33 @@ package body Port_Specification.Transform is
                                    gccsubpackage : String)
    is
       procedure scan (position : string_crate.Cursor);
+      function cc_tuple (subpkg : String) return String;
 
-      dependency : String := default_compiler & ":" & gccsubpackage & ":" & variant_standard;
+      function cc_tuple (subpkg : String) return String is
+      begin
+         return default_compiler & ":" & subpkg & ":" & variant_standard;
+      end cc_tuple;
+
+      dependency : constant String := cc_tuple (gccsubpackage);
+      cc_libs    : constant String := cc_tuple ("libs");
+      cc_cxx_run : constant String := cc_tuple ("cxx_run");
 
       procedure scan (position : string_crate.Cursor)
       is
-         subpackage : String := HT.USS (string_crate.Element (position));
+         subpackage : constant String := HT.USS (string_crate.Element (position));
       begin
          if argument_present (specs, module, subpackage) then
             add_exrun_depends (specs, dependency, subpackage);
+            if gccsubpackage = "compilers" then
+               add_exrun_depends (specs, cc_cxx_run, subpackage);
+            end if;
+            if gccsubpackage = "cxx_run" or else
+              gccsubpackage = "fortran_run" or else
+              gccsubpackage = "ada_run" or else
+              gccsubpackage = "compilers"
+            then
+               add_exrun_depends (specs, cc_libs, subpackage);
+            end if;
          end if;
       end scan;
    begin
