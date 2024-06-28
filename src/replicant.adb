@@ -517,6 +517,7 @@ package body Replicant is
          & RB & "/lib/python*/__pycache__" & LAT.LF
          & RB & "/lib/python*/*/__pycache__" & LAT.LF
          & RB & "/lib/python*/*/*/__pycache__" & LAT.LF
+         & RB & "/lib/python*/site-packages/*" & LAT.LF
          & "./repo" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
