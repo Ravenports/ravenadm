@@ -451,7 +451,7 @@ package body PortScan.Buildcycle is
       end install_dependency_pyramid;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      specification.combined_dependency_nsv (include_run => not testing,
+      specification.combined_dependency_nsv (include_run => True,
                                              limit_to_run => False,
                                              dependency_set => depend_set);
       if depend_set.Is_Empty then
