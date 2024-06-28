@@ -1242,6 +1242,12 @@ package body Replicant is
             unmount (tc_path);
       end case;
       DIR.Delete_File (slave_base & toolchain_tag);
+      begin
+         DIR.Delete_Directory (location (slave_base, toolchain));
+      exception
+         when others =>
+            null;  -- File silently.  The only impact is leftover file check failure
+      end;
    end unhook_toolchain;
 
 

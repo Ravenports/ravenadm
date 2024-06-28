@@ -1073,7 +1073,9 @@ package body PortScan.Buildcycle is
          end loop;
          if not trackers (id).dynlink.Is_Empty then
             TIO.Put_Line (trackers (id).log_handle, "===> " & pkgname & " subpackage:");
+            TIO.Put_Line (trackers (id).log_handle, "");
             trackers (id).dynlink.Iterate (log_dump'Access);
+            TIO.Put_Line (trackers (id).log_handle, "");
          end if;
       exception
          when others => null;
