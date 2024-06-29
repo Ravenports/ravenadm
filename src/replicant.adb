@@ -558,7 +558,6 @@ package body Replicant is
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
          & RB & "/etc/gconf/gconf.xml.defaults/%gconf-tree*.xml" & LAT.LF
-         & RB & "/lib/gio/modules/giomodule.cache" & LAT.LF
          & RB & "/share/info/dir" & LAT.LF
          & RB & "/share/info" & LAT.LF
          & RB & "/share/*/info/dir" & LAT.LF
