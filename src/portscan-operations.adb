@@ -2943,22 +2943,32 @@ package body PortScan.Operations is
    --  eliminate_obsolete_packages
    --------------------------------------------------------------------------------------------
    procedure eliminate_obsolete_packages
+     (major_release    : String;
+      architecture     : supported_arch)
    is
       procedure search (position : subpackage_crate.Cursor);
       procedure kill (position : built_package_crate.Cursor);
 
       id : port_index;
       counter : Natural := 0;
-      repo : constant String := HT.USS (PM.configuration.dir_repository) & "/";
+      repo : constant String := HT.USS (PM.configuration.dir_repository);
 
       procedure search (position : subpackage_crate.Cursor)
       is
          rec : subpackage_record renames subpackage_crate.Element (position);
          subpackage   : constant String := HT.USS (rec.subpackage);
-         package_name : HT.Text := HT.SUS (calculate_package_name (id, subpackage) & arc_ext);
+         arc_file     : constant String := calculate_package_name (id, subpackage) & arc_ext;
+         package_name : HT.Text := HT.SUS (arc_file);
+         skip_exist_check : constant Boolean := True;
       begin
          if package_list.Contains (package_name) then
-            package_list.Delete (package_list.Find_Index (package_name));
+            --  Expected package is found.  Before removing it from the list list, make sure
+            --  the ABI is correct.
+            if passed_abi_check (repo, id, subpackage, skip_exist_check) then
+               package_list.Delete (package_list.Find_Index (package_name));
+            else
+               TIO.Put_Line ("Marking " & arc_file & " as obsolete due to ABI mismatch.");
+            end if;
          end if;
       end search;
 
@@ -2966,13 +2976,14 @@ package body PortScan.Operations is
       is
          package_name : constant String := HT.USS (built_package_crate.Element (position));
       begin
-         DIR.Delete_File (repo & package_name);
+         DIR.Delete_File (repo & "/" & package_name);
          counter := counter + 1;
       exception
          when others =>
             TIO.Put (LAT.LF & "Failed to remove " & package_name);
       end kill;
    begin
+      establish_package_architecture (major_release, architecture);
       for index in port_index'First .. last_port loop
          id := index;
          all_ports (index).subpackages.Iterate (search'Access);

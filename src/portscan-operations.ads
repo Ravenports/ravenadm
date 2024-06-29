@@ -112,7 +112,9 @@ package PortScan.Operations is
 
    --  Using a populated package_list, cross off all package names that are found in the current
    --  all_ports data.  Whatever is left represents obsolete packages which are then removed.
-   procedure eliminate_obsolete_packages;
+   procedure eliminate_obsolete_packages
+     (major_release    : String;
+      architecture     : supported_arch);
 
    --  Using a populated package list, print out all subpackages for each package
    procedure list_subpackages_of_queued_ports;

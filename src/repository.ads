@@ -8,8 +8,11 @@ private with HelperText;
 
 package Repository is
 
-   --  Rebuild the local repository with pkg(8)
-   procedure rebuild_local_respository (remove_invalid_packages : Boolean);
+   --  Rebuild the local repository with rvn(8)
+   procedure rebuild_local_respository
+     (remove_invalid_packages : Boolean;
+      major_release : String;
+      architecture  : supported_arch);
 
 private
 
@@ -44,7 +47,10 @@ private
    --  This routine first removes all invalid packages (package from removed
    --  port or older version) and inserts the origins of the remaining packages
    --  into the port list for a limited tree scan.
-   procedure preclean_repository (repository : String);
+   procedure preclean_repository
+     (repository    : String;
+      major_release : String;
+      architecture  : supported_arch);
 
    --  The actual command to assemble a catalog and sign it via an external server
    function externally_sign_repository return Boolean;

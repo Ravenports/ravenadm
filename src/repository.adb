@@ -69,11 +69,13 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    --  rebuild_local_respository
    --------------------------------------------------------------------------------------------
-   procedure preclean_repository (repository : String)
+   procedure preclean_repository (repository    : String;
+                                  major_release : String;
+                                  architecture  : supported_arch)
    is
    begin
       if PortScan.Scan.scan_repository (repository) then
-         PortScan.Operations.eliminate_obsolete_packages;
+         PortScan.Operations.eliminate_obsolete_packages (major_release, architecture);
       end if;
    end preclean_repository;
 
@@ -81,7 +83,9 @@ package body Repository is
    --------------------------------------------------------------------------------------------
    --  rebuild_local_respository
    --------------------------------------------------------------------------------------------
-   procedure rebuild_local_respository (remove_invalid_packages : Boolean)
+   procedure rebuild_local_respository (remove_invalid_packages : Boolean;
+                                        major_release : String;
+                                        architecture  : supported_arch)
    is
       ------------------------------------------------------------
       --  fully_scan_tree must be executed before this routine  --
@@ -92,7 +96,7 @@ package body Repository is
       build_res  : Boolean;
    begin
       if remove_invalid_packages then
-         preclean_repository (repo);
+         preclean_repository (repo, major_release, architecture);
       end if;
 
       --  Priority:

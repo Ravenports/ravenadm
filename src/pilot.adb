@@ -1568,7 +1568,9 @@ package body Pilot is
    procedure generate_repository is
    begin
       if fully_scan_ports_tree then
-         Repository.rebuild_local_respository (remove_invalid_packages => True);
+         Repository.rebuild_local_respository (remove_invalid_packages => True,
+                                               major_release => HT.USS (sysrootver.major),
+                                               architecture  => sysrootver.arch);
       end if;
    end generate_repository;
 
