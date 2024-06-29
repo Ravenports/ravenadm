@@ -63,9 +63,9 @@ package body UCL_Operations is
                      when others => null;  --  Skipped by validation, just skip completely
                   end case;
                end loop;
+               metatree.close_array;
             when others => null;
          end case;
-         metatree.close_array;
       end transfer_second_array;
 
    begin
