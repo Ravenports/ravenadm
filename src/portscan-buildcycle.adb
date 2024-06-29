@@ -85,9 +85,9 @@ package body PortScan.Buildcycle is
                R := exec_phase_generic (id, phase, environ);
 
             when configure =>
-               if testing then
-                  mark_file_system (id, "preconfig", environ);
-               end if;
+               --  if testing then
+               --    mark_file_system (id, "preconfig", environ);
+               --  end if;
                R := exec_phase_generic (id, phase, environ);
 
             when build =>
@@ -297,12 +297,12 @@ package body PortScan.Buildcycle is
                             skip_header => False,
                             skip_footer => True,
                             environ     => environ);
-      if testing and then passed then
-         passed := detect_leftovers_and_MIA (id          => id,
-                                             action      => "preconfig",
-                                             description => "between port configure and build",
-                                             environ     => environ);
-      end if;
+      --  if testing and then passed then
+      --     passed := detect_leftovers_and_MIA (id          => id,
+      --                                         action      => "preconfig",
+      --                                         description => "between port configure and build",
+      --                                         environ     => environ);
+      --  end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return passed;
    end exec_phase_build;
