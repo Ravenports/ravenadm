@@ -101,9 +101,6 @@ package body PortScan.Buildcycle is
                   R := exec_phase_generic (id, phase, environ);
                end if;
                REP.unhook_toolchain (id);
-               if R and then testing then
-                  R := deinstall_all_packages (id, env_nochain);
-               end if;
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
@@ -116,6 +113,9 @@ package body PortScan.Buildcycle is
                                             environ       => env_nochain);
 
             when install =>
+               if R and then testing then
+                  R := deinstall_all_packages (id, env_nochain);
+               end if;
                if testing then
                   R := exec_phase_install (id, pkgversion, env_nochain);
                end if;
@@ -506,7 +506,7 @@ package body PortScan.Buildcycle is
    is
       time_limit : execution_limit := max_time_without_output (test);
       root       : constant String := get_root (id);
-      phase_name : constant String := "test / deinstall all packages";
+      phase_name : constant String := "install / test / deinstall all packages";
       CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify";
       command    : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
       still_good : Boolean := True;
