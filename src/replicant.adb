@@ -526,6 +526,7 @@ package body Replicant is
          & "./var/cache" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
+         & "./var/spool" & LAT.LF
          & "./xports"
         );
    end write_common_mtree_exclude_base;

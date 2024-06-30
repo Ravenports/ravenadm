@@ -93,11 +93,39 @@ package body PortScan.Packager is
          procedure insert_trigger_set;
          procedure insert_message_set;
          procedure insert_script_set;
+         procedure insert_script (scriptree : in out ThickUCL.UclTree; phase : String;
+                                  code_file : String);
 
          myrec : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (myrec.subpackage);
          variant    : constant String := HT.USS (all_ports (seq_id).port_variant);
          metatree : ThickUCL.UclTree;
+
+         procedure insert_script (scriptree : in out ThickUCL.UclTree; phase : String;
+                                  code_file : String)
+         is
+            code : constant String := FOP.get_file_contents (code_file);
+            andx : ThickUCL.array_index;
+            num_elements : Natural;
+         begin
+            if scriptree.key_exists (phase) then
+               andx := scriptree.get_index_of_base_array (phase);
+               num_elements := scriptree.get_number_of_array_elements (andx);
+               scriptree.reopen_array (phase, num_elements);
+               scriptree.start_object ("");
+               scriptree.insert ("args", "");
+               scriptree.insert ("code", code);
+               scriptree.close_object;
+               scriptree.close_array;
+            else
+               scriptree.start_array (phase);
+               scriptree.start_object ("");
+               scriptree.insert ("args", "");
+               scriptree.insert ("code", code);
+               scriptree.close_object;
+               scriptree.close_array;
+            end if;
+         end insert_script;
 
          function short_description return String is
          begin
@@ -279,13 +307,30 @@ package body PortScan.Packager is
          is
             script_metadata : ThickUCL.UclTree;
             file_location : constant String := wrkdir & "/.PKG_SCRIPTS." & subpackage;
+            ug_install    : constant String := wrkdir & "/users-groups-install.sh";
+            ug_deinstall  : constant String := wrkdir & "/users-groups-deinstall.sh";
+            any_script    : Boolean := False;
          begin
-            if not DIR.Exists (file_location) then
-               return;
+            if DIR.Exists (file_location) then
+               ThickUCL.Files.parse_ucl_file (script_metadata, file_location, "");
+               any_script := True;
             end if;
-            ThickUCL.Files.parse_ucl_file (script_metadata, file_location, "");
-            if UCL_Operations.script_file_is_valid (script_metadata) then
-               UCL_Operations.transfer_scripts (script_metadata, metatree);
+            if subpackage = usrgrp_pkg then
+               if DIR.Exists (ug_install) then
+                  insert_script (script_metadata, "pre-install", ug_install);
+                  any_script := True;
+               end if;
+
+               if DIR.Exists (ug_deinstall) then
+                  insert_script (script_metadata, "post-deinstall", ug_deinstall);
+                  any_script := True;
+               end if;
+            end if;
+
+            if any_script then
+               if UCL_Operations.script_file_is_valid (script_metadata) then
+                  UCL_Operations.transfer_scripts (script_metadata, metatree);
+               end if;
             end if;
          exception
             when ThickUCL.Files.ucl_file_unparseable =>
