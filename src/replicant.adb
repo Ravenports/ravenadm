@@ -524,6 +524,7 @@ package body Replicant is
          & write_usr
          & opsys_specific
          & "./var/cache" & LAT.LF
+         & "./var/db/fontconfig" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
          & "./var/spool" & LAT.LF
