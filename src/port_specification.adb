@@ -3033,22 +3033,22 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function get_list_item (specs : Portspecs; field : spec_field; item : Natural) return String
    is
-      procedure scan (position : string_crate.Cursor);
+      function retrieve (crate : string_crate.Vector) return String;
       procedure scan_note (position : def_crate.Cursor);
-      procedure scan_distfile (position : string_crate.Cursor);
 
       counter : Natural := 0;
       result  : HT.Text;
 
-      procedure scan (position : string_crate.Cursor) is
+      --  string crate starts numbering at 1, just like index
+      function retrieve (crate : string_crate.Vector) return String
+      is
+         total_items : constant Natural := Natural (crate.Length);
       begin
-         if HT.IsBlank (result) then
-            counter := counter + 1;
-            if counter = item then
-               result := string_crate.Element (position);
-            end if;
+         if item > total_items then
+            return "";
          end if;
-      end scan;
+         return HT.USS (crate.Element (item));
+      end retrieve;
 
       procedure scan_note (position : def_crate.Cursor) is
       begin
@@ -3061,27 +3061,17 @@ package body Port_Specification is
          end if;
       end scan_note;
 
-      procedure scan_distfile (position : string_crate.Cursor) is
-      begin
-         if HT.IsBlank (result) then
-            counter := counter + 1;
-            if counter = item then
-               result := HT.SUS (translate_distfile
-                                 (specs, HT.USS (string_crate.Element (position))));
-            end if;
-         end if;
-      end scan_distfile;
    begin
       case field is
-         when sp_build_deps    => specs.build_deps.Iterate (scan'Access);
-         when sp_buildrun_deps => specs.buildrun_deps.Iterate (scan'Access);
-         when sp_run_deps      => specs.run_deps.Iterate (scan'Access);
-         when sp_opts_standard => specs.ops_standard.Iterate (scan'Access);
-         when sp_opts_avail    => specs.ops_avail.Iterate (scan'Access);
-         when sp_variants      => specs.variants.Iterate (scan'Access);
+         when sp_build_deps    => return retrieve (specs.build_deps);
+         when sp_buildrun_deps => return retrieve (specs.buildrun_deps);
+         when sp_run_deps      => return retrieve (specs.run_deps);
+         when sp_opts_standard => return retrieve (specs.ops_standard);
+         when sp_opts_avail    => return retrieve (specs.ops_avail);
+         when sp_variants      => return retrieve (specs.variants);
+         when sp_extra_patches => return retrieve (specs.extra_patches);
          when sp_notes         => specs.pkg_notes.Iterate (scan_note'Access);
-         when sp_extra_patches => specs.extra_patches.Iterate (scan'Access);
-         when sp_distfiles     => specs.distfiles.Iterate (scan_distfile'Access);
+         when sp_distfiles     => return specs.translate_distfile (retrieve (specs.distfiles));
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3196,26 +3186,26 @@ package body Port_Specification is
       variant : String;
       item    : Natural) return String
    is
-      procedure scan (position : string_crate.Cursor);
+      function retrieve (crate : string_crate.Vector) return String;
 
       variant_text : HT.Text := HT.SUS (variant);
-      counter : Natural := 0;
-      result  : HT.Text;
 
-      procedure scan (position : string_crate.Cursor) is
+      --  string crate starts numbering at 1, just like index
+      function retrieve (crate : string_crate.Vector) return String
+      is
+         total_items : constant Natural := Natural (crate.Length);
       begin
-         if HT.IsBlank (result) then
-            counter := counter + 1;
-            if counter = item then
-               result := string_crate.Element (position);
-            end if;
+         if item > total_items then
+            return "";
          end if;
-      end scan;
+         return HT.USS (crate.Element (item));
+      end retrieve;
+
    begin
       if specs.subpackages.Contains (variant_text) then
-         specs.subpackages.Element (variant_text).list.Iterate (scan'Access);
+         return retrieve (specs.subpackages.Element (variant_text).list);
       end if;
-      return HT.USS (result);
+      return "";
    end get_subpackage_item;
 
 
