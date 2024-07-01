@@ -455,9 +455,7 @@ package body Pilot is
       violation  : Boolean;
       cwd        : constant String := DIR.Current_Directory;
       sysroot    : constant String := HT.USS (PM.configuration.dir_sysroot);
-      portsdir   : constant String := HT.USS (PM.configuration.dir_conspiracy);
       distfiles  : constant String := HT.USS (PM.configuration.dir_distfiles);
-      packages   : constant String := HT.USS (PM.configuration.dir_packages);
       ccache     : constant String := HT.USS (PM.configuration.dir_ccache);
       buildbase  : constant String := HT.USS (PM.configuration.dir_buildbase) & "/";
    begin
@@ -466,15 +464,12 @@ package body Pilot is
             violation :=
               HT.leads (cwd, sysroot & "/System") or else
               HT.leads (cwd, distfiles) or else
-              HT.leads (cwd, packages) or else
               HT.leads (cwd, ccache) or else
               HT.leads (cwd, buildbase);
          when others =>
             violation :=
               HT.leads (cwd, sysroot) or else
-              HT.leads (cwd, portsdir) or else
               HT.leads (cwd, distfiles) or else
-              HT.leads (cwd, packages) or else
               HT.leads (cwd, ccache) or else
               HT.leads (cwd, buildbase);
       end case;
