@@ -325,6 +325,7 @@ package body PortScan.Buildcycle is
       procedure install_catalog;
       procedure prefetch_all_packages;
       procedure install_dependency_pyramid;
+      procedure special_case_ravensys_toolchain;
 
       root       : constant String := get_root (id);
       rvn_repos  : constant String := "/usr/bin/rvn -R /etc/repos ";
@@ -449,6 +450,38 @@ package body PortScan.Buildcycle is
       begin
          still_good := generic_execute (id, command, timed_out, time_limit);
       end install_dependency_pyramid;
+
+      procedure special_case_ravensys_toolchain
+      is
+         function ccnsv (subpackage : String) return HT.Text;
+
+         --  The ravensys-toolchain needs the latest version of ravensys-gcc (possibly newer
+         --  that those in the toolchain) but it's not possible to add ravensys-gcc as a
+         --  dependency.  The files need to be manually copied into /repo/files for this
+         --  one particular port.
+         seq  : constant port_id := trackers (id).seq_id;
+         name : constant String := HT.USS (all_ports (seq).port_namebase);
+
+         function ccnsv (subpackage : String) return HT.Text
+         is
+            nsv : constant String := "ravensys:" & subpackage & ":standard";
+         begin
+            return HT.SUS (nsv);
+         end ccnsv;
+      begin
+         if name /= "ravensys-toolchain" then
+            return;
+         end if;
+         queue.Clear;
+         queue.Append (ccnsv ("ada_run"));
+         queue.Append (ccnsv ("compilers"));
+         queue.Append (ccnsv ("complete"));
+         queue.Append (ccnsv ("cxx_run"));
+         queue.Append (ccnsv ("fortran_run"));
+         queue.Append (ccnsv ("infopages"));
+         queue.Append (ccnsv ("libs"));
+         queue.Iterate (copy_to_local_repo'Access);
+      end special_case_ravensys_toolchain;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
       specification.combined_dependency_nsv (include_run => True,
@@ -474,6 +507,7 @@ package body PortScan.Buildcycle is
       end loop;
 
       depend_set.Iterate (copy_to_local_repo'Access);
+      special_case_ravensys_toolchain;
       TIO.Close (trackers (id).log_handle);
 
       if still_good then
