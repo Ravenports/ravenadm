@@ -2769,13 +2769,18 @@ package body PortScan.Operations is
          return True;
       end launch_and_read;
    begin
-      PAR.parse_specification_file (dossier         => buildsheet,
-                                    spec            => specification,
-                                    opsys_focus     => platform_type,
-                                    arch_focus      => sysrootver.arch,
-                                    success         => successful,
-                                    stop_at_targets => excl_targets,
-                                    extraction_dir  => portloc);
+      begin
+         PAR.parse_specification_file (dossier         => buildsheet,
+                                       spec            => specification,
+                                       opsys_focus     => platform_type,
+                                       arch_focus      => sysrootver.arch,
+                                       success         => successful,
+                                       stop_at_targets => excl_targets,
+                                       extraction_dir  => portloc);
+      exception
+         when surprise : others =>
+            raise spec_parse_issue with buildsheet;
+      end;
       if not successful then
          TIO.Put_Line ("Failed to parse " & buildsheet);
          TIO.Put_Line (specification.get_parse_error);
@@ -2862,13 +2867,18 @@ package body PortScan.Operations is
          arch_standard => sysrootver.arch,
          osmajor       => HT.USS (sysrootver.major));
 
-      PST.set_outstanding_ignore
-        (specs         => specification,
-         variant       => variant,
-         opsys         => platform_type,
-         arch_standard => sysrootver.arch,
-         osrelease     => HT.USS (sysrootver.release),
-         osmajor       => HT.USS (sysrootver.major));
+      begin
+         PST.set_outstanding_ignore
+           (specs         => specification,
+            variant       => variant,
+            opsys         => platform_type,
+            arch_standard => sysrootver.arch,
+            osrelease     => HT.USS (sysrootver.release),
+            osmajor       => HT.USS (sysrootver.major));
+      exception
+         when surprise : others =>
+            raise specsect_ignore with buildsheet;
+      end;
 
       if portloc /= "" then
          PST.shift_extra_patches

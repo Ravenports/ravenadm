@@ -651,36 +651,25 @@ package body Port_Specification.Transform is
       cpu_ia32  : constant String := UTL.cpu_arch (i386) & "_";
       cpu_armv8 : constant String := UTL.cpu_arch (aarch64) & "_";
       separator : constant String := ": ";
-      index     : HT.Text := HT.SUS (broken_all);
+      broken_all_index : constant HT.Text := HT.SUS (broken_all);
+      local_broken : group_list;
 
       procedure check (position : list_crate.Cursor)
       is
          procedure check_list (position : string_crate.Cursor);
 
-         broken_Key : String  := HT.USS (list_crate.Element (position).group);
-
+         original_key : constant String  := HT.USS (list_crate.Element (position).group);
 
          procedure check_list (position : string_crate.Cursor)
          is
-            procedure grow (Key : HT.Text; Element : in out group_list);
-
-            reason : String  := HT.USS (string_crate.Element (position));
+            reason : constant String := HT.USS (string_crate.Element (position));
             used   : Boolean := False;
             split  : Boolean := True;
-
-            procedure grow (Key : HT.Text; Element : in out group_list) is
-            begin
-               if split then
-                  Element.list.Append (HT.SUS (HT.part_2 (reason, ": ")));
-               else
-                  Element.list.Append (string_crate.Element (position));
-               end if;
-            end grow;
          begin
-            if broken_Key = UTL.cpu_arch (arch_standard) then
+            if original_key = UTL.cpu_arch (arch_standard) then
                used  := True;
                split := False;
-            elsif broken_Key = UTL.lower_opsys (opsys) then
+            elsif original_key = UTL.lower_opsys (opsys) then
                if HT.leads (reason, "REL_") then
                   used := (HT.partial_search (reason, 4, separator) = osmajor);
                elsif HT.leads (reason, "GTE_") then
@@ -702,11 +691,11 @@ package body Port_Specification.Transform is
             end if;
 
             if used then
-               if not specs.broken.Contains (index) then
-                  specs.establish_group (sp_broken, broken_all);
+               if split then
+                  local_broken.list.Append (HT.SUS (HT.part_2 (reason, ": ")));
+               else
+                  local_broken.list.Append (HT.SUS (reason));
                end if;
-               specs.broken.Update_Element (Position => specs.broken.Find (index),
-                                            Process  => grow'Access);
             end if;
          end check_list;
 
@@ -718,26 +707,7 @@ package body Port_Specification.Transform is
 
       procedure check_ignore
       is
-         procedure grow (Key : HT.Text; Element : in out group_list);
-         procedure append_ignore;
-
          reason : HT.Text;
-
-         procedure grow (Key : HT.Text; Element : in out group_list) is
-         begin
-               Element.list.Append (reason);
-         end grow;
-
-         procedure append_ignore is
-         begin
-            --  Call after "reason" is set
-            if not specs.broken.Contains (index) then
-               specs.establish_group (sp_broken, broken_all);
-            end if;
-            specs.broken.Update_Element (Position => specs.broken.Find (index),
-                                         Process  => grow'Access);
-         end append_ignore;
-
          LIST_SSL_FAILURE   : constant String := "Does not build with SSL default '";
          LIST_MYSQL_FAILURE : constant String := "Does not build with MySQL default '";
          LIST_PGSQL_FAILURE : constant String := "Does not build with PGSQL default '";
@@ -748,12 +718,12 @@ package body Port_Specification.Transform is
                  not specs.inc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))))
             then
                reason := HT.SUS ("Specification excludes " & UTL.mixed_opsys (opsys) & " OS");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
             if specs.exc_arch.Contains (HT.SUS (UTL.cpu_arch (arch_standard))) then
                reason := HT.SUS ("Specification excludes " & UTL.cpu_arch (arch_standard) &
                                    " architecture");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          end if;
 
@@ -761,13 +731,13 @@ package body Port_Specification.Transform is
          if HT.equivalent (Parameters.configuration.def_ssl, ports_default) then
             if specs.broken_ssl.Contains (HT.SUS (default_ssl)) then
                reason := HT.SUS (LIST_SSL_FAILURE & default_ssl & "'");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          else
             if specs.broken_ssl.Contains (Parameters.configuration.def_ssl) then
                reason := HT.SUS (LIST_SSL_FAILURE &
                                    HT.USS (Parameters.configuration.def_ssl) & "'");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          end if;
 
@@ -775,13 +745,13 @@ package body Port_Specification.Transform is
          if HT.equivalent (Parameters.configuration.def_mysql_group, ports_default) then
             if specs.broken_mysql.Contains (HT.SUS (default_mysql)) then
                reason := HT.SUS (LIST_MYSQL_FAILURE & default_mysql & "'");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          else
             if specs.broken_mysql.Contains (Parameters.configuration.def_mysql_group) then
                reason := HT.SUS (LIST_MYSQL_FAILURE &
                                    HT.USS (Parameters.configuration.def_mysql_group) & "'");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          end if;
 
@@ -789,21 +759,24 @@ package body Port_Specification.Transform is
          if HT.equivalent (Parameters.configuration.def_postgresql, ports_default) then
             if specs.broken_pgsql.Contains (HT.SUS (default_pgsql)) then
                reason := HT.SUS (LIST_PGSQL_FAILURE & default_pgsql & "'");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          else
             if specs.broken_pgsql.Contains (Parameters.configuration.def_postgresql) then
                reason := HT.SUS (LIST_PGSQL_FAILURE &
                                    HT.USS (Parameters.configuration.def_postgresql) & "'");
-               append_ignore;
+               local_broken.list.Append (reason);
             end if;
          end if;
 
       end check_ignore;
 
    begin
+      local_broken.group := broken_all_index;
       specs.broken.Iterate (Process => check'Access);
       check_ignore;
+      specs.broken.Clear;
+      specs.broken.Insert (broken_all_index, local_broken);
    end set_outstanding_ignore;
 
 

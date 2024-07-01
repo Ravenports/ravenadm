@@ -119,6 +119,9 @@ package PortScan.Operations is
    --  Using a populated package list, print out all subpackages for each package
    procedure list_subpackages_of_queued_ports;
 
+   spec_parse_issue : exception;
+   specsect_ignore  : exception;
+
 private
 
    package PM  renames Parameters;

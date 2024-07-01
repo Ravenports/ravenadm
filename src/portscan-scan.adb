@@ -577,15 +577,20 @@ package body PortScan.Scan is
          end if;
       end calc_dossier;
    begin
-      OPS.parse_and_transform_buildsheet (specification => thespec,
-                                          successful    => successful,
-                                          buildsheet    => calc_dossier,
-                                          variant       => variant,
-                                          portloc       => "",
-                                          excl_targets  => True,
-                                          avoid_dialog  => False,
-                                          for_webpage   => False,
-                                          sysrootver    => sysrootver);
+      begin
+         OPS.parse_and_transform_buildsheet (specification => thespec,
+                                             successful    => successful,
+                                             buildsheet    => calc_dossier,
+                                             variant       => variant,
+                                             portloc       => "",
+                                             excl_targets  => True,
+                                             avoid_dialog  => False,
+                                             for_webpage   => False,
+                                             sysrootver    => sysrootver);
+      exception
+         when surprise : others =>
+            raise bsheet_parsing with EX.Exception_Information (surprise);
+      end;
 
       if not successful then
          raise bsheet_parsing
