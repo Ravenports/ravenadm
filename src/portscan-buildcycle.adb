@@ -896,8 +896,7 @@ package body PortScan.Buildcycle is
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
       variant    : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
-      DELETE_CMD : constant String := "/usr/bin/rvn remove --exact-match --yes --skip-verify";
-      CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify";
+      CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify --force";
       still_good : Boolean := True;
       dyn_good   : Boolean;
       timed_out  : Boolean;
