@@ -248,7 +248,7 @@ begin
    case mandate is
       when build | build_everything | force |
            test | test_everything | changeopts |
-           status | status_everything =>
+           status | status_everything | repository =>
          Pilot.check_that_ravenadm_is_modern_enough;
          if not Pilot.slave_platform_determined then
             return;

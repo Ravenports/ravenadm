@@ -2974,11 +2974,16 @@ package body PortScan.Operations is
          if package_list.Contains (package_name) then
             --  Expected package is found.  Before removing it from the list list, make sure
             --  the ABI is correct.
-            if passed_abi_check (repo, id, subpackage, skip_exist_check) then
-               package_list.Delete (package_list.Find_Index (package_name));
-            else
-               TIO.Put_Line ("Marking " & arc_file & " as obsolete due to ABI mismatch.");
-            end if;
+            --  -----
+            --  Actually assume this ABI check is redundant.  A full build will do the same
+            --  Thing.  If there is an ABI mismatch at this point, somebody intentionally caused
+            --  it.  To scan several thousand packages for ABI matches takes a while.
+            --  if passed_abi_check (repo, id, subpackage, skip_exist_check) then
+            --     package_list.Delete (package_list.Find_Index (package_name));
+            --  else
+            --     TIO.Put_Line ("Marking " & arc_file & " as obsolete due to ABI mismatch.");
+            --  end if;
+            package_list.Delete (package_list.Find_Index (package_name));
          end if;
       end search;
 
