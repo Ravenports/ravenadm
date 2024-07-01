@@ -81,7 +81,7 @@ private
    type folder is (bin, libexec, usr, lib, lib64,
                    xports, packages, distfiles,
                    dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
-                   proc, root, tmp, var, wrkdirs, port, ccache, localbase, toolchain,
+                   proc, root, tmp, var, wrkdirs, port, repofiles, ccache, localbase, toolchain,
                    devices, frameworks);
    subtype safefolders is folder range bin .. ccache;
 
@@ -108,6 +108,7 @@ private
    root_packages    : constant String := "/packages";
    root_distfiles   : constant String := "/distfiles";
    root_ccache      : constant String := "/ccache";
+   root_repofiles   : constant String := "/repo/files";
    bsd_localbase    : constant String := "/usr/local";
    toolchain_dir    : constant String := "/toolchain";
    root_devices     : constant String := "/devices";
@@ -134,9 +135,9 @@ private
 
    --  Used to generic mtree exclusion files
    procedure create_mtree_exc_preconfig (path_to_mm : String);
-   procedure create_mtree_exc_preinst (path_to_mm : String);
+   procedure create_mtree_exc_genesis (path_to_mm : String);
    procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type);
-   procedure write_preinstall_section (mtreefile : TIO.File_Type);
+   procedure write_genesis_section (mtreefile : TIO.File_Type);
 
    --  platform-specific localhost command "umount"
    --  Throws exception if unmount attempt was unsuccessful
@@ -194,7 +195,7 @@ private
    --  copy <profile>-libmap.conf to slave
    procedure install_libmap_conf (path_to_etc : String);
 
-   --  copy ldconfig hints to /var/run (for ravensw (for now))
+   --  copy ldconfig hints to /var/run (for rvn (for now))
    procedure copy_ldconfig_hints (path_to_varrun : String);
 
    --  If existing, copy unkindness GID and UID definitions to /construction
@@ -235,5 +236,8 @@ private
 
    --  Search keywork ucl files for %LOCALBASE% pattern and replace it with configure localbase
    procedure process_keyword_files (slave_mk : String; localbase : String);
+
+   --  create /etc/repo.conf in slave
+   procedure create_repo_conf (path_to_etc : String);
 
 end Replicant;

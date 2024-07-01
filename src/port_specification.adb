@@ -2762,7 +2762,6 @@ package body Port_Specification is
 
       procedure dump_license (position : string_crate.Cursor)
       is
-         lic_desc : HT.Text;
       begin
          if not HT.IsBlank (joined) then
             HT.SU.Append (joined, ", ");
@@ -2778,14 +2777,14 @@ package body Port_Specification is
                raw : String := HT.USS (string_crate.Element (position));
             begin
                if HT.leads (raw, lic) then
-                  lic_desc := HT.SUS (HT.part_2 (raw, ":"));
+                  --  part_2(raw) is already wrapped with double quotes
+                  HT.SU.Append (joined, HT.part_2 (raw, ":"));
                end if;
             end scan_lic_names;
          begin
             case lictype is
                when CUSTOM1 | CUSTOM2 | CUSTOM3 | CUSTOM4 =>
                   specs.lic_names.Iterate (scan_lic_names'Access);
-                  HT.SU.Append (joined, lic_desc);
                when others =>
                   HT.SU.Append (joined, LAT.Quotation & lic & LAT.Quotation);
             end case;
@@ -3478,18 +3477,17 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
-   --  combined_dependency_origins
+   --  combined_dependency_nsv
    --------------------------------------------------------------------------------------------
-   function combined_dependency_origins
-     (specs        : Portspecs;
-      include_run  : Boolean;
-      limit_to_run : Boolean) return String
+   procedure combined_dependency_nsv
+     (specs          : Portspecs;
+      include_run    : Boolean;
+      limit_to_run   : Boolean;
+      dependency_set : in out string_crate.Vector)
    is
       procedure scan  (position : string_crate.Cursor);
-      procedure print (position : string_crate.Cursor);
       procedure scan_package (position : list_crate.Cursor);
 
-      combined : string_crate.Vector;
       result   : HT.Text;
 
       procedure scan (position : string_crate.Cursor)
@@ -3501,18 +3499,11 @@ package body Port_Specification is
          dep_namebase : constant String :=  HT.specific_field (HT.USS (text_value), 1, ":");
       begin
          if not HT.equivalent (specs.namebase, dep_namebase) then
-            if not combined.Contains (text_value) then
-               combined.Append (text_value);
+            if not dependency_set.Contains (text_value) then
+               dependency_set.Append (text_value);
             end if;
          end if;
       end scan;
-
-      procedure print (position : string_crate.Cursor)
-      is
-         text_value : HT.Text renames string_crate.Element (position);
-      begin
-         HT.SU.Append (result, HT.USS (text_value) & LAT.LF);
-      end print;
 
       procedure scan_package (position : list_crate.Cursor)
       is
@@ -3532,10 +3523,7 @@ package body Port_Specification is
          specs.run_deps.Iterate (scan'Access);
          specs.extra_rundeps.Iterate (scan_package'Access);
       end if;
-
-      combined.Iterate (print'Access);
-      return HT.USS (result);
-   end combined_dependency_origins;
+   end combined_dependency_nsv;
 
 
    --------------------------------------------------------------------------------------------
@@ -4829,7 +4817,7 @@ package body Port_Specification is
       if specs.uses_base.Contains (HT.SUS (fonts_module)) then
          --  Rules for fonts module:
          --  Must be blank or have exactly one argument
-         --  The one argument must be "fc", "fontsdir", or "fcfontsdir" only
+         --  The one argument must be "fc", or "fontsdir" only
          declare
             fonts_args : String := retrieve_module_arguments (specs, fonts_module);
             num_commas : Natural;
@@ -4841,8 +4829,7 @@ package body Port_Specification is
             end if;
             if fonts_args /= "" and then
               fonts_args /= "fc" and then
-              fonts_args /= "fontsdir" and then
-              fonts_args /= "fcfontsdir"
+              fonts_args /= "fontsdir"
             then
                TIO.Put_Line
                  (fonts_module & " module has unrecognized argument '" & fonts_args & "'");

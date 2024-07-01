@@ -1,8 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
---  GCC 6.0 only
---  pragma Suppress (Tampering_Check);
+with admtypes; use admtypes;
 
 private with HelperText;
 private with Ada.Containers.Vectors;
@@ -233,12 +232,13 @@ package Port_Specification is
    --  Returns True if one or more variants have no defined subpackages.
    function missing_subpackage_definition (specs : Portspecs) return Boolean;
 
-   --  Return string block (delimited by LF) of unique build + buildrun + run depends (optional)
+   --  Return container of unique build + buildrun + run depends (optional)
    --  If limit_to_run is true, only run dependencies are returned
-   function combined_dependency_origins
-     (specs        : Portspecs;
-      include_run  : Boolean;
-      limit_to_run : Boolean) return String;
+   procedure combined_dependency_nsv
+     (specs          : Portspecs;
+      include_run    : Boolean;
+      limit_to_run   : Boolean;
+      dependency_set : in out string_crate.Vector);
 
    --  Runs through specs to ensure all license framework information is present.
    function post_parse_license_check_passes (specs : Portspecs) return Boolean;
@@ -391,13 +391,6 @@ private
       pspell, radius, readline, recode, redis, session, shmop, simplexml, snmp, soap, sockets,
       sqlite3, sysvmsg, sysvsem, sysvshm, tidy, tokenizer, wddx, xml, xmlreader, xmlrpc,
       xmlwriter, xsl, zip, zlib, ffi, sodium, invalid_extension);
-
-   package string_crate is new CON.Vectors
-     (Element_Type => HT.Text,
-      Index_Type   => Positive,
-      "="          => HT.SU."=");
-
-   package sorter is new string_crate.Generic_Sorting ("<" => HT.SU."<");
 
    package def_crate is new CON.Hashed_Maps
         (Key_Type        => HT.Text,

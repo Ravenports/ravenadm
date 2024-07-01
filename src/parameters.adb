@@ -1,6 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with System.Multiprocessors;
 with Ada.Directories;
 with Ada.Characters.Latin_1;
 with Ada.Exceptions;
@@ -11,6 +12,7 @@ with Unix;
 
 package body Parameters is
 
+   package MX  renames System.Multiprocessors;
    package EX  renames Ada.Exceptions;
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
@@ -682,9 +684,8 @@ package body Parameters is
       configuration.def_tcl_tk      := default_string (Field_25, ports_default);
 
       --  Derived configuration
-      configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/All");
-      configuration.sysroot_pkg8   := HT.SUS (HT.USS (configuration.dir_sysroot) &
-                                                "/usr/bin/ravensw");
+      configuration.dir_repository := HT.SUS (HT.USS (configuration.dir_packages) & "/files");
+      configuration.sysroot_rvn    := HT.SUS (HT.USS (configuration.dir_sysroot) & "/usr/bin/rvn");
       configuration.dir_logs       := HT.SUS (HT.USS (configuration.dir_profile) & "/logs");
       configuration.dir_options    := HT.SUS (HT.USS (configuration.dir_profile) & "/options");
 
@@ -711,85 +712,8 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    function get_number_cpus return Positive
    is
-      bsd_cmd : constant String := "/sbin/sysctl hw.ncpu";
-      mac_cmd : constant String := "/usr/sbin/sysctl hw.ncpu";
-      lin_cmd : constant String := "/usr/bin/nproc";
-      sol_cmd : constant String := "/usr/sbin/psrinfo -pv";
-      comres  : HT.Text;
-      status  : Integer;
-      start   : Positive;
    begin
-      --  DF/Free: expected output: "hw.ncpu: C" where C is integer
-      --  MacOS:   expected output: "hw.ncpu: C"
-      --  NetBSD:  expected output: "hw.ncpu = C"
-      --  OpenBSD: expected output: "hw.ncpu=C"
-      --  Linux:   expected output: "C"
-      --  Solaris: expected output:
-      --    The physical processor has 64 virtual processors (0-63)
-      --      UltraSPARC-T2+ (cpuid 0 clock 1165 MHz)
-      --    The physical processor has 64 virtual processors (64-127)
-      --      UltraSPARC-T2+ (cpuid 64 clock 1165 MHz)
-
-      case platform_type is
-         when dragonfly | freebsd | netbsd | openbsd | midnightbsd =>
-            comres := Unix.piped_command (bsd_cmd, status);
-         when macos =>
-            comres := Unix.piped_command (mac_cmd, status);
-         when linux =>
-            comres := Unix.piped_command (lin_cmd, status);
-         when sunos =>
-            comres := Unix.piped_command (sol_cmd, status);
-      end case;
-      if status /= 0 then
-         return 1;
-      end if;
-
-      case platform_type is
-         when dragonfly | freebsd | macos => start := 10;
-         when midnightbsd                 => start := 10;
-         when linux                       => start := 1;
-         when netbsd                      => start := 11;
-         when openbsd                     => start := 9;
-         when sunos =>
-            declare
-               markers : HT.Line_Markers;
-               resstr  : constant String := HT.USS (comres);
-               pattern : constant String := "The physical processor has ";
-               numcore : Natural := 0;
-            begin
-               HT.initialize_markers (resstr, markers);
-               loop
-                  exit when not HT.next_line_with_content_present (resstr, pattern, markers);
-                  declare
-                     line : constant String := HT.extract_line (resstr, markers);
-                     nvp  : constant String := HT.part_1 (HT.part_2 (line, pattern), " ");
-                  begin
-                     numcore := numcore + Natural'Value (nvp);
-                  exception
-                     when others =>
-                        numcore := numcore + 1;
-                  end;
-               end loop;
-               if numcore < 1 then
-                  --  Should never happen
-                  return 1;
-               else
-                  return numcore;
-               end if;
-            exception
-               when others => return 1;
-            end;
-      end case;
-
-      declare
-         resstr : String := HT.USS (comres);
-         ncpu   : String := resstr (start .. resstr'Last - 1);
-         number : Positive := Integer'Value (ncpu);
-      begin
-         return number;
-      exception
-         when others => return 1;
-      end;
+      return Positive (MX.Number_Of_CPUs);
    end get_number_cpus;
 
 

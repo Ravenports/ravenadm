@@ -117,7 +117,6 @@ private
    function  format_loglines (numlines : Natural) return String;
    function  watchdog_message (minutes : execution_limit) return String;
    function  get_port_prefix (id : builders; environ : String) return String;
-   function  pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean;
 
    function  environment_override (toolchain   : Boolean;
                                    ssl_variant : String;
@@ -144,11 +143,6 @@ private
 
    function  deinstall_all_packages
      (id            : builders;
-      environ       : String) return Boolean;
-
-   function  install_run_depends
-     (specification : PSP.Portspecs;
-      id            : builders;
       environ       : String) return Boolean;
 
    function  generic_execute

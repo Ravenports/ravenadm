@@ -40,7 +40,7 @@ package Utilities is
    --  escaped double-quotes inside quotes with an "X" as well.
    function mask_quoted_string (raw : String) return String;
 
-   --  Quick formatting of json value
+      --  Quick formatting of json value
    function json_nvpair_integer
      (name    : String;
       value   : Integer;

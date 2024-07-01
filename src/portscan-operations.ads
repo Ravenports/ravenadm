@@ -112,7 +112,9 @@ package PortScan.Operations is
 
    --  Using a populated package_list, cross off all package names that are found in the current
    --  all_ports data.  Whatever is left represents obsolete packages which are then removed.
-   procedure eliminate_obsolete_packages;
+   procedure eliminate_obsolete_packages
+     (major_release    : String;
+      architecture     : supported_arch);
 
    --  Using a populated package list, print out all subpackages for each package
    procedure list_subpackages_of_queued_ports;
@@ -158,14 +160,6 @@ private
          content       : kfile_content;
       end record;
 
-   type package_abi is
-      record
-         calculated_abi      : HT.Text;
-         calculated_alt_abi  : HT.Text;
-         calc_abi_noarch     : HT.Text;
-         calc_alt_abi_noarch : HT.Text;
-      end record;
-
    type subpackage_identifier is
       record
          id         : port_index;
@@ -179,7 +173,7 @@ private
    pkgscan_progress : dim_progress := (others => 0);
    pkgscan_total    : Natural := 0;
    history          : progress_history;
-   abi_formats      : package_abi;
+   calculated_abi   : HT.Text;
    curses_support   : Boolean := False;
 
    external_repository : HT.Text;

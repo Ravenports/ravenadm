@@ -1176,15 +1176,33 @@ package body Port_Specification.Transform is
                                    gccsubpackage : String)
    is
       procedure scan (position : string_crate.Cursor);
+      function cc_tuple (subpkg : String) return String;
 
-      dependency : String := default_compiler & ":" & gccsubpackage & ":" & variant_standard;
+      function cc_tuple (subpkg : String) return String is
+      begin
+         return default_compiler & ":" & subpkg & ":" & variant_standard;
+      end cc_tuple;
+
+      dependency : constant String := cc_tuple (gccsubpackage);
+      cc_libs    : constant String := cc_tuple ("libs");
+      cc_cxx_run : constant String := cc_tuple ("cxx_run");
 
       procedure scan (position : string_crate.Cursor)
       is
-         subpackage : String := HT.USS (string_crate.Element (position));
+         subpackage : constant String := HT.USS (string_crate.Element (position));
       begin
          if argument_present (specs, module, subpackage) then
             add_exrun_depends (specs, dependency, subpackage);
+            if gccsubpackage = "compilers" then
+               add_exrun_depends (specs, cc_cxx_run, subpackage);
+            end if;
+            if gccsubpackage = "cxx_run" or else
+              gccsubpackage = "fortran_run" or else
+              gccsubpackage = "ada_run" or else
+              gccsubpackage = "compilers"
+            then
+               add_exrun_depends (specs, cc_libs, subpackage);
+            end if;
          end if;
       end scan;
    begin
@@ -1599,7 +1617,7 @@ package body Port_Specification.Transform is
       module     : String := "mime-info";
       dep_prefix : String := "shared-mime-info";
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      generic_run_module (specs, module, dep_prefix & ":primary:standard");
    end apply_mime_info_module;
 
 
@@ -1783,22 +1801,16 @@ package body Port_Specification.Transform is
    is
       module      : constant String := "fonts";
       fontconfig  : constant String := "fontconfig";
-      mkfontscale : constant String := "xorg-mkfontscale:single:standard";
+      mkfontscale : constant String := "xorg-mkfontscale:primary:standard";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
       end if;
+      generic_devlib_module (specs, fontconfig, fontconfig);
       if no_arguments_present (specs, module) or else
-        argument_present (specs, module, "fcfontsdir")
+        argument_present (specs, module, "fontsdir")
       then
-         generic_devlib_module (specs, fontconfig, fontconfig);
          add_buildrun_depends (specs, mkfontscale);
-         return;
-      end if;
-      if argument_present (specs, module, "fontsdir") then
-         add_buildrun_depends (specs, mkfontscale);
-      elsif argument_present (specs, module, "fc") then
-         generic_devlib_module (specs, fontconfig, fontconfig);
       end if;
    end apply_fonts_module;
 

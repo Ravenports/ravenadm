@@ -31,6 +31,7 @@ with Package_Manifests;
 with Options_Dialog_Console;
 with Ravenports;
 with Repository;
+with UCL_Operations;
 
 package body Pilot is
 
@@ -391,6 +392,11 @@ package body Pilot is
          os_major      => HT.USS (sysrootver.major));
 
       if not specification.post_transform_option_group_defaults_passes then
+         successful := False;
+         return;
+      end if;
+
+      if not UCL_Operations.port_ucl_files_valid (ravensrcdir) then
          successful := False;
          return;
       end if;
@@ -865,7 +871,7 @@ package body Pilot is
       block_remote : Boolean := True;
       force_compiler_build : Boolean := False;
       force_binutils_build : Boolean := False;
-      update_external_repo : constant String := host_pkg8 & " update --quiet --repository ";
+      update_external_repo : constant String := host_rvn & " catalog --quiet --repository ";
       no_packages : constant String := "No prebuilt packages will be used as a result.";
 
    begin
@@ -1562,7 +1568,9 @@ package body Pilot is
    procedure generate_repository is
    begin
       if fully_scan_ports_tree then
-         Repository.rebuild_local_respository (remove_invalid_packages => True);
+         Repository.rebuild_local_respository (remove_invalid_packages => True,
+                                               major_release => HT.USS (sysrootver.major),
+                                               architecture  => sysrootver.arch);
       end if;
    end generate_repository;
 

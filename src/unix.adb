@@ -355,4 +355,17 @@ package body Unix is
       return result = 0;
    end target_exists;
 
+
+   --------------------------------------------------------------------------------------------
+   --  file_secure
+   --------------------------------------------------------------------------------------------
+   function file_secure (file_path : String) return Boolean
+   is
+      use type IC.int;
+      path   : IC.char_array := IC.To_C (file_path);
+      result : IC.int;
+   begin
+      result := file_at_400 (path);
+      return result = 1;
+   end file_secure;
 end Unix;

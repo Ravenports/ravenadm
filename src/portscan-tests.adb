@@ -185,7 +185,6 @@ package body PortScan.Tests is
             begin
                if HT.leads (line, "@comment ") or else
                  HT.leads (line, "@desktop-file-utils") or else
-                 HT.leads (line, "@fcfontsdir") or else
                  HT.leads (line, "@fontsdir") or else
                  HT.leads (line, "@fc") or else
                  HT.leads (line, "@rmtry ") or else

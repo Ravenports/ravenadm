@@ -1154,7 +1154,7 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function located_external_repository return Boolean
    is
-      command : constant String := host_pkg8 & " -vv";
+      command : constant String := host_rvn & " -vv";
       found   : Boolean := False;
       inspect : Boolean := False;
       status  : Integer;
@@ -1253,40 +1253,17 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure establish_package_architecture (release : String; architecture : supported_arch)
    is
-      function newsuffix return String;
-      function suffix    return String;
+      function arch_component return String;
       function get_version (fileinfo : String; OS : String) return String;
-      procedure craft_common_endings (release : String);
 
-      function suffix return String is
+      function arch_component return String is
       begin
          case architecture is
-            when x86_64  => return "x86:64";
-            when i386    => return "x86:32";
-            when aarch64 => return "aarch64:64";
+            when x86_64  => return ":x86_64:";
+            when i386    => return ":x86:";
+            when aarch64 => return ":arm64:";
          end case;
-      end suffix;
-
-      function newsuffix return String is
-      begin
-         case architecture is
-            when x86_64  => return "amd64";
-            when i386    => return "i386";
-            when aarch64 => return "arm64";
-         end case;
-      end newsuffix;
-
-      procedure craft_common_endings (release : String) is
-      begin
-         HT.SU.Append (abi_formats.calculated_abi, release & ":");
-         HT.SU.Append (abi_formats.calculated_alt_abi, release & ":");
-         abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-         abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-         HT.SU.Append (abi_formats.calculated_abi, newsuffix);
-         HT.SU.Append (abi_formats.calculated_alt_abi, suffix);
-         HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-         HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
-      end craft_common_endings;
+      end arch_component;
 
       function get_version (fileinfo : String; OS : String) return String
       is
@@ -1298,74 +1275,13 @@ package body PortScan.Operations is
 
    begin
       case platform_type is
-         when dragonfly =>
-            declare
-               dfly : constant String := "dragonfly:";
-            begin
-               abi_formats.calculated_abi := HT.SUS (dfly);
-               HT.SU.Append (abi_formats.calculated_abi, release & ":");
-               abi_formats.calc_abi_noarch := abi_formats.calculated_abi;
-               HT.SU.Append (abi_formats.calculated_abi, suffix);
-               HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-               abi_formats.calculated_alt_abi  := abi_formats.calculated_abi;
-               abi_formats.calc_alt_abi_noarch := abi_formats.calc_abi_noarch;
-            end;
-         when freebsd =>
-            declare
-               fbsd1   : constant String := "FreeBSD:";
-               fbsd2   : constant String := "freebsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (fbsd1);
-               abi_formats.calculated_alt_abi := HT.SUS (fbsd2);
-               craft_common_endings (release);
-            end;
-         when netbsd =>
-            declare
-               net1    : constant String := "NetBSD:";
-               net2    : constant String := "netbsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (net1);
-               abi_formats.calculated_alt_abi := HT.SUS (net2);
-               craft_common_endings (release);
-            end;
-         when openbsd =>
-            declare
-               open1   : constant String := "OpenBSD:";
-               open2   : constant String := "openbsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (open1);
-               abi_formats.calculated_alt_abi := HT.SUS (open2);
-               craft_common_endings (release);
-            end;
-         when midnightbsd =>
-            declare
-               mbsd1   : constant String := "MidnightBSD:";
-               mbsd2   : constant String := "midnightbsd:";
-            begin
-               abi_formats.calculated_abi     := HT.SUS (mbsd1);
-               abi_formats.calculated_alt_abi := HT.SUS (mbsd2);
-               craft_common_endings (release);
-            end;
-         when sunos =>
-            declare
-               sol1    : constant String := "Solaris:";
-               sol2    : constant String := "solaris:";
-               solrel  : constant String := "10";  --  hardcoded in pkg(8), release=5.10
-            begin
-               abi_formats.calculated_abi     := HT.SUS (sol1);
-               abi_formats.calculated_alt_abi := HT.SUS (sol2);
-               craft_common_endings (solrel);
-            end;
-         when macos =>
-            --  Hardcode i386 for now until pkg(8) fixed to provide correct arch
-            abi_formats.calculated_abi     := HT.SUS ("Darwin:" & release & ":");
-            abi_formats.calculated_alt_abi := HT.SUS ("darwin:" & release & ":");
-            abi_formats.calc_abi_noarch     := abi_formats.calculated_abi;
-            abi_formats.calc_alt_abi_noarch := abi_formats.calculated_alt_abi;
-            HT.SU.Append (abi_formats.calculated_abi, "i386");
-            HT.SU.Append (abi_formats.calculated_alt_abi, "i386:32");
-            HT.SU.Append (abi_formats.calc_abi_noarch, "*");
-            HT.SU.Append (abi_formats.calc_alt_abi_noarch, "*");
+         when dragonfly   => calculated_abi := HT.SUS ("dragonfly" & arch_component & release);
+         when freebsd     => calculated_abi := HT.SUS ("freebsd" & arch_component & release);
+         when netbsd      => calculated_abi := HT.SUS ("netbsd" & arch_component & release);
+         when openbsd     => calculated_abi := HT.SUS ("openbsd" & arch_component & release);
+         when midnightbsd => calculated_abi := HT.SUS ("midnightbsd" & arch_component & release);
+         when sunos       => calculated_abi := HT.SUS ("solaris" & arch_component & "10");
+         when macos       => calculated_abi := HT.SUS ("darwin:x86:" & release);
          when linux =>
             declare
                sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
@@ -1376,17 +1292,12 @@ package body PortScan.Operations is
             begin
                UN := Unix.piped_command (command, status);
                declare
-                  gnu1   : constant String := "Linux:";
-                  gnu2   : constant String := "linux:";
                   gnurel : constant String := get_version (HT.USS (UN), "GNU/Linux ");
                begin
-                  abi_formats.calculated_abi     := HT.SUS (gnu1);
-                  abi_formats.calculated_alt_abi := HT.SUS (gnu2);
-                  craft_common_endings (gnurel);
+                  calculated_abi := HT.SUS ("linux" & arch_component & gnurel);
                end;
             end;
       end case;
-
    end establish_package_architecture;
 
 
@@ -1542,9 +1453,9 @@ package body PortScan.Operations is
       is
          id      : constant port_index := subpackage_queue.Element (cursor).id;
          subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
-         pkgbase : constant String := " " & calculate_package_name (id, subpkg);
+         pkg_nsv : constant String := " " & calculate_nsv (id, subpkg);
       begin
-         HT.SU.Append (package_list, pkgbase);
+         HT.SU.Append (package_list, pkg_nsv);
       end fetch;
 
       procedure check (cursor : subpackage_queue.Cursor)
@@ -1676,10 +1587,11 @@ package body PortScan.Operations is
       else
          rank_queue.Iterate (prune_packages'Access);
          fetch_list.Iterate (fetch'Access);
-         if not HT.equivalent (package_list, HT.blank) then
+         if not HT.IsBlank (package_list) then
             declare
-               cmd : constant String := host_pkg8 & " fetch -r " &
-                 HT.USS (external_repository) & " -U -y --output " &
+               cmd : constant String :=
+                 host_rvn & " fetch --repository " &  HT.USS (external_repository) &
+                 "--no-repo-update --yes --exact-match --output " &
                  HT.USS (PM.configuration.dir_packages) & HT.USS (package_list);
             begin
                if Unix.external_command (cmd) then
@@ -1710,21 +1622,35 @@ package body PortScan.Operations is
       id         : port_id;
       subpackage : String) return HT.Text
    is
+      --  $rvn info --quiet --dependencies --file WebP-primary-standard-1.4.0.rvn
+      --  freeglut-primary-standard
+      --  giflib-primary-standard
+      --  jpeg-turbo-primary-standard
+      --  png-primary-standard
+      --  tiff-primary-standard
+      --
+      --  $rvn rquery --no-repo-update '{xdep:nsv}' xz-complete-standard
+      --  xz-docs-standard
+      --  xz-man-standard
+      --  xz-primary-standard
+      --  xz-tools-standard
+
       rec : port_record renames all_ports (id);
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
-      command  : constant String := pkg8 & " query -F "  & fullpath & " %dn-%dv@%do";
-      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
-                                    " -U %dn-%dv@%do " & pkg_base;
+      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command  : constant String := rvn8 & " -C '' info -q --dependencies --file " & fullpath;
+      remocmd  : constant String := rvn8 & " rquery -E ' {xdep:nsv}-{xrdep:ver}' " & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
    begin
-      if repository = "" then
-         comres := Unix.piped_command (remocmd, status);
-      else
+      if repository /= "" then
          comres := Unix.piped_command (command, status);
+      else
+         --  Support for fetch-prebuilt-package option
+         comres := Unix.piped_command (remocmd, status);
       end if;
       if status = 0 then
          return comres;
@@ -1798,16 +1724,15 @@ package body PortScan.Operations is
       loop
          exit when not HT.next_line_present (content, markers);
          declare
-            line   : constant String := HT.extract_line (content, markers);
-            deppkg : constant String := HT.part_1 (line, "@");
-            origin : constant String := HT.part_2 (line, "@");
+            deppkg : constant String := HT.extract_line (content, markers);
          begin
-            exit when line = "";
+            exit when deppkg = "";
             declare
                procedure set_available (position : subpackage_crate.Cursor);
 
-               subpackage : String := subpackage_from_pkgname (deppkg);
-               target_id  : port_index := ports_keys.Element (HT.SUS (origin));
+               subpackage : constant String := subpackage_from_pkgname (deppkg);
+               target_key : constant String := convert_pkgname_to_portkey (deppkg);
+               target_id  : port_index := ports_keys.Element (HT.SUS (target_key));
                target_pkg : String := calculate_package_name (target_id, subpackage);
                available  : Boolean;
 
@@ -1830,7 +1755,7 @@ package body PortScan.Operations is
                else
                   --  package seems to have a dependency that has been removed from the conspiracy
                   LOG.obsolete_notice
-                    (message         => origin & " has been removed from Ravenports",
+                    (message         => target_key & " has been removed from Ravenports",
                      write_to_screen => debug_dep_check);
                   return False;
                end if;
@@ -1843,7 +1768,7 @@ package body PortScan.Operations is
                      message         => headport & " package has more dependencies than the " &
                        "port requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
                        "Query: " & LAT.LF & HT.USS (query_result) &
-                       "Tripped on: " & line);
+                       "Tripped on: " & deppkg);
                   all_ports (id).subpackages.Iterate (log_run_deps'Access);
                   return False;
                end if;
@@ -1852,8 +1777,6 @@ package body PortScan.Operations is
                   --  The version that the package requires differs from the
                   --  version that Ravenports will now produce
                   declare
-                     --  If the target package is GCC7, let version mismatches slide.  We are
-                     --  probably bootstrapping a new sysroot compiler
                      nbase   : constant String := HT.USS (all_ports (target_id).port_namebase);
                   begin
                      if nbase /= default_compiler and then
@@ -1861,17 +1784,15 @@ package body PortScan.Operations is
                      then
                         LOG.obsolete_notice
                           (write_to_screen => debug_dep_check,
-                           message         =>  "Current " & headport & " package depends on " &
-                             deppkg & ", but this is a different version than requirement of " &
-                             target_pkg & " (from " & origin & ")");
+                           message  =>  "Current " & headport & " package depends on " & deppkg &
+                             ", but this is a different version than requirement of " & target_pkg);
                         return False;
                      else
                         LOG.obsolete_notice
                           (write_to_screen => debug_dep_check,
-                           message         => "Ignored dependency check failure: " &
-                             "Current " & headport & " package depends on " &
-                             deppkg & ", but this is a different version than requirement of " &
-                             target_pkg & " (from " & origin & ")");
+                           message => "Ignored dependency check failure: Current " & headport &
+                             " package depends on " & deppkg &
+                             ", but this is a different version than requirement of " & target_pkg);
                      end if;
                   end;
                end if;
@@ -1944,11 +1865,12 @@ package body PortScan.Operations is
       rec : port_record renames all_ports (id);
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
-      command  : constant String := pkg8 & " query -F "  & fullpath & " %q";
-      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
-                                    " -U %q " & pkg_base;
+      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command  : constant String := rvn8 & " -C '' info -qw --file "  & fullpath;
+      remocmd  : constant String := rvn8 & " rquery -E '{abi}' " & pkg_nsv;
+
       status : Integer;
       comres : HT.Text;
    begin
@@ -1957,10 +1879,11 @@ package body PortScan.Operations is
          return False;
       end if;
 
-      if repository = "" then
-         comres := Unix.piped_command (remocmd, status);
-      else
+      if repository /= "" then
          comres := Unix.piped_command (command, status);
+      else
+          --  Support for fetch-prebuilt-package option
+         comres := Unix.piped_command (remocmd, status);
       end if;
       if status /= 0 then
          return False;
@@ -1968,11 +1891,7 @@ package body PortScan.Operations is
       declare
          topline : String := HT.first_line (HT.USS (comres));
       begin
-         if HT.equivalent (abi_formats.calculated_abi, topline) or else
-           HT.equivalent (abi_formats.calculated_alt_abi, topline) or else
-           HT.equivalent (abi_formats.calc_abi_noarch, topline) or else
-           HT.equivalent (abi_formats.calc_alt_abi_noarch, topline)
-         then
+         if HT.equivalent (calculated_abi, topline) then
             return True;
          end if;
       end;
@@ -1992,11 +1911,12 @@ package body PortScan.Operations is
       rec : port_record renames all_ports (id);
 
       pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
       fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      pkg8     : constant String := HT.USS (PM.configuration.sysroot_pkg8);
-      command  : constant String := pkg8 & " query -F "  & fullpath & " %Ok:%Ov";
-      remocmd  : constant String := pkg8 & " rquery -r " & HT.USS (external_repository) &
-                                    " -U %Ok:%Ov " & pkg_base;
+      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      optform  : constant String := "'{xopt:key} => {xopt:val}' ";
+      command  : constant String := rvn8 & " -C '' info -oq --file " & fullpath;
+      remocmd  : constant String := rvn8 & " rquery -E " & optform & pkg_nsv;
       status   : Integer;
       comres   : HT.Text;
       counter  : Natural := 0;
@@ -2043,57 +1963,61 @@ package body PortScan.Operations is
             exit when not HT.next_line_present (command_result, markers);
             declare
                line     : constant String := HT.extract_line (command_result, markers);
-               namekey  : constant String := HT.part_1 (line, ":");
-               knob     : constant String := HT.part_2 (line, ":");
-               nametext : HT.Text := HT.SUS (namekey);
-               knobval  : Boolean;
+               delimit  : constant String := " => ";
             begin
                exit when line = "";
-               if HT.count_char (line, LAT.Colon) /= 1 then
+               if not HT.contains (line, delimit) then
                   raise unknown_format with line;
                end if;
-               if knob = "on" then
-                  knobval := True;
-               elsif knob = "off" then
-                  knobval := False;
-               else
-                  raise unknown_format with "knob=" & knob & "(" & line & ")";
-               end if;
+               declare
+                  namekey  : constant String := HT.part_1 (line, delimit);
+                  knob     : constant String := HT.lowercase (HT.part_2 (line, delimit));
+                  nametext : HT.Text := HT.SUS (namekey);
+                  knobval  : Boolean;
+               begin
+                  if knob = "on" or else knob = "true" then
+                     knobval := True;
+                  elsif knob = "off" or else knob = "false" then
+                     knobval := False;
+                  else
+                     raise unknown_format with "knob=" & knob & "(" & line & ")";
+                  end if;
 
-               counter := counter + 1;
-               if counter > required then
-                  --  package has more options than we are looking for
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_opt_check,
-                     message => "options " & namekey & LAT.LF & pkg_base &
-                       " has more options than required (" & HT.int2str (required) & ")");
-                  return False;
-               end if;
-
-               if all_ports (id).options.Contains (nametext) then
-                  if knobval /= all_ports (id).options.Element (nametext) then
-                     --  port option value doesn't match package option value
-                     if knobval then
-                        LOG.obsolete_notice
-                          (write_to_screen => debug_opt_check,
-                           message => pkg_base & " " & namekey &
-                             " is ON but specifcation says it must be OFF");
-                     else
-                        LOG.obsolete_notice
-                          (write_to_screen => debug_opt_check,
-                           message => pkg_base & " " & namekey &
-                             " is OFF but specifcation says it must be ON");
-                     end if;
+                  counter := counter + 1;
+                  if counter > required then
+                     --  package has more options than we are looking for
+                     LOG.obsolete_notice
+                       (write_to_screen => debug_opt_check,
+                        message => "options " & namekey & LAT.LF & pkg_base &
+                          " has more options than required (" & HT.int2str (required) & ")");
                      return False;
                   end if;
-               else
-                  --  Name of package option not found in port options
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_opt_check,
-                     message => pkg_base & " option " & namekey &
-                       " is no longer present in the specification");
-                  return False;
-               end if;
+
+                  if all_ports (id).options.Contains (nametext) then
+                     if knobval /= all_ports (id).options.Element (nametext) then
+                        --  port option value doesn't match package option value
+                        if knobval then
+                           LOG.obsolete_notice
+                             (write_to_screen => debug_opt_check,
+                              message => pkg_base & " " & namekey &
+                                " is ON but specifcation says it must be OFF");
+                        else
+                           LOG.obsolete_notice
+                             (write_to_screen => debug_opt_check,
+                              message => pkg_base & " " & namekey &
+                                " is OFF but specifcation says it must be ON");
+                        end if;
+                        return False;
+                     end if;
+                  else
+                     --  Name of package option not found in port options
+                     LOG.obsolete_notice
+                       (write_to_screen => debug_opt_check,
+                        message => pkg_base & " option " & namekey &
+                          " is no longer present in the specification");
+                     return False;
+                  end if;
+               end;
             end;
          end loop;
 
@@ -2113,7 +2037,7 @@ package body PortScan.Operations is
       when issue : others =>
          LOG.obsolete_notice
            (write_to_screen => debug_opt_check,
-            message => "option check exception" & LAT.LF & EX.Exception_Message (issue));
+            message => "option check exception" & LAT.LF & EX.Exception_Information (issue));
          return False;
    end passed_option_check;
 
@@ -3019,22 +2943,32 @@ package body PortScan.Operations is
    --  eliminate_obsolete_packages
    --------------------------------------------------------------------------------------------
    procedure eliminate_obsolete_packages
+     (major_release    : String;
+      architecture     : supported_arch)
    is
       procedure search (position : subpackage_crate.Cursor);
       procedure kill (position : built_package_crate.Cursor);
 
       id : port_index;
       counter : Natural := 0;
-      repo : constant String := HT.USS (PM.configuration.dir_repository) & "/";
+      repo : constant String := HT.USS (PM.configuration.dir_repository);
 
       procedure search (position : subpackage_crate.Cursor)
       is
          rec : subpackage_record renames subpackage_crate.Element (position);
          subpackage   : constant String := HT.USS (rec.subpackage);
-         package_name : HT.Text := HT.SUS (calculate_package_name (id, subpackage) & arc_ext);
+         arc_file     : constant String := calculate_package_name (id, subpackage) & arc_ext;
+         package_name : HT.Text := HT.SUS (arc_file);
+         skip_exist_check : constant Boolean := True;
       begin
          if package_list.Contains (package_name) then
-            package_list.Delete (package_list.Find_Index (package_name));
+            --  Expected package is found.  Before removing it from the list list, make sure
+            --  the ABI is correct.
+            if passed_abi_check (repo, id, subpackage, skip_exist_check) then
+               package_list.Delete (package_list.Find_Index (package_name));
+            else
+               TIO.Put_Line ("Marking " & arc_file & " as obsolete due to ABI mismatch.");
+            end if;
          end if;
       end search;
 
@@ -3042,13 +2976,14 @@ package body PortScan.Operations is
       is
          package_name : constant String := HT.USS (built_package_crate.Element (position));
       begin
-         DIR.Delete_File (repo & package_name);
+         DIR.Delete_File (repo & "/" & package_name);
          counter := counter + 1;
       exception
          when others =>
             TIO.Put (LAT.LF & "Failed to remove " & package_name);
       end kill;
    begin
+      establish_package_architecture (major_release, architecture);
       for index in port_index'First .. last_port loop
          id := index;
          all_ports (index).subpackages.Iterate (search'Access);

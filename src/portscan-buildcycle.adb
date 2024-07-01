@@ -64,6 +64,9 @@ package body PortScan.Buildcycle is
                            trackers (id).tail_time);
          return False;
       end if;
+      if testing then
+         mark_file_system (id, "genesis", environ);
+      end if;
       begin
          for phase in phases'Range loop
             phase_trackers (id) := phase;
@@ -82,18 +85,15 @@ package body PortScan.Buildcycle is
                R := exec_phase_generic (id, phase, environ);
 
             when configure =>
-               if testing then
-                  mark_file_system (id, "preconfig", environ);
-               end if;
+               --  if testing then
+               --    mark_file_system (id, "preconfig", environ);
+               --  end if;
                R := exec_phase_generic (id, phase, environ);
 
             when build =>
                R := exec_phase_build (id, environ);
 
             when stage =>
-               if testing then
-                  mark_file_system (id, "prestage", env_nochain);
-               end if;
                R := exec_phase_generic (id, phase, env_nochain);
 
             when test =>
@@ -101,12 +101,6 @@ package body PortScan.Buildcycle is
                   R := exec_phase_generic (id, phase, environ);
                end if;
                REP.unhook_toolchain (id);
-               if R and then testing then
-                  R := deinstall_all_packages (id, env_nochain);
-                  if R then
-                     R := install_run_depends (specification, id, env_nochain);
-                  end if;
-               end if;
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
@@ -115,9 +109,13 @@ package body PortScan.Buildcycle is
                                             phase_name    => phase2str (phase),
                                             seq_id        => trackers (id).seq_id,
                                             port_prefix   => port_prefix,
-                                            rootdir       => get_root (id));
+                                            rootdir       => get_root (id),
+                                            environ       => env_nochain);
 
             when install =>
+               if R and then testing then
+                  R := deinstall_all_packages (id, env_nochain);
+               end if;
                if testing then
                   R := exec_phase_install (id, pkgversion, env_nochain);
                end if;
@@ -299,51 +297,15 @@ package body PortScan.Buildcycle is
                             skip_header => False,
                             skip_footer => True,
                             environ     => environ);
-      if testing and then passed then
-         passed := detect_leftovers_and_MIA (id          => id,
-                                             action      => "preconfig",
-                                             description => "between port configure and build",
-                                             environ     => environ);
-      end if;
+      --  if testing and then passed then
+      --     passed := detect_leftovers_and_MIA (id          => id,
+      --                                         action      => "preconfig",
+      --                                         description => "between port configure and build",
+      --                                         environ     => environ);
+      --  end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return passed;
    end exec_phase_build;
-
-
-   --------------------------------------------------------------------------------------------
-   --  pkg_install_subroutine
-   --------------------------------------------------------------------------------------------
-   function pkg_install_subroutine (id : builders; root, env_vars, line : String) return Boolean
-   is
-      timed_out  : Boolean;
-      time_limit : execution_limit  := max_time_without_output (install);
-      PKG_ADD    : constant String  := "/usr/bin/ravensw add ";
-      portkey    : constant String  := convert_depend_origin_to_portkey (line);
-      ptid       : constant port_id := ports_keys (HT.SUS (portkey));
-      pkgname    : constant String  := HT.replace_all (line, LAT.Colon, LAT.Hyphen);
-      pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
-      pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
-      fullpath   : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
-      command    : constant String  := PM.chroot_cmd & root & env_vars & "ALTABI=ACCEPT-ALL " &
-                                       PKG_ADD & "/packages/All/" & pkgfile;
-      still_good : Boolean := True;
-   begin
-      if DIR.Exists (fullpath) then
-         TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
-         TIO.Close (trackers (id).log_handle);
-         still_good := generic_execute (id, command, timed_out, time_limit);
-         TIO.Open (File => trackers (id).log_handle,
-                   Mode => TIO.Append_File,
-                   Name => LOG.log_name (trackers (id).seq_id));
-         if timed_out then
-            TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-         end if;
-      else
-         still_good := False;
-         TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
-      end if;
-      return still_good;
-   end pkg_install_subroutine;
 
 
    --------------------------------------------------------------------------------------------
@@ -355,59 +317,184 @@ package body PortScan.Buildcycle is
       id            : builders;
       environ       : String) return Boolean
    is
+      procedure copy_to_local_repo (Position : string_crate.Cursor);
+      procedure check_run_depends (Position : string_crate.Cursor);
+      procedure clone_to_queue (Position : string_crate.Cursor);
+      procedure mark_seen (Position : string_crate.Cursor);
+      procedure generate_local_repo;
+      procedure install_catalog;
+      procedure prefetch_all_packages;
+      procedure install_dependency_pyramid;
+
       root       : constant String := get_root (id);
+      rvn_repos  : constant String := "/usr/bin/rvn -R /etc/repos ";
+      time_limit : constant execution_limit := max_time_without_output (install);
       still_good : Boolean := True;
-      markers    : HT.Line_Markers;
-      block      : constant String :=
-        specification.combined_dependency_origins (include_run  => not testing,
-                                                   limit_to_run => False);
+      depend_set : string_crate.Vector;
+      ondeck     : string_crate.Vector;
+      queue      : string_crate.Vector;
+      seen       : string_crate.Vector;
+      exact_list : HT.Text := HT.SU.Null_Unbounded_String;
+
+      procedure clone_to_queue (Position : string_crate.Cursor)
+      is
+         colon_nsv : HT.Text renames string_crate.Element (Position);
+      begin
+         queue.Append (colon_nsv);
+      end clone_to_queue;
+
+      procedure mark_seen (Position : string_crate.Cursor)
+      is
+         --  Only run for top-level dependencies, so piggy-back to build the install list.
+         colon_nsv : HT.Text renames string_crate.Element (Position);
+         pkgname   : constant String := HT.replace_all (HT.USS (colon_nsv), LAT.Colon, LAT.Hyphen);
+      begin
+         seen.Append (colon_nsv);
+         HT.SU.Append (exact_list, " " & pkgname);
+      end mark_seen;
+
+      procedure copy_to_local_repo (Position : string_crate.Cursor)
+      is
+         colon_nsv  : constant String  := HT.USS (string_crate.Element (Position));
+         portkey    : constant String  := convert_colon_nsv_to_portkey (colon_nsv);
+         ptid       : constant port_id := ports_keys (HT.SUS (portkey));
+         pkgname    : constant String  := HT.replace_all (colon_nsv, LAT.Colon, LAT.Hyphen);
+         pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
+         pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
+         systempath : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
+         slavepath  : constant String  := root & "/repo/files/" & pkgfile;
+      begin
+         if DIR.Exists (systempath) then
+            DIR.Copy_File (Source_Name => systempath, Target_Name => slavepath);
+         else
+            still_good := False;
+            TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
+         end if;
+      end copy_to_local_repo;
+
+      procedure check_run_depends (Position : string_crate.Cursor)
+      is
+         procedure search_subpkg (subpos : subpackage_crate.Cursor);
+
+         colon_nsv  : constant String  := HT.USS (string_crate.Element (Position));
+         portkey    : constant String  := convert_colon_nsv_to_portkey (colon_nsv);
+         ptid       : constant port_id := ports_keys (HT.SUS (portkey));
+         xx_subpkg  : constant String  := HT.specific_field (colon_nsv, 2, ":");
+
+         procedure search_subpkg (subpos : subpackage_crate.Cursor)
+         is
+            procedure quantum (rpos : spkg_id_crate.Cursor);
+
+            myrec : subpackage_record renames subpackage_crate.Element (subpos);
+
+            procedure quantum (rpos : spkg_id_crate.Cursor)
+            is
+               qrec : subpackage_identifier renames spkg_id_crate.Element (rpos);
+               rdid : port_index := qrec.port;
+            begin
+               declare
+                  rdn : constant String := HT.USS (all_ports (rdid).port_namebase);
+                  rds : constant String := HT.USS (qrec.subpackage);
+                  rdv : constant String := HT.USS (all_ports (rdid).port_variant);
+                  rdnsv : constant HT.Text := HT.SUS (rdn & ":" & rds & ":" & rdv);
+               begin
+                  if not seen.Contains (rdnsv) then
+                     seen.Append (rdnsv);
+                     ondeck.Append (rdnsv);
+                     depend_set.Append (rdnsv);
+                  end if;
+               end;
+            end quantum;
+         begin
+            if HT.equivalent (myrec.subpackage, xx_subpkg) then
+               myrec.spkg_run_deps.Iterate (quantum'Access);
+            end if;
+         end search_subpkg;
+      begin
+         all_ports (ptid).subpackages.Iterate (search_subpkg'Access);
+      end check_run_depends;
+
+      procedure generate_local_repo
+      is
+         cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end generate_local_repo;
+
+      procedure install_catalog
+      is
+         cmd        : constant String := rvn_repos & "catalog --force";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end install_catalog;
+
+      procedure prefetch_all_packages
+      is
+         cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end prefetch_all_packages;
+
+      procedure install_dependency_pyramid
+      is
+         cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd & HT.USS (exact_list);
+         timed_out  : Boolean;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end install_dependency_pyramid;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      HT.initialize_markers (block, markers);
+      specification.combined_dependency_nsv (include_run => True,
+                                             limit_to_run => False,
+                                             dependency_set => depend_set);
+      if depend_set.Is_Empty then
+         TIO.Put_Line (trackers (id).log_handle, "This package has no dependency requirements.");
+         LOG.log_phase_end (trackers (id).log_handle);
+         return still_good;
+      end if;
+
+      --  Recursively get child-dependencies.
+      seen.Clear;
+      queue.Clear;
+      depend_set.Iterate (clone_to_queue'Access);
+      depend_set.Iterate (mark_seen'Access);
       loop
-         exit when not still_good;
-         exit when not HT.next_line_present (block, markers);
-         declare
-            line : constant String  := HT.extract_line (block, markers);
-         begin
-            still_good := pkg_install_subroutine (id, root, environ, line);
-         end;
+         ondeck.Clear;
+         queue.Iterate (check_run_depends'Access);
+         exit when ondeck.Is_Empty;
+         queue.Clear;
+         ondeck.Iterate (clone_to_queue'Access);
       end loop;
+
+      depend_set.Iterate (copy_to_local_repo'Access);
+      TIO.Close (trackers (id).log_handle);
+
+      if still_good then
+         generate_local_repo;
+      end if;
+      if still_good then
+         install_catalog;
+      end if;
+      if still_good then
+         prefetch_all_packages;
+      end if;
+      if still_good then
+         install_dependency_pyramid;
+      end if;
+
+      TIO.Open (File => trackers (id).log_handle,
+                Mode => TIO.Append_File,
+                Name => LOG.log_name (trackers (id).seq_id));
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_depends;
-
-
-   --------------------------------------------------------------------------------------------
-   --  install_run_depends
-   --------------------------------------------------------------------------------------------
-   function  install_run_depends
-     (specification : PSP.Portspecs;
-      id            : builders;
-      environ       : String) return Boolean
-   is
-      phase_name : constant String := "test / install run dependencies";
-      root       : constant String := get_root (id);
-      still_good : Boolean := True;
-      markers    : HT.Line_Markers;
-      block      : constant String :=
-        specification.combined_dependency_origins (include_run  => True,
-                                                   limit_to_run => True);
-   begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      HT.initialize_markers (block, markers);
-      loop
-         exit when not still_good;
-         exit when not HT.next_line_present (block, markers);
-         declare
-            line : constant String  := HT.extract_line (block, markers);
-         begin
-            still_good := pkg_install_subroutine (id, root, environ, line);
-         end;
-      end loop;
-      LOG.log_phase_end (trackers (id).log_handle);
-      return still_good;
-   end install_run_depends;
 
 
    --------------------------------------------------------------------------------------------
@@ -419,14 +506,14 @@ package body PortScan.Buildcycle is
    is
       time_limit : execution_limit := max_time_without_output (test);
       root       : constant String := get_root (id);
-      phase_name : constant String := "test / deinstall all packages";
-      PKG_RM_ALL : constant String := "/usr/bin/ravensw delete -a -y ";
-      command    : constant String := PM.chroot_cmd & root & environ & PKG_RM_ALL;
+      phase_name : constant String := "install / test / deinstall all packages";
+      CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify";
+      command    : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      TIO.Put_Line (trackers (id).log_handle, "===>  Autoremoving orphaned packages");
+      TIO.Put_Line (trackers (id).log_handle, "===>  Removing all packages");
       TIO.Close (trackers (id).log_handle);
       still_good := generic_execute (id, command, timed_out, time_limit);
       TIO.Open (File => trackers (id).log_handle,
@@ -445,38 +532,90 @@ package body PortScan.Buildcycle is
       pkgversion    : String;
       environ       : String) return Boolean
    is
-      procedure install_it (position : subpackage_crate.Cursor);
+      procedure generate_local_repo;
+      procedure install_catalog;
+      procedure prefetch_all_packages;
+      procedure install_built_package;
+      procedure build_list (position : subpackage_crate.Cursor);
 
       time_limit : execution_limit := max_time_without_output (install);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_ADD    : constant String := "/usr/bin/ravensw add ";
+      variant    : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
+      rvn_repos  : constant String := "/usr/bin/rvn -R /etc/repos ";
+      INST_PRIME : constant String := "install --no-repo-update --exact-match --yes";
+      exact_list : HT.Text := HT.SU.Null_Unbounded_String;
       still_good : Boolean := True;
-      timed_out  : Boolean;
 
-      procedure install_it (position : subpackage_crate.Cursor)
+      procedure generate_local_repo
+      is
+         cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+      begin
+         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+      exception
+         when cycle_cmd_error => still_good := False;
+      end generate_local_repo;
+
+      procedure install_catalog
+      is
+         cmd        : constant String := rvn_repos & "catalog --force";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+      begin
+         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+      exception
+         when cycle_cmd_error => still_good := False;
+      end install_catalog;
+
+      procedure prefetch_all_packages
+      is
+         cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+      begin
+         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+      exception
+         when cycle_cmd_error => still_good := False;
+      end prefetch_all_packages;
+
+      procedure build_list (position : subpackage_crate.Cursor)
       is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String :=  HT.USS (rec.subpackage);
-         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         PKG_FILE   : constant String := "/packages/All/" & pkgname & arc_ext;
-         command    : constant String := PM.chroot_cmd & root & environ & PKG_ADD & PKG_FILE;
+         pkgname    : String := calculate_nsv (trackers (id).seq_id, subpackage);
       begin
-         if still_good then
-            TIO.Put_Line (trackers (id).log_handle, "===>  Installing " & pkgname & " package");
-            TIO.Close (trackers (id).log_handle);
-            still_good := generic_execute (id, command, timed_out, time_limit);
-            TIO.Open (File => trackers (id).log_handle,
-                      Mode => TIO.Append_File,
-                      Name => LOG.log_name (trackers (id).seq_id));
-            if timed_out then
-               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-            end if;
+         HT.SU.Append (exact_list, " " & pkgname);
+      end build_list;
+
+      procedure install_built_package
+      is
+         cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
+         command    : constant String := PM.chroot_cmd & root & environ & cmd & HT.USS (exact_list);
+         timed_out  : Boolean;
+      begin
+         TIO.Put_Line (trackers (id).log_handle,
+                       "===>  Install the " & variant & " variant of the " & namebase & " package");
+         TIO.Close (trackers (id).log_handle);
+         still_good := generic_execute (id, command, timed_out, time_limit);
+         TIO.Open (File => trackers (id).log_handle,
+                   Mode => TIO.Append_File,
+                   Name => LOG.log_name (trackers (id).seq_id));
+         if timed_out then
+            TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
          end if;
-      end install_it;
+      end install_built_package;
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (install));
-      all_ports (trackers (id).seq_id).subpackages.Iterate (install_it'Access);
+      generate_local_repo;
+      if still_good then
+         install_catalog;
+      end if;
+      if still_good then
+         prefetch_all_packages;
+      end if;
+      if still_good then
+         all_ports (trackers (id).seq_id).subpackages.Iterate (build_list'Access);
+         install_built_package;
+      end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_install;
@@ -674,15 +813,18 @@ package body PortScan.Buildcycle is
       SHLL : constant String := "SHELL=/bin/sh ";
       RAVN : constant String := "RAVENADM=building ";
       SSLV : constant String := "SSL_VARIANT=" & ssl_variant & " ";
-      PKG8 : constant String := "RAVENSW_DBDIR=/var/db/pkg8 " &
-                                "RAVENSW_CACHEDIR=/var/cache/pkg8 ";
+      RVN8 : constant String := "RVN_DBDIR=/var/db/rvn " &
+                                "RVN_CACHEDIR=/var/cache/rvn " &
+                                "KEYWORDS_DIR=/xports/Mk/Keywords " &
+                                "SKIP_DEV_SUBPKG=false " &
+                                "SKIP_INFO_SUBPKG=false ";
       CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog ";
       SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog ";
       CENV : constant String := HT.USS (customenv);
       DYLD : constant String := dyld_fallback;
    begin
       return " /usr/bin/env -i " &
-        CENV & LANG & TERM & SHLL & USER & HOME & SGML & CXML & RAVN & SSLV & PKG8 & DYLD & PATH;
+        CENV & LANG & TERM & SHLL & USER & HOME & SGML & CXML & RAVN & SSLV & RVN8 & DYLD & PATH;
    end environment_override;
 
 
@@ -748,44 +890,53 @@ package body PortScan.Buildcycle is
       pkgversion    : String;
       environ       : String) return Boolean
    is
-      procedure deinstall_it (position : subpackage_crate.Cursor);
+      procedure concatenate (position : subpackage_crate.Cursor);
 
       time_limit : execution_limit := max_time_without_output (deinstall);
       root       : constant String := get_root (id);
       namebase   : constant String := HT.USS (all_ports (trackers (id).seq_id).port_namebase);
-      PKG_DELETE : constant String := "/usr/bin/ravensw delete -f -y ";
+      variant    : constant String := HT.USS (all_ports (trackers (id).seq_id).port_variant);
+      CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify --force";
       still_good : Boolean := True;
       dyn_good   : Boolean;
       timed_out  : Boolean;
+      rem_list   : HT.Text;
 
-      procedure deinstall_it (position : subpackage_crate.Cursor)
+      procedure concatenate (position : subpackage_crate.Cursor)
       is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
-         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := PM.chroot_cmd & root & environ & PKG_DELETE & pkgname;
+         nsv        : constant String := calculate_nsv (trackers (id).seq_id, subpackage);
       begin
-         if still_good then
-            TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & pkgname & " package");
-            TIO.Close (trackers (id).log_handle);
-            still_good := generic_execute (id, command, timed_out, time_limit);
-            TIO.Open (File => trackers (id).log_handle,
-                      Mode => TIO.Append_File,
-                      Name => LOG.log_name (trackers (id).seq_id));
-            if timed_out then
-               TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
-            end if;
-         end if;
-      end deinstall_it;
+         HT.SU.Append (rem_list, " " & nsv);
+      end concatenate;
+
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
       dyn_good := log_linked_libraries (id, pkgversion, environ);
-      all_ports (trackers (id).seq_id).subpackages.Iterate (deinstall_it'Access);
+      --  all_ports (trackers (id).seq_id).subpackages.Iterate (concatenate'Access);
+
+      TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & namebase & ":" & variant);
+      TIO.Close (trackers (id).log_handle);
+
+      declare
+         --  command : constant String :=
+         --    PM.chroot_cmd & root & environ & DELETE_CMD & HT.USS (rem_list);
+         command : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
+      begin
+         still_good := generic_execute (id, command, timed_out, time_limit);
+      end;
+
+      TIO.Open (trackers (id).log_handle, TIO.Append_File, LOG.log_name (trackers (id).seq_id));
+      if timed_out then
+         TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+      end if;
+
       if still_good then
          still_good := detect_leftovers_and_MIA
            (id          => id,
-            action      => "prestage",
-            description => "between staging and package deinstallation",
+            action      => "genesis",
+            description => "between clean builder and package deinstallation",
             environ     => environ);
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
@@ -885,9 +1036,10 @@ package body PortScan.Buildcycle is
       is
          rec        : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
-         pkgname    : String := calculate_package_name (trackers (id).seq_id, subpackage);
+         pkg_nsv    : constant String := calculate_nsv (trackers (id).seq_id, subpackage);
+         pkgname    : constant String := calculate_package_name (trackers (id).seq_id, subpackage);
          command    : constant String := PM.chroot_cmd & root & environ &
-                                         "/usr/bin/ravensw query %Fp " & pkgname;
+                      "/usr/bin/rvn query --exact-match '{xfile:path}' " & pkg_nsv;
          comres     : String :=  generic_system_command (command);
          markers    : HT.Line_Markers;
       begin
@@ -920,7 +1072,9 @@ package body PortScan.Buildcycle is
          end loop;
          if not trackers (id).dynlink.Is_Empty then
             TIO.Put_Line (trackers (id).log_handle, "===> " & pkgname & " subpackage:");
+            TIO.Put_Line (trackers (id).log_handle, "");
             trackers (id).dynlink.Iterate (log_dump'Access);
+            TIO.Put_Line (trackers (id).log_handle, "");
          end if;
       exception
          when others => null;
@@ -1363,17 +1517,13 @@ package body PortScan.Buildcycle is
       description   : String;
       environ       : String) return Boolean
    is
-      package crate is new CON.Vectors (Index_Type   => Positive,
-                                       Element_Type => HT.Text,
-                                       "="          => HT.SU."=");
-      package local_sorter is new crate.Generic_Sorting ("<" => HT.SU."<");
       function  ignore_modifications return Boolean;
-      procedure print (cursor : crate.Cursor);
+      procedure print (cursor : string_crate.Cursor);
       procedure close_active_modifications;
 
       root      : constant String := get_root (id);
       mtfile    : constant String := "/etc/mtree." & action & ".exclude";
-      filename  : constant String := root & "/tmp/mtree." & action;
+      filename  : constant String := "/tmp/mtree." & action;
       command   : constant String := PM.chroot_cmd & root & environ &
                   "/usr/bin/mtree -X " & mtfile & " -f " & filename & " -p /";
       lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
@@ -1385,9 +1535,9 @@ package body PortScan.Buildcycle is
       activemod : Boolean := False;
       modport   : HT.Text := HT.blank;
       reasons   : HT.Text := HT.blank;
-      leftover  : crate.Vector;
-      missing   : crate.Vector;
-      changed   : crate.Vector;
+      leftover  : string_crate.Vector;
+      missing   : string_crate.Vector;
+      changed   : string_crate.Vector;
       markers   : HT.Line_Markers;
 
       --  we can't use generic_system_command because exit code /= 0 normally
@@ -1400,9 +1550,6 @@ package body PortScan.Buildcycle is
          --     #ls-R files from texmf are often regenerated
          --  B) share/xml/catalog.ports
          --     # xmlcatmgr is constantly updating catalog.ports, ignore
-         --  C) share/octave/octave_packages
-         --     # Octave packages database, blank lines can be inserted
-         --     # between pre-install and post-deinstall
          --  D) info/dir | */info/dir
          --  E) lib/gio/modules/giomodule.cache
          --     # gio modules cache could be modified for any gio modules
@@ -1416,7 +1563,6 @@ package body PortScan.Buildcycle is
          fnlen    : constant Natural := filename'Last;
       begin
          if filename = lbase & "/share/xml/catalog.ports" or else
-           filename = lbase & "/share/octave/octave_packages" or else
            filename = lbase & "/share/info/dir" or else
            filename = lbase & "/lib/gio/modules/giomodule.cache" or else
            filename = lbase & "/share/pear/.depdb" or else
@@ -1462,15 +1608,15 @@ package body PortScan.Buildcycle is
          modport := HT.blank;
       end close_active_modifications;
 
-      procedure print (cursor : crate.Cursor)
+      procedure print (cursor : string_crate.Cursor)
       is
-         dossier : constant String := HT.USS (crate.Element (cursor));
+         dossier : constant String := HT.USS (string_crate.Element (cursor));
       begin
          TIO.Put_Line (trackers (id).log_handle, LAT.HT & dossier);
       end print;
 
    begin
-       HT.initialize_markers (comres, markers);
+      HT.initialize_markers (comres, markers);
       loop
          skiprest := False;
          exit when not HT.next_line_present (comres, markers);
@@ -1554,9 +1700,9 @@ package body PortScan.Buildcycle is
          end;
       end loop;
       close_active_modifications;
-      local_sorter.Sort (Container => changed);
-      local_sorter.Sort (Container => missing);
-      local_sorter.Sort (Container => leftover);
+      sorter.Sort (Container => changed);
+      sorter.Sort (Container => missing);
+      sorter.Sort (Container => leftover);
 
       TIO.Put_Line (trackers (id).log_handle,
                     LAT.LF & "=> Checking for system changes " & description);

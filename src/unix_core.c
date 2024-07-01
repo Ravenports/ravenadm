@@ -22,10 +22,12 @@
  || defined __sun__
 
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <termios.h>
 #include <unistd.h>
 #include <signal.h>
+#include <sys/fcntl.h>
 
 #ifdef __sun__
 #define u_int8_t	uint8_t
@@ -129,6 +131,22 @@ __ignore_background_tty_reads ()
    /* return 1 on failure, 0 on success */
    if (signal(SIGTTIN, SIG_IGN) == SIG_ERR) { return 1; }
    return 0;
+}
+
+/*
+ * returns 1 if given file has permissions of 400 octal
+ */
+int
+file_at_400 (const char * path) {
+  struct stat sb;
+  unsigned short perms;
+  if (lstat(path, &sb) == 0) {
+    perms = sb.st_mode & (S_IRWXU | S_IRWXG | S_IRWXO);
+    if (perms == 256) {
+      return 1;
+    }
+  }
+  return 0;
 }
 
 #endif /* Supported opsys */

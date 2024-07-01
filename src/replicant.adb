@@ -102,7 +102,7 @@ package body Replicant is
               macos     |
               sunos     => null;
       end case;
-      create_mtree_exc_preinst (mm);
+      create_mtree_exc_genesis (mm);
       create_mtree_exc_preconfig (mm);
 
    end initialize;
@@ -441,16 +441,16 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  create_mtree_exc_preinst
    --------------------------------------------------------------------------------------------
-   procedure create_mtree_exc_preinst (path_to_mm : String)
+   procedure create_mtree_exc_genesis (path_to_mm : String)
    is
       mtreefile : TIO.File_Type;
-      filename  : constant String := path_to_mm & "/mtree.prestage.exclude";
+      filename  : constant String := path_to_mm & "/mtree.genesis.exclude";
    begin
       TIO.Create (File => mtreefile, Mode => TIO.Out_File, Name => filename);
       write_common_mtree_exclude_base (mtreefile);
-      write_preinstall_section (mtreefile);
+      write_genesis_section (mtreefile);
       TIO.Close (mtreefile);
-   end create_mtree_exc_preinst;
+   end create_mtree_exc_genesis;
 
 
    --------------------------------------------------------------------------------------------
@@ -512,18 +512,23 @@ package body Replicant is
          & "./dev" & LAT.LF
          & "./distfiles" & LAT.LF
          & "./home" & LAT.LF
-         & "./packages" & LAT.LF
          & "./port" & LAT.LF
          & "./proc" & LAT.LF
+         & RB & "/lib/python*/__pycache__" & LAT.LF
+         & RB & "/lib/python*/*/__pycache__" & LAT.LF
+         & RB & "/lib/python*/*/*/__pycache__" & LAT.LF
+         & RB & "/lib/python*/site-packages/*" & LAT.LF
+         & "./repo" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
          & write_usr
          & opsys_specific
-         & "./var/db/rvnfontconfig" & LAT.LF
+         & "./var/cache" & LAT.LF
+         & "./var/db/fontconfig" & LAT.LF
          & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
-         & "./xports" & LAT.LF
-         & RB & "/toolchain"
+         & "./var/spool" & LAT.LF
+         & "./xports"
         );
    end write_common_mtree_exclude_base;
 
@@ -531,7 +536,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  write_preinstall_section
    --------------------------------------------------------------------------------------------
-   procedure write_preinstall_section (mtreefile : TIO.File_Type)
+   procedure write_genesis_section (mtreefile : TIO.File_Type)
    is
       RB : String := LAT.Full_Stop & HT.USS (ravenbase);
    begin
@@ -540,29 +545,29 @@ package body Replicant is
            "./etc/group" & LAT.LF
          & "./etc/make.conf" & LAT.LF
          & "./etc/make.conf.bak" & LAT.LF
-         & "./etc/make.nxb.conf" & LAT.LF
          & "./etc/master.passwd" & LAT.LF
+         & "./etc/mtree.*" & LAT.LF
          & "./etc/passwd" & LAT.LF
          & "./etc/pwd.db" & LAT.LF
+         & "./etc/resolv.conf" & LAT.LF
+         & "./etc/resolv.conf.orig" & LAT.LF
          & "./etc/shells" & LAT.LF
          & "./etc/spwd.db" & LAT.LF
          & "./etc/ld.so.conf.d/x86_64-linux-gnu.conf" & LAT.LF
-         & "./var/db" & LAT.LF
+         & "./var/db/rvn" & LAT.LF
          & "./var/log" & LAT.LF
          & "./var/mail" & LAT.LF
-         & "./var/spool" & LAT.LF
+         & "./var/run" & LAT.LF
          & "./var/tmp" & LAT.LF
          & RB & "/etc/gconf/gconf.xml.defaults/%gconf-tree*.xml" & LAT.LF
-         & RB & "/lib/gio/modules/giomodule.cache" & LAT.LF
          & RB & "/share/info/dir" & LAT.LF
          & RB & "/share/info" & LAT.LF
          & RB & "/share/*/info/dir" & LAT.LF
          & RB & "/share/*/info" & LAT.LF
          & RB & "/*/ls-R" & LAT.LF
-         & RB & "/share/octave/octave_packages" & LAT.LF
          & RB & "/share/xml/catalog.ports"
         );
-   end write_preinstall_section;
+   end write_genesis_section;
 
 
    --------------------------------------------------------------------------------------------
@@ -840,6 +845,7 @@ package body Replicant is
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
          when devices     => return mount_base & root_devices;
+         when repofiles   => return mount_base & root_repofiles;
          when frameworks  => return mount_base & root_frameworks;
          when localbase   => return mount_base & HT.USS (PM.configuration.dir_localbase);
          when toolchain   => return mount_base & HT.USS (PM.configuration.dir_localbase) &
@@ -855,7 +861,6 @@ package body Replicant is
    begin
       case point is
          when xports    => return HT.USS (PM.configuration.dir_conspiracy);
-         when packages  => return HT.USS (PM.configuration.dir_packages);
          when toolchain => return HT.USS (PM.configuration.dir_toolchain);
          when distfiles => return HT.USS (PM.configuration.dir_distfiles);
          when ccache    => return HT.USS (PM.configuration.dir_ccache);
@@ -992,13 +997,9 @@ package body Replicant is
             case platform_type is
                when macos | openbsd =>
                   set_folder_mode (slave_base & lbase, unlock);
-                  forge_directory (location (slave_base, toolchain));
                when others =>
                   forge_directory (location (slave_local, toolchain));
-                  mount_nullfs (slave_local, slave_base & lbase, readwrite);
             end case;
-         else
-            forge_directory (location (slave_base, toolchain));
          end if;
       else
          --  Limit slave to 24Gb, covers localbase + construction mainly
@@ -1006,7 +1007,6 @@ package body Replicant is
          if lbase = bsd_localbase then
             mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
          end if;
-         forge_directory (location (slave_base, toolchain));
       end if;
 
       for mnt in safefolders'Range loop
@@ -1066,7 +1066,6 @@ package body Replicant is
       folder_access (location (slave_base, home), lock);
       folder_access (location (slave_base, root), lock);
 
-      mount_nullfs (mount_target (packages),  location (slave_base, packages),  mode => readonly);
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
       if need_procfs or else
@@ -1095,6 +1094,7 @@ package body Replicant is
       create_etc_shells        (etc_path);
       create_sun_files         (etc_path);
       create_etc_localtime     (etc_path);
+      create_repo_conf         (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
 
    exception
@@ -1132,7 +1132,6 @@ package body Replicant is
       end if;
 
       unmount (location (slave_base, distfiles), retry1min);
-      unmount (location (slave_base, packages), retry1min);
 
       if DIR.Exists (slave_base & toolchain_tag) then
          unhook_toolchain (id);
@@ -1190,6 +1189,7 @@ package body Replicant is
       use type DIR.File_Kind;
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
+      lbase      : constant String := HT.USS (PM.configuration.dir_localbase);
       forged     : TIO.File_Type;
    begin
       --  When hook_toolchain is called, there very well may be installed packages that
@@ -1199,6 +1199,22 @@ package body Replicant is
       --  For NFS-mount systems, the toolchain is hardlink-copied at toolchain-off.  The
       --  toolchain and toolchain-off are renamed toolchain-packages and toolchain respectively.
       --  This is reversed during unhooking.
+
+      if PM.configuration.avoid_tmpfs then
+         if lbase = bsd_localbase then
+            case platform_type is
+               when macos | openbsd =>
+                  forge_directory (location (slave_base, toolchain));
+               when others =>
+                  mount_nullfs (slave_base & "_localbase", slave_base & lbase, readwrite);
+            end case;
+         else
+            forge_directory (location (slave_base, toolchain));
+         end if;
+      else
+         forge_directory (location (slave_base, toolchain));
+      end if;
+
       case platform_type is
          when macos | openbsd =>
             DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-packaged");
@@ -1232,6 +1248,12 @@ package body Replicant is
             unmount (tc_path);
       end case;
       DIR.Delete_File (slave_base & toolchain_tag);
+      begin
+         DIR.Delete_Directory (location (slave_base, toolchain));
+      exception
+         when others =>
+            null;  -- File silently.  The only impact is leftover file check failure
+      end;
    end unhook_toolchain;
 
 
@@ -1434,7 +1456,7 @@ package body Replicant is
       pwd    : constant String := "/pwd.db";
       group  : constant String := "/group";
       mtree1 : constant String := "/mtree.preconfig.exclude";
-      mtree2 : constant String := "/mtree.prestage.exclude";
+      mtree2 : constant String := "/mtree.genesis.exclude";
       ldcnf2 : constant String := "/ld.so.conf";
 
       procedure install (filename : String) is
@@ -1529,6 +1551,24 @@ package body Replicant is
       end if;
       TIO.Close (shells);
    end create_etc_shells;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_repo_conf
+   --------------------------------------------------------------------------------------------
+   procedure create_repo_conf (path_to_etc : String)
+   is
+      conf : TIO.File_Type;
+      reposdir : constant String := path_to_etc & "/repos";
+   begin
+      DIR.Create_Path (reposdir);
+      TIO.Create (conf, TIO.Out_File, reposdir & "/repo.conf");
+      TIO.Put_Line (conf, "local: {");
+      TIO.Put_Line (conf, "   url: file:///repo");
+      TIO.Put_Line (conf, "   enabled: true");
+      TIO.Put_Line (conf, "}");
+      TIO.Close (conf);
+   end create_repo_conf;
 
 
    --------------------------------------------------------------------------------------------
