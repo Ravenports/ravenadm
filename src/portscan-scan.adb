@@ -3246,7 +3246,7 @@ package body PortScan.Scan is
       erase_filename ("04_skipped_list");
       erase_filename ("05_abnormal_command_output");
       erase_filename ("06_obsolete_packages");
-      erase_filename ("07_ncurses_redirection");
+      erase_filename ("07_display_events");
 
       if not DIR.Exists (variant_index) then
          return;

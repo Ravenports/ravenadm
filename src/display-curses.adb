@@ -91,7 +91,6 @@ package body Display.Curses is
    -----------------------------------
    procedure set_full_redraw_next_update is
    begin
-      Display.Log.scribe ("Request a full redraw at next update");
       draw_static_summary_zone;
       draw_static_builders_zone;
       for zone in zones'Range loop
@@ -139,7 +138,6 @@ package body Display.Curses is
                         attribute => bright,
                         pen_color => c_sumlabel);
    begin
-      Display.Log.scribe ("Draw static summary zone");
       Scrawl (summary, line1, 0);
       Scrawl (summary, line2, 1);
    end draw_static_summary_zone;
@@ -182,7 +180,6 @@ package body Display.Curses is
            attribute => normal,
            pen_color => c_tableheader);
    begin
-      Display.Log.scribe ("Draw static builders zone");
       Scrawl (builder, dashes, 0);
       Scrawl (builder, dashes, 2);
       Scrawl (builder, dashes, lastrow);
@@ -289,7 +286,6 @@ package body Display.Curses is
       L2F5 : constant String := pad (HT.int2str (data.impulse), 4);
 
    begin
-      Display.Log.scribe ("Summarize");
       if data.swap = 100.0 then
          L2F4 := " 100%";
       elsif data.swap > 100.0 then
@@ -355,7 +351,6 @@ package body Display.Curses is
          Scrawl (builder, info, row, col);
       end colorado;
    begin
-      Display.Log.log_builder_update (BR);
       if SIG.graceful_shutdown_requested then
          Display.Log.scribe ("Act on shutdown message");
          Scrawl (builder, shutdown_message, 1);
@@ -625,7 +620,6 @@ package body Display.Curses is
    ------------------------------------------------------------------------
    procedure Refresh_Zone (zone : zones) is
    begin
-      Display.Log.scribe ("Redraw " & zone'Img & " zone");
       TIC.Refresh (Win => zone_window (zone));
    exception
       when TIC.Curses_Exception => null;
@@ -709,10 +703,14 @@ package body Display.Curses is
    ------------------------------------------------------------------------
    --  log_non_curses_exception
    ------------------------------------------------------------------------
-   procedure log_non_curses_exception (message_text : String) is
+   procedure log_non_curses_exception (message_text : String)
+   is
+      title : constant text := "DISPLAY EXCEPTION EXCOUNTERED !!";
    begin
-      PortScan.Log.scribe (PortScan.total, "DISPLAY EXCEPTION EXCOUNTERED !!", False);
+      PortScan.Log.scribe (PortScan.total, title, False);
       PortScan.Log.scribe (PortScan.total, message_text, True);
+      Display.Log.scribe (title);
+      Display.Log.scribe (message_text);
    end log_non_curses_exception;
 
 end Display.Curses;

@@ -6,20 +6,17 @@ with Ada.Text_IO;
 
 package Display.Log is
 
-   --  This supports logging curses operations (for the purpose of troubleshooting)
-   --  It is activated by setting LOG_RCURSES in the environment
+   --  This supports logging exceptions during ncurses execution.  It is always on
 
    procedure start_logging;
    procedure stop_logging;
    procedure scribe (line : String);
-   procedure log_builder_update (rec : builder_rec);
 
 private
 
    package TIO renames Ada.Text_IO;
 
    dlog_handle        : TIO.File_Type;
-   display_logging_on : Boolean := False;
 
    function timestamp return String;
 

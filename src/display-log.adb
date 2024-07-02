@@ -17,24 +17,14 @@ package body Display.Log is
    --  start_logging
    --------------------------------------------------------------------------------------------
    procedure start_logging is
+      logpath : constant String := HT.USS (PM.configuration.dir_logs) & "/logs/07_display_events";
    begin
-      --  Remaining routines will be ignored if display_logging_on remains false;
-      if Unix.env_variable_defined ("LOG_RCURSES") then
-         display_logging_on := True;
-         declare
-            logpath : constant String := HT.USS (PM.configuration.dir_logs) &
-                                         "/logs/07_display_events.log";
-         begin
-            TIO.Create (File => dlog_handle,
-                        Mode => TIO.Out_File,
-                        Name => logpath);
-            TIO.Put_Line (dlog_handle,
-                          "Terminal events log started : " & timestamp);
-            TIO.Put_Line (dlog_handle,
-                          "==========================================");
-            TIO.Flush (dlog_handle);
-         end;
-      end if;
+      TIO.Create (File => dlog_handle, Mode => TIO.Out_File, Name => logpath);
+      TIO.Put_Line (dlog_handle, "Terminal events log started : " & timestamp);
+      TIO.Put_Line (dlog_handle, "==========================================");
+      TIO.Flush (dlog_handle);
+      TIO.Set_Output (dlog_handle);
+      TIO.Set_Error (dlog_handle);
    end start_logging;
 
 
@@ -43,10 +33,10 @@ package body Display.Log is
    --------------------------------------------------------------------------------------------
    procedure stop_logging is
    begin
-      if display_logging_on then
-         scribe ("Terminal closed.");
-         TIO.Close (dlog_handle);
-      end if;
+      scribe ("Terminal closed.");
+      TIO.Set_Output (TIO.Standard_Output);
+      TIO.Set_Error (TIO.Standard_Error);
+      TIO.Close (dlog_handle);
    end stop_logging;
 
 
@@ -72,29 +62,6 @@ package body Display.Log is
       end if;
    end scribe;
 
-
-   --------------------------------------------------------------------------------------------
-   --  log_builder_update
-   --------------------------------------------------------------------------------------------
-   procedure log_builder_update (rec : builder_rec)
-   is
-      slave : constant String := "Slave " & rec.slavid;
-      line  : constant String :=
-        slave
-        & " | " & rec.origin
-        & " | " & rec.phase
-        & " | " & rec.Elapsed
-        & " | " & rec.LLines
-        & " lines";
-   begin
-      if rec.shutdown then
-         scribe (slave & " | SHUTDOWN");
-      elsif rec.idle then
-         scribe (slave & " | IDLE");
-      else
-         scribe (line);
-      end if;
-   end log_builder_update;
 
 
 end Display.Log;
