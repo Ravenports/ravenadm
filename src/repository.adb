@@ -176,4 +176,28 @@ package body Repository is
       return Unix.external_command (command);
    end build_repository;
 
+
+   ------------------------
+   --  pseudo constants  --
+   ------------------------
+   function cfgfile_prefix return String is begin
+      return PM.raven_confdir & "/" & HT.USS (PM.configuration.profile) & "-";
+   end cfgfile_prefix;
+
+   function cfg_sign_command return String is begin
+      return cfgfile_prefix & "signing_command";
+   end cfg_sign_command;
+
+   function cfg_fingerprint return String is begin
+      return cfgfile_prefix & "fingerprint";
+   end cfg_fingerprint;
+
+   function cfg_key_private return String is begin
+      return cfgfile_prefix & "private.key";
+   end cfg_key_private;
+
+   function cfg_key_public return String is begin
+      return cfgfile_prefix & "public.key";
+   end cfg_key_public;
+
 end Repository;

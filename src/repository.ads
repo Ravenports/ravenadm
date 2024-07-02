@@ -22,13 +22,19 @@ private
    bad_command : exception;
 
    --  ${LOCALBASE}/etc/raven/[profile]-
-   cfgfile_prefix : constant String :=
-     PM.raven_confdir & "/" & HT.USS (PM.configuration.profile) & "-";
+   --  cfgfile_prefix : constant String :=
+   --  PM.raven_confdir & "/" & HT.USS (PM.configuration.profile) & "-";
 
-   cfg_sign_command : constant String := cfgfile_prefix & "signing_command";
-   cfg_fingerprint  : constant String := cfgfile_prefix & "fingerprint";
-   cfg_key_private  : constant String := cfgfile_prefix & "private.key";
-   cfg_key_public   : constant String := cfgfile_prefix & "public.key";
+   --  cfg_sign_command : constant String := cfgfile_prefix & "signing_command";
+   --  cfg_fingerprint  : constant String := cfgfile_prefix & "fingerprint";
+   --  cfg_key_private  : constant String := cfgfile_prefix & "private.key";
+   --  cfg_key_public   : constant String := cfgfile_prefix & "public.key";
+
+   function cfgfile_prefix return String;
+   function cfg_sign_command return String;
+   function cfg_fingerprint return String;
+   function cfg_key_private return String;
+   function cfg_key_public return String;
 
    --  The check for existence of both [profile]-signing_command and
    --  [profile]-fingerprint.  If only one exists, a non-fatal notice is
