@@ -705,7 +705,7 @@ package body Display.Curses is
    ------------------------------------------------------------------------
    procedure log_non_curses_exception (message_text : String)
    is
-      title : constant text := "DISPLAY EXCEPTION EXCOUNTERED !!";
+      title : constant String := "DISPLAY EXCEPTION EXCOUNTERED !!";
    begin
       PortScan.Log.scribe (PortScan.total, title, False);
       PortScan.Log.scribe (PortScan.total, message_text, True);
