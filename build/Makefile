@@ -15,7 +15,7 @@ unix_core.o: ../src/unix_core.c
 ravenexec: ../ravenexec/ravenexec.c
 	${CC} ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
 
-ADAFLAGS= -gnatA -gnatyaAbBcdehfiklM99nOprsStx -fstack-check
+ADAFLAGS= -gnatA -gnatyaAbBcdehfiklM100nOprsStx -fstack-check
 
 ravenadm: unix_core.o
 .if empty(WITH_DISPLAY)

@@ -56,10 +56,8 @@ package body Display.Log is
    --------------------------------------------------------------------------------------------
    procedure scribe (line : String) is
    begin
-      if display_logging_on then
-         TIO.Put_Line (dlog_handle, timestamp & " : " & line);
-         TIO.Flush (dlog_handle);
-      end if;
+      TIO.Put_Line (dlog_handle, timestamp & " : " & line);
+      TIO.Flush (dlog_handle);
    end scribe;
 
 
