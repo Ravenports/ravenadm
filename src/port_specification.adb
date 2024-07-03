@@ -3298,7 +3298,7 @@ package body Port_Specification is
                if num_reasons > 1 then
                   HT.SU.Append (result, "[Reason " & HT.int2str (curnum) & "] ");
                end if;
-               HT.SU.Append (result, reason);
+               HT.SU.Append (result, reason & " ");
                curnum := curnum + 1;
             end if;
          end check_list;

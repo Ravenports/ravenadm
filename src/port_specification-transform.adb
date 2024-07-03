@@ -666,27 +666,31 @@ package body Port_Specification.Transform is
             used   : Boolean := False;
             split  : Boolean := True;
          begin
-            if original_key = UTL.cpu_arch (arch_standard) then
-               used  := True;
-               split := False;
-            elsif original_key = UTL.lower_opsys (opsys) then
-               if HT.leads (reason, "REL_") then
-                  used := (HT.partial_search (reason, 4, separator) = osmajor);
-               elsif HT.leads (reason, "GTE_") then
-                  used := GTE (gen_release  => osrelease,
-                               spec_release => HT.partial_search (reason, 4, separator));
-               elsif HT.leads (reason, "LTE_") then
-                  used := LTE (gen_release  => osmajor,
-                               spec_release => HT.partial_search (reason, 4, separator));
-               elsif HT.leads (reason, cpu_ia64) then
-                  used := (HT.partial_search (reason, cpu_ia64'Length, separator) = osmajor);
-               elsif HT.leads (reason, cpu_ia32) then
-                  used := (HT.partial_search (reason, cpu_ia32'Length, separator) = osmajor);
-               elsif HT.leads (reason, cpu_armv8) then
-                  used := (HT.partial_search (reason, cpu_armv8'Length, separator) = osmajor);
-               else
+            if UTL.valid_cpu_arch (original_key) then
+               if original_key = UTL.cpu_arch (arch_standard) then
                   used  := True;
                   split := False;
+               end if;
+            elsif UTL.valid_lower_opsys (original_key) then
+               if original_key = UTL.lower_opsys (opsys) then
+                  if HT.leads (reason, "REL_") then
+                     used := (HT.partial_search (reason, 4, separator) = osmajor);
+                  elsif HT.leads (reason, "GTE_") then
+                     used := GTE (gen_release  => osrelease,
+                                  spec_release => HT.partial_search (reason, 4, separator));
+                  elsif HT.leads (reason, "LTE_") then
+                     used := LTE (gen_release  => osmajor,
+                                  spec_release => HT.partial_search (reason, 4, separator));
+                  elsif HT.leads (reason, cpu_ia64) then
+                     used := (HT.partial_search (reason, cpu_ia64'Length, separator) = osmajor);
+                  elsif HT.leads (reason, cpu_ia32) then
+                     used := (HT.partial_search (reason, cpu_ia32'Length, separator) = osmajor);
+                  elsif HT.leads (reason, cpu_armv8) then
+                     used := (HT.partial_search (reason, cpu_armv8'Length, separator) = osmajor);
+                  else
+                     used  := True;
+                     split := False;
+                  end if;
                end if;
             else
                used := True;
