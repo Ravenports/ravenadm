@@ -688,6 +688,9 @@ package body Port_Specification.Transform is
                   used  := True;
                   split := False;
                end if;
+            else
+               used := True;
+               split := False;
             end if;
 
             if used then
