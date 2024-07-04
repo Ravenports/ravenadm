@@ -43,14 +43,15 @@ package body PortScan.Buildcycle is
       env_nochain  : constant String := environment_override (False, sslv);
       port_prefix  : constant String := get_port_prefix (id, environ);
       variant      : constant String := HT.USS (all_ports (sequence_id).port_variant);
-      genesis      : Hierarchy.Dirent_Collection.Map;
-      preconfig    : Hierarchy.Dirent_Collection.Map;
+
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
       trackers (id).check_strip := not specification.debugging_is_on;
       trackers (id).rpath_fatal := specification.rpath_check_errors_are_fatal;
       trackers (id).disable_dog := specification.watchdog_disabled;
+      trackers (id).genesis.Clear;
+      trackers (id).preconfig.Clear;
       if not LOG.initialize_log (log_handle => trackers (id).log_handle,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
@@ -67,7 +68,7 @@ package body PortScan.Buildcycle is
          return False;
       end if;
       if testing then
-         Hierarchy.take_snapshot (genesis, get_root (id));
+         Hierarchy.take_snapshot (trackers (id).genesis, get_root (id));
       end if;
       begin
          for phase in phases'Range loop
@@ -88,7 +89,7 @@ package body PortScan.Buildcycle is
 
             when configure =>
                if testing then
-                  Hierarchy.take_snapshot (genesis, get_root (id));
+                  Hierarchy.take_snapshot (trackers (id).preconfig, get_root (id));
                end if;
                R := exec_phase_generic (id, phase, environ);
 
@@ -103,7 +104,7 @@ package body PortScan.Buildcycle is
                   R := exec_phase_generic (id, phase, environ);
                end if;
                if testing then
-                  R := exec_prefig_check (id, preconfig);
+                  R := exec_preconfig_check (id);
                end if;
                REP.unhook_toolchain (id);
 
@@ -137,7 +138,7 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
-                  R := exec_phase_deinstall (id, pkgversion, env_nochain, genesis);
+                  R := exec_phase_deinstall (id, pkgversion, env_nochain);
                end if;
             end case;
             exit when R = False;
@@ -916,11 +917,9 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
-   --  exec_prefig_check
+   --  exec_preconfig_check
    --------------------------------------------------------------------------------------------
-   function exec_prefig_check
-     (id            : builders;
-      preconfig     : in out Hierarchy.Dirent_Collection.Map) return Boolean
+   function exec_preconfig_check  (id : builders) return Boolean
    is
       root        : constant String := get_root (id);
       phase_name  : constant String := "Post-stage integrity check";
@@ -929,13 +928,13 @@ package body PortScan.Buildcycle is
    begin
       LOG.log_phase_begin (trackers (id).log_handle, phase_name);
       still_good := Hierarchy.detect_leftovers_and_MIA (log_handle  => trackers (id).log_handle,
-                                                        DC          => preconfig,
+                                                        DC          => trackers (id).preconfig,
                                                         rootdir     => root,
                                                         description => description,
                                                         fatal       => False);
         LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
-   end exec_prefig_check;
+   end exec_preconfig_check;
 
 
    --------------------------------------------------------------------------------------------
@@ -944,8 +943,7 @@ package body PortScan.Buildcycle is
    function exec_phase_deinstall
      (id            : builders;
       pkgversion    : String;
-      environ       : String;
-      genesis       : in out Hierarchy.Dirent_Collection.Map) return Boolean
+      environ       : String) return Boolean
    is
       procedure concatenate (position : subpackage_crate.Cursor);
 
@@ -992,7 +990,7 @@ package body PortScan.Buildcycle is
       if still_good then
          still_good := Hierarchy.detect_leftovers_and_MIA
            (log_handle  => trackers (id).log_handle,
-            DC          => genesis,
+            DC          => trackers (id).genesis,
             rootdir     => root,
             description => "between clean builder and package deinstallation",
             fatal       => True);

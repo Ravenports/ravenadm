@@ -71,6 +71,8 @@ private
          check_strip : Boolean;
          disable_dog : Boolean;
          loglines    : Natural := 0;
+         genesis     : Hierarchy.Dirent_Collection.Map;
+         preconfig   : Hierarchy.Dirent_Collection.Map;
       end record;
 
    type dim_trackers       is array (builders) of trackrec;
@@ -139,12 +141,10 @@ private
    function exec_phase_deinstall
      (id            : builders;
       pkgversion    : String;
-      environ       : String;
-      genesis       : in out Hierarchy.Dirent_Collection.Map) return Boolean;
+      environ       : String) return Boolean;
 
-   function exec_prefig_check
-     (id            : builders;
-      preconfig     : in out Hierarchy.Dirent_Collection.Map) return Boolean;
+   function exec_preconfig_check
+     (id            : builders) return Boolean;
 
    function deinstall_all_packages
      (id            : builders;

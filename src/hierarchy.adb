@@ -112,8 +112,8 @@ package body Hierarchy is
             if skip_dirs.Contains (HT.SUS (relpath)) then
                return;
             end if;
+            features := Archive.Unix.get_charactistics (rootdir & relpath);
             if DC.Contains (entkey) then
-               features := Archive.Unix.get_charactistics (rootdir & relpath);
                case features.ftype is
                   when Archive.directory |
                        Archive.symlink |
@@ -181,6 +181,11 @@ package body Hierarchy is
       push ("/proc");
       push ("/home");
       push ("/root");
+      push ("/usr");
+      push ("/var/cache");
+      push ("/var/db/rvn");
+      push ("/port");
+      push ("/xports");
 
    end set_file_filter;
 
@@ -201,6 +206,12 @@ package body Hierarchy is
       --  # gio modules cache could be modified for any gio modules
       if line = localbase & "/lib/gio/modules/giomodule.cache" then
          return True;
+      end if;
+
+      --  # /etc/resolv.conf is manipulated by the framework.  it's normal
+      --  ignores resolv.conf and resolv.conf.orig
+      if HT.leads (line, localbase & "/etc/resolv.conf") then
+         return True
       end if;
 
       --  */ls-R
