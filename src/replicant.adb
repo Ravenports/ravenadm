@@ -102,8 +102,6 @@ package body Replicant is
               macos     |
               sunos     => null;
       end case;
-      create_mtree_exc_genesis (mm);
-      create_mtree_exc_preconfig (mm);
 
    end initialize;
 
@@ -436,120 +434,6 @@ package body Replicant is
    exception
       when others => return False;
    end clear_existing_workareas;
-
-
-   --------------------------------------------------------------------------------------------
-   --  create_mtree_exc_preinst
-   --------------------------------------------------------------------------------------------
-   procedure create_mtree_exc_genesis (path_to_mm : String)
-   is
-      mtreefile : TIO.File_Type;
-      filename  : constant String := path_to_mm & "/mtree.genesis.exclude";
-   begin
-      TIO.Create (File => mtreefile, Mode => TIO.Out_File, Name => filename);
-      write_common_mtree_exclude_base (mtreefile);
-      write_genesis_section (mtreefile);
-      TIO.Close (mtreefile);
-   end create_mtree_exc_genesis;
-
-
-   --------------------------------------------------------------------------------------------
-   --  create_mtree_exc_preconfig
-   --------------------------------------------------------------------------------------------
-   procedure create_mtree_exc_preconfig (path_to_mm : String)
-   is
-      mtreefile : TIO.File_Type;
-      filename  : constant String := path_to_mm & "/mtree.preconfig.exclude";
-   begin
-      TIO.Create (File => mtreefile, Mode => TIO.Out_File, Name => filename);
-      write_common_mtree_exclude_base (mtreefile);
-      TIO.Close (mtreefile);
-   end create_mtree_exc_preconfig;
-
-
-   --------------------------------------------------------------------------------------------
-   --  write_common_mtree_exclude_base
-   --------------------------------------------------------------------------------------------
-   procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type)
-   is
-      function write_usr return String;
-      function opsys_specific return String;
-
-      function write_usr return String is
-      begin
-         if HT.equivalent (ravenbase, bsd_localbase) then
-            return "./usr/bin" & LAT.LF
-              & "./usr/include" & LAT.LF
-              & "./usr/lib" & LAT.LF
-              & "./usr/lib32" & LAT.LF
-              & "./usr/share" & LAT.LF;
-         else
-            return "./usr" & LAT.LF;
-         end if;
-      end write_usr;
-
-      function opsys_specific return String is
-      begin
-         case platform_type is
-            when freebsd | dragonfly | netbsd | openbsd | midnightbsd =>
-               return "./libexec" & LAT.LF;
-            when linux =>
-               return "./lib" & LAT.LF & "./lib64" & LAT.LF;
-            when sunos =>
-               return "./lib" & LAT.LF & "./devices" & LAT.LF;
-            when macos =>
-               return "./System" & LAT.LF;
-         end case;
-      end opsys_specific;
-   begin
-      TIO.Put_Line
-        (mtreefile,
-           "./bin" & LAT.LF
-         & "./ccache" & LAT.LF
-         & "./construction" & LAT.LF
-         & "./dev" & LAT.LF
-         & "./distfiles" & LAT.LF
-         & "./home" & LAT.LF
-         & "./port" & LAT.LF
-         & "./proc" & LAT.LF
-         & "./repo" & LAT.LF
-         & "./root" & LAT.LF
-         & "./tmp" & LAT.LF
-         & write_usr
-         & opsys_specific
-         & "./xports"
-        );
-   end write_common_mtree_exclude_base;
-
-
-   --------------------------------------------------------------------------------------------
-   --  write_preinstall_section
-   --------------------------------------------------------------------------------------------
-   procedure write_genesis_section (mtreefile : TIO.File_Type)
-   is
-      RB : String := LAT.Full_Stop & HT.USS (ravenbase);
-   begin
-      TIO.Put_Line
-        (mtreefile,
-           "./etc/group" & LAT.LF
-         & "./etc/make.conf" & LAT.LF
-         & "./etc/master.passwd" & LAT.LF
-         & "./etc/mtree.*" & LAT.LF
-         & "./etc/passwd" & LAT.LF
-         & "./etc/pwd.db" & LAT.LF
-         & "./etc/resolv.conf*" & LAT.LF
-         & "./etc/shells" & LAT.LF
-         & "./etc/spwd.db" & LAT.LF
-         & "./etc/ld.so.conf.d/x86_64-linux-gnu.conf" & LAT.LF
-         & "./var/cache" & LAT.LF
-         & "./var/db" & LAT.LF
-         & "./var/log" & LAT.LF
-         & "./var/mail" & LAT.LF
-         & "./var/run" & LAT.LF
-         & "./var/spool" & LAT.LF
-         & "./var/tmp"
-        );
-   end write_genesis_section;
 
 
    --------------------------------------------------------------------------------------------

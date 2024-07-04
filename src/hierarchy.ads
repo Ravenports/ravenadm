@@ -8,7 +8,7 @@ with Blake_3;
 with HelperText;
 with admtypes;
 
-package hierarchy is
+package Hierarchy is
 
    package CON renames Ada.Containers;
    package TIO renames Ada.Text_IO;
@@ -33,8 +33,7 @@ package hierarchy is
    --  recursively scans rootdir, skipping directories that are contained in skip_dirs
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
-      rootdir   : String;
-      skip_dirs : admtypes.string_crate.Vector);
+      rootdir   : String);
 
    --  Given the results of the snapshot, this function displays any missing, extra or
    --  modified files and returns False if any of those occur.  (True means check passed)
@@ -42,10 +41,12 @@ package hierarchy is
      (log_handle  : TIO.File_Type;
       DC          : in out Dirent_Collection.Map;
       rootdir     : String;
-      description : String) return Boolean;
+      description : String;
+      fatal       : Boolean) return Boolean;
 
 private
 
+   --  Initialize filter set (directories to avoid checking)
    procedure set_file_filter (skip_dirs : in out admtypes.string_crate.Vector);
 
    function ignore_this_file (filename : HT.Text) return Boolean;
@@ -65,4 +66,4 @@ private
      (also_skip : in out admtypes.string_crate.Vector;
       leftover  : HT.Text);
 
-end hierarchy;
+end Hierarchy;

@@ -8,7 +8,7 @@ project Ravenadm is
    for Languages use ("Ada", "C");
 
    package Compiler is
-      for Default_Switches ("ada") use ("-g", "-fstack-check", "-gnatyaAbBcdehfiklnOprsStxM100");
+      for Default_Switches ("ada") use ("-g", "-fstack-check", "-gnatyaAbBcdehfiklnOprStxM100");
    end Compiler;
 
    package Linker is
@@ -16,3 +16,4 @@ project Ravenadm is
    end Linker;
 
 end Ravenadm;
+

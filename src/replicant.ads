@@ -133,12 +133,6 @@ private
    procedure annihilate_directory_tree (tree : String);
    procedure annihilate_directory_tree_contents (tree : String);
 
-   --  Used to generic mtree exclusion files
-   procedure create_mtree_exc_preconfig (path_to_mm : String);
-   procedure create_mtree_exc_genesis (path_to_mm : String);
-   procedure write_common_mtree_exclude_base (mtreefile : TIO.File_Type);
-   procedure write_genesis_section (mtreefile : TIO.File_Type);
-
    --  platform-specific localhost command "umount"
    --  Throws exception if unmount attempt was unsuccessful
    procedure unmount (device_or_node : String; retry_times : Natural := 0);

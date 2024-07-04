@@ -6,7 +6,7 @@ with Archive.Dirent.Scan;
 with Archive.Unix;
 with Parameters;
 
-package body hierarchy is
+package body Hierarchy is
 
    package LAT renames Ada.Characters.Latin_1;
    package SCN renames Archive.Dirent.Scan;
@@ -18,10 +18,12 @@ package body hierarchy is
    ---------------------
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
-      rootdir   : String;
-      skip_dirs : admtypes.string_crate.Vector)
+      rootdir   : String)
    is
       procedure dive (this_directory : String);
+
+      skip_dirs : admtypes.string_crate.Vector;
+
       procedure dive (this_directory : String)
       is
          procedure analyze_entity (Position : SCN.dscan_crate.Cursor);
@@ -56,6 +58,7 @@ package body hierarchy is
          this_level.Iterate (analyze_entity'Access);
       end dive;
    begin
+      set_file_filter (skip_dirs);
       dive ("/");
    end take_snapshot;
 
@@ -149,14 +152,6 @@ package body hierarchy is
          skip_dirs.Append (HT.SUS (file_or_directory));
       end push;
    begin
-      --  share/xml/catalog.ports
-      --  # xmlcatmgr is constantly updating catalog.ports, ignore
-      push (localbase & "/share/xml/catalog.ports");
-
-      --  lib/gio/modules/giomodule.cache
-      --  # gio modules cache could be modified for any gio modules
-      push (localbase & "/lib/gio/modules/giomodule.cache");
-
       push ("/bin");
       push ("/ccache");
       push ("/construction");
@@ -180,6 +175,16 @@ package body hierarchy is
       line      : constant String := HT.USS (filename);
       localbase : constant String := HT.USS (PM.configuration.dir_localbase);
    begin
+      --  # xmlcatmgr is constantly updating catalog.ports, ignore
+      if line = localbase & "/share/xml/catalog.ports" then
+         return True;
+      end if;
+
+      --  # gio modules cache could be modified for any gio modules
+      if line = localbase & "/lib/gio/modules/giomodule.cache" then
+         return True;
+      end if;
+
       --  */ls-R
       --  # ls-R files from texmf are often regenerated
       if HT.leads (line, localbase & "/") then
@@ -218,7 +223,8 @@ package body hierarchy is
      (log_handle  : TIO.File_Type;
       DC          : in out Dirent_Collection.Map;
       rootdir     : String;
-      description : String) return Boolean
+      description : String;
+      fatal       : Boolean) return Boolean
    is
       procedure filter_extras (Position : admtypes.string_crate.Cursor);
       procedure filter_modify (Position : admtypes.string_crate.Cursor);
@@ -238,8 +244,8 @@ package body hierarchy is
       is
          filepath : HT.Text renames admtypes.string_crate.Element (Position);
       begin
-         if ignore_this_file (parent_lo, filepath) then
-            add_exception_of_leftover_ancestors (filepath);
+         if ignore_this_file (filepath) then
+            add_exception_of_leftover_ancestors (parent_lo, filepath);
          else
             leftover.Append (filepath);
          end if;
@@ -249,7 +255,7 @@ package body hierarchy is
       is
          filepath : HT.Text renames admtypes.string_crate.Element (Position);
       begin
-         if not ignore_this_file (parent_lo, filepath) then
+         if not ignore_this_file (filepath) then
            changed.Append (filepath);
          end if;
       end filter_modify;
@@ -264,9 +270,11 @@ package body hierarchy is
       procedure prune_leftovers (Position : admtypes.string_crate.Cursor)
       is
          filepath : HT.Text renames admtypes.string_crate.Element (Position);
+         cursor   : admtypes.string_crate.Cursor;
       begin
          if leftover.Contains (filepath) then
-            leftover.Delete (leftover.Find (filepath));
+            cursor := leftover.Find (filepath);
+            leftover.Delete (cursor);
          end if;
       end prune_leftovers;
 
@@ -283,7 +291,7 @@ package body hierarchy is
       modified.Iterate (filter_modify'Access);
 
       set_missing_files (DC, missing);
-      parent_lo.Iterate (prune_leftovers'Access)
+      parent_lo.Iterate (prune_leftovers'Access);
 
       admtypes.sorter.Sort (Container => changed);
       admtypes.sorter.Sort (Container => missing);
@@ -307,6 +315,9 @@ package body hierarchy is
       end if;
       if passed then
          TIO.Put_Line (log_handle, "Everything is fine.");
+      end if;
+      if not fatal then
+         return True;
       end if;
       return passed;
 
@@ -343,20 +354,26 @@ package body hierarchy is
      (also_skip : in out admtypes.string_crate.Vector;
       leftover  : HT.Text)
    is
-      procedure dive (parent_dir : String) is
+      procedure dive (parent_dir : String);
+
+      delimiter : constant String := "/";
+
+      procedure dive (parent_dir : String)
+      is
+         parend_dir_text : constant HT.Text := HT.SUS (parent_dir);
       begin
          if parent_dir = "" then
-            return
+            return;
          end if;
-         if also_skip.Contains (parent_dir) then
+         if also_skip.Contains (parend_dir_text) then
             return;  --  All parents of this directory are already recorded, exit now
          end if;
-         also_skip.Append (parent_dir);
-         dive (HT.head (parent_dir));
+         also_skip.Append (parend_dir_text);
+         dive (HT.head (parent_dir, delimiter));
       end dive;
    begin
-      dive (HT.head (HT.USS (leftover)));
+      dive (HT.head (HT.USS (leftover), delimiter));
    end add_exception_of_leftover_ancestors;
 
 
-end hierarchy;
+end Hierarchy;

@@ -43,6 +43,8 @@ package body PortScan.Buildcycle is
       env_nochain  : constant String := environment_override (False, sslv);
       port_prefix  : constant String := get_port_prefix (id, environ);
       variant      : constant String := HT.USS (all_ports (sequence_id).port_variant);
+      genesis      : Hierarchy.Dirent_Collection.Map;
+      preconfig    : Hierarchy.Dirent_Collection.Map;
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
@@ -65,7 +67,7 @@ package body PortScan.Buildcycle is
          return False;
       end if;
       if testing then
-         mark_file_system (id, "genesis", environ);
+         Hierarchy.take_snapshot (genesis, get_root (id));
       end if;
       begin
          for phase in phases'Range loop
@@ -85,9 +87,9 @@ package body PortScan.Buildcycle is
                R := exec_phase_generic (id, phase, environ);
 
             when configure =>
-               --  if testing then
-               --    mark_file_system (id, "preconfig", environ);
-               --  end if;
+               if testing then
+                  Hierarchy.take_snapshot (genesis, get_root (id));
+               end if;
                R := exec_phase_generic (id, phase, environ);
 
             when build =>
@@ -99,6 +101,9 @@ package body PortScan.Buildcycle is
             when test =>
                if testing and run_selftest then
                   R := exec_phase_generic (id, phase, environ);
+               end if;
+               if testing then
+                  R := exec_prefig_check (id, preconfig);
                end if;
                REP.unhook_toolchain (id);
 
@@ -132,7 +137,7 @@ package body PortScan.Buildcycle is
 
             when deinstall =>
                if testing then
-                  R := exec_phase_deinstall (id, pkgversion, env_nochain);
+                  R := exec_phase_deinstall (id, pkgversion, env_nochain, genesis);
                end if;
             end case;
             exit when R = False;
@@ -297,12 +302,6 @@ package body PortScan.Buildcycle is
                             skip_header => False,
                             skip_footer => True,
                             environ     => environ);
-      --  if testing and then passed then
-      --     passed := detect_leftovers_and_MIA (id          => id,
-      --                                         action      => "preconfig",
-      --                                         description => "between port configure and build",
-      --                                         environ     => environ);
-      --  end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return passed;
    end exec_phase_build;
@@ -917,12 +916,36 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
-   --  initialize
+   --  exec_prefig_check
+   --------------------------------------------------------------------------------------------
+   function exec_prefig_check
+     (id            : builders;
+      preconfig     : in out Hierarchy.Dirent_Collection.Map) return Boolean
+   is
+      root        : constant String := get_root (id);
+      phase_name  : constant String := "Post-stage integrity check";
+      description : constant String := "between configuration and staging";
+      still_good  : Boolean;
+   begin
+      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
+      still_good := Hierarchy.detect_leftovers_and_MIA (log_handle  => trackers (id).log_handle,
+                                                        DC          => preconfig,
+                                                        rootdir     => root,
+                                                        description => description,
+                                                        fatal       => False);
+        LOG.log_phase_end (trackers (id).log_handle);
+      return still_good;
+   end exec_prefig_check;
+
+
+   --------------------------------------------------------------------------------------------
+   --  exec_phase_deinstall
    --------------------------------------------------------------------------------------------
    function exec_phase_deinstall
      (id            : builders;
       pkgversion    : String;
-      environ       : String) return Boolean
+      environ       : String;
+      genesis       : in out Hierarchy.Dirent_Collection.Map) return Boolean
    is
       procedure concatenate (position : subpackage_crate.Cursor);
 
@@ -967,11 +990,12 @@ package body PortScan.Buildcycle is
       end if;
 
       if still_good then
-         still_good := detect_leftovers_and_MIA
-           (id          => id,
-            action      => "genesis",
+         still_good := Hierarchy.detect_leftovers_and_MIA
+           (log_handle  => trackers (id).log_handle,
+            DC          => genesis,
+            rootdir     => root,
             description => "between clean builder and package deinstallation",
-            environ     => environ);
+            fatal       => True);
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good and then dyn_good;
@@ -1476,44 +1500,6 @@ package body PortScan.Buildcycle is
 
 
    --------------------------------------------------------------------------------------------
-   --  mark_file_system
-   --------------------------------------------------------------------------------------------
-   procedure mark_file_system (id : builders; action : String; environ : String)
-   is
-      function attributes (action : String) return String;
-
-      root     : constant String := get_root (id);
-      mtfile   : constant String := "/etc/mtree." & action & ".exclude";
-      resfile  : TIO.File_Type;
-
-      function attributes (action : String) return String
-      is
-         core : constant String := "uid,gid,mode,sha1digest";
-      begin
-         if action = "preconfig" then
-            return core & ",time";
-         else
-            return core;
-         end if;
-      end attributes;
-
-      command  : constant String := PM.chroot_cmd & root & environ &
-                 " /usr/bin/mtree -X " & mtfile & " -cn -k " & attributes (action) & " -p /";
-      filename : constant String := root & "/tmp/mtree." & action;
-
-   begin
-      TIO.Create (File => resfile, Mode => TIO.Out_File, Name => filename);
-      TIO.Put (resfile, generic_system_command (command));
-      TIO.Close (resfile);
-   exception
-      when others =>
-         if TIO.Is_Open (resfile) then
-            TIO.Close (resfile);
-         end if;
-   end mark_file_system;
-
-
-   --------------------------------------------------------------------------------------------
    --  interact_with_builder
    --------------------------------------------------------------------------------------------
    procedure interact_with_builder (id : builders; ssl_variant : String)
@@ -1540,227 +1526,6 @@ package body PortScan.Buildcycle is
       TIO.Put_Line ("Type 'exit' when done exploring.");
       result := Unix.external_command (command);
    end interact_with_builder;
-
-
-   --------------------------------------------------------------------------------------------
-   --  detect_leftovers_and_MIA
-   --------------------------------------------------------------------------------------------
-   function  detect_leftovers_and_MIA
-     (id            : builders;
-      action        : String;
-      description   : String;
-      environ       : String) return Boolean
-   is
-      function  ignore_modifications return Boolean;
-      procedure print (cursor : string_crate.Cursor);
-      procedure close_active_modifications;
-
-      root      : constant String := get_root (id);
-      mtfile    : constant String := "/etc/mtree." & action & ".exclude";
-      filename  : constant String := "/tmp/mtree." & action;
-      command   : constant String := PM.chroot_cmd & root & environ &
-                  "/usr/bin/mtree -X " & mtfile & " -f " & filename & " -p /";
-      lbasewrk  : constant String := HT.USS (PM.configuration.dir_localbase);
-      lbase     : constant String := lbasewrk (lbasewrk'First + 1 .. lbasewrk'Last);
-      lblen     : constant Natural := lbase'Length;
-      status    : Integer;
-      skiprest  : Boolean;
-      passed    : Boolean := True;
-      activemod : Boolean := False;
-      modport   : HT.Text := HT.blank;
-      reasons   : HT.Text := HT.blank;
-      leftover  : string_crate.Vector;
-      missing   : string_crate.Vector;
-      changed   : string_crate.Vector;
-      markers   : HT.Line_Markers;
-
-      --  we can't use generic_system_command because exit code /= 0 normally
-      comres    : String := HT.USS (Unix.piped_command (command, status));
-
-      function ignore_modifications return Boolean
-      is
-         --  Some modifications need to be ignored
-         --  A) */ls-R
-         --     #ls-R files from texmf are often regenerated
-         --  B) share/xml/catalog.ports
-         --     # xmlcatmgr is constantly updating catalog.ports, ignore
-         --  C) lib/gio/modules/giomodule.cache
-         --     # gio modules cache could be modified for any gio modules
-         --  D) etc/gconf/gconf.xml.defaults/%gconf-tree*.xml
-         --     # gconftool-2 --makefile-uninstall-rule is unpredictable
-         --  E) "." with timestamp modification
-         --     # this happens when ./tmp or ./var is used, which is legal
-         --  F) */__pycache__/*
-         --     # we need to stop packaging python cache files.  until then, ignore
-         filename : constant String := HT.USS (modport);
-         fnlen    : constant Natural := filename'Last;
-      begin
-         if filename = lbase & "/share/xml/catalog.ports" or else
-           filename = lbase & "/lib/gio/modules/giomodule.cache"
-         then
-            return True;
-         end if;
-
-         if filename = "." and then HT.equivalent (reasons, "modification") then
-            return True;
-         end if;
-
-         if HT.leads (filename, lbase & "/") then
-            if HT.trails (filename, "/ls-R") then
-               return True;
-            end if;
-         end if;
-
-         if HT.leads (filename, lbase & "/etc/gconf/gconf.xml.defaults/") and then
-           HT.trails (filename, ".xml")
-         then
-            if HT.contains (filename, "/%gconf-tree") then
-               return True;
-            end if;
-         end if;
-
-         if HT.leads (filename, lbase & "/lib/python") and then
-           HT.contains (filename, "/__pycache__/")
-         then
-            return True;
-         end if;
-
-         return False;
-      end ignore_modifications;
-
-      procedure close_active_modifications is
-      begin
-         if activemod and then not ignore_modifications then
-            HT.SU.Append (modport, " [ ");
-            HT.SU.Append (modport, reasons);
-            HT.SU.Append (modport, " ]");
-            if not changed.Contains (modport) then
-               changed.Append (modport);
-            end if;
-         end if;
-         activemod := False;
-         reasons := HT.blank;
-         modport := HT.blank;
-      end close_active_modifications;
-
-      procedure print (cursor : string_crate.Cursor)
-      is
-         dossier : constant String := HT.USS (string_crate.Element (cursor));
-      begin
-         TIO.Put_Line (trackers (id).log_handle, LAT.HT & dossier);
-      end print;
-
-   begin
-      HT.initialize_markers (comres, markers);
-      loop
-         skiprest := False;
-         exit when not HT.next_line_present (comres, markers);
-         declare
-            line    : constant String := HT.extract_line (comres, markers);
-            linelen : constant Natural := line'Length;
-         begin
-            if not skiprest and then linelen > 6 then
-               declare
-                  caboose  : constant String := line (line'Last - 5 .. line'Last);
-                  filename : HT.Text := HT.SUS (line (line'First .. line'Last - 6));
-               begin
-                  if caboose = " extra" then
-                     close_active_modifications;
-                     if not leftover.Contains (filename) then
-                        leftover.Append (filename);
-                     end if;
-                     skiprest := True;
-                  end if;
-               end;
-            end if;
-            if not skiprest and then linelen > 7 then
-               declare
-                  canopy   : constant String := line (line'First .. line'First + 6);
-                  filename : HT.Text := HT.SUS (line (line'First + 7 .. line'Last));
-               begin
-                  if canopy = "extra: " then
-                     close_active_modifications;
-                     if not leftover.Contains (filename) then
-                        leftover.Append (filename);
-                     end if;
-                     skiprest := True;
-                  end if;
-               end;
-            end if;
-            if not skiprest and then linelen > 10 then
-               declare
-                  caboose  : constant String := line (line'Last - 7 .. line'Last);
-                  filename : HT.Text := HT.SUS (line (line'First + 2 .. line'Last - 8));
-               begin
-                  if caboose = " missing" then
-                     close_active_modifications;
-                     if not missing.Contains (filename) then
-                        missing.Append (filename);
-                     end if;
-                     skiprest := True;
-                  end if;
-               end;
-            end if;
-            if not skiprest then
-               declare
-                  blank8 : constant String := "        ";
-               begin
-                  if linelen > 5 and then line (line'First) = LAT.HT then
-                     --  reason, but only valid if modification is active
-                     if activemod then
-                        if not HT.IsBlank (reasons) then
-                           HT.SU.Append (reasons, " | ");
-                        end if;
-                        HT.SU.Append
-                          (reasons, HT.part_1 (line (line'First + 1 .. line'Last), " "));
-                     end if;
-                     skiprest := True;
-                  end if;
-                  if not skiprest and then line (line'Last) = LAT.Colon then
-                     close_active_modifications;
-                     activemod := True;
-                     modport := HT.SUS (line (line'First .. line'Last - 1));
-                     skiprest := True;
-                  end if;
-                  if not skiprest and then
-                    line (line'Last - 7 .. line'Last) = " changed"
-                  then
-                     close_active_modifications;
-                     activemod := True;
-                     modport := HT.SUS (line (line'First .. line'Last - 8));
-                     skiprest := True;
-                  end if;
-               end;
-            end if;
-         end;
-      end loop;
-      close_active_modifications;
-      sorter.Sort (Container => changed);
-      sorter.Sort (Container => missing);
-      sorter.Sort (Container => leftover);
-
-      TIO.Put_Line (trackers (id).log_handle,
-                    LAT.LF & "=> Checking for system changes " & description);
-      if not leftover.Is_Empty then
-         passed := False;
-         TIO.Put_Line (trackers (id).log_handle, LAT.LF & "   Left over files/directories:");
-         leftover.Iterate (Process => print'Access);
-      end if;
-      if not missing.Is_Empty then
-         passed := False;
-         TIO.Put_Line (trackers (id).log_handle, LAT.LF & "   Missing files/directories:");
-         missing.Iterate (Process => print'Access);
-      end if;
-      if not changed.Is_Empty then
-         passed := False;
-         TIO.Put_Line (trackers (id).log_handle, LAT.LF & "   Modified files/directories:");
-         changed.Iterate (Process => print'Access);
-      end if;
-      if passed then
-         TIO.Put_Line (trackers (id).log_handle, "Everything is fine.");
-      end if;
-      return passed;
-   end detect_leftovers_and_MIA;
 
 
    --------------------------------------------------------------------------------------------

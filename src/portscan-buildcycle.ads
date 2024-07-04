@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with Display;
+with Hierarchy;
 with Port_Specification;
 private with Ada.Calendar;
 
@@ -102,7 +103,6 @@ private
                          skip_footer   : Boolean := False)
                          return Boolean;
 
-   procedure mark_file_system (id : builders; action : String; environ : String);
    procedure interact_with_builder (id : builders; ssl_variant : String);
    procedure set_uname_mrv;
    procedure obtain_custom_environment;
@@ -136,22 +136,27 @@ private
       pkgversion    : String;
       environ       : String) return Boolean;
 
-   function  exec_phase_deinstall
+   function exec_phase_deinstall
      (id            : builders;
       pkgversion    : String;
-      environ       : String) return Boolean;
+      environ       : String;
+      genesis       : in out Hierarchy.Dirent_Collection.Map) return Boolean;
 
-   function  deinstall_all_packages
+   function exec_prefig_check
+     (id            : builders;
+      preconfig     : in out Hierarchy.Dirent_Collection.Map) return Boolean;
+
+   function deinstall_all_packages
      (id            : builders;
       environ       : String) return Boolean;
 
-   function  generic_execute
+   function generic_execute
      (id            : builders;
       command       : String;
       dogbite       : out Boolean;
       time_limit    : execution_limit) return Boolean;
 
-   function  exec_phase_depends
+   function exec_phase_depends
      (specification : PSP.Portspecs;
       phase_name    : String;
       id            : builders;
@@ -173,11 +178,5 @@ private
       base          : String;
       filename      : String;
       environ       : String);
-
-   function  detect_leftovers_and_MIA
-     (id            : builders;
-      action        : String;
-      description   : String;
-      environ       : String) return Boolean;
 
 end PortScan.Buildcycle;
