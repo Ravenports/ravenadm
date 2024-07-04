@@ -475,8 +475,6 @@ package body Replicant is
       function write_usr return String;
       function opsys_specific return String;
 
-      RB : String := LAT.Full_Stop & HT.USS (ravenbase);
-
       function write_usr return String is
       begin
          if HT.equivalent (ravenbase, bsd_localbase) then
@@ -514,20 +512,11 @@ package body Replicant is
          & "./home" & LAT.LF
          & "./port" & LAT.LF
          & "./proc" & LAT.LF
-         & RB & "/lib/python*/__pycache__" & LAT.LF
-         & RB & "/lib/python*/*/__pycache__" & LAT.LF
-         & RB & "/lib/python*/*/*/__pycache__" & LAT.LF
-         & RB & "/lib/python*/site-packages/*" & LAT.LF
          & "./repo" & LAT.LF
          & "./root" & LAT.LF
          & "./tmp" & LAT.LF
          & write_usr
          & opsys_specific
-         & "./var/cache" & LAT.LF
-         & "./var/db/fontconfig" & LAT.LF
-         & "./var/run" & LAT.LF
-         & "./var/tmp" & LAT.LF
-         & "./var/spool" & LAT.LF
          & "./xports"
         );
    end write_common_mtree_exclude_base;
@@ -544,28 +533,21 @@ package body Replicant is
         (mtreefile,
            "./etc/group" & LAT.LF
          & "./etc/make.conf" & LAT.LF
-         & "./etc/make.conf.bak" & LAT.LF
          & "./etc/master.passwd" & LAT.LF
          & "./etc/mtree.*" & LAT.LF
          & "./etc/passwd" & LAT.LF
          & "./etc/pwd.db" & LAT.LF
-         & "./etc/resolv.conf" & LAT.LF
-         & "./etc/resolv.conf.orig" & LAT.LF
+         & "./etc/resolv.conf*" & LAT.LF
          & "./etc/shells" & LAT.LF
          & "./etc/spwd.db" & LAT.LF
          & "./etc/ld.so.conf.d/x86_64-linux-gnu.conf" & LAT.LF
-         & "./var/db/rvn" & LAT.LF
+         & "./var/cache" & LAT.LF
+         & "./var/db" & LAT.LF
          & "./var/log" & LAT.LF
          & "./var/mail" & LAT.LF
          & "./var/run" & LAT.LF
-         & "./var/tmp" & LAT.LF
-         & RB & "/etc/gconf/gconf.xml.defaults/%gconf-tree*.xml" & LAT.LF
-         & RB & "/share/info/dir" & LAT.LF
-         & RB & "/share/info" & LAT.LF
-         & RB & "/share/*/info/dir" & LAT.LF
-         & RB & "/share/*/info" & LAT.LF
-         & RB & "/*/ls-R" & LAT.LF
-         & RB & "/share/xml/catalog.ports"
+         & "./var/spool" & LAT.LF
+         & "./var/tmp"
         );
    end write_genesis_section;
 

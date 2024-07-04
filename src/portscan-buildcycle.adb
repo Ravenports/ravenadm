@@ -1584,46 +1584,47 @@ package body PortScan.Buildcycle is
          --     #ls-R files from texmf are often regenerated
          --  B) share/xml/catalog.ports
          --     # xmlcatmgr is constantly updating catalog.ports, ignore
-         --  D) info/dir | */info/dir
-         --  E) lib/gio/modules/giomodule.cache
+         --  C) lib/gio/modules/giomodule.cache
          --     # gio modules cache could be modified for any gio modules
-         --  F) etc/gconf/gconf.xml.defaults/%gconf-tree*.xml
+         --  D) etc/gconf/gconf.xml.defaults/%gconf-tree*.xml
          --     # gconftool-2 --makefile-uninstall-rule is unpredictable
-         --  G) %%PEARDIR%%/.depdb | %%PEARDIR%%/.filemap
-         --     # The is pear database cache
-         --  H) "." with timestamp modification
+         --  E) "." with timestamp modification
          --     # this happens when ./tmp or ./var is used, which is legal
+         --  F) */__pycache__/*
+         --     # we need to stop packaging python cache files.  until then, ignore
          filename : constant String := HT.USS (modport);
          fnlen    : constant Natural := filename'Last;
       begin
          if filename = lbase & "/share/xml/catalog.ports" or else
-           filename = lbase & "/share/info/dir" or else
-           filename = lbase & "/lib/gio/modules/giomodule.cache" or else
-           filename = lbase & "/share/pear/.depdb" or else
-           filename = lbase & "/share/pear/.filemap"
+           filename = lbase & "/lib/gio/modules/giomodule.cache"
          then
             return True;
          end if;
+
          if filename = "." and then HT.equivalent (reasons, "modification") then
             return True;
          end if;
-         if fnlen > lblen + 7 and then
-           filename (1 .. lblen + 1) = lbase & "/"
-         then
-            if filename (fnlen - 4 .. fnlen) = "/ls-R" or else
-              filename (fnlen - 14 .. fnlen) = "/share/info/dir"
-            then
+
+         if HT.leads (filename, lbase & "/") then
+            if HT.trails (filename, "/ls-R") then
                return True;
             end if;
          end if;
-         if fnlen > 47 + lblen and then
-           filename (1 .. 30 + lblen) = lbase & "/etc/gconf/gconf.xml.defaults/" and then
-           filename (fnlen - 3 .. fnlen) = ".xml"
+
+         if HT.leads (filename, lbase & "/etc/gconf/gconf.xml.defaults/") and then
+           HT.trails (filename, ".xml")
          then
             if HT.contains (filename, "/%gconf-tree") then
                return True;
             end if;
          end if;
+
+         if HT.leads (filename, lbase & "/lib/python") and then
+           HT.contains (filename, "/__pycache__/")
+         then
+            return True;
+         end if;
+
          return False;
       end ignore_modifications;
 
