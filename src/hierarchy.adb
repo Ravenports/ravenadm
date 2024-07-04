@@ -1,12 +1,14 @@
 --  SPDX-License-Identifier: ISC
 --  Reference: /License.txt
 
+with Ada.Characters.Latin_1;
 with Archive.Dirent.Scan;
 with Archive.Unix;
 with Parameters;
 
 package body hierarchy is
 
+   package LAT renames Ada.Characters.Latin_1;
    package SCN renames Archive.Dirent.Scan;
    package PM  renames Parameters;
 
@@ -127,6 +129,8 @@ package body hierarchy is
          this_level.Iterate (analyze_entity'Access);
       end dive;
    begin
+      extras.Clear;
+      modified.Clear;
       dive ("/");
    end check_again;
 
@@ -205,6 +209,113 @@ package body hierarchy is
       return False;
 
    end ignore_this_file;
+
+
+   --------------------------------
+   --  detect_leftovers_and_MIA  --
+   --------------------------------
+   function detect_leftovers_and_MIA
+     (log_handle  : TIO.File_Type;
+      DC          : in out Dirent_Collection.Map;
+      rootdir     : String;
+      description : String) return Boolean
+   is
+      procedure filter_extras (Position : admtypes.string_crate.Cursor);
+      procedure filter_modify (Position : admtypes.string_crate.Cursor);
+      procedure print (cursor : admtypes.string_crate.Cursor);
+
+      skip_dirs : admtypes.string_crate.Vector;
+      extras    : admtypes.string_crate.Vector;
+      modified  : admtypes.string_crate.Vector;
+      leftover  : admtypes.string_crate.Vector;
+      changed   : admtypes.string_crate.Vector;
+      missing   : admtypes.string_crate.Vector;
+      passed    : Boolean := True;
+
+      procedure filter_extras (Position : admtypes.string_crate.Cursor) is
+      begin
+         if not ignore_this_file (admtypes.string_crate.Element (Position)) then
+            leftover.Append (admtypes.string_crate.Element (Position));
+         end if;
+      end filter_extras;
+
+      procedure filter_modify (Position : admtypes.string_crate.Cursor) is
+      begin
+         if not ignore_this_file (admtypes.string_crate.Element (Position)) then
+           changed.Append (admtypes.string_crate.Element (Position));
+         end if;
+      end filter_modify;
+
+      procedure print (cursor : admtypes.string_crate.Cursor)
+      is
+         dossier : constant String := HT.USS (admtypes.string_crate.Element (cursor));
+      begin
+         TIO.Put_Line (log_handle, LAT.HT & dossier);
+      end print;
+
+   begin
+      set_file_filter (skip_dirs);
+      check_again (DC        => DC,
+                   rootdir   => rootdir,
+                   skip_dirs => skip_dirs,
+                   extras    => extras,
+                   modified  => modified);
+      leftover.Clear;
+      changed.Clear;
+      extras.Iterate (filter_extras'Access);
+      modified.Iterate (filter_modify'Access);
+
+      set_missing_files (DC, missing);
+
+      admtypes.sorter.Sort (Container => changed);
+      admtypes.sorter.Sort (Container => missing);
+      admtypes.sorter.Sort (Container => leftover);
+
+      TIO.Put_Line (log_handle, LAT.LF & "=> Checking for system changes " & description);
+      if not leftover.Is_Empty then
+         passed := False;
+         TIO.Put_Line (log_handle, LAT.LF & "   Left over files/directories:");
+         leftover.Iterate (Process => print'Access);
+      end if;
+      if not missing.Is_Empty then
+         passed := False;
+         TIO.Put_Line (log_handle, LAT.LF & "   Missing files/directories:");
+         missing.Iterate (Process => print'Access);
+      end if;
+      if not changed.Is_Empty then
+         passed := False;
+         TIO.Put_Line (log_handle, LAT.LF & "   Modified files/directories:");
+         changed.Iterate (Process => print'Access);
+      end if;
+      if passed then
+         TIO.Put_Line (log_handle, "Everything is fine.");
+      end if;
+      return passed;
+
+   end detect_leftovers_and_MIA;
+
+
+   -------------------------
+   --  set_missing_files  --
+   -------------------------
+   procedure set_missing_files
+     (DC        : Dirent_Collection.Map;
+      missing   : in out admtypes.string_crate.Vector)
+   is
+      procedure check_record (Position : Dirent_Collection.Cursor);
+      procedure check_record (Position : Dirent_Collection.Cursor)
+      is
+         myrec : direntrec renames Dirent_Collection.Element (Position);
+         key   : HT.Text renames Dirent_Collection.Key (Position);
+      begin
+         if not myrec.second then
+            missing.Append (key);
+         end if;
+      end check_record;
+   begin
+      missing.Clear;
+      DC.Iterate (check_record'Access);
+   end set_missing_files;
 
 
 end hierarchy;

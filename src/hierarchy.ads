@@ -1,6 +1,7 @@
 --  SPDX-License-Identifier: ISC
 --  Reference: /License.txt
 
+with Ada.Text_IO;
 with Ada.Containers.Hashed_Maps;
 with Archive;
 with Blake_3;
@@ -10,6 +11,7 @@ with admtypes;
 package hierarchy is
 
    package CON renames Ada.Containers;
+   package TIO renames Ada.Text_IO;
    package HT  renames HelperText;
 
    type direntrec is
@@ -34,6 +36,20 @@ package hierarchy is
       rootdir   : String;
       skip_dirs : admtypes.string_crate.Vector);
 
+   --  Given the results of the snapshot, this function displays any missing, extra or
+   --  modified files and returns False if any of those occur.  (True means check passed)
+   function detect_leftovers_and_MIA
+     (log_handle  : TIO.File_Type;
+      DC          : in out Dirent_Collection.Map;
+      rootdir     : String;
+      description : String) return Boolean;
+
+private
+
+   procedure set_file_filter (skip_dirs : in out admtypes.string_crate.Vector);
+
+   function ignore_this_file (filename : HT.Text) return Boolean;
+
    procedure check_again
      (DC        : in out Dirent_Collection.Map;
       rootdir   : String;
@@ -41,10 +57,8 @@ package hierarchy is
       extras    : in out admtypes.string_crate.Vector;
       modified  : in out admtypes.string_crate.Vector);
 
-private
-
-   procedure set_file_filter (skip_dirs : in out admtypes.string_crate.Vector);
-
-   function ignore_this_file (filename : HT.Text) return Boolean;
+   procedure set_missing_files
+     (DC        : Dirent_Collection.Map;
+      missing   : in out admtypes.string_crate.Vector);
 
 end hierarchy;
