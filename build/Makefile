@@ -19,7 +19,7 @@ ADAFLAGS= -gnatA -gnatyaAbBcdehfiklM100nOprsStx -fstack-check
 
 ravenadm: unix_core.o
 .if empty(WITH_DISPLAY)
-	gnatmake -I../src -I../src/ucl ../ravenadm.adb -o ${.TARGET}\
+	gnatmake -I../src -I../rvn-format/src/ucl ../ravenadm.adb -o ${.TARGET}\
 		${CFLAGS} ${ADAFLAGS} -largs unix_core.o -lucl_pic -lm
 .else
 	gnatmake -I../src -I../src/ucl ../ravenadm.adb -o ${.TARGET}\
