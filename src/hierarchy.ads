@@ -22,6 +22,11 @@ package Hierarchy is
          ftype  : Archive.file_type;
          digest : Blake_3.blake3_hash;
          second : Boolean := False;
+         dM     : Boolean := False;
+         dU     : Boolean := False;
+         dG     : Boolean := False;
+         dD     : Boolean := False;
+         dT     : Boolean := False;
       end record;
 
    package Dirent_Collection is new CON.Hashed_Maps

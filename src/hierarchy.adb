@@ -46,13 +46,11 @@ package body Hierarchy is
             myrec.perms  := features.perms;
             myrec.ftype  := features.ftype;
             case features.ftype is
-               when Archive.directory |
-                    Archive.symlink |
-                    Archive.fifo |
-                    Archive.unsupported =>
+               when Archive.directory | Archive.symlink | Archive.fifo =>
                   myrec.digest := (others => '0');
-               when Archive.regular |
-                    Archive.hardlink =>
+               when Archive.unsupported =>
+                  myrec.digest := (others => '0');  --  should be impossible.
+               when Archive.regular | Archive.hardlink =>
                   myrec.digest := Blake_3.file_digest (rootdir & relpath);
             end case;
             DC.Insert (HT.SUS (relpath), myrec);
@@ -85,9 +83,16 @@ package body Hierarchy is
       procedure set_second (Key : HT.Text; Element : in out direntrec);
       procedure dive (this_directory : String);
 
+      M, U, G, D, T : Boolean;
+
       procedure set_second (Key : HT.Text; Element : in out direntrec) is
       begin
          Element.second := True;
+         Element.dM := not M;
+         Element.dU := not U;
+         Element.dG := not G;
+         Element.dD := not D;
+         Element.dT := not T;
       end set_second;
 
       procedure dive (this_directory : String)
@@ -114,24 +119,23 @@ package body Hierarchy is
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
             if DC.Contains (entkey) then
+               myrec := DC.Element (entkey);
                case features.ftype is
-                  when Archive.directory |
-                       Archive.symlink |
-                       Archive.fifo |
-                       Archive.unsupported =>
+                  when Archive.directory | Archive.symlink | Archive.fifo =>
                      digest := (others => '0');
-                  when Archive.regular |
-                       Archive.hardlink =>
+                  when Archive.unsupported =>
+                     digest := (others => '0');
+                  when Archive.regular | Archive.hardlink =>
                      digest := Blake_3.file_digest (rootdir & relpath);
                end case;
-               if myrec.gid = features.gid and then
-                 myrec.uid = features.uid and then
-                 myrec.ftype = features.ftype and then
-                 myrec.perms = features.perms and then
-                 myrec.digest = digest
-               then
-                  null;
-               else
+
+               M := myrec.perms = features.perms;
+               U := myrec.uid = features.uid;
+               G := myrec.gid = features.gid;
+               D := myrec.digest = digest;
+               T := myrec.ftype = features.ftype;
+
+               if not (M and then U and then G and then D and then T) then
                   modified.Append (entkey);
                end if;
                DC.Update_Element (DC.Find (entkey), set_second'Access);
@@ -210,8 +214,8 @@ package body Hierarchy is
 
       --  # /etc/resolv.conf is manipulated by the framework.  it's normal
       --  ignores resolv.conf and resolv.conf.orig
-      if HT.leads (line, localbase & "/etc/resolv.conf") then
-         return True
+      if HT.leads (line, "/etc/resolv.conf") then
+         return True;
       end if;
 
       --  */ls-R
@@ -258,6 +262,7 @@ package body Hierarchy is
       procedure filter_extras (Position : admtypes.string_crate.Cursor);
       procedure filter_modify (Position : admtypes.string_crate.Cursor);
       procedure prune_leftovers (Position : admtypes.string_crate.Cursor);
+      procedure print_modified (cursor : admtypes.string_crate.Cursor);
       procedure print (cursor : admtypes.string_crate.Cursor);
 
       skip_dirs : admtypes.string_crate.Vector;
@@ -295,6 +300,30 @@ package body Hierarchy is
       begin
          TIO.Put_Line (log_handle, LAT.HT & dossier);
       end print;
+
+      procedure print_modified (cursor : admtypes.string_crate.Cursor)
+      is
+         filename : HT.Text renames admtypes.string_crate.Element (cursor);
+         myrec    : direntrec renames DC.Element (filename);
+         status   : String (1 .. 8) := (others => ' ');
+      begin
+         if myrec.dD then
+            status (1) := 'D';
+         end if;
+         if myrec.dU then
+            status (2) := 'U';
+         end if;
+         if myrec.dG then
+            status (3) := 'G';
+         end if;
+         if myrec.dM then
+            status (4) := 'M';
+         end if;
+         if myrec.dT then
+            status (5) := 'T';
+         end if;
+         TIO.Put_Line (log_handle, LAT.HT & status & HT.USS (filename));
+      end print_modified;
 
       procedure prune_leftovers (Position : admtypes.string_crate.Cursor)
       is
@@ -340,7 +369,7 @@ package body Hierarchy is
       if not changed.Is_Empty then
          passed := False;
          TIO.Put_Line (log_handle, LAT.LF & "   Modified files/directories:");
-         changed.Iterate (Process => print'Access);
+         changed.Iterate (Process => print_modified'Access);
       end if;
       if passed then
          TIO.Put_Line (log_handle, "Everything is fine.");
