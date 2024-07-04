@@ -242,11 +242,15 @@ package body HelperText is
       dl_size      : constant Natural := delimiter'Length;
       back_marker  : constant Natural := S'First;
       front_marker : Natural := S'Last - dl_size + 1;
+      empty        : constant String := "";
    begin
+      if S = empty then
+         return empty;
+      end if;
       loop
          if front_marker < back_marker then
             --  delimiter never found
-            return "";
+            return empty;
          end if;
          if S (front_marker .. front_marker + dl_size - 1) = delimiter then
             return S (back_marker .. front_marker - 1);

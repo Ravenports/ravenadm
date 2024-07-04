@@ -61,4 +61,8 @@ private
      (DC        : Dirent_Collection.Map;
       missing   : in out admtypes.string_crate.Vector);
 
+   procedure add_exception_of_leftover_ancestors
+     (also_skip : in out admtypes.string_crate.Vector;
+      leftover  : HT.Text);
+
 end hierarchy;

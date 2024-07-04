@@ -222,6 +222,7 @@ package body hierarchy is
    is
       procedure filter_extras (Position : admtypes.string_crate.Cursor);
       procedure filter_modify (Position : admtypes.string_crate.Cursor);
+      procedure prune_leftovers (Position : admtypes.string_crate.Cursor);
       procedure print (cursor : admtypes.string_crate.Cursor);
 
       skip_dirs : admtypes.string_crate.Vector;
@@ -230,19 +231,26 @@ package body hierarchy is
       leftover  : admtypes.string_crate.Vector;
       changed   : admtypes.string_crate.Vector;
       missing   : admtypes.string_crate.Vector;
+      parent_lo : admtypes.string_crate.Vector;
       passed    : Boolean := True;
 
-      procedure filter_extras (Position : admtypes.string_crate.Cursor) is
+      procedure filter_extras (Position : admtypes.string_crate.Cursor)
+      is
+         filepath : HT.Text renames admtypes.string_crate.Element (Position);
       begin
-         if not ignore_this_file (admtypes.string_crate.Element (Position)) then
-            leftover.Append (admtypes.string_crate.Element (Position));
+         if ignore_this_file (parent_lo, filepath) then
+            add_exception_of_leftover_ancestors (filepath);
+         else
+            leftover.Append (filepath);
          end if;
       end filter_extras;
 
-      procedure filter_modify (Position : admtypes.string_crate.Cursor) is
+      procedure filter_modify (Position : admtypes.string_crate.Cursor)
+      is
+         filepath : HT.Text renames admtypes.string_crate.Element (Position);
       begin
-         if not ignore_this_file (admtypes.string_crate.Element (Position)) then
-           changed.Append (admtypes.string_crate.Element (Position));
+         if not ignore_this_file (parent_lo, filepath) then
+           changed.Append (filepath);
          end if;
       end filter_modify;
 
@@ -252,6 +260,15 @@ package body hierarchy is
       begin
          TIO.Put_Line (log_handle, LAT.HT & dossier);
       end print;
+
+      procedure prune_leftovers (Position : admtypes.string_crate.Cursor)
+      is
+         filepath : HT.Text renames admtypes.string_crate.Element (Position);
+      begin
+         if leftover.Contains (filepath) then
+            leftover.Delete (leftover.Find (filepath));
+         end if;
+      end prune_leftovers;
 
    begin
       set_file_filter (skip_dirs);
@@ -266,6 +283,7 @@ package body hierarchy is
       modified.Iterate (filter_modify'Access);
 
       set_missing_files (DC, missing);
+      parent_lo.Iterate (prune_leftovers'Access)
 
       admtypes.sorter.Sort (Container => changed);
       admtypes.sorter.Sort (Container => missing);
@@ -316,6 +334,29 @@ package body hierarchy is
       missing.Clear;
       DC.Iterate (check_record'Access);
    end set_missing_files;
+
+
+   -------------------------------------------
+   --  add_exception_of_leftover_ancestors  --
+   -------------------------------------------
+   procedure add_exception_of_leftover_ancestors
+     (also_skip : in out admtypes.string_crate.Vector;
+      leftover  : HT.Text)
+   is
+      procedure dive (parent_dir : String) is
+      begin
+         if parent_dir = "" then
+            return
+         end if;
+         if also_skip.Contains (parent_dir) then
+            return;  --  All parents of this directory are already recorded, exit now
+         end if;
+         also_skip.Append (parent_dir);
+         dive (HT.head (parent_dir));
+      end dive;
+   begin
+      dive (HT.head (HT.USS (leftover)));
+   end add_exception_of_leftover_ancestors;
 
 
 end hierarchy;
