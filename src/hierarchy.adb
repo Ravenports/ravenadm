@@ -45,7 +45,16 @@ package body Hierarchy is
             myrec.uid    := features.uid;
             myrec.perms  := features.perms;
             myrec.ftype  := features.ftype;
-            myrec.digest := Blake_3.file_digest (rootdir & relpath);
+            case features.ftype is
+               when Archive.directory |
+                    Archive.symlink |
+                    Archive.fifo |
+                    Archive.unsupported =>
+                  myrec.digest := (others => '0');
+               when Archive.regular |
+                    Archive.hardlink =>
+                  myrec.digest := Blake_3.file_digest (rootdir & relpath);
+            end case;
             DC.Insert (HT.SUS (relpath), myrec);
             case features.ftype is
                when Archive.directory =>
@@ -104,8 +113,17 @@ package body Hierarchy is
                return;
             end if;
             if DC.Contains (entkey) then
-               digest := Blake_3.file_digest (rootdir & relpath);
                features := Archive.Unix.get_charactistics (rootdir & relpath);
+               case features.ftype is
+                  when Archive.directory |
+                       Archive.symlink |
+                       Archive.fifo |
+                       Archive.unsupported =>
+                     digest := (others => '0');
+                  when Archive.regular |
+                       Archive.hardlink =>
+                     digest := Blake_3.file_digest (rootdir & relpath);
+               end case;
                if myrec.gid = features.gid and then
                  myrec.uid = features.uid and then
                  myrec.ftype = features.ftype and then
