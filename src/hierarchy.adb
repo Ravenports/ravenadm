@@ -20,8 +20,6 @@ package body Hierarchy is
      (DC        : in out Dirent_Collection.Map;
       rootdir   : String)
    is
-      procedure dive (this_directory : String);
-
       skip_dirs : admtypes.string_crate.Vector;
 
       procedure dive (this_directory : String)
@@ -65,7 +63,7 @@ package body Hierarchy is
          this_level.Iterate (analyze_entity'Access);
       end dive;
    begin
-      set_file_filter (skip_dirs);
+      set_directory_filter (skip_dirs);
       dive ("/");
    end take_snapshot;
 
@@ -160,15 +158,11 @@ package body Hierarchy is
    end check_again;
 
 
-   -----------------------
-   --  set_file_filter  --
-   -----------------------
-   procedure set_file_filter (skip_dirs : in out admtypes.string_crate.Vector)
+   ----------------------------
+   --  set_directory_filter  --
+   ----------------------------
+   procedure set_directory_filter (skip_dirs : in out admtypes.string_crate.Vector)
    is
-      procedure push (file_or_directory : String);
-
-      localbase  : constant String := HT.USS (PM.configuration.dir_localbase);
-
       procedure push (file_or_directory : String) is
       begin
          skip_dirs.Append (HT.SUS (file_or_directory));
@@ -187,23 +181,55 @@ package body Hierarchy is
       push ("/root");
       push ("/usr");
       push ("/var/cache");
-      push ("/var/db/rvn");
+      push ("/var/db");
+      push ("/var/log");
+      push ("/var/mail");
+      push ("/var/run");
+      push ("/var/spool");
+      push ("/var/tmp");
       push ("/port");
       push ("/xports");
 
-   end set_file_filter;
+   end set_directory_filter;
+
+
+   ------------------------------
+   --  set_single_file_filter  --
+   ------------------------------
+   procedure set_single_file_filter (skip_files : in out admtypes.string_crate.Vector)
+   is
+      localbase  : constant String := HT.USS (PM.configuration.dir_localbase);
+
+      procedure push (file_or_directory : String) is
+      begin
+         skip_files.Append (HT.SUS (file_or_directory));
+      end push;
+   begin
+      --  # xmlcatmgr is constantly updating catalog.ports, ignore
+      push (localbase & "/share/xml/catalog.ports");
+
+      --  # gio modules cache could be modified for any gio modules
+      push (localbase & "/lib/gio/modules/giomodule.cache");
+
+      push ("/etc/group");
+      push ("/etc/passwd");
+      push ("/etc/pwd.db");
+      push ("/etc/spwd.db");
+      push ("/etc/master.passwd");
+
+   end set_single_file_filter;
 
 
    ------------------------
    --  ignore_this_file  --
    ------------------------
-   function ignore_this_file (filename : HT.Text) return Boolean
+   function ignore_this_file (filename : HT.Text;
+                              singles : admtypes.string_crate.Vector) return Boolean
    is
       line      : constant String := HT.USS (filename);
       localbase : constant String := HT.USS (PM.configuration.dir_localbase);
    begin
-      --  # xmlcatmgr is constantly updating catalog.ports, ignore
-      if line = localbase & "/share/xml/catalog.ports" then
+      if singles.Contains (filename) then
          return True;
       end if;
 
@@ -266,6 +292,7 @@ package body Hierarchy is
       procedure print (cursor : admtypes.string_crate.Cursor);
 
       skip_dirs : admtypes.string_crate.Vector;
+      singles   : admtypes.string_crate.Vector;
       extras    : admtypes.string_crate.Vector;
       modified  : admtypes.string_crate.Vector;
       leftover  : admtypes.string_crate.Vector;
@@ -278,7 +305,7 @@ package body Hierarchy is
       is
          filepath : HT.Text renames admtypes.string_crate.Element (Position);
       begin
-         if ignore_this_file (filepath) then
+         if ignore_this_file (filepath, singles) then
             add_exception_of_leftover_ancestors (parent_lo, filepath);
          else
             leftover.Append (filepath);
@@ -289,7 +316,7 @@ package body Hierarchy is
       is
          filepath : HT.Text renames admtypes.string_crate.Element (Position);
       begin
-         if not ignore_this_file (filepath) then
+         if not ignore_this_file (filepath, singles) then
            changed.Append (filepath);
          end if;
       end filter_modify;
@@ -337,7 +364,9 @@ package body Hierarchy is
       end prune_leftovers;
 
    begin
-      set_file_filter (skip_dirs);
+      --  TODO: read in custom skip files
+      set_single_file_filter (singles);
+      set_directory_filter (skip_dirs);
       check_again (DC        => DC,
                    rootdir   => rootdir,
                    skip_dirs => skip_dirs,

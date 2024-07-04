@@ -52,9 +52,12 @@ package Hierarchy is
 private
 
    --  Initialize filter set (directories to avoid checking)
-   procedure set_file_filter (skip_dirs : in out admtypes.string_crate.Vector);
+   procedure set_directory_filter (skip_dirs : in out admtypes.string_crate.Vector);
+   procedure set_single_file_filter (skip_files : in out admtypes.string_crate.Vector);
 
-   function ignore_this_file (filename : HT.Text) return Boolean;
+   function ignore_this_file
+     (filename : HT.Text;
+      singles  : admtypes.string_crate.Vector) return Boolean;
 
    procedure check_again
      (DC        : in out Dirent_Collection.Map;
