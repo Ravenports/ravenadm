@@ -12,19 +12,35 @@ all: ravenadm ravenexec
 unix_core.o: ../src/unix_core.c
 	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
 
+walkdir.o: ../rvn-format/src/unix/walkdir.c
+	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
+
+open.o: ../rvn-format/src/unix/open.c
+	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
+
+stat_opsc.o: ../rvn-format/src/unix/stat_opsc.c
+	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
+
+dprint2.o: ../rvn-format/src/unix/dprint2.c
+	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
+
 ravenexec: ../ravenexec/ravenexec.c
 	${CC} ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
 
 ADAFLAGS= -gnatA -gnatyaAbBcdehfiklM100nOprsStx -fstack-check
+COBJS= unix_core.o walkdir.o open.o stat_opsc.o dprint2.o
+BASELIBS= -lucl_pic -lblake3_pic -lzstd_pic -lm
+BASEINCS= -I../rvn-format/src -I../rvn-format/src/ucl -I../rvn-format/src/blake3 \
+	-I../rvn-format/src/zstandard -I../rvn-format/src/unix -I../rvn-format/src/elf
 
-ravenadm: unix_core.o
+ravenadm: ${COBJS}
 .if empty(WITH_DISPLAY)
-	gnatmake -I../src -I../rvn-format/src/ucl ../ravenadm.adb -o ${.TARGET}\
-		${CFLAGS} ${ADAFLAGS} -largs unix_core.o -lucl_pic -lm
+	gnatmake -I../src ${BASEINCS} ../ravenadm.adb -o ${.TARGET}\
+		${CFLAGS} ${ADAFLAGS} -largs ${COBJS} ${BASELIBS}
 .else
-	gnatmake -I../src -I../src/ucl ../ravenadm.adb -o ${.TARGET}\
+	gnatmake -I../src ${BASEINCS} ../ravenadm.adb -o ${.TARGET}\
 		-aI${LOCALBASE}/include/adacurses\
 		-aO${LOCALBASE}/lib/adacurses\
 		${CFLAGS} ${ADAFLAGS}\
-		-largs unix_core.o -lucl_pic -lm -lncurses -ltinfo -lAdaCurses
+		-largs ${COBJS} ${BASELIBS} -lncurses -ltinfo -lAdaCurses
 .endif
