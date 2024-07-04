@@ -328,8 +328,13 @@ package body HelperText is
    is
       template : String (1 .. places) := (others => '0');
       myimage  : constant String := trim (N'Img);
-      startpos : constant Natural := 1 + places - myimage'Length;
+      startpos : Natural;
    begin
+      if myimage'Length >= places then
+         return myimage;
+      end if;
+      --  guarantee places is greatre than image length
+      startpos := 1 + places - myimage'Length;
       template (startpos .. places) := myimage;
       return template;
    end zeropad;
