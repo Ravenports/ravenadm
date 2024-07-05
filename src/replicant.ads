@@ -79,7 +79,7 @@ private
    type mount_mode is (readonly, readwrite);
    type folder_operation is (lock, unlock);
    type folder is (bin, libexec, usr, lib, lib64,
-                   xports, packages, distfiles,
+                   xports, distfiles,
                    dev, etc, etc_default, etc_rcd, etc_ldsocnf, home,
                    proc, root, tmp, var, wrkdirs, port, repofiles, ccache, localbase, toolchain,
                    devices, frameworks);
@@ -105,7 +105,6 @@ private
    root_xports      : constant String := "/xports";
    root_libexec     : constant String := "/libexec";
    root_wrkdirs     : constant String := "/construction";
-   root_packages    : constant String := "/packages";
    root_distfiles   : constant String := "/distfiles";
    root_ccache      : constant String := "/ccache";
    root_repofiles   : constant String := "/repo/files";

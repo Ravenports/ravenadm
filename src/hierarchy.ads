@@ -74,4 +74,8 @@ private
      (also_skip : in out admtypes.string_crate.Vector;
       leftover  : HT.Text);
 
+   procedure load_custom_single_exceptions
+     (rootdir   : String;
+      singles   : in out admtypes.string_crate.Vector);
+
 end Hierarchy;

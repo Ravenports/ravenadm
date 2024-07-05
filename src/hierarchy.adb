@@ -173,7 +173,6 @@ package body Hierarchy is
       push ("/construction");
       push ("/dev");
       push ("/distfiles");
-      push ("/packages");    --  do we still need this?
       push ("/tmp");
       push ("/repo");
       push ("/proc");
@@ -364,7 +363,7 @@ package body Hierarchy is
       end prune_leftovers;
 
    begin
-      --  TODO: read in custom skip files
+      load_custom_single_exceptions (rootdir, singles);
       set_single_file_filter (singles);
       set_directory_filter (skip_dirs);
       check_again (DC        => DC,
@@ -462,5 +461,39 @@ package body Hierarchy is
       dive (HT.head (HT.USS (leftover), delimiter));
    end add_exception_of_leftover_ancestors;
 
+
+   -------------------------------------
+   --  load_custom_single_exceptions  --
+   -------------------------------------
+   procedure load_custom_single_exceptions (rootdir : String;
+                                            singles : in out admtypes.string_crate.Vector)
+   is
+      --  optional file located at /tmp/skip_file_check
+      --  enter one file per line
+      input_file : constant String := rootdir & "/tmp/skip_file_check";
+      features : Archive.Unix.File_Characteristics;
+      handle   : TIO.File_Type;
+   begin
+      features := Archive.Unix.get_charactistics (input_file);
+      case features.ftype is
+         when Archive.regular => null;
+         when others => return;
+      end case;
+
+      TIO.Open (handle, TIO.In_File, input_file);
+      while not TIO.End_Of_File (handle) loop
+         declare
+            line : constant String := TIO.Get_Line (handle);
+         begin
+            singles.Append (HT.SUS (line));
+         end;
+      end loop;
+      TIO.Close (handle);
+   exception
+      when others =>
+         if TIO.Is_Open (handle) then
+            TIO.Close (handle);
+         end if;
+   end load_custom_single_exceptions;
 
 end Hierarchy;

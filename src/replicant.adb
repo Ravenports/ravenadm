@@ -706,7 +706,6 @@ package body Replicant is
          when lib         => return mount_base & root_lib;
          when lib64       => return mount_base & root_lib64;
          when libexec     => return mount_base & root_libexec;
-         when packages    => return mount_base & root_packages;
          when distfiles   => return mount_base & root_distfiles;
          when wrkdirs     => return mount_base & root_wrkdirs;
          when ccache      => return mount_base & root_ccache;
