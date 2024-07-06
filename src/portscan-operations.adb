@@ -1150,62 +1150,6 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  located_external_repository
-   --------------------------------------------------------------------------------------------
-   function located_external_repository return Boolean
-   is
-      command : constant String := host_rvn & " -vv";
-      found   : Boolean := False;
-      inspect : Boolean := False;
-      status  : Integer;
-   begin
-      declare
-         dump    : String := HT.USS (Unix.piped_command (command, status));
-         markers : HT.Line_Markers;
-         linenum : Natural := 0;
-      begin
-         if status /= 0 then
-            return False;
-         end if;
-         HT.initialize_markers (dump, markers);
-         loop
-            exit when not HT.next_line_present (dump, markers);
-            declare
-               line : constant String := HT.extract_line (dump, markers);
-               len  : constant Natural := line'Length;
-            begin
-               if inspect then
-                  if len > 7 and then
-                    line (line'First .. line'First + 1) = "  " and then
-                    line (line'Last - 3 .. line'Last) = ": { " and then
-                    line (line'First + 2 .. line'Last - 4) /= "ravenadm"
-                  then
-                     found := True;
-                     external_repository := HT.SUS (line (line'First + 2 .. line'Last - 4));
-                     exit;
-                  end if;
-               else
-                  if line = "Repositories:" then
-                     inspect := True;
-                  end if;
-               end if;
-            end;
-         end loop;
-      end;
-      return found;
-   end located_external_repository;
-
-
-   --------------------------------------------------------------------------------------------
-   --  top_external_repository
-   --------------------------------------------------------------------------------------------
-   function top_external_repository return String is
-   begin
-      return HT.USS (external_repository);
-   end top_external_repository;
-
-
-   --------------------------------------------------------------------------------------------
    --  isolate_arch_from_file_type
    --------------------------------------------------------------------------------------------
    function isolate_arch_from_file_type (fileinfo : String) return filearch
@@ -1540,7 +1484,6 @@ package body PortScan.Operations is
          for m in scanners'Range loop
             mq_progress (m) := 0;
          end loop;
-         update_system_catalog;
          parallel_package_scan (repository, True, using_screen);
 
          if Signals.graceful_shutdown_requested then
@@ -1588,8 +1531,7 @@ package body PortScan.Operations is
          if not HT.IsBlank (package_list) then
             declare
                cmd : constant String :=
-                 host_rvn & " fetch --repository " &  HT.USS (external_repository) &
-                 "--no-repo-update --yes --exact-match --output " &
+                 host_rvn & " fetch --no-repo-update --yes --exact-match --output " &
                  HT.USS (PM.configuration.dir_packages) & HT.USS (package_list);
             begin
                if Unix.external_command (cmd) then
@@ -1832,8 +1774,7 @@ package body PortScan.Operations is
    --------------------------------
    procedure acquire_archive_metadata (fullpath  : String; metadata  : in out ADO_Data)
    is
-      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command  : constant String := rvn8 & " -C '' info -wod --file "  & fullpath;
+      command  : constant String := host_rvn & " -C '' info -wod --file "  & fullpath;
       status : Integer;
       comres : HT.Text;
    begin
@@ -1851,8 +1792,7 @@ package body PortScan.Operations is
    procedure acquire_catalog_metadata (triplet : String; metadata  : in out ADO_Data)
    is
       --  Before scan, ensure system catalog is up-to-date because that check is disabled here.
-      rvn8    : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command : constant String := rvn8 & " info -wod -UK -E " & triplet;
+      command : constant String := host_rvn & " info -wod -UK -E " & triplet;
       status  : Integer;
       comres  : HT.Text;
    begin
@@ -1862,19 +1802,6 @@ package body PortScan.Operations is
          parse_info_result (HT.USS (comres), metadata);
       end if;
    end acquire_catalog_metadata;
-
-
-   -----------------------------
-   --  update_system_catalog  --
-   -----------------------------
-   procedure update_system_catalog
-   is
-      rvn8    : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command : constant String := rvn8 & " catalog --quiet";
-      result  : Boolean;
-   begin
-      result := Unix.external_command (command);
-   end update_system_catalog;
 
 
    -------------------------
@@ -2007,141 +1934,6 @@ package body PortScan.Operations is
 
       return True;
    end passed_option_check;
-
-
-
---        rec : port_record renames all_ports (id);
---
---        pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
---        pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
---        fullpath : constant String := repository & "/" & pkg_base & arc_ext;
---        rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
---        optform  : constant String := "'{xopt:key} => {xopt:val}' ";
---        command  : constant String := rvn8 & " -C '' info -oq --file " & fullpath;
---        remocmd  : constant String := rvn8 & " rquery -E " & optform & pkg_nsv;
---        status   : Integer;
---        comres   : HT.Text;
---        counter  : Natural := 0;
---        required : constant Natural := Natural (all_ports (id).options.Length);
---        extquery : constant Boolean := (repository = "");
---  begin
---        if id = port_match_failed or else
---          not all_ports (id).scanned or else
---          (not skip_exist_check and then not DIR.Exists (fullpath))
---        then
---           LOG.obsolete_notice
---             (write_to_screen => debug_opt_check,
---              message => pkg_base & " => passed_option_check() failed sanity check.");
---           return False;
---        end if;
---
---        if extquery then
---           comres := Unix.piped_command (remocmd, status);
---        else
---           comres := Unix.piped_command (command, status);
---        end if;
---        if status /= 0 then
---           if extquery then
---              LOG.obsolete_notice
---                (write_to_screen => debug_opt_check,
---                 message => pkg_base & " => failed to execute: " & remocmd);
---           else
---              LOG.obsolete_notice
---                (write_to_screen => debug_opt_check,
---                 message => pkg_base & " => failed to execute: " & command);
---           end if;
---           LOG.obsolete_notice
---             (write_to_screen => debug_opt_check,
---              message => "output => " & HT.USS (comres));
---           return False;
---        end if;
---
---        declare
---           command_result : constant String := HT.USS (comres);
---           markers  : HT.Line_Markers;
---        begin
---           HT.initialize_markers (command_result, markers);
---           loop
---              exit when not HT.next_line_present (command_result, markers);
---              declare
---                 line     : constant String := HT.extract_line (command_result, markers);
---                 delimit  : constant String := " => ";
---              begin
---                 exit when line = "";
---                 if not HT.contains (line, delimit) then
---                    raise unknown_format with line;
---                 end if;
---                 declare
---                    namekey  : constant String := HT.part_1 (line, delimit);
---                    knob     : constant String := HT.lowercase (HT.part_2 (line, delimit));
---                    nametext : HT.Text := HT.SUS (namekey);
---                    knobval  : Boolean;
---                 begin
---                    if knob = "on" or else knob = "true" then
---                       knobval := True;
---                    elsif knob = "off" or else knob = "false" then
---                       knobval := False;
---                    else
---                       raise unknown_format with "knob=" & knob & "(" & line & ")";
---                    end if;
---
---                    counter := counter + 1;
---                    if counter > required then
---                       --  package has more options than we are looking for
---                       LOG.obsolete_notice
---                         (write_to_screen => debug_opt_check,
---                          message => "options " & namekey & LAT.LF & pkg_base &
---                            " has more options than required (" & HT.int2str (required) & ")");
---                       return False;
---                    end if;
---
---                    if all_ports (id).options.Contains (nametext) then
---                       if knobval /= all_ports (id).options.Element (nametext) then
---                          --  port option value doesn't match package option value
---                          if knobval then
---                             LOG.obsolete_notice
---                               (write_to_screen => debug_opt_check,
---                                message => pkg_base & " " & namekey &
---                                  " is ON but specifcation says it must be OFF");
---                          else
---                             LOG.obsolete_notice
---                               (write_to_screen => debug_opt_check,
---                                message => pkg_base & " " & namekey &
---                                  " is OFF but specifcation says it must be ON");
---                          end if;
---                          return False;
---                       end if;
---                    else
---                       --  Name of package option not found in port options
---                       LOG.obsolete_notice
---                         (write_to_screen => debug_opt_check,
---                          message => pkg_base & " option " & namekey &
---                            " is no longer present in the specification");
---                       return False;
---                    end if;
---                 end;
---              end;
---           end loop;
---
---           if counter < required then
---              --  The ports tree has more options than the existing package
---              LOG.obsolete_notice
---                (write_to_screen => debug_opt_check,
---                 message => pkg_base & " has less options than required (" &
---                   HT.int2str (required) & ")");
---              return False;
---           end if;
---
---           --  If we get this far, the package options must match port options
---           return True;
---        end;
---     exception
---        when issue : others =>
---           LOG.obsolete_notice
---             (write_to_screen => debug_opt_check,
---              message => "option check exception" & LAT.LF & EX.Exception_Information (issue));
---           return False;
---     end passed_option_check;
 
 
    --------------------------------------------------------------------------------------------

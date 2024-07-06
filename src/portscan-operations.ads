@@ -51,12 +51,6 @@ package PortScan.Operations is
    --  removes processed port from the top of ranking queue and returns the port id
    function unlist_first_port return port_id;
 
-   --  Returns True on success; stores value in global external_repository
-   function located_external_repository return Boolean;
-
-   --  Returns the value of the stored external repository
-   function top_external_repository return String;
-
    --  If performing a limited build run (likely 99% of the use cases), only
    --  the queued packages will be checked.  The checks are limited to finding
    --  options changes and dependency changes.  Obsolete packages (related or
@@ -179,8 +173,6 @@ private
    history          : progress_history;
    calculated_abi   : HT.Text;
    curses_support   : Boolean := False;
-
-   external_repository : HT.Text;
 
    --  Return true if file is executable (platform-specific)
    function file_is_executable (filename : String) return Boolean;
@@ -314,8 +306,5 @@ private
    function compare_archive_to_requirements
      (rvnfile      : admtypes.string_crate.Vector;
       requirements : admtypes.string_crate.Vector) return String;
-
-   --  Prior to remote scanning, ensure the catalog is current.
-   procedure update_system_catalog;
 
 end PortScan.Operations;

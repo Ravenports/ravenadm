@@ -866,7 +866,7 @@ package body Pilot is
       block_remote : Boolean := True;
       force_compiler_build : Boolean := False;
       force_binutils_build : Boolean := False;
-      update_external_repo : constant String := host_rvn & " catalog --quiet --repository ";
+      update_external_repo : constant String := host_rvn & " catalog";
       no_packages : constant String := "No prebuilt packages will be used as a result.";
 
    begin
@@ -877,22 +877,14 @@ package body Pilot is
       end if;
 
       if PM.configuration.defer_prebuilt then
-         --  Before any remote operations, find the external repo
-         if OPS.located_external_repository then
+         --  We're going to use prebuilt packages if available, so let's
+         --  prepare for that case by updating the external repository
+         TIO.Put ("Stand by, updating external repository catalogs ... ");
+         if Unix.external_command (update_external_repo) then
+            TIO.Put_Line ("done.");
             block_remote := False;
-            --  We're going to use prebuilt packages if available, so let's
-            --  prepare for that case by updating the external repository
-            TIO.Put ("Stand by, updating external repository catalogs ... ");
-            if Unix.external_command (update_external_repo & OPS.top_external_repository) then
-               TIO.Put_Line ("done.");
-            else
-               TIO.Put_Line ("Failed!");
-               TIO.Put_Line ("The external repository could not be updated.");
-               TIO.Put_Line (no_packages);
-               block_remote := True;
-            end if;
          else
-            TIO.Put_Line ("The external repository does not seem to be configured.");
+            TIO.Put_Line ("The remote catalog could not be updated.");
             TIO.Put_Line (no_packages);
          end if;
       end if;
