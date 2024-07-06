@@ -505,9 +505,11 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    procedure scribe (flavor : count_type; line : String; flush_after : Boolean) is
    begin
-      TIO.Put_Line (Flog (flavor), line);
-      if flush_after then
-         TIO.Flush (Flog (flavor));
+      if TIO.Is_Open (Flog (flavor)) then
+         TIO.Put_Line (Flog (flavor), line);
+         if flush_after then
+            TIO.Flush (Flog (flavor));
+         end if;
       end if;
    end scribe;
 

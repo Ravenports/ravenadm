@@ -903,6 +903,12 @@ package body Pilot is
                                 architecture     => sysrootver.arch);
       LOG.set_build_counters (PortScan.queue_length, 0, 0, 0, 0);
       if dry_run then
+         --  Remove ignored ports first
+         loop
+            ptid := OPS.next_ignored_port;
+            exit when not PortScan.valid_port_id (ptid);
+            OPS.cascade_failed_build (ptid, num_skipped);
+         end loop;
          return True;
       end if;
 
