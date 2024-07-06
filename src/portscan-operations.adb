@@ -18,6 +18,8 @@ with Port_Specification.Transform;
 with INI_File_Manager;
 with Options_Dialog_Console;
 with Display.Console;
+with Archive.Unpack;
+with UCL_Operations;
 
 package body PortScan.Operations is
 
@@ -1772,17 +1774,29 @@ package body PortScan.Operations is
    --------------------------------
    --  acquire_archive_metadata  --
    --------------------------------
+   --  procedure acquire_archive_metadata (fullpath  : String; metadata  : in out ADO_Data)
+   --  is
+   --     command  : constant String := host_rvn & " -C '' info -wod --file "  & fullpath;
+   --     status : Integer;
+   --     comres : HT.Text;
+   --  begin
+   --     --  Fullpath has been verified to exist by the calling function
+   --     comres := Unix.piped_command (command, status);
+   --     if status = 0 then
+   --        parse_info_result (HT.USS (comres), metadata);
+   --     end if;
+   --  end acquire_archive_metadata;
    procedure acquire_archive_metadata (fullpath  : String; metadata  : in out ADO_Data)
    is
-      command  : constant String := host_rvn & " -C '' info -wod --file "  & fullpath;
-      status : Integer;
-      comres : HT.Text;
+      arc_operation : Archive.Unpack.DArc;
    begin
-      --  Fullpath has been verified to exist by the calling function
-      comres := Unix.piped_command (command, status);
-      if status = 0 then
-         parse_info_result (HT.USS (comres), metadata);
-      end if;
+      arc_operation.open_rvn_archive (fullpath, Archive.silent);
+      declare
+         metastring : constant String := arc_operation.extract_metadata;
+      begin
+         arc_operation.close_rvn_archive;
+         UCL_Operations.extract_ADO (metastring, metadata);
+      end;
    end acquire_archive_metadata;
 
 

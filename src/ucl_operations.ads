@@ -1,7 +1,10 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: /License.txt
 
+with admtypes;
 with ThickUCL;
+
+use admtypes;
 
 package UCL_Operations is
 
@@ -38,6 +41,12 @@ package UCL_Operations is
    --  If any check fails, send error message to standard out and set to False.
    function port_ucl_files_valid
      (ravensrcdir : String) return Boolean;
+
+   --  Parses metadata string to convert to UCL tree, then populates the metadata needed
+   --  for archive file checks.
+   procedure extract_ADO
+     (metadata_string : String;
+      metadata        : in out ADO_Data);
 
 private
 

@@ -13,4 +13,11 @@ package admtypes is
 
    package sorter is new string_crate.Generic_Sorting ("<" => HelperText.SU."<");
 
+   type ADO_Data is
+      record
+         abi          : HelperText.Text;
+         dependencies : string_crate.Vector;
+         options      : string_crate.Vector;
+      end record;
+
 end admtypes;

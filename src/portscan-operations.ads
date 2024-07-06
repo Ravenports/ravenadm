@@ -161,13 +161,6 @@ private
      (Element_Type => subpackage_identifier,
       Index_Type   => built_package_id);
 
-   type ADO_Data is
-      record
-         abi          : HT.Text;
-         dependencies : admtypes.string_crate.Vector;
-         options      : admtypes.string_crate.Vector;
-      end record;
-
    pkgscan_progress : dim_progress := (others => 0);
    pkgscan_total    : Natural := 0;
    history          : progress_history;

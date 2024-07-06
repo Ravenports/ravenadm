@@ -679,4 +679,83 @@ package body UCL_Operations is
    end port_ucl_files_valid;
 
 
+   -------------------
+   --  extract_ADO  --
+   -------------------
+   procedure extract_ADO
+     (metadata_string : String;
+      metadata        : in out ADO_Data)
+   is
+      tree : ThickUCL.UclTree;
+      KEY_ABI : constant String := "abi";
+      KEY_DEP : constant String := "deps";
+      KEY_OPT : constant String := "options";
+      ondx    : ThickUCL.object_index;
+   begin
+      metadata.abi := HelperText.blank;
+      metadata.dependencies.Clear;
+      metadata.options.Clear;
+      ThickUCL.Files.parse_ucl_string (tree, metadata_string, "");
+
+      if tree.key_exists (KEY_ABI) then
+         declare
+            abi : constant String := tree.get_base_value (KEY_ABI);
+         begin
+            metadata.abi := HT.SUS (abi);
+         end;
+      end if;
+
+      if tree.key_exists (KEY_DEP) then
+         case tree.get_data_type (KEY_DEP) is
+            when ThickUCL.data_object =>
+               declare
+                  depends : ThickUCL.jar_string.Vector;
+
+                  procedure add_dep (Position : ThickUCL.jar_string.Cursor)
+                  is
+                     nsv : HT.Text renames ThickUCL.jar_string.Element (Position).payload;
+                     vsn : constant String := tree.get_object_value (ondx, HT.USS (nsv));
+                  begin
+                     metadata.dependencies.Append (HT.SUS (HT.USS (nsv) & "-" & vsn));
+                  end add_dep;
+               begin
+                  ondx := tree.get_index_of_base_ucl_object (KEY_DEP);
+                  tree.get_object_object_keys (ondx, depends);
+                  depends.Iterate (add_dep'Access);
+               end;
+            when others => null;
+         end case;
+      end if;
+
+      if tree.key_exists (KEY_OPT) then
+         case tree.get_data_type (KEY_OPT) is
+            when ThickUCL.data_object =>
+               declare
+                  options : ThickUCL.jar_string.Vector;
+
+                  procedure add_option (Position : ThickUCL.jar_string.Cursor)
+                  is
+                     name : HT.Text renames ThickUCL.jar_string.Element (Position).payload;
+                     setting : constant Boolean := tree.get_object_value (ondx, HT.USS (name));
+                  begin
+                     if setting then
+                        metadata.options.Append (HT.SUS (HT.USS (name) & " => true"));
+                     else
+                        metadata.options.Append (HT.SUS (HT.USS (name) & " => false"));
+                     end if;
+                  end add_option;
+               begin
+                  ondx := tree.get_index_of_base_ucl_object (KEY_OPT);
+                  tree.get_object_object_keys (ondx, options);
+                  options.Iterate (add_option'Access);
+               end;
+            when others => null;
+         end case;
+      end if;
+
+   exception
+      when ThickUCL.Files.ucl_data_unparseable =>
+         null;  --  silently fail
+   end extract_ADO;
+
 end UCL_Operations;
