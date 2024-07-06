@@ -1550,6 +1550,7 @@ package body PortScan.Operations is
          --  All subpackages must be "already_built" before we can prune.
          --  we have iterate through the rank_queue, then subiterate through subpackages.
          --  If all subpackages are present, add port to prune queue.
+         TIO.Put_Line ("Analyzing.");
          already_built.Iterate (determine_fully_built'Access);
          prune_list.Iterate (prune_queue'Access);
       end if;
@@ -2103,6 +2104,7 @@ package body PortScan.Operations is
    is
       task type scan (lot : scanners);
       finished : array (scanners) of Boolean := (others => False);
+      clear_progress : constant String (1 .. 32) := (32 => LAT.CR, others => LAT.Space);
       combined_wait : Boolean := True;
       label_shown   : Boolean := False;
       aborted       : Boolean := False;
@@ -2236,6 +2238,7 @@ package body PortScan.Operations is
             end if;
          end if;
       end loop;
+      TIO.Put (clear_progress);
    end parallel_package_scan;
 
 
