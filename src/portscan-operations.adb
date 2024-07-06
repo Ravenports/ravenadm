@@ -1439,7 +1439,7 @@ package body PortScan.Operations is
 
       procedure print (cursor : subpackage_queue.Cursor)
       is
-         id      : constant port_index := subpackage_queue.Element (cursor).id;
+         id      : constant port_index := subpackage_queue.Element (cursor).port;
          subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
          pkgfile : constant String := calculate_package_name (id, subpkg) & arc_ext;
       begin
@@ -1451,7 +1451,7 @@ package body PortScan.Operations is
 
       procedure fetch (cursor : subpackage_queue.Cursor)
       is
-         id      : constant port_index := subpackage_queue.Element (cursor).id;
+         id      : constant port_index := subpackage_queue.Element (cursor).port;
          subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
          pkg_nsv : constant String := " " & calculate_nsv (id, subpkg);
       begin
@@ -1460,7 +1460,7 @@ package body PortScan.Operations is
 
       procedure check (cursor : subpackage_queue.Cursor)
       is
-         id      : constant port_index := subpackage_queue.Element (cursor).id;
+         id      : constant port_index := subpackage_queue.Element (cursor).port;
          subpkg  : constant String := HT.USS (subpackage_queue.Element (cursor).subpackage);
          pkgfile : constant String := calculate_package_name (id, subpkg) & arc_ext;
          loc     : constant String := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
@@ -1476,7 +1476,7 @@ package body PortScan.Operations is
          procedure check_subpackage (cursor : subpackage_crate.Cursor);
 
          glass_full : Boolean := True;
-         target : port_id := subpackage_queue.Element (cursor).id;
+         target : port_id := subpackage_queue.Element (cursor).port;
 
          procedure check_subpackage (cursor : subpackage_crate.Cursor)
          is
@@ -1515,15 +1515,13 @@ package body PortScan.Operations is
       end determine_fully_built;
 
    begin
-      if Unix.env_variable_defined ("WHYFAIL") then
-         activate_debugging_code;
-      end if;
       establish_package_architecture (major_release, architecture);
       original_queue_len := rank_queue.Length;
       for m in scanners'Range loop
          mq_progress (m) := 0;
       end loop;
       LOG.start_obsolete_package_logging;
+      --  TODO: if remote scanning, update catalog first
       parallel_package_scan (repository, False, using_screen);
 
       if Signals.graceful_shutdown_requested then
@@ -1615,59 +1613,54 @@ package body PortScan.Operations is
 
 
    --------------------------------------------------------------------------------------------
-   --  result_of_dependency_query
+   --  compare_archive_to_requirements
    --------------------------------------------------------------------------------------------
-   function result_of_dependency_query
-     (repository : String;
-      id         : port_id;
-      subpackage : String) return HT.Text
+   function compare_archive_to_requirements
+     (rvnfile      : string_crate.Vector;
+      requirements : string_crate.Vector) return String
    is
-      --  $rvn info --quiet --dependencies --file WebP-primary-standard-1.4.0.rvn
-      --  freeglut-primary-standard
-      --  giflib-primary-standard
-      --  jpeg-turbo-primary-standard
-      --  png-primary-standard
-      --  tiff-primary-standard
-      --
-      --  $rvn rquery --no-repo-update '{xdep:nsv}' xz-complete-standard
-      --  xz-docs-standard
-      --  xz-man-standard
-      --  xz-primary-standard
-      --  xz-tools-standard
+      not_in_req : string_crate.Vector;
+      req_twin   : string_crate.Vector;
+      difference : HT.Text;
 
-      rec : port_record renames all_ports (id);
+      procedure clone (Position : string_crate.Cursor) is
+      begin
+         req_twin.Append (string_crate.Element (Position));
+      end clone;
 
-      pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
-      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
-      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command  : constant String := rvn8 & " -C '' info -q --dependencies --file " & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E ' {xdep:nsv}-{xrdep:ver}' " & pkg_nsv;
-      status   : Integer;
-      comres   : HT.Text;
+      procedure check (Position : string_crate.Cursor)
+      is
+         mystr : HT.Text renames string_crate.Element (Position);
+         this_cursor : string_crate.Cursor;
+      begin
+         if req_twin.Contains (mystr) then
+            this_cursor := req_twin.Find (mystr);
+            req_twin.Delete (this_cursor);
+         else
+            not_in_req.Append (mystr);
+         end if;
+      end check;
+
+      procedure list_out (Position : string_crate.Cursor) is
+      begin
+         HT.SU.Append (difference, LAT.LF & LAT.HT & HT.USS (string_crate.Element (Position)));
+      end list_out;
    begin
-      if repository /= "" then
-         comres := Unix.piped_command (command, status);
-      else
-         --  Support for fetch-prebuilt-package option
-         comres := Unix.piped_command (remocmd, status);
+      requirements.Iterate (clone'Access);
+      rvnfile.Iterate (check'Access);
+      if not_in_req.Is_Empty and then req_twin.Is_Empty then
+         return "";
       end if;
-      if status = 0 then
-         return comres;
-      else
-         return HT.blank;
+      if not not_in_req.Is_Empty then
+         HT.SU.Append (difference, LAT.LF & "Only in rvn archive:");
+         not_in_req.Iterate (list_out'Access);
       end if;
-   end result_of_dependency_query;
-
-
-   --------------------------------------------------------------------------------------------
-   --  activate_debugging_code
-   --------------------------------------------------------------------------------------------
-   procedure activate_debugging_code is
-   begin
-      debug_opt_check := True;
-      debug_dep_check := True;
-   end activate_debugging_code;
+      if not req_twin.Is_Empty then
+         HT.SU.Append (difference, LAT.LF & "Only in port specifications:");
+         req_twin.Iterate (list_out'Access);
+      end if;
+      return HT.USS (difference);
+   end compare_archive_to_requirements;
 
 
    --------------------------------------------------------------------------------------------
@@ -1675,163 +1668,144 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    function passed_dependency_check
      (subpackage   : String;
-      query_result : HT.Text;
+      query_result : string_crate.Vector;
       id           : port_id) return Boolean
    is
-      procedure get_rundeps (position : subpackage_crate.Cursor);
-      procedure log_run_deps (position : subpackage_crate.Cursor);
+      --  verifies the queried count matches the expected number of dependencies and
+      --  then match every dependency down to the version.  If anything fails, do an extensive
+      --  log on the problems found.
 
-      content  : String  := HT.USS (query_result);
-      headport : constant String := HT.USS (all_ports (id).port_namebase) & LAT.Colon &
-                                    subpackage & LAT.Colon & HT.USS (all_ports (id).port_variant);
-      counter  : Natural := 0;
-      req_deps : Natural := 0;
-      markers  : HT.Line_Markers;
-      pkgfound : Boolean := False;
+      headport  : constant String  := calculate_package_name (id, subpackage);
+      requirements : string_crate.Vector;
 
-      procedure get_rundeps (position : subpackage_crate.Cursor)
+      ---------------------------
+      --  gather_requirements  --
+      ---------------------------
+      procedure gather_requirements
       is
-         rec : subpackage_record renames subpackage_crate.Element (position);
-      begin
-         if not pkgfound then
-            if HT.equivalent (rec.subpackage, subpackage) then
-               req_deps := Natural (rec.spkg_run_deps.Length);
-               pkgfound := True;
-            end if;
-         end if;
-      end get_rundeps;
-
-      procedure log_run_deps (position : subpackage_crate.Cursor)
-      is
-         procedure logme (logpos : spkg_id_crate.Cursor);
-         rec : subpackage_record renames subpackage_crate.Element (position);
-         procedure logme (logpos : spkg_id_crate.Cursor) is
-            rec2 : PortScan.subpackage_identifier renames spkg_id_crate.Element (logpos);
-            message : constant String := get_port_variant (rec2.port) & " (" &
-              HT.USS (rec2.subpackage) & ")";
-         begin
-            LOG.obsolete_notice (message, debug_dep_check);
-         end logme;
-      begin
-         if HT.equivalent (rec.subpackage, subpackage) then
-            LOG.obsolete_notice ("Port requirements:", debug_dep_check);
-            rec.spkg_run_deps.Iterate (logme'Access);
-         end if;
-      end log_run_deps;
-   begin
-      all_ports (id).subpackages.Iterate (get_rundeps'Access);
-      HT.initialize_markers (content, markers);
-      loop
-         exit when not HT.next_line_present (content, markers);
-         declare
-            deppkg : constant String := HT.extract_line (content, markers);
-         begin
-            exit when deppkg = "";
-            declare
-               procedure set_available (position : subpackage_crate.Cursor);
-
-               subpackage : constant String := subpackage_from_pkgname (deppkg);
-               target_key : constant String := convert_pkgname_to_portkey (deppkg);
-               target_id  : port_index := ports_keys.Element (HT.SUS (target_key));
-               target_pkg : String := calculate_package_name (target_id, subpackage);
-               available  : Boolean;
-
-               procedure set_available (position : subpackage_crate.Cursor)
-               is
-                  rec : subpackage_record renames subpackage_crate.Element (position);
-               begin
-                  if not pkgfound and then
-                    HT.equivalent (rec.subpackage, subpackage)
-                  then
-                     available := (rec.remote_pkg or else rec.pkg_present) and then
-                       not rec.deletion_due;
-                     pkgfound := True;
-                  end if;
-               end set_available;
+         procedure assemble_requirements (position : subpackage_crate.Cursor)
+         is
+            rec : subpackage_record renames subpackage_crate.Element (position);
+            procedure assemble (asspos : spkg_id_crate.Cursor)
+            is
+               rec2 : subpackage_identifier renames spkg_id_crate.Element (asspos);
+               nsvv : constant String :=
+                 calculate_package_name (rec2.port, HT.USS (rec2.subpackage));
             begin
-               if valid_port_id (target_id) then
-                  pkgfound := False;
-                  all_ports (target_id).subpackages.Iterate (set_available'Access);
-               else
-                  --  package seems to have a dependency that has been removed from the conspiracy
-                  LOG.obsolete_notice
-                    (message         => target_key & " has been removed from Ravenports",
-                     write_to_screen => debug_dep_check);
-                  return False;
-               end if;
+               requirements.Append (HT.SUS (nsvv));
+            end assemble;
+         begin
+            if HT.equivalent (rec.subpackage, subpackage) then
+               rec.spkg_run_deps.Iterate (assemble'Access);
+            end if;
+         end assemble_requirements;
+      begin
+         all_ports (id).subpackages.Iterate (assemble_requirements'Access);
+      end gather_requirements;
 
-               counter := counter + 1;
-               if counter > req_deps then
-                  --  package has more dependencies than we are looking for
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_dep_check,
-                     message         => headport & " package has more dependencies than the " &
-                       "port requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
-                       "Query: " & LAT.LF & HT.USS (query_result) &
-                       "Tripped on: " & deppkg);
-                  all_ports (id).subpackages.Iterate (log_run_deps'Access);
-                  return False;
-               end if;
+      -----------------------------
+      --  log_quantity_mismatch  --
+      -----------------------------
+      procedure log_quantity_mismatch (ref_num_deps : Natural)
+      is
+         difference : HT.Text;
+         procedure list_out (Position : string_crate.Cursor) is
+         begin
+            HT.SU.Append (difference, LAT.LF & LAT.HT & HT.USS (string_crate.Element (Position)));
+         end list_out;
+      begin
+         requirements.Iterate (list_out'Access);
+         HT.SU.Append (difference, LAT.LF & "Package:");
+         query_result.Iterate (list_out'Access);
 
-               if deppkg /= target_pkg then
-                  --  The version that the package requires differs from the
-                  --  version that Ravenports will now produce
-                  declare
-                     nbase   : constant String := HT.USS (all_ports (target_id).port_namebase);
-                  begin
-                     if nbase /= default_compiler and then
-                       not (nbase = "ravensys-binutils")
-                     then
-                        LOG.obsolete_notice
-                          (write_to_screen => debug_dep_check,
-                           message  =>  "Current " & headport & " package depends on " & deppkg &
-                             ", but this is a different version than requirement of " & target_pkg);
-                        return False;
-                     else
-                        LOG.obsolete_notice
-                          (write_to_screen => debug_dep_check,
-                           message => "Ignored dependency check failure: Current " & headport &
-                             " package depends on " & deppkg &
-                             ", but this is a different version than requirement of " & target_pkg);
-                     end if;
-                  end;
-               end if;
+         LOG.obsolete_notice
+           (write_to_screen => False,
+            message => "The " & headport & " package has a different number of dependencies " &
+              "than the port requires (" & HT.int2str (ref_num_deps) & ")" & LAT.LF &
+              "Requirements:" & HT.USS (difference));
+      end log_quantity_mismatch;
 
-               if not available then
-                  --  Even if all the versions are matching, we still need
-                  --  the package to be in repository.
-                  LOG.obsolete_notice
-                    (write_to_screen => debug_dep_check,
-                     message         => headport & " package depends on " & target_pkg &
-                       " which doesn't exist or has been scheduled for deletion");
-                  return False;
+      ----------------------------
+      --  package_is_available  --
+      ----------------------------
+      function package_is_available (target_id : port_index;
+                                     target_subpackage : String) return Boolean
+      is
+         num_spkg : constant Natural := Natural (all_ports (target_id).subpackages.Length);
+         available : Boolean := False;
+      begin
+         for dx in 1 .. num_spkg loop
+            declare
+               myrec : subpackage_record renames all_ports (target_id).subpackages.Element (dx);
+            begin
+               if HT.equivalent (myrec.subpackage, target_subpackage) then
+                  available := (myrec.remote_pkg or else myrec.pkg_present)
+                    and then not myrec.deletion_due;
+                  exit;
                end if;
             end;
-         end;
-      end loop;
+         end loop;
+         return available;
+      end package_is_available;
 
-      if counter < req_deps then
-         --  The ports tree requires more dependencies than the existing package does
-         LOG.obsolete_notice
-           (write_to_screen => debug_dep_check,
-            message         => headport & " package has less dependencies than the port " &
-              "requires (" & HT.int2str (req_deps) & ")" & LAT.LF &
-              "Query: " & LAT.LF & HT.USS (query_result));
-         all_ports (id).subpackages.Iterate (log_run_deps'Access);
+      reference_num_deps : Natural;
+      archive_num_deps   : constant Natural := Natural (query_result.Length);
+
+   begin
+      gather_requirements;
+      reference_num_deps := Natural (requirements.Length);
+
+      if archive_num_deps /= reference_num_deps then
+         log_quantity_mismatch (reference_num_deps);
          return False;
       end if;
+
+      if archive_num_deps = 0 then
+         return True;
+      end if;
+
+      declare
+         comparison : constant String :=
+           compare_archive_to_requirements (query_result, requirements);
+      begin
+         if comparison /= "" then
+            LOG.obsolete_notice
+              ("The " & headport & " package must be rebuilt due to dependency issues." &
+                 comparison, False);
+            return False;
+         end if;
+      end;
+
+      for arcndx in 1 .. archive_num_deps loop
+         declare
+            deppkg     : constant String := HT.USS (query_result.Element (arcndx));
+            dep_subpkg : constant String := subpackage_from_pkgname (deppkg);
+            target_key : constant String := convert_pkgname_to_portkey (deppkg);
+            target_id  : port_index := ports_keys.Element (HT.SUS (target_key));
+         begin
+            if not valid_port_id (target_id) then
+               --  This should not happen.  The comparison check will catch it first.
+               LOG.obsolete_notice
+                 ("The " & headport & " package is obsolete because its dependency " & target_key &
+                    " has been removed from Ravenports", False);
+               return False;
+            end if;
+
+            if not package_is_available (target_id, dep_subpkg) then
+               --  The archive dependencies are current, but the physical package is missing
+               --  or is scheduled to be deleted.
+               LOG.obsolete_notice
+                 ("The " & headport & " package depends on " & deppkg & arc_ext &
+                    " which doesn't exist or has been scheduled for deletion", False);
+               return False;
+            end if;
+         end;
+      end loop;
 
       --  If we get this far, the package dependencies match what the
       --  port tree requires exactly.  This package passed sanity check.
       return True;
 
-   exception
-      when issue : others =>
-         LOG.obsolete_notice
-           (write_to_screen => debug_dep_check,
-            message         => content & "Dependency check exception" & LAT.LF &
-              EX.Exception_Message (issue));
-         return False;
    end passed_dependency_check;
 
 
@@ -1853,49 +1827,92 @@ package body PortScan.Operations is
    end package_scan_progress;
 
 
-   --------------------------------------------------------------------------------------------
-   --  passed_abi_check
-   --------------------------------------------------------------------------------------------
-   function passed_abi_check
-     (repository       : String;
-      id               : port_id;
-      subpackage       : String;
-      skip_exist_check : Boolean := False) return Boolean
+   --------------------------------
+   --  acquire_archive_metadata  --
+   --------------------------------
+   procedure acquire_archive_metadata (fullpath  : String; metadata  : in out ADO_Data)
    is
-      rec : port_record renames all_ports (id);
-
-      pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
-      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
-      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
       rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      command  : constant String := rvn8 & " -C '' info -qw --file "  & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E '{abi}' " & pkg_nsv;
-
+      command  : constant String := rvn8 & " -C '' info -wod --file "  & fullpath;
       status : Integer;
       comres : HT.Text;
    begin
-      if not skip_exist_check and then not DIR.Exists (Name => fullpath)
-      then
-         return False;
+      --  Fullpath has been verified to exist by the calling function
+      comres := Unix.piped_command (command, status);
+      if status = 0 then
+         parse_info_result (HT.USS (comres), metadata);
       end if;
+   end acquire_archive_metadata;
 
-      if repository /= "" then
-         comres := Unix.piped_command (command, status);
-      else
-          --  Support for fetch-prebuilt-package option
-         comres := Unix.piped_command (remocmd, status);
+
+   --------------------------------
+   --  acquire_catalog_metadata  --
+   --------------------------------
+   procedure acquire_catalog_metadata (triplet : String; metadata  : in out ADO_Data)
+   is
+      --  Before scan, ensure system catalog is up-to-date because that check is disabled here.
+      rvn8    : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command : constant String := rvn8 & " info -wod -UK -E " & triplet;
+      status  : Integer;
+      comres  : HT.Text;
+   begin
+      --  Fullpath has been verified to exist by the calling function
+      comres := Unix.piped_command (command, status);
+      if status = 0 then
+         parse_info_result (HT.USS (comres), metadata);
       end if;
-      if status /= 0 then
-         return False;
-      end if;
-      declare
-         topline : String := HT.first_line (HT.USS (comres));
-      begin
-         if HT.equivalent (calculated_abi, topline) then
-            return True;
-         end if;
-      end;
-      return False;
+   end acquire_catalog_metadata;
+
+
+   -------------------------
+   --  parse_info_result  --
+   -------------------------
+   procedure parse_info_result
+     (info_result : String;
+      metadata    : in out ADO_Data)
+   is
+      type datacat is (data_unset, data_abi, data_depends, data_options);
+      last_cat : datacat := data_unset;
+      markers  : HT.Line_Markers;
+   begin
+      HT.initialize_markers (info_result, markers);
+      loop
+         exit when not HT.next_line_present (info_result, markers);
+         declare
+            --  format: 16 chars (category or blank), colon, space, value
+            line : constant String := HT.extract_line (info_result, markers);
+            start : constant Natural := line'First + 18;
+            category : String (1 .. 3);
+            payload : HT.Text;
+         begin
+            if line'Length > 20 then
+               payload := HT.SUS (line (start .. line'Last));
+               category := line (line'First .. line'First + 2);
+               if category = "abi" then
+                  last_cat := data_abi;
+               elsif category = "dep" then
+                  last_cat := data_depends;
+               elsif category = "opt" then
+                  last_cat := data_options;
+               end if;
+               case last_cat is
+                  when data_abi     => metadata.abi := payload;
+                  when data_depends => metadata.dependencies.Append (payload);
+                  when data_options => metadata.options.Append (payload);
+                  when data_unset => null;   -- should not happen
+               end case;
+            end if;
+         end;
+      end loop;
+   end parse_info_result;
+
+
+   --------------------------------------------------------------------------------------------
+   --  passed_abi_check
+   --------------------------------------------------------------------------------------------
+   function passed_abi_check (metadata : ADO_Data) return Boolean is
+   begin
+      return HT.equivalent (calculated_abi, metadata.abi);
    end passed_abi_check;
 
 
@@ -1903,143 +1920,215 @@ package body PortScan.Operations is
    --  passed_option_check
    --------------------------------------------------------------------------------------------
    function passed_option_check
-     (repository       : String;
-      id               : port_id;
-      subpackage       : String;
-      skip_exist_check : Boolean := False) return Boolean
+     (subpackage   : String;
+      metadata     : ADO_Data;
+      id           : port_id) return Boolean
    is
-      rec : port_record renames all_ports (id);
+      headport          : constant String := PortScan.calculate_package_name (id, subpackage);
+      num_required_opts : constant Natural := Natural (all_ports (id).options.Length);
+      num_archive_opts  : constant Natural := Natural (metadata.options.Length);
+      spec_options : string_crate.Vector;
 
-      pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
-      pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
-      fullpath : constant String := repository & "/" & pkg_base & arc_ext;
-      rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
-      optform  : constant String := "'{xopt:key} => {xopt:val}' ";
-      command  : constant String := rvn8 & " -C '' info -oq --file " & fullpath;
-      remocmd  : constant String := rvn8 & " rquery -E " & optform & pkg_nsv;
-      status   : Integer;
-      comres   : HT.Text;
-      counter  : Natural := 0;
-      required : constant Natural := Natural (all_ports (id).options.Length);
-      extquery : constant Boolean := (repository = "");
+      -------------------------------
+      --  gather_required_options  --
+      -------------------------------
+      procedure gather_required_options
+      is
+         procedure add (Position : package_crate.Cursor)
+         is
+            opt_name : String := HT.USS (package_crate.Key (Position));
+         begin
+            if package_crate.Element (Position) then
+               spec_options.Append (HT.SUS (opt_name & " => true"));
+            else
+               spec_options.Append (HT.SUS (opt_name & " => false"));
+            end if;
+         end add;
+      begin
+         all_ports (id).options.Iterate (add'Access);
+      end gather_required_options;
+
+       -----------------------------
+      --  log_quantity_mismatch  --
+      -----------------------------
+      procedure log_quantity_mismatch
+      is
+         difference : HT.Text;
+         procedure list_out (Position : string_crate.Cursor) is
+         begin
+            HT.SU.Append (difference, LAT.LF & LAT.HT & HT.USS (string_crate.Element (Position)));
+         end list_out;
+      begin
+         spec_options.Iterate (list_out'Access);
+         HT.SU.Append (difference, LAT.LF & "Package:");
+         metadata.options.Iterate (list_out'Access);
+
+         LOG.obsolete_notice
+           (write_to_screen => False,
+            message => "The " & headport & " package has a different number of options " &
+              "than the port requires (" & HT.int2str (num_required_opts) & ")" & LAT.LF &
+              "Requirements:" & HT.USS (difference));
+      end log_quantity_mismatch;
    begin
-      if id = port_match_failed or else
-        not all_ports (id).scanned or else
-        (not skip_exist_check and then not DIR.Exists (fullpath))
-      then
-         LOG.obsolete_notice
-           (write_to_screen => debug_opt_check,
-            message => pkg_base & " => passed_option_check() failed sanity check.");
+      gather_required_options;
+      if num_archive_opts /= num_required_opts then
+         log_quantity_mismatch;
          return False;
       end if;
 
-      if extquery then
-         comres := Unix.piped_command (remocmd, status);
-      else
-         comres := Unix.piped_command (command, status);
-      end if;
-      if status /= 0 then
-         if extquery then
-            LOG.obsolete_notice
-              (write_to_screen => debug_opt_check,
-               message => pkg_base & " => failed to execute: " & remocmd);
-         else
-            LOG.obsolete_notice
-              (write_to_screen => debug_opt_check,
-               message => pkg_base & " => failed to execute: " & command);
-         end if;
-         LOG.obsolete_notice
-           (write_to_screen => debug_opt_check,
-            message => "output => " & HT.USS (comres));
-         return False;
+      if num_required_opts = 0 then
+         return True;
       end if;
 
       declare
-         command_result : constant String := HT.USS (comres);
-         markers  : HT.Line_Markers;
+         comparison : constant String :=
+           compare_archive_to_requirements (metadata.options, spec_options);
       begin
-         HT.initialize_markers (command_result, markers);
-         loop
-            exit when not HT.next_line_present (command_result, markers);
-            declare
-               line     : constant String := HT.extract_line (command_result, markers);
-               delimit  : constant String := " => ";
-            begin
-               exit when line = "";
-               if not HT.contains (line, delimit) then
-                  raise unknown_format with line;
-               end if;
-               declare
-                  namekey  : constant String := HT.part_1 (line, delimit);
-                  knob     : constant String := HT.lowercase (HT.part_2 (line, delimit));
-                  nametext : HT.Text := HT.SUS (namekey);
-                  knobval  : Boolean;
-               begin
-                  if knob = "on" or else knob = "true" then
-                     knobval := True;
-                  elsif knob = "off" or else knob = "false" then
-                     knobval := False;
-                  else
-                     raise unknown_format with "knob=" & knob & "(" & line & ")";
-                  end if;
-
-                  counter := counter + 1;
-                  if counter > required then
-                     --  package has more options than we are looking for
-                     LOG.obsolete_notice
-                       (write_to_screen => debug_opt_check,
-                        message => "options " & namekey & LAT.LF & pkg_base &
-                          " has more options than required (" & HT.int2str (required) & ")");
-                     return False;
-                  end if;
-
-                  if all_ports (id).options.Contains (nametext) then
-                     if knobval /= all_ports (id).options.Element (nametext) then
-                        --  port option value doesn't match package option value
-                        if knobval then
-                           LOG.obsolete_notice
-                             (write_to_screen => debug_opt_check,
-                              message => pkg_base & " " & namekey &
-                                " is ON but specifcation says it must be OFF");
-                        else
-                           LOG.obsolete_notice
-                             (write_to_screen => debug_opt_check,
-                              message => pkg_base & " " & namekey &
-                                " is OFF but specifcation says it must be ON");
-                        end if;
-                        return False;
-                     end if;
-                  else
-                     --  Name of package option not found in port options
-                     LOG.obsolete_notice
-                       (write_to_screen => debug_opt_check,
-                        message => pkg_base & " option " & namekey &
-                          " is no longer present in the specification");
-                     return False;
-                  end if;
-               end;
-            end;
-         end loop;
-
-         if counter < required then
-            --  The ports tree has more options than the existing package
+         if comparison /= "" then
             LOG.obsolete_notice
-              (write_to_screen => debug_opt_check,
-               message => pkg_base & " has less options than required (" &
-                 HT.int2str (required) & ")");
+              ("The " & headport & " package must be rebuilt due to options differences." &
+                 comparison, False);
             return False;
          end if;
-
-         --  If we get this far, the package options must match port options
-         return True;
       end;
-   exception
-      when issue : others =>
-         LOG.obsolete_notice
-           (write_to_screen => debug_opt_check,
-            message => "option check exception" & LAT.LF & EX.Exception_Information (issue));
-         return False;
+
+      return True;
    end passed_option_check;
+
+
+
+--        rec : port_record renames all_ports (id);
+--
+--        pkg_base : constant String := PortScan.calculate_package_name (id, subpackage);
+--        pkg_nsv  : constant String := PortScan.calculate_nsv (id, subpackage);
+--        fullpath : constant String := repository & "/" & pkg_base & arc_ext;
+--        rvn8     : constant String := HT.USS (PM.configuration.sysroot_rvn);
+--        optform  : constant String := "'{xopt:key} => {xopt:val}' ";
+--        command  : constant String := rvn8 & " -C '' info -oq --file " & fullpath;
+--        remocmd  : constant String := rvn8 & " rquery -E " & optform & pkg_nsv;
+--        status   : Integer;
+--        comres   : HT.Text;
+--        counter  : Natural := 0;
+--        required : constant Natural := Natural (all_ports (id).options.Length);
+--        extquery : constant Boolean := (repository = "");
+--  begin
+--        if id = port_match_failed or else
+--          not all_ports (id).scanned or else
+--          (not skip_exist_check and then not DIR.Exists (fullpath))
+--        then
+--           LOG.obsolete_notice
+--             (write_to_screen => debug_opt_check,
+--              message => pkg_base & " => passed_option_check() failed sanity check.");
+--           return False;
+--        end if;
+--
+--        if extquery then
+--           comres := Unix.piped_command (remocmd, status);
+--        else
+--           comres := Unix.piped_command (command, status);
+--        end if;
+--        if status /= 0 then
+--           if extquery then
+--              LOG.obsolete_notice
+--                (write_to_screen => debug_opt_check,
+--                 message => pkg_base & " => failed to execute: " & remocmd);
+--           else
+--              LOG.obsolete_notice
+--                (write_to_screen => debug_opt_check,
+--                 message => pkg_base & " => failed to execute: " & command);
+--           end if;
+--           LOG.obsolete_notice
+--             (write_to_screen => debug_opt_check,
+--              message => "output => " & HT.USS (comres));
+--           return False;
+--        end if;
+--
+--        declare
+--           command_result : constant String := HT.USS (comres);
+--           markers  : HT.Line_Markers;
+--        begin
+--           HT.initialize_markers (command_result, markers);
+--           loop
+--              exit when not HT.next_line_present (command_result, markers);
+--              declare
+--                 line     : constant String := HT.extract_line (command_result, markers);
+--                 delimit  : constant String := " => ";
+--              begin
+--                 exit when line = "";
+--                 if not HT.contains (line, delimit) then
+--                    raise unknown_format with line;
+--                 end if;
+--                 declare
+--                    namekey  : constant String := HT.part_1 (line, delimit);
+--                    knob     : constant String := HT.lowercase (HT.part_2 (line, delimit));
+--                    nametext : HT.Text := HT.SUS (namekey);
+--                    knobval  : Boolean;
+--                 begin
+--                    if knob = "on" or else knob = "true" then
+--                       knobval := True;
+--                    elsif knob = "off" or else knob = "false" then
+--                       knobval := False;
+--                    else
+--                       raise unknown_format with "knob=" & knob & "(" & line & ")";
+--                    end if;
+--
+--                    counter := counter + 1;
+--                    if counter > required then
+--                       --  package has more options than we are looking for
+--                       LOG.obsolete_notice
+--                         (write_to_screen => debug_opt_check,
+--                          message => "options " & namekey & LAT.LF & pkg_base &
+--                            " has more options than required (" & HT.int2str (required) & ")");
+--                       return False;
+--                    end if;
+--
+--                    if all_ports (id).options.Contains (nametext) then
+--                       if knobval /= all_ports (id).options.Element (nametext) then
+--                          --  port option value doesn't match package option value
+--                          if knobval then
+--                             LOG.obsolete_notice
+--                               (write_to_screen => debug_opt_check,
+--                                message => pkg_base & " " & namekey &
+--                                  " is ON but specifcation says it must be OFF");
+--                          else
+--                             LOG.obsolete_notice
+--                               (write_to_screen => debug_opt_check,
+--                                message => pkg_base & " " & namekey &
+--                                  " is OFF but specifcation says it must be ON");
+--                          end if;
+--                          return False;
+--                       end if;
+--                    else
+--                       --  Name of package option not found in port options
+--                       LOG.obsolete_notice
+--                         (write_to_screen => debug_opt_check,
+--                          message => pkg_base & " option " & namekey &
+--                            " is no longer present in the specification");
+--                       return False;
+--                    end if;
+--                 end;
+--              end;
+--           end loop;
+--
+--           if counter < required then
+--              --  The ports tree has more options than the existing package
+--              LOG.obsolete_notice
+--                (write_to_screen => debug_opt_check,
+--                 message => pkg_base & " has less options than required (" &
+--                   HT.int2str (required) & ")");
+--              return False;
+--           end if;
+--
+--           --  If we get this far, the package options must match port options
+--           return True;
+--        end;
+--     exception
+--        when issue : others =>
+--           LOG.obsolete_notice
+--             (write_to_screen => debug_opt_check,
+--              message => "option check exception" & LAT.LF & EX.Exception_Information (issue));
+--           return False;
+--     end passed_option_check;
 
 
    --------------------------------------------------------------------------------------------
@@ -2053,7 +2142,7 @@ package body PortScan.Operations is
       procedure set_query    (Element : in out subpackage_record);
 
       subpackage_position : subpackage_crate.Cursor := subpackage_crate.No_Element;
-      query_result        : HT.Text;
+      metadata : ADO_Data;
 
       procedure set_position (position : subpackage_crate.Cursor)
       is
@@ -2063,17 +2152,26 @@ package body PortScan.Operations is
             subpackage_position := position;
          end if;
       end set_position;
+
       procedure set_delete (Element : in out subpackage_record) is
       begin
          Element.deletion_due := True;
       end set_delete;
+
       procedure set_present (Element : in out subpackage_record) is
       begin
          Element.pkg_present := True;
       end set_present;
-      procedure set_query (Element : in out subpackage_record) is
+
+      procedure set_query (Element : in out subpackage_record)
+      is
+         procedure push (qpos : string_crate.Cursor) is
+         begin
+            Element.pkg_dep_query.Append (string_crate.Element (qpos));
+         end push;
       begin
-         Element.pkg_dep_query := query_result;
+         Element.pkg_dep_query.Clear;
+         metadata.dependencies.Iterate (push'Access);
       end set_query;
 
       use type subpackage_crate.Cursor;
@@ -2100,19 +2198,20 @@ package body PortScan.Operations is
          else
             return;
          end if;
-         if not passed_option_check (repository, id, subpackage, True) then
+         acquire_archive_metadata (fullpath, metadata);
+
+         if not passed_option_check (subpackage, metadata, id) then
             LOG.obsolete_notice (msg_opt, True);
             all_ports (id).subpackages.Update_Element (subpackage_position, set_delete'Access);
             return;
          end if;
-         if not passed_abi_check (repository, id, subpackage, True) then
+         if not passed_abi_check (metadata) then
             LOG.obsolete_notice (msg_abi, True);
             all_ports (id).subpackages.Update_Element (subpackage_position, set_delete'Access);
             return;
          end if;
+         all_ports (id).subpackages.Update_Element (subpackage_position, set_query'Access);
       end;
-      query_result := result_of_dependency_query (repository, id, subpackage);
-      all_ports (id).subpackages.Update_Element (subpackage_position, set_query'Access);
    end initial_package_scan;
 
 
@@ -2121,13 +2220,8 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    procedure remote_package_scan (id : port_id; subpackage : String)
    is
-      procedure set_position   (position : subpackage_crate.Cursor);
-      procedure set_remote_on  (Element : in out subpackage_record);
-      procedure set_remote_off (Element : in out subpackage_record);
-      procedure set_query      (Element : in out subpackage_record);
-
       subpackage_position : subpackage_crate.Cursor := subpackage_crate.No_Element;
-      query_result        : HT.Text;
+      metadata : ADO_Data;
 
       procedure set_position (position : subpackage_crate.Cursor)
       is
@@ -2137,17 +2231,21 @@ package body PortScan.Operations is
             subpackage_position := position;
          end if;
       end set_position;
+
       procedure set_remote_on (Element : in out subpackage_record) is
       begin
          Element.remote_pkg := True;
       end set_remote_on;
-      procedure set_remote_off (Element : in out subpackage_record) is
+
+      procedure set_query (Element : in out subpackage_record)
+      is
+         procedure push (qpos : string_crate.Cursor) is
+         begin
+            Element.pkg_dep_query.Append (string_crate.Element (qpos));
+         end push;
       begin
-         Element.remote_pkg := False;
-      end set_remote_off;
-      procedure set_query (Element : in out subpackage_record) is
-      begin
-         Element.pkg_dep_query := query_result;
+         Element.pkg_dep_query.Clear;
+         metadata.dependencies.Iterate (push'Access);
       end set_query;
 
       use type subpackage_crate.Cursor;
@@ -2157,24 +2255,21 @@ package body PortScan.Operations is
          return;
       end if;
 
-      if passed_abi_check (repository       => "",
-                           id               => id,
-                           subpackage       => subpackage,
-                           skip_exist_check => True)
-      then
-         all_ports (id).subpackages.Update_Element (subpackage_position, set_remote_on'Access);
-      else
+      declare
+         triplet : constant String := calculate_nsv (id, subpackage);
+      begin
+         acquire_catalog_metadata (triplet, metadata);
+      end;
+
+      if not passed_abi_check (metadata) then
          return;
       end if;
-      if not passed_option_check (repository       => "",
-                                  id               => id,
-                                  subpackage       => subpackage,
-                                  skip_exist_check => True)
-      then
-         all_ports (id).subpackages.Update_Element (subpackage_position, set_remote_off'Access);
+
+      if not passed_option_check (subpackage, metadata, id) then
          return;
       end if;
-      query_result := result_of_dependency_query ("", id, subpackage);
+
+      all_ports (id).subpackages.Update_Element (subpackage_position, set_remote_on'Access);
       all_ports (id).subpackages.Update_Element (subpackage_position, set_query'Access);
    end remote_package_scan;
 

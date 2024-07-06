@@ -163,15 +163,16 @@ private
          content       : kfile_content;
       end record;
 
-   type subpackage_identifier is
-      record
-         id         : port_index;
-         subpackage : HT.Text;
-      end record;
-
    package subpackage_queue is new CON.Vectors
      (Element_Type => subpackage_identifier,
       Index_Type   => built_package_id);
+
+   type ADO_Data is
+      record
+         abi          : HT.Text;
+         dependencies : admtypes.string_crate.Vector;
+         options      : admtypes.string_crate.Vector;
+      end record;
 
    pkgscan_progress : dim_progress := (others => 0);
    pkgscan_total    : Natural := 0;
@@ -180,10 +181,6 @@ private
    curses_support   : Boolean := False;
 
    external_repository : HT.Text;
-
-   --  Debugging purposes only, can be turned on by environment variable
-   debug_dep_check : Boolean := False;
-   debug_opt_check : Boolean := False;
 
    --  Return true if file is executable (platform-specific)
    function file_is_executable (filename : String) return Boolean;
@@ -245,21 +242,37 @@ private
    --  Use file to dtermine arch on MacOS
    function isolate_arch_from_macho_file (fileinfo : String) return filearch;
 
+   --  Use "rvn info" command to extract abi, options and dependency information from file
+   procedure acquire_archive_metadata
+     (fullpath  : String;
+      metadata  : in out ADO_Data);
+
+   --  Use "rvn info" command to extract abi, options and dependency information from catalog
+   procedure acquire_catalog_metadata (triplet : String; metadata  : in out ADO_Data);
+
+   --  Convert the output of "rvn info" to the ADO_Data structure
+   procedure parse_info_result
+     (info_result : String;
+      metadata    : in out ADO_Data);
+
+   --  This function returns "True" if the scanned package has the expected
+   --  package ABI, e.g. dragonfly:x86_64:6.2, freebsd:x86_64:13
+   function passed_abi_check
+     (metadata : ADO_Data) return Boolean;
+
+   --  This function returns "True" if the scanned options exactly match
+   --  the options in the already-built package.
+   function passed_option_check
+     (subpackage   : String;
+      metadata     : ADO_Data;
+      id           : port_id) return Boolean;
+
    --  This function returns "True" if the scanned dependencies match exactly
    --  what the current ports tree has.
    function passed_dependency_check
      (subpackage   : String;
-      query_result : HT.Text;
+      query_result : string_crate.Vector;
       id           : port_id) return Boolean;
-
-   --  Turn on option and dependency debug checks programmatically
-   procedure activate_debugging_code;
-
-   --  The result of the dependency query giving "id" port_id
-   function result_of_dependency_query
-     (repository : String;
-      id         : port_id;
-      subpackage : String) return HT.Text;
 
    --  Dedicated progress meter for prescanning packages
    function package_scan_progress return String;
@@ -285,24 +298,6 @@ private
    --  Remove the port from the queue when this is done.
    procedure cascade_successful_build (id : port_id);
 
-   --  This function returns "True" if the scanned package has the expected
-   --  package ABI, e.g. dragonfly:4.6:x86:64, freebsd:10:amd64
-   function passed_abi_check
-     (repository       : String;
-      id               : port_id;
-      subpackage       : String;
-      skip_exist_check : Boolean := False) return Boolean;
-
-   --  This function returns "True" if the scanned options exactly match
-   --  the options in the already-built package.  Usually it's already known
-   --  that a package exists before the function is called, but an existence
-   --  check will be performed just in case (failure returns "False")
-   function passed_option_check
-     (repository       : String;
-      id               : port_id;
-      subpackage       : String;
-      skip_exist_check : Boolean := False) return Boolean;
-
    --  Before starting to build a port, lock it.  This is required for
    --  parallel building.
    procedure lock_package (id : port_id);
@@ -312,5 +307,12 @@ private
 
    --  removes processed port from the ranking queue.
    procedure unlist_port (id : port_id);
+
+   --  If vector have identical contents (order not considered) then a blank string is returned.
+   --  Otherwise it will return up to two lists: lines only present in archive and lines only
+   --  present in requirements.
+   function compare_archive_to_requirements
+     (rvnfile      : admtypes.string_crate.Vector;
+      requirements : admtypes.string_crate.Vector) return String;
 
 end PortScan.Operations;

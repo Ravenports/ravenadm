@@ -170,7 +170,7 @@ private
    type subpackage_record is
       record
          subpackage    : HT.Text := HT.blank;
-         pkg_dep_query : HT.Text := HT.blank;
+         pkg_dep_query : string_crate.Vector;
          pkg_present   : Boolean := False;
          remote_pkg    : Boolean := False;
          never_remote  : Boolean := False;
