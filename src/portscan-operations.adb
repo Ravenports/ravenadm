@@ -1521,7 +1521,6 @@ package body PortScan.Operations is
          mq_progress (m) := 0;
       end loop;
       LOG.start_obsolete_package_logging;
-      --  TODO: if remote scanning, update catalog first
       parallel_package_scan (repository, False, using_screen);
 
       if Signals.graceful_shutdown_requested then
@@ -1541,6 +1540,7 @@ package body PortScan.Operations is
          for m in scanners'Range loop
             mq_progress (m) := 0;
          end loop;
+         update_system_catalog;
          parallel_package_scan (repository, True, using_screen);
 
          if Signals.graceful_shutdown_requested then
@@ -1862,6 +1862,19 @@ package body PortScan.Operations is
          parse_info_result (HT.USS (comres), metadata);
       end if;
    end acquire_catalog_metadata;
+
+
+   -----------------------------
+   --  update_system_catalog  --
+   -----------------------------
+   procedure update_system_catalog
+   is
+      rvn8    : constant String := HT.USS (PM.configuration.sysroot_rvn);
+      command : constant String := rvn8 & " catalog --quiet";
+      result  : Boolean;
+   begin
+      result := Unix.external_command (command);
+   end update_system_catalog;
 
 
    -------------------------

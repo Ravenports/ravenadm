@@ -315,4 +315,7 @@ private
      (rvnfile      : admtypes.string_crate.Vector;
       requirements : admtypes.string_crate.Vector) return String;
 
+   --  Prior to remote scanning, ensure the catalog is current.
+   procedure update_system_catalog;
+
 end PortScan.Operations;
