@@ -18,7 +18,7 @@ with Port_Specification.Transform;
 with INI_File_Manager;
 with Options_Dialog_Console;
 with Display.Console;
-with Archive.Unpack;
+with Archive.JustExtract;
 with UCL_Operations;
 
 package body PortScan.Operations is
@@ -1788,9 +1788,9 @@ package body PortScan.Operations is
    --  end acquire_archive_metadata;
    procedure acquire_archive_metadata (fullpath  : String; metadata  : in out ADO_Data)
    is
-      arc_operation : Archive.Unpack.DArc;
+      arc_operation : Archive.JustExtract.DArc;
    begin
-      arc_operation.open_rvn_archive (fullpath, Archive.silent);
+      arc_operation.open_rvn_archive (fullpath);
       declare
          metastring : constant String := arc_operation.extract_metadata;
       begin
