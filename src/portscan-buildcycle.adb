@@ -68,7 +68,7 @@ package body PortScan.Buildcycle is
          return False;
       end if;
       if testing then
-         Hierarchy.take_snapshot (trackers (id).genesis, get_root (id));
+         Hierarchy.take_snapshot (trackers (id).genesis, get_root (id), Positive (id));
       end if;
       begin
          for phase in phases'Range loop
@@ -89,7 +89,7 @@ package body PortScan.Buildcycle is
 
             when configure =>
                if testing then
-                  Hierarchy.take_snapshot (trackers (id).preconfig, get_root (id));
+                  Hierarchy.take_snapshot (trackers (id).preconfig, get_root (id), Positive (id));
                end if;
                R := exec_phase_generic (id, phase, environ);
 
@@ -931,8 +931,9 @@ package body PortScan.Buildcycle is
                                                         DC          => trackers (id).preconfig,
                                                         rootdir     => root,
                                                         description => description,
-                                                        fatal       => False);
-        LOG.log_phase_end (trackers (id).log_handle);
+                                                        fatal       => False,
+                                                        builder     => Positive (id));
+      LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_preconfig_check;
 
@@ -993,7 +994,8 @@ package body PortScan.Buildcycle is
             DC          => trackers (id).genesis,
             rootdir     => root,
             description => "between clean builder and package deinstallation",
-            fatal       => True);
+            fatal       => True,
+            builder     => Positive (id));
       end if;
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good and then dyn_good;

@@ -38,7 +38,8 @@ package Hierarchy is
    --  recursively scans rootdir, skipping directories that are contained in skip_dirs
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
-      rootdir   : String);
+      rootdir   : String;
+      builder   : Positive);
 
    --  Given the results of the snapshot, this function displays any missing, extra or
    --  modified files and returns False if any of those occur.  (True means check passed)
@@ -47,7 +48,8 @@ package Hierarchy is
       DC          : in out Dirent_Collection.Map;
       rootdir     : String;
       description : String;
-      fatal       : Boolean) return Boolean;
+      fatal       : Boolean;
+      builder     : Positive) return Boolean;
 
 private
 
@@ -64,7 +66,8 @@ private
       rootdir   : String;
       skip_dirs : admtypes.string_crate.Vector;
       extras    : in out admtypes.string_crate.Vector;
-      modified  : in out admtypes.string_crate.Vector);
+      modified  : in out admtypes.string_crate.Vector;
+      builder   : Positive);
 
    procedure set_missing_files
      (DC        : Dirent_Collection.Map;

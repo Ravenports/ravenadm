@@ -18,7 +18,8 @@ package body Hierarchy is
    ---------------------
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
-      rootdir   : String)
+      rootdir   : String;
+      builder   : Positive)
    is
       skip_dirs : admtypes.string_crate.Vector;
 
@@ -59,7 +60,7 @@ package body Hierarchy is
             end case;
          end analyze_entity;
       begin
-         SCN.scan_directory (rootdir & this_directory, this_level);
+         SCN.scan_directory (rootdir & this_directory, this_level, builder);
          this_level.Iterate (analyze_entity'Access);
       end dive;
    begin
@@ -76,7 +77,8 @@ package body Hierarchy is
       rootdir   : String;
       skip_dirs : admtypes.string_crate.Vector;
       extras    : in out admtypes.string_crate.Vector;
-      modified  : in out admtypes.string_crate.Vector)
+      modified  : in out admtypes.string_crate.Vector;
+      builder   : Positive)
    is
       procedure set_second (Key : HT.Text; Element : in out direntrec);
       procedure dive (this_directory : String);
@@ -148,7 +150,7 @@ package body Hierarchy is
             end case;
          end analyze_entity;
       begin
-         SCN.scan_directory (rootdir & this_directory, this_level);
+         SCN.scan_directory (rootdir & this_directory, this_level, builder);
          this_level.Iterate (analyze_entity'Access);
       end dive;
    begin
@@ -282,7 +284,8 @@ package body Hierarchy is
       DC          : in out Dirent_Collection.Map;
       rootdir     : String;
       description : String;
-      fatal       : Boolean) return Boolean
+      fatal       : Boolean;
+      builder     : Positive) return Boolean
    is
       procedure filter_extras (Position : admtypes.string_crate.Cursor);
       procedure filter_modify (Position : admtypes.string_crate.Cursor);
@@ -370,7 +373,8 @@ package body Hierarchy is
                    rootdir   => rootdir,
                    skip_dirs => skip_dirs,
                    extras    => extras,
-                   modified  => modified);
+                   modified  => modified,
+                   builder   => builder);
       leftover.Clear;
       changed.Clear;
       extras.Iterate (filter_extras'Access);
