@@ -177,6 +177,18 @@ package body PortScan.Log is
       work_hours    : Integer;
       work_seconds  : Integer;
       use type CAR.Day_Count;
+
+      function hateful8 (raw : String) return String
+      is
+         canvas : String (1 .. 8) := (others => ' ');
+      begin
+         if raw'Length > 8 then
+            canvas := raw (raw'First .. raw'First + 7);
+         else
+            canvas (1 .. raw'Length) := raw;
+         end if;
+         return canvas;
+      end hateful8;
    begin
       CAR.Difference (Left    => stop,
                       Right   => start,
@@ -197,36 +209,33 @@ package body PortScan.Log is
             work_seconds := work_seconds - (total_hours * secs_per_hour);
             total_minutes := work_seconds / 60;
             work_seconds := work_seconds - (total_minutes * 60);
-            return
-              HT.zeropad (total_hours, 2) & LAT.Colon &
-              HT.zeropad (total_minutes, 2) & LAT.Colon &
-              HT.zeropad (work_seconds, 2);
+            return hateful8 (HT.zeropad (total_hours, 2) & LAT.Colon &
+                               HT.zeropad (total_minutes, 2) & LAT.Colon &
+                               HT.zeropad (work_seconds, 2));
          end if;
       elsif total_hours < 100 then
          if work_seconds < 0 then
-            return HT.zeropad (total_hours, 2) & ":00:00";
+            return hateful8 (HT.zeropad (total_hours, 2) & ":00:00");
          else
             work_hours := work_seconds / secs_per_hour;
             work_seconds := work_seconds - (work_hours * secs_per_hour);
             total_minutes := work_seconds / 60;
             work_seconds := work_seconds - (total_minutes * 60);
-            return
-              HT.zeropad (total_hours, 2) & LAT.Colon &
-              HT.zeropad (total_minutes, 2) & LAT.Colon &
-              HT.zeropad (work_seconds, 2);
+            return hateful8 (HT.zeropad (total_hours, 2) & LAT.Colon &
+                                 HT.zeropad (total_minutes, 2) & LAT.Colon &
+                                 HT.zeropad (work_seconds, 2));
          end if;
       else
          if work_seconds < 0 then
-            return HT.zeropad (total_hours, 3) & ":00.0";
+            return hateful8 (HT.zeropad (total_hours, 3) & ":00.0");
          else
             work_hours := work_seconds / secs_per_hour;
             work_seconds := work_seconds - (work_hours * secs_per_hour);
             total_minutes := work_seconds / 60;
             work_seconds := (work_seconds - (total_minutes * 60)) * 10 / 60;
-            return
-              HT.zeropad (total_hours, 3) & LAT.Colon &
-              HT.zeropad (total_minutes, 2) & '.' &
-              HT.int2str (work_seconds);
+            return hateful8 (HT.zeropad (total_hours, 3) & LAT.Colon &
+                               HT.zeropad (total_minutes, 2) & '.' &
+                               HT.int2str (work_seconds));
          end if;
       end if;
    end elapsed_HH_MM_SS;
