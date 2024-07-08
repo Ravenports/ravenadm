@@ -2144,7 +2144,7 @@ package body Specification_Parser is
       match_opsys : String;
       match_arch  : String) return String
    is
-      pm       : constant String := "pkg-message-";
+      pm       : constant String := "messages-";
       sys      : constant String := "opsys";
       arc      : constant String := "arch";
       files    : constant String := "files/";
