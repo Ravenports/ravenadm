@@ -1428,7 +1428,6 @@ package body PortScan.Buildcycle is
       phasestr : constant String := phase2str (phase_trackers (id));
       result   : Display.builder_rec;
       orilimit : constant Positive := Display.fld_origin'Length;
-      orishort : constant Natural  := orilimit - 1;
    begin
       --  123456789 123456789 123456789 123456789 1234
       --   SL  elapsed   phase              lines  origin
@@ -1458,6 +1457,7 @@ package body PortScan.Buildcycle is
          catport  : constant String := get_port_variant (all_ports (trackers (id).seq_id));
          numlines : constant String := format_loglines (trackers (id).loglines);
          linehead : constant Natural := 8 - numlines'Length;
+         FST      : constant Natural := catport'First;
       begin
          result.Elapsed := LOG.elapsed_HH_MM_SS (start => trackers (id).head_time,
                                                  stop  => CAL.Clock);
@@ -1465,7 +1465,7 @@ package body PortScan.Buildcycle is
          result.phase  (1 .. phasestr'Length) := phasestr;
 
          if catport'Length > orilimit then
-            result.origin (1 .. orishort) := catport (catport'First .. catport'First + orishort);
+            result.origin (1 .. orilimit - 1) := catport (FST .. FST + orilimit - 2);
             result.origin (orilimit) := LAT.Asterisk;
          else
             result.origin (1 .. catport'Length) := catport;
