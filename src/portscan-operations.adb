@@ -18,6 +18,7 @@ with Port_Specification.Transform;
 with INI_File_Manager;
 with Options_Dialog_Console;
 with Display.Console;
+with Display.Log;
 with Archive.JustExtract;
 with UCL_Operations;
 
@@ -380,12 +381,16 @@ package body PortScan.Operations is
                end case;
             exception
                when earthquake : others =>
+                  if curses_support then
+                     Display.Log.scribe ("UNHANDLED SLAVE LOOP EXCEPTION: " &
+                                           EX.Exception_Information (earthquake));
+                  end if;
                   LOG.scribe (total, LOG.elapsed_now & " UNHANDLED SLAVE LOOP EXCEPTION: " &
-                                EX.Exception_Information (earthquake), False);
+                                EX.Exception_Information (earthquake), True);
                   Signals.initiate_shutdown;
             end;
          end loop;
-         exit when run_complete and all_idle;
+         exit when run_complete and then all_idle;
          begin
             if cntcycle = cycle_count'Last then
                cntcycle := cycle_count'First;
@@ -474,8 +479,12 @@ package body PortScan.Operations is
             delay 0.10;
          exception
             when earthquake : others =>
+               if curses_support then
+                  Display.Log.scribe ("UNHANDLED BULK RUN EXCEPTION: " &
+                                        EX.Exception_Information (earthquake));
+               end if;
                LOG.scribe (total, LOG.elapsed_now & " UNHANDLED BULK RUN EXCEPTION: " &
-                             EX.Exception_Information (earthquake), False);
+                             EX.Exception_Information (earthquake), True);
                exit;
          end;
       end loop;
