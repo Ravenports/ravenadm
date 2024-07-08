@@ -2744,13 +2744,12 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  get_field_value
    --------------------------------------------------------------------------------------------
-   function get_field_value (specs : Portspecs; field : spec_field) return String
+   function get_field_value (specs : Portspecs;
+                             field : spec_field;
+                             subpackage : String := "") return String
    is
-      procedure concat       (position : string_crate.Cursor);
-      procedure scan_contact (position : string_crate.Cursor);
-      procedure dump_license (position : string_crate.Cursor);
-
       joined : HT.Text;
+      spkg_licenses : string_crate.Vector;
 
       procedure concat (position : string_crate.Cursor) is
       begin
@@ -2760,21 +2759,42 @@ package body Port_Specification is
          HT.SU.Append (joined, string_crate.Element (position));
       end concat;
 
+      procedure dump_user_groups (position : string_crate.Cursor)
+      is
+         pass : Boolean := True;
+      begin
+         if subpackage /= "" then
+            pass := HT.equivalent (specs.usergroup_pkg, subpackage);
+         end if;
+         if pass then
+            if not HT.IsBlank (joined) then
+               HT.SU.Append (joined, ", ");
+            end if;
+            HT.SU.Append (joined, string_crate.Element (position));
+         end if;
+      end dump_user_groups;
+
       procedure dump_license (position : string_crate.Cursor)
       is
+         license_nv : constant String := HT.USS (string_crate.Element (position));
+         spkg_val   : constant String := HT.part_2 (license_nv, ":");
       begin
+         if subpackage /= "" then
+            if spkg_val /= subpackage then
+               return;
+            end if;
+         end if;
+
          if not HT.IsBlank (joined) then
             HT.SU.Append (joined, ", ");
          end if;
          declare
-            procedure scan_lic_names (position : string_crate.Cursor);
-
-            lic     : String := HT.part_1 (HT.USS (string_crate.Element (position)), ":");
+            lic     : String := HT.part_1 (license_nv, ":");
             lictype : license_type := determine_license (lic);
 
-            procedure scan_lic_names (position : string_crate.Cursor)
+            procedure scan_lic_names (namepos : string_crate.Cursor)
             is
-               raw : String := HT.USS (string_crate.Element (position));
+               raw : String := HT.USS (string_crate.Element (namepos));
             begin
                if HT.leads (raw, lic) then
                   --  part_2(raw) is already wrapped with double quotes
@@ -2830,10 +2850,10 @@ package body Port_Specification is
             specs.licenses.Iterate (dump_license'Access);
             return HT.USS (joined);
          when sp_users =>
-            specs.users.Iterate (concat'Access);
+            specs.users.Iterate (dump_user_groups'Access);
             return HT.USS (joined);
          when sp_groups =>
-            specs.groups.Iterate (concat'Access);
+            specs.groups.Iterate (dump_user_groups'Access);
             return HT.USS (joined);
          when sp_variants =>
             specs.variants.Iterate (concat'Access);

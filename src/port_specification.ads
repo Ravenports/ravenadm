@@ -185,7 +185,9 @@ package Port_Specification is
    function get_namebase (specs : Portspecs) return String;
 
    --  Generic retrieve data function
-   function get_field_value (specs : Portspecs; field : spec_field) return String;
+   function get_field_value (specs : Portspecs;
+                             field : spec_field;
+                             subpackage : String := "") return String;
 
    --  Specialized variant-specific list esp. for package manifest
    function get_options_list (specs : Portspecs; variant : String) return String;

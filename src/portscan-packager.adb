@@ -347,9 +347,12 @@ package body PortScan.Packager is
          metatree.insert ("desc", long_description);
          conditional_single ("www", specification.get_field_value (PSP.sp_homepage));
          conditional_array ("categories", specification.get_field_value (PSP.sp_keywords), False);
-         conditional_array ("licenses", specification.get_field_value (PSP.sp_licenses), True);
-         conditional_array ("users", specification.get_field_value (PSP.sp_users), False);
-         conditional_array ("groups", specification.get_field_value (PSP.sp_groups), False);
+         conditional_array ("licenses",
+                            specification.get_field_value (PSP.sp_licenses, subpackage), True);
+         conditional_array ("users",
+                            specification.get_field_value (PSP.sp_users, subpackage), False);
+         conditional_array ("groups",
+                            specification.get_field_value (PSP.sp_groups, subpackage), False);
          insert_dependencies;
          insert_options;
          insert_annotations;
