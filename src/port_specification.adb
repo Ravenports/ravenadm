@@ -3696,20 +3696,16 @@ package body Port_Specification is
    function valid_broken_mysql_value (value : String) return Boolean is
    begin
       return
-        (
-         HT.leads (value, "oracle-") and then
-             (value = "oracle-5.7" or else
-              value = "oracle-8.0" or else
-              value = "oracle-8.4")
-        )
-        or else
-            (HT.leads (value, "mariadb-") and then
-               (value = "mariadb-10.4" or else
-                value = "mariadb-10.5" or else
-                value = "mariadb-10.6" or else
-                value = "mariadb-10.11" or else
-                value = "mariadb-11")
-            );
+        value = "innovation" or else
+        value = "oracle-8.0" or else
+        value = "oracle-8.4" or else
+        (HT.leads (value, "mariadb-") and then
+             (value = "mariadb-10.4" or else
+              value = "mariadb-10.5" or else
+              value = "mariadb-10.6" or else
+              value = "mariadb-10.11" or else
+              value = "mariadb-11")
+        );
    end valid_broken_mysql_value;
 
 

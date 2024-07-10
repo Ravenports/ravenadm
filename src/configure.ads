@@ -74,7 +74,7 @@ private
    dupe   : PM.configuration_record;
 
    version_A : constant String := "5.2:5.3:" & default_lua;
-   version_B : constant String := "oracle-5.7:" & default_mysql & ":oracle-8.4:mariadb-10.4:" &
+   version_B : constant String := default_mysql & ":oracle-8.4:innovation:mariadb-10.4:" &
                                   "mariadb-10.5:mariadb-10.6:mariadb-10.11:mariadb-11";
    version_C : constant String := default_perl & ":5.40";
    version_D : constant String := "8.1:" & default_php & ":8.3";

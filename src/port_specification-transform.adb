@@ -3308,8 +3308,8 @@ package body Port_Specification.Transform is
    is
       setting : constant String := HT.USS (Parameters.configuration.def_mysql_group);
    begin
-      if setting = "oracle-5.7" then
-         return "mysql57";
+      if setting = "innovation" then
+         return "mysql";
       elsif setting = "oracle-8.4" then
          return "mysql84";
       elsif setting = "mariadb-10.4" then
