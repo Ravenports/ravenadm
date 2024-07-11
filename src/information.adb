@@ -93,6 +93,7 @@ package body Information is
            "ravenadm subpackages         <origins> List subpackages of specified ports" & R &
            "ravenadm test                <origins> force build with developer checks" & R &
            "ravenadm test-everything     Force build every Ravenport with dev. checks" & R &
+           "ravenadm test-incremental    Incrementally build all ports with dev. checks" & R &
            "ravenadm update-ports        Update Ravenports to latest published version" & R &
            R &
            "To view detailed man pages, type " &

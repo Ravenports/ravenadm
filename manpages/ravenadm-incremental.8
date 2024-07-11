@@ -1,23 +1,17 @@
-.Dd January 25, 2019
-.Dt TEST-EVERYTHING 8
+.Dd July 10, 2024
+.Dt TEST-INCREMENTAL 8
 .Os
 .Sh NAME
-.Nm "ravenadm test-everything"
-.Nd force build entire tree with developer checks
+.Nm "ravenadm test-incremental"
+.Nd builds all missing packages of the entire tree with developer checks
 .Sh SYNOPSIS
 .Nm
 .Sh DESCRIPTION
 The
 .Nm
-command is the equivalent of passing a list of every single port in the
-Ravenports tree to the
-.Xr ravenadm-test 8
-command.
-.Sh NOTES
-Rather than linearly scanning the ports tree as is done by the
-.Em ravenadm test
-command, this command will split the tree into equal-size lists and feed
-these lists to individual scanners that all work in parallel.
+command assembles the entire tree as a build list, and the prunes all
+ports for which a valid package is present.
+What remains of the list is built under test mode.
 .Sh SEE ALSO
 .Xr ravenadm 8 ,
 .Xr ravenadm-build 8 ,
@@ -36,5 +30,6 @@ these lists to individual scanners that all work in parallel.
 .Xr ravenadm-status-everything 8 ,
 .Xr ravenadm-subpackages 8 ,
 .Xr ravenadm-test 8 ,
+.Xr ravenadm-test-incremental 8 ,
 .Xr ravenadm-test-instrumental 8 ,
 .Xr ravenadm-update-ports 8

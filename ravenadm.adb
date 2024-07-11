@@ -13,8 +13,9 @@ procedure Ravenadm is
    package TIO renames Ada.Text_IO;
 
    type mandate_type is (unset, help, dev, build, build_everything, force, test, test_everything,
-                         status, status_everything, configure, locate, purge, changeopts,
-                         checkports, portsnap, repository, list_subpackages, website, purgelogs);
+                         test_incremental, status, status_everything, configure, locate, purge,
+                         changeopts, checkports, portsnap, repository, list_subpackages, website,
+                         purgelogs);
    type dev_mandate  is (unset, dump, makefile, distinfo, buildsheet, template, genindex, web,
                          repatch, sort_plist, confinfo, genconspiracy, jump);
 
@@ -45,6 +46,8 @@ procedure Ravenadm is
          mandate := test;
       elsif first = "test-everything" then
          mandate := test_everything;
+      elsif first = "test-incremental" then
+         mandate := test_incremental;
       elsif first = "status" then
          mandate := status;
       elsif first = "status-everything" then
@@ -317,6 +320,17 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
+         end if;
+
+      when test_incremental =>
+         --------------------------------------
+         --  Perform incremental test build  --
+         --------------------------------------
+         if Pilot.install_compiler_packages and then
+           Pilot.fully_scan_ports_tree and then
+           Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
+         then
+            Pilot.perform_bulk_run (testmode => True);
          end if;
 
       when test_everything =>

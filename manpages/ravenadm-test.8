@@ -1,4 +1,4 @@
-.Dd January 25, 2019
+.Dd July 10, 2024
 .Dt TEST 8
 .Os
 .Sh NAME
@@ -41,6 +41,8 @@ command, and then only when a single port is specified.  If both of those
 conditions are satisfied, and the variable has the value of:
 .Bl -dash -compact -width 1
 .It
+fetch
+.It
 extract
 .It
 patch
@@ -50,8 +52,6 @@ configure
 build
 .It
 stage
-.It
-package
 .It
 install
 .It
@@ -102,4 +102,5 @@ also apply to this command.
 .Xr ravenadm-status-everything 8 ,
 .Xr ravenadm-subpackages 8 ,
 .Xr ravenadm-test-everything 8 ,
+.Xr ravenadm-test-instrumental 8 ,
 .Xr ravenadm-update-ports 8
