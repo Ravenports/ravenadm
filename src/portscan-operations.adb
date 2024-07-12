@@ -1876,9 +1876,27 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    --  passed_abi_check
    --------------------------------------------------------------------------------------------
-   function passed_abi_check (metadata : ADO_Data) return Boolean is
+   function passed_abi_check
+     (subpackage   : String;
+      metadata     : ADO_Data;
+      id           : port_id;
+      avoid_log    : Boolean) return Boolean
+   is
+      passed : Boolean := HT.equivalent (calculated_abi, metadata.abi);
    begin
-      return HT.equivalent (calculated_abi, metadata.abi);
+      if not avoid_log then
+         if not passed then
+            declare
+               pkgname : constant String := PortScan.calculate_package_name (id, subpackage);
+            begin
+               LOG.obsolete_notice
+                 (pkgname & " ABI (" & HT.USS (metadata.abi) &
+                    ") failed architecture check (expected " & HT.USS (calculated_abi) & ")",
+                  False);
+            end;
+         end if;
+      end if;
+      return passed;
    end passed_abi_check;
 
 
@@ -1888,7 +1906,8 @@ package body PortScan.Operations is
    function passed_option_check
      (subpackage   : String;
       metadata     : ADO_Data;
-      id           : port_id) return Boolean
+      id           : port_id;
+      avoid_log    : Boolean) return Boolean
    is
       headport          : constant String := PortScan.calculate_package_name (id, subpackage);
       num_required_opts : constant Natural := Natural (all_ports (id).options.Length);
@@ -1938,7 +1957,9 @@ package body PortScan.Operations is
    begin
       gather_required_options;
       if num_archive_opts /= num_required_opts then
-         log_quantity_mismatch;
+         if not avoid_log then
+            log_quantity_mismatch;
+         end if;
          return False;
       end if;
 
@@ -1951,9 +1972,11 @@ package body PortScan.Operations is
            compare_archive_to_requirements (metadata.options, spec_options);
       begin
          if comparison /= "" then
-            LOG.obsolete_notice
-              ("The " & headport & " package must be rebuilt due to options differences." &
-                 comparison, False);
+            if not avoid_log then
+               LOG.obsolete_notice
+                 ("The " & headport & " package must be rebuilt due to options differences." &
+                    comparison, False);
+            end if;
             return False;
          end if;
       end;
@@ -2031,12 +2054,12 @@ package body PortScan.Operations is
          end if;
          acquire_archive_metadata (fullpath, metadata);
 
-         if not passed_option_check (subpackage, metadata, id) then
+         if not passed_option_check (subpackage, metadata, id, False) then
             LOG.obsolete_notice (msg_opt, True);
             all_ports (id).subpackages.Update_Element (subpackage_position, set_delete'Access);
             return;
          end if;
-         if not passed_abi_check (metadata) then
+         if not passed_abi_check (subpackage, metadata, id, False) then
             LOG.obsolete_notice (msg_abi, True);
             all_ports (id).subpackages.Update_Element (subpackage_position, set_delete'Access);
             return;
@@ -2092,11 +2115,11 @@ package body PortScan.Operations is
          acquire_catalog_metadata (triplet, metadata);
       end;
 
-      if not passed_abi_check (metadata) then
+      if not passed_abi_check (subpackage, metadata, id, True) then
          return;
       end if;
 
-      if not passed_option_check (subpackage, metadata, id) then
+      if not passed_option_check (subpackage, metadata, id, True) then
          return;
       end if;
 

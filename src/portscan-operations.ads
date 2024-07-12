@@ -243,14 +243,18 @@ private
    --  This function returns "True" if the scanned package has the expected
    --  package ABI, e.g. dragonfly:x86_64:6.2, freebsd:x86_64:13
    function passed_abi_check
-     (metadata : ADO_Data) return Boolean;
+     (subpackage   : String;
+      metadata     : ADO_Data;
+      id           : port_id;
+      avoid_log    : Boolean) return Boolean;
 
    --  This function returns "True" if the scanned options exactly match
    --  the options in the already-built package.
    function passed_option_check
      (subpackage   : String;
       metadata     : ADO_Data;
-      id           : port_id) return Boolean;
+      id           : port_id;
+      avoid_log    : Boolean) return Boolean;
 
    --  This function returns "True" if the scanned dependencies match exactly
    --  what the current ports tree has.
