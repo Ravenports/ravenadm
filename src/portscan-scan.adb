@@ -1614,7 +1614,7 @@ package body PortScan.Scan is
          rec : subpackage_record renames subpackage_crate.Element (position);
          subpackage : constant String := HT.USS (rec.subpackage);
          pattern    : constant String := calculate_nsv (id, subpackage) & "-*";
-         patternlen : constant Natural := pattern'Length;
+         patternlen : constant Natural := pattern'Length - 1;
          pkg_search : DIR.Search_Type;
          dirent     : DIR.Directory_Entry_Type;
          arcfiles   : string_crate.Vector;
