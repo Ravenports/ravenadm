@@ -71,7 +71,8 @@ private
 
    procedure set_missing_files
      (DC        : Dirent_Collection.Map;
-      missing   : in out admtypes.string_crate.Vector);
+      missing   : in out admtypes.string_crate.Vector;
+      singles   : admtypes.string_crate.Vector);
 
    procedure add_exception_of_leftover_ancestors
      (also_skip : in out admtypes.string_crate.Vector;

@@ -380,7 +380,7 @@ package body Hierarchy is
       extras.Iterate (filter_extras'Access);
       modified.Iterate (filter_modify'Access);
 
-      set_missing_files (DC, missing);
+      set_missing_files (DC, missing, singles);
       parent_lo.Iterate (prune_leftovers'Access);
 
       admtypes.sorter.Sort (Container => changed);
@@ -419,7 +419,8 @@ package body Hierarchy is
    -------------------------
    procedure set_missing_files
      (DC        : Dirent_Collection.Map;
-      missing   : in out admtypes.string_crate.Vector)
+      missing   : in out admtypes.string_crate.Vector;
+      singles   : admtypes.string_crate.Vector)
    is
       procedure check_record (Position : Dirent_Collection.Cursor);
       procedure check_record (Position : Dirent_Collection.Cursor)
@@ -428,7 +429,9 @@ package body Hierarchy is
          key   : HT.Text renames Dirent_Collection.Key (Position);
       begin
          if not myrec.second then
-            missing.Append (key);
+            if not singles.Contains (key) then
+               missing.Append (key);
+            end if;
          end if;
       end check_record;
    begin
