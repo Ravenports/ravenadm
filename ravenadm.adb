@@ -158,7 +158,8 @@ begin
    end if;
 
    case mandate is
-      when build | force | build_everything | test | status | status_everything =>
+      when build | force | build_everything | test | status | status_everything |
+         test_everything | test_incremental =>
          --  All commands involving replicant slaves
          if Pilot.launch_clash_detected then
             return;
@@ -167,7 +168,7 @@ begin
    end case;
 
    case mandate is
-      when build | force | build_everything | test =>
+      when build | force | build_everything | test | test_everything | test_incremental =>
          if Parameters.configuration.avec_ncurses and then
            not Pilot.TERM_defined_in_environment
          then
@@ -250,7 +251,7 @@ begin
 
    case mandate is
       when build | build_everything | force |
-           test | test_everything | changeopts |
+           test | test_everything | test_incremental | changeopts |
            status | status_everything | repository =>
          Pilot.check_that_ravenadm_is_modern_enough;
          if not Pilot.slave_platform_determined then
