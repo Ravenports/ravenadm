@@ -19,6 +19,8 @@ package Unix is
    type Int32 is private;
    subtype pid_t is Int32;
 
+   type int64 is range -(2**63) .. +(2**63 - 1);
+
    --  check if process identified by pid has exited or keeps going
    function process_status (pid : pid_t) return process_exit;
 
@@ -83,6 +85,10 @@ package Unix is
 
    --  Returns true if given file is set at 400 permissions
    function file_secure (file_path : String) return Boolean;
+
+   --  time(3) from libc
+   function unix_time (tloc : access int64) return int64;
+   pragma Import (C, unix_time, "time");
 
 private
 

@@ -66,6 +66,7 @@ package body PortScan.Operations is
       all_idle       : Boolean;
       cntskip        : Natural;
       sumdata        : DPY.summary_rec;
+      cycle_time     : Unix.int64;
 
       procedure text_display (builder : builders; info : String) is
       begin
@@ -279,6 +280,7 @@ package body PortScan.Operations is
    begin
       loop
          all_idle := True;
+         cycle_time := Unix.unix_time (null);
          for slave in 1 .. num_builders loop
             begin
                case builder_states (slave) is
@@ -290,7 +292,7 @@ package body PortScan.Operations is
                   if run_complete then
                      builder_states (slave) := shutdown;
                   else
-                     target := top_buildable_port;
+                     target := top_buildable_port (cycle_time);
                      if target = port_match_failed then
                         if Signals.graceful_shutdown_requested or else
                           nothing_left (num_builders)
@@ -312,7 +314,7 @@ package body PortScan.Operations is
                            end if;
                         end if;
                      else
-                        lock_package (target);
+                        lock_package (target, cycle_time);
                         instructions (slave) := target;
                         builder_states (slave) := tasked;
                         slave_display (total, slave, slave_name (slave));
@@ -2565,10 +2567,11 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    --  lock_package
    --------------------------------------------------------------------------------------------
-   procedure lock_package (id : port_id) is
+   procedure lock_package (id : port_id; cycle_time : Unix.int64) is
    begin
       if id /= port_match_failed then
          all_ports (id).work_locked := True;
+         all_ports (id).work_started := cycle_time;
       end if;
    end lock_package;
 
@@ -2576,12 +2579,24 @@ package body PortScan.Operations is
    --------------------------------------------------------------------------------------------
    --  top_buildable_port
    --------------------------------------------------------------------------------------------
-   function top_buildable_port return port_id
+   function top_buildable_port (cycle_time : Unix.int64) return port_id
    is
+      package Selection_Map is new CON.Hashed_Maps
+        (Key_Type        => HT.Text,
+         Element_Type    => Unix.int64,
+         Hash            => HT.hash,
+         Equivalent_Keys => HT.equivalent,
+         "="             => Unix."=");
+
       list_len : constant Integer := Integer (rank_queue.Length);
       cursor   : ranking_crate.Cursor;
       QR       : queue_record;
       result   : port_id := port_match_failed;
+      actively_building : Selection_Map.Map;
+      contingency       : HT.Text := HT.blank;
+      contingency_id    : port_id := port_match_failed;
+
+      use type Unix.int64;
    begin
       if list_len = 0 then
          return result;
@@ -2589,14 +2604,45 @@ package body PortScan.Operations is
       cursor := rank_queue.First;
       for k in 1 .. list_len loop
          QR := ranking_crate.Element (Position => cursor);
-         if not all_ports (QR.ap_index).work_locked and then
-           all_ports (QR.ap_index).blocked_by.Is_Empty
-         then
-            result := QR.ap_index;
-            exit;
-         end if;
+         declare
+            name    : HT.Text renames all_ports (QR.ap_index).port_namebase;
+            started : Unix.int64 renames all_ports (QR.ap_index).work_started;
+         begin
+            if all_ports (QR.ap_index).work_locked then
+               if actively_building.Contains (name) then
+                  if actively_building.Element (name) < started then
+                     actively_building.Delete (name);
+                     actively_building.Insert (name, started);
+                  end if;
+               else
+                  actively_building.Insert (name, started);
+               end if;
+            else
+               if all_ports (QR.ap_index).blocked_by.Is_Empty then
+                  if actively_building.Contains (name) then
+                     if contingency_id = port_match_failed then
+                        contingency := name;
+                        contingency_id := QR.ap_index;
+                     end if;
+                  else
+                     result := QR.ap_index;
+                     exit;
+                  end if;
+               end if;
+            end if;
+         end;
          cursor := ranking_crate.Next (Position => cursor);
       end loop;
+      if result = port_match_failed then
+         if contingency_id /= port_match_failed then
+            if actively_building.Element (contingency) + 200 > cycle_time then
+               --  We're already building at least one port with this namebase, but the
+               --  last one started more than 200 seconds ago and we've got an idle
+               --  builder, so go ahead and build this variant
+               result := contingency_id;
+            end if;
+         end if;
+      end if;
       if Signals.graceful_shutdown_requested then
          return port_match_failed;
       end if;

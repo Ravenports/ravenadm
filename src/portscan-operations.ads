@@ -285,10 +285,10 @@ private
 
    --  Before starting to build a port, lock it.  This is required for
    --  parallel building.
-   procedure lock_package (id : port_id);
+   procedure lock_package (id : port_id; cycle_time : Unix.int64);
 
    --  Returns the highly priority buildable port
-   function top_buildable_port return port_id;
+   function top_buildable_port (cycle_time : Unix.int64) return port_id;
 
    --  removes processed port from the ranking queue.
    procedure unlist_port (id : port_id);

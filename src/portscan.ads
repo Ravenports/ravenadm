@@ -10,6 +10,7 @@ with admtypes; use admtypes;
 private with Ada.Containers.Hashed_Maps;
 private with Ada.Containers.Ordered_Sets;
 private with Ada.Containers.Vectors;
+private with Unix;
 
 package PortScan is
 
@@ -198,6 +199,7 @@ private
          unlist_failed : Boolean              := False;
          work_locked   : Boolean              := False;
          scan_locked   : Boolean              := False;
+         work_started  : Unix.int64           := 0;
 
          use_procfs    : Boolean              := False;
          reverse_score : port_index           := 0;
