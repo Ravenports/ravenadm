@@ -291,8 +291,15 @@ private
    --  parallel building.
    procedure lock_package (id : port_id; cycle_time : Unix.int64);
 
+   --  Unlock package when build finishes
+   procedure unlock_package (id : port_id);
+
    --  Returns the highly priority buildable port
-   function top_buildable_port (cycle_time : Unix.int64) return port_id;
+   function top_buildable_port
+     (num_builders   : builders;
+      instructions   : dim_instruction;
+      builder_states : dim_builder_state;
+      cycle_time     : Unix.int64) return port_id;
 
    --  removes processed port from the ranking queue.
    procedure unlist_port (id : port_id);

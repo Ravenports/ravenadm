@@ -292,7 +292,8 @@ package body PortScan.Operations is
                   if run_complete then
                      builder_states (slave) := shutdown;
                   else
-                     target := top_buildable_port (cycle_time);
+                     target := top_buildable_port (num_builders, instructions, builder_states,
+                                                   cycle_time);
                      if target = port_match_failed then
                         if Signals.graceful_shutdown_requested or else
                           nothing_left (num_builders)
@@ -326,6 +327,7 @@ package body PortScan.Operations is
                when done_success | done_failure =>
                   all_idle := False;
                   if builder_states (slave) = done_success then
+                     unlock_package (instructions (slave));
                      if curses_support then
                         DPY.insert_history
                           (CYC.assemble_history_record
@@ -2599,10 +2601,25 @@ package body PortScan.Operations is
    end lock_package;
 
 
+   ----------------------
+   --  unlock_package  --
+   ----------------------
+   procedure unlock_package (id : port_id) is
+   begin
+      if id /= port_match_failed then
+         all_ports (id).work_locked := False;
+      end if;
+   end unlock_package;
+
+
    --------------------------------------------------------------------------------------------
    --  top_buildable_port
    --------------------------------------------------------------------------------------------
-   function top_buildable_port (cycle_time : Unix.int64) return port_id
+   function top_buildable_port
+     (num_builders   : builders;
+      instructions   : dim_instruction;
+      builder_states : dim_builder_state;
+      cycle_time     : Unix.int64) return port_id
    is
       package Selection_Map is new CON.Hashed_Maps
         (Key_Type        => HT.Text,
@@ -2624,23 +2641,40 @@ package body PortScan.Operations is
       if list_len = 0 then
          return result;
       end if;
+
+      -----------------
+      --  set up map --
+      -----------------
+      for x in 1 .. num_builders loop
+         case builder_states (x) is
+            when idle | shutdown => null;
+            when done_failure | done_success => null;
+            when tasked | busy =>
+               declare
+                  id      : constant port_id := instructions (x);
+                  name    : HT.Text renames all_ports (id).port_namebase;
+                  started : Unix.int64 renames all_ports (id).work_started;
+               begin
+                  if actively_building.Contains (name) then
+                     if actively_building.Element (name) < started then
+                        actively_building.Delete (name);
+                        actively_building.Insert (name, started);
+                     end if;
+                  else
+                     actively_building.Insert (name, started);
+                  end if;
+               end;
+         end case;
+      end loop;
+
+
       cursor := rank_queue.First;
       for k in 1 .. list_len loop
          QR := ranking_crate.Element (Position => cursor);
          declare
-            name    : HT.Text renames all_ports (QR.ap_index).port_namebase;
-            started : Unix.int64 renames all_ports (QR.ap_index).work_started;
+            name : HT.Text renames all_ports (QR.ap_index).port_namebase;
          begin
-            if all_ports (QR.ap_index).work_locked then
-               if actively_building.Contains (name) then
-                  if actively_building.Element (name) < started then
-                     actively_building.Delete (name);
-                     actively_building.Insert (name, started);
-                  end if;
-               else
-                  actively_building.Insert (name, started);
-               end if;
-            else
+            if not all_ports (QR.ap_index).work_locked then
                if all_ports (QR.ap_index).blocked_by.Is_Empty then
                   if actively_building.Contains (name) then
                      if contingency_id = port_match_failed then
