@@ -2692,7 +2692,7 @@ package body PortScan.Operations is
       end loop;
       if result = port_match_failed then
          if contingency_id /= port_match_failed then
-            if actively_building.Element (contingency) + 200 > cycle_time then
+            if actively_building.Element (contingency) + 200 < cycle_time then
                --  We're already building at least one port with this namebase, but the
                --  last one started more than 200 seconds ago and we've got an idle
                --  builder, so go ahead and build this variant
