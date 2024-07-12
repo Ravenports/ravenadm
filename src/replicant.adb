@@ -1104,13 +1104,26 @@ package body Replicant is
       use type DIR.File_Kind;
       slave_base : constant String := get_slave_mount (id);
       tc_path    : constant String := location (slave_base, toolchain);
+      try_count  : Natural := 0;
    begin
       case platform_type is
          when macos | openbsd =>
             DIR.Rename (Old_Name => tc_path, New_Name => tc_path & "-off");
             DIR.Rename (Old_Name => tc_path & "-packaged", New_Name => tc_path);
          when others =>
-            unmount (tc_path);
+            loop
+               begin
+                  unmount (tc_path);
+                  exit;
+               exception
+                  when failed_unmount =>
+                     try_count := try_count + 1;
+                     if try_count > 5 then
+                        raise;
+                     end if;
+                     delay 2.0;
+               end;
+            end loop;
       end case;
       DIR.Delete_File (slave_base & toolchain_tag);
       begin
