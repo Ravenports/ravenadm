@@ -462,6 +462,7 @@ package body Replicant is
       bsd_command : constant String := "/sbin/umount -f " & device_or_node;
       sol_command : constant String := "/usr/sbin/umount -f " & device_or_node;
       lin_command : constant String := "/bin/umount -f " & device_or_node;
+      lsof_cmd    : constant String := "/usr/bin/lsof " & device_or_node;
       counter     : Natural := 0;
       success     : Boolean := False;
    begin
@@ -477,13 +478,17 @@ package body Replicant is
                     netbsd    |
                     openbsd   |
                     midnightbsd => execute (bsd_command);
-               when linux     => execute (lin_command);
-               when sunos     => execute (sol_command);
+               when linux       => execute (lin_command);
+               when sunos       => execute (sol_command);
             end case;
             success := True;
             exit;
          exception
             when others =>
+               case platform_type is
+                  when linux  => execute (lsof_cmd);
+                  when others => null;
+               end case;
                counter := counter + 1;
                delay 10.0;
          end;
