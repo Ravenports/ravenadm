@@ -220,6 +220,7 @@ package body Hierarchy is
       push ("/etc/.pwd.lock");   --  Linux
       push ("/etc/group-");      --  Linux
       push ("/etc/passwd-");     --  Linux
+      push ("/etc/ld.so.cache"); --  Linux
 
    end set_single_file_filter;
 
