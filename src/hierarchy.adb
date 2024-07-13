@@ -190,6 +190,7 @@ package body Hierarchy is
       push ("/var/tmp");
       push ("/port");
       push ("/xports");
+      push ("/raven/toolchain");  --  prevents clean unhooking if it's being scanned
 
    end set_directory_filter;
 
