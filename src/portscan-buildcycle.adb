@@ -47,12 +47,14 @@ package body PortScan.Buildcycle is
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
+      trackers (id).log_offset  := 1;
       trackers (id).check_strip := not specification.debugging_is_on;
       trackers (id).rpath_fatal := specification.rpath_check_errors_are_fatal;
       trackers (id).disable_dog := specification.watchdog_disabled;
       trackers (id).genesis.Clear;
       trackers (id).preconfig.Clear;
       if not LOG.initialize_log (log_handle => trackers (id).log_handle,
+                                 sio_handle => trackers (id).sio_handle,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
                                  slave_root => get_root (id),
@@ -63,6 +65,7 @@ package body PortScan.Buildcycle is
                                  block_dog  => trackers (id).disable_dog)
       then
          LOG.finalize_log (trackers (id).log_handle,
+                           trackers (id).sio_handle,
                            trackers (id).head_time,
                            trackers (id).tail_time);
          return False;
@@ -152,6 +155,7 @@ package body PortScan.Buildcycle is
             dump_stack (trackers (id).log_handle);
       end;
       LOG.finalize_log (trackers (id).log_handle,
+                        trackers (id).sio_handle,
                         trackers (id).head_time,
                         trackers (id).tail_time);
       if interactive then
@@ -1648,20 +1652,12 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  set_log_lines
    --------------------------------------------------------------------------------------------
-   procedure set_log_lines (id : builders)
-   is
-      log_path : constant String := LOG.log_name (trackers (id).seq_id);
-      command  : constant String := HT.USS (PM.configuration.dir_sysroot) &
-                 "/usr/bin/wc -l " & log_path;
+   procedure set_log_lines (id : builders) is
    begin
-      declare
-         numtext : constant String :=
-           HT.part_1 (S => HT.trim (generic_system_command (command)), separator => " ");
-      begin
-         trackers (id).loglines := Natural'Value (numtext);
-      end;
-   exception
-      when others => null;  -- just skip this cycle
+      FOP.update_latest_log_length
+        (handle     => trackers (id).sio_handle,
+         num_lines  => trackers (id).loglines,
+         log_offset => trackers (id).log_offset);
    end set_log_lines;
 
 

@@ -345,6 +345,7 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    procedure finalize_log
      (log_handle : in out TIO.File_Type;
+      sio_handle : in out SIO.File_Type;
       head_time  : CAL.Time;
       tail_time  : out CAL.Time) is
    begin
@@ -354,6 +355,7 @@ package body PortScan.Log is
                     "Finished: " & timestamp (tail_time));
       TIO.Put_Line (log_handle, log_duration (start => head_time, stop  => tail_time));
       TIO.Close (log_handle);
+      SIO.Close (sio_handle);
    end finalize_log;
 
 
@@ -362,6 +364,7 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    function initialize_log
      (log_handle : in out TIO.File_Type;
+      sio_handle : in out SIO.File_Type;
       head_time  : out CAL.Time;
       seq_id     : port_id;
       slave_root : String;
@@ -375,10 +378,9 @@ package body PortScan.Log is
       H_OPT : constant String := "Options";
       CFG1  : constant String := "/etc/make.conf";
       CFG2  : constant String := "/etc/mk.conf";
+      log_path : constant String := log_name (seq_id);
    begin
       head_time := CAL.Clock;
-      declare
-         log_path : constant String := log_name (seq_id);
       begin
          if DIR.Exists (log_path) then
             DIR.Delete_File (log_path);
@@ -391,6 +393,16 @@ package body PortScan.Log is
          when error : others =>
             raise scan_log_error
               with "failed to create log " & log_path;
+      end;
+
+      begin
+         SIO.Open (File => sio_handle,
+                   Mode => SIO.In_File,
+                   Name => log_path);
+      exception
+         when error : others =>
+            raise scan_log_error
+              with "failed to open SIO log " & log_path;
       end;
 
       TIO.Put_Line (log_handle, "=> Building " & get_port_variant (all_ports (seq_id)) &

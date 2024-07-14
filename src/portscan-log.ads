@@ -2,16 +2,19 @@
 --  Reference: ../License.txt
 
 with Ada.Calendar;
+with Ada.Streams.Stream_IO;
 
 package PortScan.Log is
 
    package CAL renames Ada.Calendar;
+   package SIO renames Ada.Streams.Stream_IO;
 
    overall_log : exception;
 
    --  Open log, dump diagnostic data and stop timer.
    function initialize_log
      (log_handle : in out TIO.File_Type;
+      sio_handle : in out SIO.File_Type;
       head_time  : out CAL.Time;
       seq_id     : port_id;
       slave_root : String;
@@ -24,6 +27,7 @@ package PortScan.Log is
    --  Stop time, write duration data, close log
    procedure finalize_log
      (log_handle : in out TIO.File_Type;
+      sio_handle : in out SIO.File_Type;
       head_time  : CAL.Time;
       tail_time  : out CAL.Time);
 

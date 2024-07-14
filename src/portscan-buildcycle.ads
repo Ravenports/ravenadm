@@ -5,6 +5,7 @@ with Display;
 with Hierarchy;
 with Port_Specification;
 private with Ada.Calendar;
+private with Ada.Streams.Stream_IO;
 
 package PortScan.Buildcycle is
 
@@ -53,6 +54,7 @@ package PortScan.Buildcycle is
 private
 
    package CAL renames Ada.Calendar;
+   package SIO renames Ada.Streams.Stream_IO;
 
    type phases is (blr_depends, fetch, extract, patch, configure, build, stage,
                    test, check_plist, pkg_package, install, deinstall);
@@ -63,6 +65,7 @@ private
          head_time   : CAL.Time;
          tail_time   : CAL.Time;
          log_handle  : aliased TIO.File_Type;
+         sio_handle  : SIO.File_Type;
          dynlink     : string_crate.Vector;
          runpaths    : string_crate.Vector;
          nonexistent : string_crate.Vector;
@@ -71,6 +74,7 @@ private
          check_strip : Boolean;
          disable_dog : Boolean;
          loglines    : Natural := 0;
+         log_offset  : SIO.Positive_Count;
          genesis     : Hierarchy.Dirent_Collection.Map;
          preconfig   : Hierarchy.Dirent_Collection.Map;
       end record;
