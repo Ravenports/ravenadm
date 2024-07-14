@@ -395,16 +395,6 @@ package body PortScan.Log is
               with "failed to create log " & log_path;
       end;
 
-      begin
-         SIO.Open (File => sio_handle,
-                   Mode => SIO.In_File,
-                   Name => log_path);
-      exception
-         when error : others =>
-            raise scan_log_error
-              with "failed to open SIO log " & log_path;
-      end;
-
       TIO.Put_Line (log_handle, "=> Building " & get_port_variant (all_ports (seq_id)) &
                    " (version " & HT.USS (all_ports (seq_id).pkgversion) & ")");
       TIO.Put_Line (log_handle, "Started : " & timestamp (head_time));
@@ -429,6 +419,16 @@ package body PortScan.Log is
       TIO.Put_Line (log_handle, log_section (CFG1));
       TIO.Put      (log_handle, FOP.get_file_contents (slave_root & CFG1));
       TIO.Put_Line (log_handle, "" & LAT.LF);
+
+      begin
+         SIO.Open (File => sio_handle,
+                   Mode => SIO.In_File,
+                   Name => log_path);
+      exception
+         when error : others =>
+            raise scan_log_error
+              with "failed to open SIO log " & log_path;
+      end;
       return True;
 
    end initialize_log;
