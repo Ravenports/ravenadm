@@ -486,7 +486,13 @@ package body Replicant is
          exception
             when others =>
                case platform_type is
-                  when linux  => execute (lsof_cmd);
+                  when linux  =>
+                     begin
+                        execute (lsof_cmd);
+                     exception
+                        when scenario_unexpected =>
+                           TIO.Put_Line (abnormal_log, "LSOF command failed, ignored");
+                     end;
                   when others => null;
                end case;
                counter := counter + 1;
