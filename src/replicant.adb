@@ -462,6 +462,7 @@ package body Replicant is
       bsd_command : constant String := "/sbin/umount -f " & device_or_node;
       sol_command : constant String := "/usr/sbin/umount -f " & device_or_node;
       lin_command : constant String := "/bin/umount -f " & device_or_node;
+      lazycommand : constant String := "/bin/umount -l " & device_or_node;
       lsof_cmd    : constant String := "/usr/bin/lsof " & device_or_node;
       counter     : Natural := 0;
       success     : Boolean := False;
@@ -487,12 +488,20 @@ package body Replicant is
             when others =>
                case platform_type is
                   when linux  =>
-                     begin
-                        execute (lsof_cmd);
-                     exception
-                        when scenario_unexpected =>
-                           TIO.Put_Line (abnormal_log, "LSOF command failed, ignored");
-                     end;
+                     if counter = retry_times - 1 then
+                        begin
+                           execute (lsof_cmd);
+                        exception
+                           when scenario_unexpected =>
+                              TIO.Put_Line (abnormal_log, "LSOF command failed, ignored");
+                        end;
+                        begin
+                           execute (lazycommand);
+                        exception
+                           when scenario_unexpected =>
+                              TIO.Put_Line (abnormal_log, "lazy command failed, ignored");
+                        end;
+                     end if;
                   when others => null;
                end case;
                counter := counter + 1;
