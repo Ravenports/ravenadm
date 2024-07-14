@@ -378,6 +378,7 @@ package body PortScan.Log is
       H_OPT : constant String := "Options";
       CFG1  : constant String := "/etc/make.conf";
       CFG2  : constant String := "/etc/mk.conf";
+      shared   : constant String := "shared=yes";
       log_path : constant String := log_name (seq_id);
    begin
       head_time := CAL.Clock;
@@ -387,8 +388,9 @@ package body PortScan.Log is
          end if;
          FOP.mkdirp_from_filename (log_path);
          TIO.Create (File => log_handle,
-                     Mode => TIO.Out_File,
-                     Name => log_path);
+                     Mode => TIO.Append_File,
+                     Name => log_path,
+                     Form => shared);
       exception
          when error : others =>
             raise scan_log_error
@@ -422,9 +424,9 @@ package body PortScan.Log is
 
       begin
          SIO.Open (File => sio_handle,
-                   Mode => SIO.Append_File,
+                   Mode => SIO.In_File,
                    Name => log_path,
-                   Form => "shared=yes");
+                   Form => shared);
       exception
          when error : others =>
             raise scan_log_error
