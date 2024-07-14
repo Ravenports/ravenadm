@@ -457,7 +457,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  unmount
    --------------------------------------------------------------------------------------------
-   procedure unmount (device_or_node : String; retry_times : Natural := 0)
+   procedure unmount (device_or_node : String; retry_times : Natural := 6)
    is
       bsd_command : constant String := "/sbin/umount -f " & device_or_node;
       sol_command : constant String := "/usr/sbin/umount -f " & device_or_node;
@@ -830,7 +830,7 @@ package body Replicant is
       zone_base : constant String := get_workzone_path;
    begin
       if not PM.configuration.avoid_tmpfs then
-         unmount (zone_base, 50);
+         unmount (zone_base, 10);
       end if;
       annihilate_directory_tree (zone_base);
    end destroy_workzone;

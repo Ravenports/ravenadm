@@ -1,9 +1,13 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
+with Ada.Streams.Stream_IO;
+
 package File_Operations is
 
-   file_handling    : exception;
+   package SIO renames Ada.Streams.Stream_IO;
+
+   file_handling : exception;
 
    --  Generic function to scan a text file and convert to a string
    function get_file_contents (dossier : String) return String;
@@ -49,6 +53,14 @@ package File_Operations is
    --  Otherwise, the $ORIGIN text is replaced by the base directory of the filename
    --             and the resulting text is returned.
    function convert_ORIGIN_in_runpath (filename : String; runpath : String) return String;
+
+   --  Purpose: Incrementally count the number of log lines.
+   --           It is intended to be run multiple times, but only scans new logging
+   --  -----------------------------------------------------------------------------
+   procedure update_latest_log_length
+     (handle     : in out SIO.File_Type;
+      num_lines  : in out Natural;
+      log_offset : in out SIO.Positive_Count);
 
 private
 
