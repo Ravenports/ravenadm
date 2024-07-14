@@ -422,7 +422,7 @@ package body PortScan.Log is
 
       begin
          SIO.Open (File => sio_handle,
-                   Mode => SIO.In_File,
+                   Mode => SIO.Append_File,
                    Name => log_path,
                    Form => "shared=yes");
       exception
