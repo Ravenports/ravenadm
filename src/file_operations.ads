@@ -57,10 +57,15 @@ package File_Operations is
    --  Purpose: Incrementally count the number of log lines.
    --           It is intended to be run multiple times, but only scans new logging
    --  -----------------------------------------------------------------------------
-   procedure update_latest_log_length
-     (handle     : in out SIO.File_Type;
-      num_lines  : in out Natural;
-      log_offset : in out SIO.Positive_Count);
+   --  procedure update_latest_log_length
+   --    (handle     : in out SIO.File_Type;
+   --     num_lines  : in out Natural;
+   --     log_offset : in out SIO.Positive_Count);
+
+   --  purpose: count number of linefeeds in the file
+   --  It has to be done each time rather than incrementally due to the constant open/close
+   --  of the file.
+   function lines_in_log (filename : String) return Natural;
 
 private
 

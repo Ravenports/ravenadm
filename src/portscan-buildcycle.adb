@@ -47,14 +47,12 @@ package body PortScan.Buildcycle is
    begin
       trackers (id).seq_id := sequence_id;
       trackers (id).loglines := 0;
-      trackers (id).log_offset  := 1;
       trackers (id).check_strip := not specification.debugging_is_on;
       trackers (id).rpath_fatal := specification.rpath_check_errors_are_fatal;
       trackers (id).disable_dog := specification.watchdog_disabled;
       trackers (id).genesis.Clear;
       trackers (id).preconfig.Clear;
       if not LOG.initialize_log (log_handle => trackers (id).log_handle,
-                                 sio_handle => trackers (id).sio_handle,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
                                  slave_root => get_root (id),
@@ -65,7 +63,6 @@ package body PortScan.Buildcycle is
                                  block_dog  => trackers (id).disable_dog)
       then
          LOG.finalize_log (trackers (id).log_handle,
-                           trackers (id).sio_handle,
                            trackers (id).head_time,
                            trackers (id).tail_time);
          return False;
@@ -155,7 +152,6 @@ package body PortScan.Buildcycle is
             dump_stack (trackers (id).log_handle);
       end;
       LOG.finalize_log (trackers (id).log_handle,
-                        trackers (id).sio_handle,
                         trackers (id).head_time,
                         trackers (id).tail_time);
       if interactive then
@@ -527,9 +523,7 @@ package body PortScan.Buildcycle is
          install_dependency_pyramid;
       end if;
 
-      TIO.Open (File => trackers (id).log_handle,
-                Mode => TIO.Append_File,
-                Name => LOG.log_name (trackers (id).seq_id));
+      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end exec_phase_depends;
@@ -554,9 +548,7 @@ package body PortScan.Buildcycle is
       TIO.Put_Line (trackers (id).log_handle, "===>  Removing all packages");
       TIO.Close (trackers (id).log_handle);
       still_good := generic_execute (id, command, timed_out, time_limit);
-      TIO.Open (File => trackers (id).log_handle,
-                Mode => TIO.Append_File,
-                Name => LOG.log_name (trackers (id).seq_id));
+      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
       LOG.log_phase_end (trackers (id).log_handle);
       return still_good;
    end deinstall_all_packages;
@@ -634,9 +626,7 @@ package body PortScan.Buildcycle is
                        "===>  Install the " & variant & " variant of the " & namebase & " package");
          TIO.Close (trackers (id).log_handle);
          still_good := generic_execute (id, command, timed_out, time_limit);
-         TIO.Open (File => trackers (id).log_handle,
-                   Mode => TIO.Append_File,
-                   Name => LOG.log_name (trackers (id).seq_id));
+         LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
          if timed_out then
             TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
          end if;
@@ -697,9 +687,7 @@ package body PortScan.Buildcycle is
       --  Reopen the log.  I guess we can leave off the exception check
       --  since it's been passing before
 
-      TIO.Open (File => trackers (id).log_handle,
-                Mode => TIO.Append_File,
-                Name => LOG.log_name (trackers (id).seq_id));
+      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
       if timed_out then
          TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
       end if;
@@ -980,14 +968,12 @@ package body PortScan.Buildcycle is
       TIO.Close (trackers (id).log_handle);
 
       declare
-         --  command : constant String :=
-         --    PM.chroot_cmd & root & environ & DELETE_CMD & HT.USS (rem_list);
          command : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
       begin
          still_good := generic_execute (id, command, timed_out, time_limit);
       end;
 
-      TIO.Open (trackers (id).log_handle, TIO.Append_File, LOG.log_name (trackers (id).seq_id));
+      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
       if timed_out then
          TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
       end if;
@@ -1654,10 +1640,7 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    procedure set_log_lines (id : builders) is
    begin
-      FOP.update_latest_log_length
-        (handle     => trackers (id).sio_handle,
-         num_lines  => trackers (id).loglines,
-         log_offset => trackers (id).log_offset);
+      trackers (id).loglines := FOP.lines_in_log (LOG.log_name (trackers (id).seq_id));
    end set_log_lines;
 
 

@@ -345,7 +345,6 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    procedure finalize_log
      (log_handle : in out TIO.File_Type;
-      sio_handle : in out SIO.File_Type;
       head_time  : CAL.Time;
       tail_time  : out CAL.Time) is
    begin
@@ -355,7 +354,6 @@ package body PortScan.Log is
                     "Finished: " & timestamp (tail_time));
       TIO.Put_Line (log_handle, log_duration (start => head_time, stop  => tail_time));
       TIO.Close (log_handle);
-      SIO.Close (sio_handle);
    end finalize_log;
 
 
@@ -364,7 +362,6 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    function initialize_log
      (log_handle : in out TIO.File_Type;
-      sio_handle : in out SIO.File_Type;
       head_time  : out CAL.Time;
       seq_id     : port_id;
       slave_root : String;
@@ -422,19 +419,34 @@ package body PortScan.Log is
       TIO.Put      (log_handle, FOP.get_file_contents (slave_root & CFG1));
       TIO.Put_Line (log_handle, "" & LAT.LF);
 
-      begin
-         SIO.Open (File => sio_handle,
-                   Mode => SIO.In_File,
-                   Name => log_path,
-                   Form => shared);
-      exception
-         when error : others =>
-            raise scan_log_error
-              with "failed to open SIO log " & log_path;
-      end;
+      --  begin
+      --     SIO.Open (File => sio_handle,
+      --               Mode => SIO.In_File,
+      --               Name => log_path,
+      --               Form => shared);
+      --  exception
+      --     when error : others =>
+      --        raise scan_log_error
+      --          with "failed to open SIO log " & log_path;
+      --  end;
       return True;
 
    end initialize_log;
+
+
+   --------------------------------------------------------------------------------------------
+   --  reopen_log
+   --------------------------------------------------------------------------------------------
+   procedure reopen_log (log_handle : in out TIO.File_Type; seq_id : port_id)
+   is
+      shared   : constant String := "shared=yes";
+      log_path : constant String := log_name (seq_id);
+   begin
+      TIO.Open (File => log_handle,
+                Mode => TIO.Append_File,
+                Name => log_path,
+                Form => shared);
+   end reopen_log;
 
 
    --------------------------------------------------------------------------------------------

@@ -301,33 +301,76 @@ package body File_Operations is
    --------------------------------
    --  update_latest_log_length  --
    --------------------------------
-   procedure update_latest_log_length
-     (handle     : in out SIO.File_Type;
-      num_lines  : in out Natural;
-      log_offset : in out SIO.Positive_Count)
+   --  procedure update_latest_log_length
+   --    (handle     : in out SIO.File_Type;
+   --     num_lines  : in out Natural;
+   --     log_offset : in out SIO.Positive_Count)
+   --  is
+   --     buffer    : Ada.Streams.Stream_Element_Array (1 .. 4096);
+   --     last_read : Ada.Streams.Stream_Element_Offset;
+   --     linefeed  : constant Ada.Streams.Stream_Element := 10;
+   --
+   --     use type Ada.Streams.Stream_Element;
+   --     use type Ada.Streams.Stream_Element_Offset;
+   --     use type SIO.Count;
+   --  begin
+   --     loop
+   --        SIO.Read (File => handle,
+   --                  Item => buffer,
+   --                  Last => last_read,
+   --                  From => log_offset);
+   --        for x in 1 .. last_read loop
+   --           if buffer (x) = linefeed then
+   --              num_lines := num_lines + 1;
+   --           end if;
+   --        end loop;
+   --        log_offset := log_offset + SIO.Positive_Count (last_read);
+   --        exit when last_read < buffer'Last;
+   --     end loop;
+   --  end update_latest_log_length;
+
+
+   --------------------
+   --  lines_in_log  --
+   --------------------
+   function lines_in_log (filename : String) return Natural
    is
-      buffer    : Ada.Streams.Stream_Element_Array (1 .. 4096);
-      last_read : Ada.Streams.Stream_Element_Offset;
-      linefeed  : constant Ada.Streams.Stream_Element := 10;
+      buffer     : Ada.Streams.Stream_Element_Array (1 .. 4096);
+      last_read  : Ada.Streams.Stream_Element_Offset;
+      linefeed   : constant Ada.Streams.Stream_Element := 10;
+      sio_handle : SIO.File_Type;
+      shared     : constant String := "shared=yes";
+      num_lines  : Natural := 1;
 
       use type Ada.Streams.Stream_Element;
       use type Ada.Streams.Stream_Element_Offset;
       use type SIO.Count;
    begin
+      begin
+         SIO.Open (File => sio_handle,
+                   Mode => SIO.In_File,
+                   Name => filename,
+                   Form => shared);
+      exception
+         when error : others =>
+            return 0;
+      end;
+
       loop
-         SIO.Read (File => handle,
+         SIO.Read (File => sio_handle,
                    Item => buffer,
-                   Last => last_read,
-                   From => log_offset);
+                   Last => last_read);
          for x in 1 .. last_read loop
             if buffer (x) = linefeed then
                num_lines := num_lines + 1;
             end if;
          end loop;
-         log_offset := log_offset + SIO.Positive_Count (last_read);
          exit when last_read < buffer'Last;
       end loop;
-   end update_latest_log_length;
+
+      SIO.Close (sio_handle);
+      return num_lines;
+   end lines_in_log;
 
 
 end File_Operations;
