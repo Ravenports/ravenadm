@@ -1222,6 +1222,9 @@ package body Port_Specification.Makefile is
 
       subtype uses_string is String (1 .. 13);
 
+      --  don't add mime-info because QA scripts check for it
+      --  don't add desktop-utils because QA scripts check for it
+
       --  Keep in alphabetical order for future conversion to binary search
       all_keywords : constant array (1 .. total_modules) of uses_string :=
         (
@@ -1233,7 +1236,6 @@ package body Port_Specification.Makefile is
          "compiler     ",
          "cpe          ",
          "curl         ",
-         "desktop-utils",
          "execinfo     ",
          "expat        ",
          "fontconfig   ",
@@ -1247,7 +1249,6 @@ package body Port_Specification.Makefile is
          "lzo          ",
          "makeinfo     ",
          "mesa         ",
-         "mime-info    ",
          "pcre         ",
          "pcre2        ",
          "pkgconfig    ",
