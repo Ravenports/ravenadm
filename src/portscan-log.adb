@@ -441,7 +441,7 @@ package body PortScan.Log is
    is
       shared   : constant String := "shared=yes";
       log_path : constant String := log_name (seq_id);
-      max_try  : constant Natural := 5;
+      max_try  : constant Natural := 10;
       counter  : Natural := 0;
    begin
       loop
@@ -456,6 +456,7 @@ package body PortScan.Log is
                if counter = max_try then
                   raise;
                end if;
+               delay 0.05;
          end;
          counter := counter + 1;
       end loop;
