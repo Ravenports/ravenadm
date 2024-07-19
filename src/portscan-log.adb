@@ -441,11 +441,24 @@ package body PortScan.Log is
    is
       shared   : constant String := "shared=yes";
       log_path : constant String := log_name (seq_id);
+      max_try  : constant Natural := 5;
+      counter  : Natural := 0;
    begin
-      TIO.Open (File => log_handle,
-                Mode => TIO.Append_File,
-                Name => log_path,
-                Form => shared);
+      loop
+         begin
+            TIO.Open (File => log_handle,
+                      Mode => TIO.Append_File,
+                      Name => log_path,
+                      Form => shared);
+            exit;
+         exception
+            when problem : others =>
+               if counter = max_try then
+                  raise;
+               end if;
+         end;
+         counter := counter + 1;
+      end loop;
    end reopen_log;
 
 
