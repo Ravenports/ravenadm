@@ -67,6 +67,13 @@ package File_Operations is
    --  of the file.
    function lines_in_log (filename : String) return Natural;
 
+   --  The distfiles directory is will have a subdirectory named "transient" if ravenadm has
+   --  built a package before (unless purge-distfiles was run without building another package).
+   --  If the transient directory exists, remove all normal files found in it.
+   --  Under normal conditions, the directory will be empty, but if the previous build was
+   --  interrupted, it make contain "*.lk" files or partial downloads.
+   procedure reset_distfiles_working_area (distfiles_directory : String);
+
 private
 
    --  helper for create_pidfile

@@ -980,6 +980,7 @@ package body Pilot is
          TIO.Put_Line ("require rebuilding; the task is therefore complete.");
          show_tally := False;
       else
+         FOP.reset_distfiles_working_area (HT.USS (PM.configuration.dir_distfiles));
          OPS.run_start_hook;
          REP.initialize (testmode);
          CYC.initialize (testmode);

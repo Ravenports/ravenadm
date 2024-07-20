@@ -373,4 +373,40 @@ package body File_Operations is
    end lines_in_log;
 
 
+   ------------------------------------
+   --  reset_distfiles_working_area  --
+   ------------------------------------
+   procedure reset_distfiles_working_area (distfiles_directory : String)
+   is
+      transient : constant String := distfiles_directory & "/transient";
+   begin
+      if not DIR.Exists (transient) then
+         return;
+      end if;
+      case DIR.Kind (transient) is
+         when DIR.Directory => null;
+         when others => return;
+      end case;
+      declare
+         search : DIR.Search_Type;
+         dirent : DIR.Directory_Entry_Type;
+         filter : constant DIR.Filter_Type := (DIR.Ordinary_File => True, others => False);
+      begin
+         DIR.Start_Search (Search    => search,
+                           Directory => transient,
+                           Pattern   => "",
+                           Filter    => filter);
+         while DIR.More_Entries (search) loop
+            DIR.Get_Next_Entry (search, dirent);
+            begin
+               DIR.Delete_File (DIR.Full_Name (dirent));
+            exception
+               when others =>
+                  TIO.Put_Line ("Failed to delete " & DIR.Full_Name (dirent));
+            end;
+         end loop;
+         DIR.End_Search (search);
+      end;
+   end reset_distfiles_working_area;
+
 end File_Operations;
