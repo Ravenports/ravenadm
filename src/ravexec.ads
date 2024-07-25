@@ -2,6 +2,7 @@
 --  Reference: /License.txt
 
 private with Interfaces.C.Strings;
+private with Interfaces.C.Pointers;
 
 package Ravexec is
 
@@ -21,6 +22,17 @@ private
 
    package IC renames Interfaces.C;
 
+   subtype CNatural is IC.int range 0 .. IC.int'Last;
+   type CSVector is array (CNatural range <>) of aliased IC.Strings.chars_ptr;
+
+   package Argv_Pointer is new IC.Pointers (
+      Index              => CNatural,
+      Element            => IC.Strings.chars_ptr,
+      Element_Array      => CSVector,
+      Default_Terminator => IC.Strings.Null_Ptr);
+
+   subtype Chars_Ptr_Ptr is Argv_Pointer.Pointer;
+
    function C_Close (fd : IC.int) return IC.int;
    pragma Import (C, C_Close, "close");
 
@@ -30,4 +42,9 @@ private
    function C_Start_Log (path : IC.Strings.chars_ptr) return IC.int;
    pragma Import (C, C_Start_Log, "start_new_log");
 
-end File_Operations.Builder_Log;
+   function C_Phase_Execution (builder : IC.int; fd : IC.int; prog : IC.Strings.chars_ptr;
+                               argv : Chars_Ptr_Ptr) return IC.int;
+   pragma Import (C, C_Phase_Execution, "phase_execution");
+
+
+end Ravexec;
