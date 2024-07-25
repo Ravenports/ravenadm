@@ -285,7 +285,7 @@ package body Hierarchy is
    --  detect_leftovers_and_MIA  --
    --------------------------------
    function detect_leftovers_and_MIA
-     (log_handle  : TIO.File_Type;
+     (log_fd      : RAX.File_Descriptor;
       DC          : in out Dirent_Collection.Map;
       rootdir     : String;
       description : String;
@@ -332,7 +332,7 @@ package body Hierarchy is
       is
          dossier : constant String := HT.USS (admtypes.string_crate.Element (cursor));
       begin
-         TIO.Put_Line (log_handle, LAT.HT & dossier);
+         RAX.writeln (log_fd, LAT.HT & dossier);
       end print;
 
       procedure print_modified (cursor : admtypes.string_crate.Cursor)
@@ -356,7 +356,7 @@ package body Hierarchy is
          if myrec.dT then
             status (5) := 'T';
          end if;
-         TIO.Put_Line (log_handle, LAT.HT & status & HT.USS (filename));
+         RAX.writeln (log_fd, LAT.HT & status & HT.USS (filename));
       end print_modified;
 
       procedure prune_leftovers (Position : admtypes.string_crate.Cursor)
@@ -392,24 +392,24 @@ package body Hierarchy is
       admtypes.sorter.Sort (Container => missing);
       admtypes.sorter.Sort (Container => leftover);
 
-      TIO.Put_Line (log_handle, LAT.LF & "=> Checking for system changes " & description);
+      RAX.writeln (log_fd, LAT.LF & "=> Checking for system changes " & description);
       if not leftover.Is_Empty then
          passed := False;
-         TIO.Put_Line (log_handle, LAT.LF & "   Left over files/directories:");
+         RAX.writeln (log_fd, LAT.LF & "   Left over files/directories:");
          leftover.Iterate (Process => print'Access);
       end if;
       if not missing.Is_Empty then
          passed := False;
-         TIO.Put_Line (log_handle, LAT.LF & "   Missing files/directories:");
+         RAX.writeln (log_fd, LAT.LF & "   Missing files/directories:");
          missing.Iterate (Process => print'Access);
       end if;
       if not changed.Is_Empty then
          passed := False;
-         TIO.Put_Line (log_handle, LAT.LF & "   Modified files/directories:");
+         RAX.writeln (log_fd, LAT.LF & "   Modified files/directories:");
          changed.Iterate (Process => print_modified'Access);
       end if;
       if passed then
-         TIO.Put_Line (log_handle, "Everything is fine.");
+         RAX.writeln (log_fd, "Everything is fine.");
       end if;
       if not fatal then
          return True;

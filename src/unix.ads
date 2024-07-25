@@ -32,7 +32,7 @@ package Unix is
    function external_command (command : String) return Boolean;
 
    --  wrapper for nonblocking spawn
-   function launch_process (command : String) return pid_t;
+   --  function launch_process (command : String) return pid_t;
 
    --  Returns True if pid is less than zero
    function fork_failed (pid : pid_t) return Boolean;

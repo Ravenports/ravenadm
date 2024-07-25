@@ -2,16 +2,18 @@
 --  Reference: ../License.txt
 
 with Ada.Calendar;
+with Unix.Ravexec;
 
 package PortScan.Log is
 
    package CAL renames Ada.Calendar;
+   package RAX renames Unix.Ravexec;
 
    overall_log : exception;
 
    --  Open log, dump diagnostic data and stop timer.
    function initialize_log
-     (log_handle : in out TIO.File_Type;
+     (log_fd     : in out RAX.File_Descriptor;
       head_time  : out CAL.Time;
       seq_id     : port_id;
       slave_root : String;
@@ -23,21 +25,18 @@ package PortScan.Log is
 
    --  Stop time, write duration data, close log
    procedure finalize_log
-     (log_handle : in out TIO.File_Type;
+     (log_fd     : in out RAX.File_Descriptor;
       head_time  : CAL.Time;
       tail_time  : out CAL.Time);
-
-   --  helper to re-open already initialized log
-   procedure reopen_log (log_handle : in out TIO.File_Type; seq_id : port_id);
 
    --  Helper to format phase/section heading
    function log_section (title : String) return String;
 
    --  Format start of build phase in log
-   procedure log_phase_begin (log_handle : TIO.File_Type; phase : String);
+   procedure log_phase_begin (log_fd : RAX.File_Descriptor; phase : String);
 
    --  Format end of build phase in log
-   procedure log_phase_end (log_handle : TIO.File_Type);
+   procedure log_phase_end (log_fd : RAX.File_Descriptor);
 
    --  Standard log name based on port origin and variant.
    function log_name (sid : port_id) return String;
@@ -118,7 +117,7 @@ private
    function log_duration (start, stop : CAL.Time) return String;
    function split_collection (line : String; title : String) return String;
 
-   procedure dump_port_variables (log_handle : TIO.File_Type; contents : String);
+   procedure dump_port_variables (log_fd : RAX.File_Descriptor; contents : String);
 
    --  Simple time calculation (guts)
    function get_packages_per_hour (packages_done : Natural; from_when : CAL.Time) return Natural;

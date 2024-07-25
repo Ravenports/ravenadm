@@ -125,18 +125,18 @@ package body Unix is
    --------------------------------------------------------------------------------------------
    --  launch_process
    --------------------------------------------------------------------------------------------
-   function launch_process (command : String) return pid_t
-   is
-      procid : OSL.Process_Id;
-      Args   : OSL.Argument_List_Access;
-   begin
-      Args   := OSL.Argument_String_To_List (command);
-      procid := OSL.Non_Blocking_Spawn
-        (Program_Name => Args (Args'First).all,
-         Args => Args (Args'First + 1 .. Args'Last));
-      OSL.Free (Args);
-      return pid_t (OSL.Pid_To_Integer (procid));
-   end launch_process;
+   --  function launch_process (command : String) return pid_t
+   --  is
+   --     procid : OSL.Process_Id;
+   --     Args   : OSL.Argument_List_Access;
+   --  begin
+   --     Args   := OSL.Argument_String_To_List (command);
+   --     procid := OSL.Non_Blocking_Spawn
+   --       (Program_Name => Args (Args'First).all,
+   --        Args => Args (Args'First + 1 .. Args'Last));
+   --     OSL.Free (Args);
+   --     return pid_t (OSL.Pid_To_Integer (procid));
+   --  end launch_process;
 
 
    --------------------------------------------------------------------------------------------

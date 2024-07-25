@@ -291,7 +291,7 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    --  dump_port_variables
    --------------------------------------------------------------------------------------------
-   procedure dump_port_variables (log_handle : TIO.File_Type; contents : String)
+   procedure dump_port_variables (log_fd : RAX.File_Descriptor; contents : String)
    is
       type result_range is range 0 .. 6;
       markers : HT.Line_Markers;
@@ -307,12 +307,12 @@ package body PortScan.Log is
          begin
             case linenum is
                when 0 => null;  --  impossible
-               when 1 => TIO.Put_Line (log_handle, split_collection (line, "CONFIGURE_ENV"));
-               when 2 => TIO.Put_Line (log_handle, split_collection (line, "CONFIGURE_ARGS"));
-               when 3 => TIO.Put_Line (log_handle, split_collection (line, "MAKE_ENV"));
-               when 4 => TIO.Put_Line (log_handle, split_collection (line, "MAKE_ARGS"));
-               when 5 => TIO.Put_Line (log_handle, split_collection (line, "PLIST_SUB"));
-               when 6 => TIO.Put_Line (log_handle, split_collection (line, "SUB_LIST"));
+               when 1 => RAX.writeln (log_fd, split_collection (line, "CONFIGURE_ENV"));
+               when 2 => RAX.writeln (log_fd, split_collection (line, "CONFIGURE_ARGS"));
+               when 3 => RAX.writeln (log_fd, split_collection (line, "MAKE_ENV"));
+               when 4 => RAX.writeln (log_fd, split_collection (line, "MAKE_ARGS"));
+               when 5 => RAX.writeln (log_fd, split_collection (line, "PLIST_SUB"));
+               when 6 => RAX.writeln (log_fd, split_collection (line, "SUB_LIST"));
             end case;
          end;
       end loop;
@@ -322,21 +322,21 @@ package body PortScan.Log is
    --------------------------------------------------------------------------------------------
    --  log_phase_end
    --------------------------------------------------------------------------------------------
-   procedure log_phase_end (log_handle : TIO.File_Type) is
+   procedure log_phase_end (log_fd : RAX.File_Descriptor) is
    begin
-      TIO.Put_Line (log_handle, "" & LAT.LF);
+      RAX.writeln (log_fd, "" & LAT.LF);
    end log_phase_end;
 
 
    --------------------------------------------------------------------------------------------
    --  log_phase_begin
    --------------------------------------------------------------------------------------------
-   procedure log_phase_begin (log_handle : TIO.File_Type; phase : String)
+   procedure log_phase_begin (log_fd : RAX.File_Descriptor; phase : String)
    is
       hyphens : constant String := (1 .. 80 => '-');
       middle  : constant String := "--  Phase: " & phase;
    begin
-      TIO.Put_Line (log_handle, LAT.LF & hyphens & LAT.LF & middle & LAT.LF & hyphens);
+      RAX.writeln (log_fd, LAT.LF & hyphens & LAT.LF & middle & LAT.LF & hyphens);
    end log_phase_begin;
 
 
@@ -344,16 +344,16 @@ package body PortScan.Log is
    --  finalize_log
    --------------------------------------------------------------------------------------------
    procedure finalize_log
-     (log_handle : in out TIO.File_Type;
+     (log_fd     : in out RAX.File_Descriptor;
       head_time  : CAL.Time;
       tail_time  : out CAL.Time) is
    begin
-      TIO.Put_Line (log_handle, log_section ("Termination"));
       tail_time := CAL.Clock;
-      TIO.Put_Line (log_handle,
-                    "Finished: " & timestamp (tail_time));
-      TIO.Put_Line (log_handle, log_duration (start => head_time, stop  => tail_time));
-      TIO.Close (log_handle);
+      RAX.writeln (log_fd, log_section ("Termination"));
+      RAX.writeln (log_fd, "Finished: " & timestamp (tail_time));
+      RAX.writeln (log_fd, log_duration (start => head_time, stop  => tail_time));
+      RAX.close_file_blind (log_fd);
+      log_fd := RAX.not_connected;
    end finalize_log;
 
 
@@ -361,7 +361,7 @@ package body PortScan.Log is
    --  initialize_log
    --------------------------------------------------------------------------------------------
    function initialize_log
-     (log_handle : in out TIO.File_Type;
+     (log_fd     : in out RAX.File_Descriptor;
       head_time  : out CAL.Time;
       seq_id     : port_id;
       slave_root : String;
@@ -384,40 +384,37 @@ package body PortScan.Log is
             DIR.Delete_File (log_path);
          end if;
          FOP.mkdirp_from_filename (log_path);
-         TIO.Create (File => log_handle,
-                     Mode => TIO.Append_File,
-                     Name => log_path,
-                     Form => shared);
+         log_fd := RAX.start_new_log (log_path);
       exception
          when error : others =>
             raise scan_log_error
               with "failed to create log " & log_path;
       end;
 
-      TIO.Put_Line (log_handle, "=> Building " & get_port_variant (all_ports (seq_id)) &
+      RAX.writeln (log_fd, "=> Building " & get_port_variant (all_ports (seq_id)) &
                    " (version " & HT.USS (all_ports (seq_id).pkgversion) & ")");
-      TIO.Put_Line (log_handle, "Started : " & timestamp (head_time));
-      TIO.Put      (log_handle, "Platform: " & UNAME);
+      RAX.writeln (log_fd, "Started : " & timestamp (head_time));
+      RAX.write   (log_fd, "Platform: " & UNAME);
       if block_dog then
-         TIO.Put   (log_handle, "Watchdog: Disabled");
+         RAX.write (log_fd, "Watchdog: Disabled");
       end if;
       if BENV = discerr then
-         TIO.Put_Line (log_handle, LAT.LF & "Environment definition failed, " &
+         RAX.writeln (log_fd, LAT.LF & "Environment definition failed, " &
                          "aborting entire build");
          return False;
       end if;
-      TIO.Put_Line (log_handle, LAT.LF & log_section (H_ENV));
-      TIO.Put      (log_handle, BENV);
-      TIO.Put_Line (log_handle, "" & LAT.LF);
-      TIO.Put_Line (log_handle, log_section (H_OPT));
-      TIO.Put      (log_handle, COPTS);
-      TIO.Put_Line (log_handle, "" & LAT.LF);
+      RAX.writeln (log_fd, LAT.LF & log_section (H_ENV));
+      RAX.write   (log_fd, BENV);
+      RAX.writeln (log_fd, "" & LAT.LF);
+      RAX.writeln (log_fd, log_section (H_OPT));
+      RAX.write   (log_fd, COPTS);
+      RAX.writeln (log_fd, "" & LAT.LF);
 
-      dump_port_variables (log_handle, PTVAR);
+      dump_port_variables (log_fd, PTVAR);
 
-      TIO.Put_Line (log_handle, log_section (CFG1));
-      TIO.Put      (log_handle, FOP.get_file_contents (slave_root & CFG1));
-      TIO.Put_Line (log_handle, "" & LAT.LF);
+      RAX.writeln (log_fd, log_section (CFG1));
+      RAX.write   (log_fd, FOP.get_file_contents (slave_root & CFG1));
+      RAX.writeln (log_fd, "" & LAT.LF);
 
       --  begin
       --     SIO.Open (File => sio_handle,
@@ -432,35 +429,6 @@ package body PortScan.Log is
       return True;
 
    end initialize_log;
-
-
-   --------------------------------------------------------------------------------------------
-   --  reopen_log
-   --------------------------------------------------------------------------------------------
-   procedure reopen_log (log_handle : in out TIO.File_Type; seq_id : port_id)
-   is
-      shared   : constant String := "shared=yes";
-      log_path : constant String := log_name (seq_id);
-      max_try  : constant Natural := 10;
-      counter  : Natural := 0;
-   begin
-      loop
-         begin
-            TIO.Open (File => log_handle,
-                      Mode => TIO.Append_File,
-                      Name => log_path,
-                      Form => shared);
-            exit;
-         exception
-            when problem : others =>
-               if counter = max_try then
-                  raise;
-               end if;
-               delay 0.05;
-         end;
-         counter := counter + 1;
-      end loop;
-   end reopen_log;
 
 
    --------------------------------------------------------------------------------------------

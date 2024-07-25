@@ -61,9 +61,6 @@ package Pilot is
    --  were removed without any problems
    function old_realfs_work_successfully_removed return Boolean;
 
-   --  libexec/ravenexec is required, make sure it's installed!
-   function ravenexec_missing return Boolean;
-
    --  pass-through for configure package
    procedure launch_configure_menu;
 

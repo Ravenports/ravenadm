@@ -67,6 +67,5 @@ package Definitions is
    host_localbase : constant String := "/raven";
    raven_var      : constant String := "/var/ravenports";
    host_rvn       : constant String := host_localbase & "/sbin/rvn";
-   ravenexec      : constant String := host_localbase & "/libexec/ravenexec";
 
 end Definitions;

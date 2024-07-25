@@ -2,10 +2,12 @@
 --  Reference: ../License.txt
 
 with Port_Specification;
+with Unix.Ravexec;
 
 package PortScan.Tests is
 
    package PSP renames Port_Specification;
+   package RAX renames Unix.Ravexec;
 
    --  check-plist target verifies manifest
    --  It takes into account the manifest for all subpackages (for a given variant).
@@ -14,7 +16,7 @@ package PortScan.Tests is
 
    function exec_check_plist
      (specification : PSP.Portspecs;
-      log_handle    : TIO.File_Type;
+      log_fd        : RAX.File_Descriptor;
       phase_name    : String;
       seq_id        : port_id;
       port_prefix   : String;
@@ -39,7 +41,7 @@ private
    --  to false.  Even when error is found, all files are still checked.
    function ingest_manifests
      (specification  : PSP.Portspecs;
-      log_handle     : TIO.File_Type;
+      log_fd         : RAX.File_Descriptor;
       directory_list : in out entry_crate.Map;
       dossier_list   : in out entry_crate.Map;
       seq_id         : port_id;
@@ -49,7 +51,7 @@ private
 
    --  Scans all directories in stage and returns true if any non-standard orphans are found
    function orphaned_directories_detected
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       directory_list : in out entry_crate.Map;
       namebase       : String;
       port_prefix    : String;
@@ -57,7 +59,7 @@ private
 
    --  Scans all files in stage and returns true if any orphans are found
    function orphaned_files_detected
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       dossier_list   : in out entry_crate.Map;
       namebase       : String;
       port_prefix    : String;
@@ -66,13 +68,13 @@ private
    --  Iterates through directory list.  If any directories are listed that weren't in
    --  the stage directory, output the issue and set result to false.
    function missing_directories_detected
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       directory_list : in out entry_crate.Map) return Boolean;
 
    --  Iterates through file list.  If any file are listed that weren't in
    --  the stage directory, output the issue and set result to false.
    function missing_files_detected
-     (log_handle   : TIO.File_Type;
+     (log_fd       : RAX.File_Descriptor;
       dossier_list : in out entry_crate.Map) return Boolean;
 
    --  Return True if directory was pre-created by ravenports
@@ -94,7 +96,7 @@ private
 
    --  Create a single-file manifest in $(profile directory)/installed_files and sort it
    procedure create_single_file_manifest
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       namebase       : String;
       variant        : String;
       port_prefix    : String;

@@ -1,8 +1,13 @@
 --  SPDX-License-Identifier: ISC
 --  Reference: /License.txt
 
+with Ada.Characters.Latin_1;
+with GNAT.Traceback.Symbolic;
 
 package body Unix.Ravexec is
+
+   package LAT renames Ada.Characters.Latin_1;
+   package TRC renames GNAT.Traceback;
 
 
    ---------------------
@@ -20,10 +25,10 @@ package body Unix.Ravexec is
    end start_new_log;
 
 
-   ---------------------
-   --  scribe_to_log  --
-   ---------------------
-   procedure scribe_to_log (fd : File_Descriptor; line : String)
+   -------------
+   --  write  --
+   -------------
+   procedure write (fd : File_Descriptor; line : String)
    is
       cfd : constant IC.int := IC.int (fd);
       msg : IC.Strings.chars_ptr;
@@ -31,7 +36,21 @@ package body Unix.Ravexec is
       msg := IC.Strings.New_String (line);
       C_Direct_Scribe (cfd, msg);
       IC.Strings.Free (msg);
-   end scribe_to_log;
+   end write;
+
+
+   ---------------
+   --  writeln  --
+   ---------------
+   procedure writeln (fd : File_Descriptor; line : String)
+   is
+      cfd : constant IC.int := IC.int (fd);
+      msg : IC.Strings.chars_ptr;
+   begin
+      msg := IC.Strings.New_String (line & LAT.LF);
+      C_Direct_Scribe (cfd, msg);
+      IC.Strings.Free (msg);
+   end writeln;
 
 
    ------------------------
@@ -169,5 +188,20 @@ package body Unix.Ravexec is
 
       return pid_t (pid_res);
    end launch_separate_process;
+
+
+   ------------------
+   --  dump_stack  --
+   ------------------
+   procedure dump_stack (fd : File_Descriptor)
+   is
+      trace : TRC.Tracebacks_Array (1 .. 2_000);
+      trlen : Natural;
+   begin
+      writeln (fd, "Dump of stack:");
+      TRC.Call_Chain (trace, trlen);
+       writeln (fd, TRC.Symbolic.Symbolic_Traceback (trace (1 .. trlen)));
+   end dump_stack;
+
 
 end Unix.Ravexec;

@@ -1,7 +1,7 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Unix;
+with Unix.Ravexec;
 with Replicant;
 with Parameters;
 with PortScan.Log;
@@ -23,6 +23,7 @@ package body PortScan.Buildcycle is
    package TST renames PortScan.Tests;
    package PM  renames Parameters;
    package REP renames Replicant;
+   package RAX renames Unix.Ravexec;
 
    --------------------------------------------------------------------------------------------
    --  build_package
@@ -52,7 +53,7 @@ package body PortScan.Buildcycle is
       trackers (id).disable_dog := specification.watchdog_disabled;
       trackers (id).genesis.Clear;
       trackers (id).preconfig.Clear;
-      if not LOG.initialize_log (log_handle => trackers (id).log_handle,
+      if not LOG.initialize_log (log_fd     => trackers (id).log_fd,
                                  head_time  => trackers (id).head_time,
                                  seq_id     => trackers (id).seq_id,
                                  slave_root => get_root (id),
@@ -62,7 +63,7 @@ package body PortScan.Buildcycle is
                                  PTVAR      => get_port_variables (id, environ),
                                  block_dog  => trackers (id).disable_dog)
       then
-         LOG.finalize_log (trackers (id).log_handle,
+         LOG.finalize_log (trackers (id).log_fd,
                            trackers (id).head_time,
                            trackers (id).tail_time);
          return False;
@@ -110,8 +111,8 @@ package body PortScan.Buildcycle is
 
             when pkg_package =>
                R := PKG.exec_phase_package (specification => specification,
-                                            log_handle    => trackers (id).log_handle,
-                                            log_name      => LOG.log_name (trackers (id).seq_id),
+                                            log_fd        => trackers (id).log_fd,
+                                            builder_id    => id,
                                             phase_name    => phase2str (phase),
                                             seq_id        => trackers (id).seq_id,
                                             port_prefix   => port_prefix,
@@ -129,7 +130,7 @@ package body PortScan.Buildcycle is
             when check_plist =>
                if testing then
                   R := TST.exec_check_plist (specification => specification,
-                                             log_handle    => trackers (id).log_handle,
+                                             log_fd        => trackers (id).log_fd,
                                              phase_name    => phase2str (phase),
                                              seq_id        => trackers (id).seq_id,
                                              port_prefix   => port_prefix,
@@ -147,11 +148,11 @@ package body PortScan.Buildcycle is
       exception
          when crash : others =>
             R := False;
-            TIO.Put_Line (trackers (id).log_handle, "!!!! CRASH !!!! " &
-                            EX.Exception_Information (crash));
-            dump_stack (trackers (id).log_handle);
+            RAX.writeln (trackers (id).log_fd, "!!!! CRASH !!!! " &
+                           EX.Exception_Information (crash));
+            RAX.dump_stack (trackers (id).log_fd);
       end;
-      LOG.finalize_log (trackers (id).log_handle,
+      LOG.finalize_log (trackers (id).log_fd,
                         trackers (id).head_time,
                         trackers (id).tail_time);
       if interactive then
@@ -303,7 +304,7 @@ package body PortScan.Buildcycle is
                             skip_header => False,
                             skip_footer => True,
                             environ     => environ);
-      LOG.log_phase_end (trackers (id).log_handle);
+      LOG.log_phase_end (trackers (id).log_fd);
       return passed;
    end exec_phase_build;
 
@@ -369,7 +370,7 @@ package body PortScan.Buildcycle is
             DIR.Copy_File (Source_Name => systempath, Target_Name => slavepath);
          else
             still_good := False;
-            TIO.Put_Line (trackers (id).log_handle, "Dependency package not found: " & pkgfile);
+            RAX.writeln (trackers (id).log_fd, "Dependency package not found: " & pkgfile);
          end if;
       end copy_to_local_repo;
 
@@ -418,37 +419,37 @@ package body PortScan.Buildcycle is
       procedure generate_local_repo
       is
          cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         arguments  : constant String := root & environ & cmd;
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
       end generate_local_repo;
 
       procedure install_catalog
       is
          cmd        : constant String := rvn_repos & "catalog --force";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         arguments  : constant String := root & environ & cmd;
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
       end install_catalog;
 
       procedure prefetch_all_packages
       is
          cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         arguments  : constant String := root & environ & cmd;
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
       end prefetch_all_packages;
 
       procedure install_dependency_pyramid
       is
          cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd & HT.USS (exact_list);
+         arguments  : constant String := root & environ & cmd & HT.USS (exact_list);
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
       end install_dependency_pyramid;
 
       procedure special_case_ravensys_toolchain
@@ -483,13 +484,13 @@ package body PortScan.Buildcycle is
          queue.Iterate (copy_to_local_repo'Access);
       end special_case_ravensys_toolchain;
    begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
+      LOG.log_phase_begin (trackers (id).log_fd, phase_name);
       specification.combined_dependency_nsv (include_run => True,
                                              limit_to_run => False,
                                              dependency_set => depend_set);
       if depend_set.Is_Empty then
-         TIO.Put_Line (trackers (id).log_handle, "This package has no dependency requirements.");
-         LOG.log_phase_end (trackers (id).log_handle);
+         RAX.writeln (trackers (id).log_fd, "This package has no dependency requirements.");
+         LOG.log_phase_end (trackers (id).log_fd);
          return still_good;
       end if;
 
@@ -508,7 +509,6 @@ package body PortScan.Buildcycle is
 
       depend_set.Iterate (copy_to_local_repo'Access);
       special_case_ravensys_toolchain;
-      TIO.Close (trackers (id).log_handle);
 
       if still_good then
          generate_local_repo;
@@ -523,8 +523,7 @@ package body PortScan.Buildcycle is
          install_dependency_pyramid;
       end if;
 
-      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
-      LOG.log_phase_end (trackers (id).log_handle);
+      LOG.log_phase_end (trackers (id).log_fd);
       return still_good;
    end exec_phase_depends;
 
@@ -540,16 +539,14 @@ package body PortScan.Buildcycle is
       root       : constant String := get_root (id);
       phase_name : constant String := "install / test / deinstall all packages";
       CMD_RM_ALL : constant String := "/usr/bin/rvn remove --all --yes --skip-verify";
-      command    : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
+      arguments  : constant String := root & environ & CMD_RM_ALL;
       still_good : Boolean := True;
       timed_out  : Boolean;
    begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      TIO.Put_Line (trackers (id).log_handle, "===>  Removing all packages");
-      TIO.Close (trackers (id).log_handle);
-      still_good := generic_execute (id, command, timed_out, time_limit);
-      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
-      LOG.log_phase_end (trackers (id).log_handle);
+      LOG.log_phase_begin (trackers (id).log_fd, phase_name);
+      RAX.writeln (trackers (id).log_fd, "===>  Removing all packages");
+      still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
+      LOG.log_phase_end (trackers (id).log_fd);
       return still_good;
    end deinstall_all_packages;
 
@@ -580,9 +577,9 @@ package body PortScan.Buildcycle is
       procedure generate_local_repo
       is
          cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         command    : constant String := PM.chroot_program & " " & root & environ & cmd;
       begin
-         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+         RAX.writeln (trackers (id).log_fd, generic_system_command (command));
       exception
          when cycle_cmd_error => still_good := False;
       end generate_local_repo;
@@ -590,9 +587,9 @@ package body PortScan.Buildcycle is
       procedure install_catalog
       is
          cmd        : constant String := rvn_repos & "catalog --force";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         command    : constant String := PM.chroot_program & " " & root & environ & cmd;
       begin
-         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+         RAX.writeln (trackers (id).log_fd, generic_system_command (command));
       exception
          when cycle_cmd_error => still_good := False;
       end install_catalog;
@@ -600,9 +597,9 @@ package body PortScan.Buildcycle is
       procedure prefetch_all_packages
       is
          cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd;
+         command    : constant String := PM.chroot_program & " " & root & environ & cmd;
       begin
-         TIO.Put_Line (trackers (id).log_handle, generic_system_command (command));
+         RAX.writeln (trackers (id).log_fd, generic_system_command (command));
       exception
          when cycle_cmd_error => still_good := False;
       end prefetch_all_packages;
@@ -619,20 +616,18 @@ package body PortScan.Buildcycle is
       procedure install_built_package
       is
          cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
-         command    : constant String := PM.chroot_cmd & root & environ & cmd & HT.USS (exact_list);
+         arguments  : constant String := root & environ & cmd & HT.USS (exact_list);
          timed_out  : Boolean;
       begin
-         TIO.Put_Line (trackers (id).log_handle,
+         RAX.writeln (trackers (id).log_fd,
                        "===>  Install the " & variant & " variant of the " & namebase & " package");
-         TIO.Close (trackers (id).log_handle);
-         still_good := generic_execute (id, command, timed_out, time_limit);
-         LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
          if timed_out then
-            TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+            RAX.writeln (trackers (id).log_fd, watchdog_message (time_limit));
          end if;
       end install_built_package;
    begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase2str (install));
+      LOG.log_phase_begin (trackers (id).log_fd, phase2str (install));
       generate_local_repo;
       if still_good then
          install_catalog;
@@ -644,7 +639,7 @@ package body PortScan.Buildcycle is
          all_ports (trackers (id).seq_id).subpackages.Iterate (build_list'Access);
          install_built_package;
       end if;
-      LOG.log_phase_end (trackers (id).log_handle);
+      LOG.log_phase_end (trackers (id).log_fd);
       return still_good;
    end exec_phase_install;
 
@@ -673,26 +668,21 @@ package body PortScan.Buildcycle is
       --  out of the File type.
 
       if not skip_header then
-         LOG.log_phase_begin (trackers (id).log_handle, phase2str (phase));
+         LOG.log_phase_begin (trackers (id).log_fd, phase2str (phase));
       end if;
-      TIO.Close (trackers (id).log_handle);
 
       declare
-         command : constant String := PM.chroot_cmd & root & environ &
-           phaseenv & chroot_make_program & " -C /port " & phase2str (phase);
+         arguments : constant String := root & environ & phaseenv & chroot_make_program &
+           " -C /port " & phase2str (phase);
       begin
-         result := generic_execute (id, command, timed_out, time_limit);
+         result := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
       end;
 
-      --  Reopen the log.  I guess we can leave off the exception check
-      --  since it's been passing before
-
-      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
       if timed_out then
-         TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+         RAX.writeln (trackers (id).log_fd, watchdog_message (time_limit));
       end if;
       if not skip_footer then
-         LOG.log_phase_end (trackers (id).log_handle);
+         LOG.log_phase_end (trackers (id).log_fd);
       end if;
 
       return result;
@@ -705,7 +695,7 @@ package body PortScan.Buildcycle is
    function get_port_variables (id : builders; environ : String) return String
    is
       root    : constant String := get_root (id);
-      command : constant String := PM.chroot_cmd & root & environ & chroot_make_program &
+      command : constant String := PM.chroot_program & " " & root & environ & chroot_make_program &
         " -C /port -VCONFIGURE_ENV -VCONFIGURE_ARGS" &
         " -VMAKE_ENV -VMAKE_ARGS -VPLIST_SUB -VSUB_LIST";
    begin
@@ -771,7 +761,7 @@ package body PortScan.Buildcycle is
    function get_environment (id : builders; environ : String) return String
    is
       root    : constant String := get_root (id);
-      command : constant String := PM.chroot_cmd & root & environ;
+      command : constant String := PM.chroot_program & " " & root & environ;
    begin
       return generic_system_command (command);
    exception
@@ -918,14 +908,14 @@ package body PortScan.Buildcycle is
       description : constant String := "between configuration and staging";
       still_good  : Boolean;
    begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase_name);
-      still_good := Hierarchy.detect_leftovers_and_MIA (log_handle  => trackers (id).log_handle,
+      LOG.log_phase_begin (trackers (id).log_fd, phase_name);
+      still_good := Hierarchy.detect_leftovers_and_MIA (log_fd      => trackers (id).log_fd,
                                                         DC          => trackers (id).preconfig,
                                                         rootdir     => root,
                                                         description => description,
                                                         fatal       => False,
                                                         builder     => Positive (id));
-      LOG.log_phase_end (trackers (id).log_handle);
+      LOG.log_phase_end (trackers (id).log_fd);
       return still_good;
    end exec_preconfig_check;
 
@@ -960,34 +950,32 @@ package body PortScan.Buildcycle is
       end concatenate;
 
    begin
-      LOG.log_phase_begin (trackers (id).log_handle, phase2str (deinstall));
+      LOG.log_phase_begin (trackers (id).log_fd, phase2str (deinstall));
       dyn_good := log_linked_libraries (id, pkgversion, environ);
       --  all_ports (trackers (id).seq_id).subpackages.Iterate (concatenate'Access);
 
-      TIO.Put_Line (trackers (id).log_handle, "===>  Deinstalling " & namebase & ":" & variant);
-      TIO.Close (trackers (id).log_handle);
+      RAX.writeln (trackers (id).log_fd, "===>  Deinstalling " & namebase & ":" & variant);
 
       declare
-         command : constant String := PM.chroot_cmd & root & environ & CMD_RM_ALL;
+         arguments : constant String := root & environ & CMD_RM_ALL;
       begin
-         still_good := generic_execute (id, command, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
       end;
 
-      LOG.reopen_log (trackers (id).log_handle, trackers (id).seq_id);
       if timed_out then
-         TIO.Put_Line (trackers (id).log_handle, watchdog_message (time_limit));
+         RAX.writeln (trackers (id).log_fd, watchdog_message (time_limit));
       end if;
 
       if still_good then
          still_good := Hierarchy.detect_leftovers_and_MIA
-           (log_handle  => trackers (id).log_handle,
+           (log_fd      => trackers (id).log_fd,
             DC          => trackers (id).genesis,
             rootdir     => root,
             description => "between clean builder and package deinstallation",
             fatal       => True,
             builder     => Positive (id));
       end if;
-      LOG.log_phase_end (trackers (id).log_handle);
+      LOG.log_phase_end (trackers (id).log_fd);
       return still_good and then dyn_good;
    end exec_phase_deinstall;
 
@@ -1001,7 +989,7 @@ package body PortScan.Buildcycle is
       filename      : String;
       environ       : String)
    is
-      command : String := PM.chroot_cmd & base & environ &
+      command : String := PM.chroot_program & " " & base & environ &
                           "/usr/bin/objdump-sysroot -p " & filename;
    begin
       declare
@@ -1077,7 +1065,7 @@ package body PortScan.Buildcycle is
       is
         info : String := "   " &  HT.USS (string_crate.Element (position));
       begin
-         TIO.Put_Line (trackers (id).log_handle, info);
+         RAX.writeln (trackers (id).log_fd, info);
       end log_dump;
 
       procedure check_package (position : subpackage_crate.Cursor)
@@ -1086,7 +1074,7 @@ package body PortScan.Buildcycle is
          subpackage : constant String := HT.USS (rec.subpackage);
          pkg_nsv    : constant String := calculate_nsv (trackers (id).seq_id, subpackage);
          pkgname    : constant String := calculate_package_name (trackers (id).seq_id, subpackage);
-         command    : constant String := PM.chroot_cmd & root & environ &
+         command    : constant String := PM.chroot_program & " " & root & environ &
                       "/usr/bin/rvn query --exact-match '{xfile:path}' " & pkg_nsv;
          comres     : String :=  generic_system_command (command);
          markers    : HT.Line_Markers;
@@ -1111,25 +1099,25 @@ package body PortScan.Buildcycle is
                   end if;
                end if;
                if unstripped then
-                  TIO.Put_Line
-                    (trackers (id).log_handle,
+                  RAX.writeln
+                    (trackers (id).log_fd,
                      "### WARNING ###  " & filename & " is not stripped.  " &
                        "See Ravenporter's guide.");
                end if;
             end;
          end loop;
          if not trackers (id).dynlink.Is_Empty then
-            TIO.Put_Line (trackers (id).log_handle, "===> " & pkgname & " subpackage:");
-            TIO.Put_Line (trackers (id).log_handle, "");
+            RAX.writeln (trackers (id).log_fd, "===> " & pkgname & " subpackage:");
+            RAX.writeln (trackers (id).log_fd, "");
             trackers (id).dynlink.Iterate (log_dump'Access);
-            TIO.Put_Line (trackers (id).log_handle, "");
+            RAX.writeln (trackers (id).log_fd, "");
          end if;
       exception
          when others => null;
       end check_package;
    begin
       --  dynlink, runpaths, nonexistent, seen_libs already empty at this point
-      TIO.Put_Line (trackers (id).log_handle, "=> Checking shared library dependencies");
+      RAX.writeln (trackers (id).log_fd, "=> Checking shared library dependencies");
       all_ports (trackers (id).seq_id).subpackages.Iterate (check_package'Access);
 
       trackers (id).dynlink.Clear;
@@ -1149,8 +1137,8 @@ package body PortScan.Buildcycle is
       strip_check : Boolean;
       unstripped  : out Boolean) return Boolean
    is
-      command : String :=
-        PM.chroot_cmd & base & " /usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
+      command : String := PM.chroot_program & " " &
+        base & " /usr/bin/file -b -L -e ascii -e encoding -e tar -e compress " &
         "-h -m /usr/share/file/magic.mgc " & HT.shell_quoted (filename);
       dynlinked  : Boolean;
       statlinked : Boolean;
@@ -1241,7 +1229,7 @@ package body PortScan.Buildcycle is
 
          procedure squawk is
          begin
-            TIO.Put_Line (trackers (id).log_handle,
+            RAX.writeln (trackers (id).log_fd,
                           errmsg_prefix & library & " is not in located in " & systemdir_1 &
                             ", " & systemdir_2 & " or within the RPATH/RUNPATH (" & paths & ")");
          end squawk;
@@ -1509,7 +1497,7 @@ package body PortScan.Buildcycle is
          end case;
       end shell;
 
-      command : String := PM.chroot_cmd & root &
+      command : String := PM.chroot_program & " " & root &
                           environment_override (True, ssl_variant, True) & shell;
    begin
       TIO.Put_Line ("Entering interactive test mode at the builder root directory.");
@@ -1521,9 +1509,12 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    --  generic_execute
    --------------------------------------------------------------------------------------------
-   function generic_execute (id : builders; command : String;
-                             dogbite : out Boolean;
-                             time_limit : execution_limit) return Boolean
+   function generic_execute
+     (id            : builders;
+      command       : String;
+      arguments     : String;
+      dogbite       : out Boolean;
+      time_limit    : execution_limit) return Boolean
    is
       subtype time_cycle is execution_limit range 1 .. time_limit;
       subtype one_minute is Positive range 1 .. 230;  --  lose 10 in rounding
@@ -1537,13 +1528,11 @@ package body PortScan.Buildcycle is
       lock_lines  : Natural;
       quartersec  : one_minute := one_minute'First;
       hangmonitor : constant Boolean := True and then not trackers (id).disable_dog;
-      truecommand : constant String := ravenexec & " " &
-                             LOG.log_name (trackers (id).seq_id) & " " & command;
    begin
       dogbite := False;
       watchdog (squirrel) := trackers (id).loglines;
 
-      pid := Unix.launch_process (truecommand);
+      pid := RAX.launch_separate_process (id, trackers (id).log_fd, command, arguments);
       if Unix.fork_failed (pid) then
          return False;
       end if;
@@ -1676,7 +1665,7 @@ package body PortScan.Buildcycle is
       distinfo : constant String := root & "/port/distinfo";
       locfile  : constant String := "distinfo";
       environ  : constant String := environment_override (False, ssl_variant);
-      command  : constant String := PM.chroot_cmd & root & environ &
+      command  : constant String := PM.chroot_program & " " & root & environ &
                                     chroot_make_program & " -C /port makesum";
       content : HT.Text;
       status  : Integer;
@@ -1724,7 +1713,7 @@ package body PortScan.Buildcycle is
 
       root     : constant String := get_root (id);
       environ  : constant String := environment_override (False, ssl_variant);
-      premake  : constant String := PM.chroot_cmd & root & environ &
+      premake  : constant String := PM.chroot_program & " " & root & environ &
                                     chroot_make_program & " -C /port ";
       cextract : constant String := premake & "extract";
       cpatch   : constant String := premake & "do-patch";
@@ -1767,7 +1756,7 @@ package body PortScan.Buildcycle is
          end if;
       end copy_files;
 
-      cregen : constant String := PM.chroot_cmd & root &
+      cregen : constant String := PM.chroot_program & " " & root &
         " /bin/sh /xports/Mk/Scripts/repatch.sh " & get_wrksrc & " " & get_strip_component;
    begin
       if DIR.Exists (root & "/port/patches") or else
@@ -1807,7 +1796,7 @@ package body PortScan.Buildcycle is
    function get_port_prefix (id : builders; environ : String) return String
    is
       root     : constant String := get_root (id);
-      command  : constant String := PM.chroot_cmd & root & environ &
+      command  : constant String := PM.chroot_program & " " & root & environ &
                                     chroot_make_program & " -C /port -V PREFIX";
       result   : constant String := generic_system_command (command);
    begin

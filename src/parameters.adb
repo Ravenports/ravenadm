@@ -763,17 +763,28 @@ package body Parameters is
    --------------------------------------------------------------------------------------------
    procedure set_chroot
    is
-      alternate_chroot : constant String := "/usr/bin/chroot";
    begin
-      if DIR.Exists (HT.trim (chroot_cmd)) then
+      if DIR.Exists (standard_chroot) then
          return;
       elsif DIR.Exists (alternate_chroot) then
-         chroot_cmd := alternate_chroot & "  ";
+         std_chroot_loc := False;
       else
          TIO.Put_Line ("chroot program not found!");
          TIO.Put_Line ("ravenadm will not be able to build any software.");
       end if;
    end set_chroot;
+
+
+   ----------------------
+   --  chroot_program  --
+   ----------------------
+   function chroot_program return String is
+   begin
+      case std_chroot_loc is
+         when True  => return standard_chroot;
+         when False => return alternate_chroot;
+      end case;
+   end chroot_program;
 
 
    --------------------------------------------------------------------------------------------

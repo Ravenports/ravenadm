@@ -16,7 +16,8 @@ package Unix.Ravexec is
    function start_new_log (filename : String) return File_Descriptor;
 
    --  Write to builder log's file descriptor
-   procedure scribe_to_log (fd : File_Descriptor; line : String);
+   procedure write   (fd : File_Descriptor; line : String);
+   procedure writeln (fd : File_Descriptor; line : String);
 
    --  wrapper for spawning external process that logs everything to the given file descriptor
    function launch_separate_process
@@ -24,6 +25,9 @@ package Unix.Ravexec is
       log_fd    : File_Descriptor;
       program   : String;
       arguments : String) return pid_t;
+
+   --  Write stack out to log
+   procedure dump_stack (fd : File_Descriptor);
 
 private
 

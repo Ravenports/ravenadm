@@ -57,10 +57,14 @@ package Parameters is
 
    configuration  : configuration_record;
    active_profile : HT.Text;
+   std_chroot_loc : Boolean := True;
 
    --  Gentoo linux puts chroot in /usr/bin when ever other system has the program or
-   --  a symlink at /usr/sbin.  Precreate the longest string for the command.
-   chroot_cmd     : String := "/usr/sbin/chroot ";
+   --  a symlink at /usr/sbin.
+   standard_chroot  : constant String := "/usr/sbin/chroot";
+   alternate_chroot : constant String := "/usr/bin/chroot";
+
+   function chroot_program return String;
 
    --  Return true if configuration file exists.
    --  Reason: if it doesn't, we need to check privileges because root is needed

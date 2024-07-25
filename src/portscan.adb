@@ -6,14 +6,12 @@ with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Parameters;
 with Utilities;
-with GNAT.Traceback.Symbolic;
 
 package body PortScan is
 
    package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package UTL renames Utilities;
-   package TRC renames GNAT.Traceback;
 
    --------------------------------------------------------------------------------------------
    --  port_hash
@@ -392,20 +390,6 @@ package body PortScan is
       dupelist.Iterate (search'Access);
       return HT.USS (answer);
    end get_buildsheet_from_origin_list;
-
-
-   --------------------------------------------------------------------------------------------
-   --  dump_stack
-   --------------------------------------------------------------------------------------------
-   procedure dump_stack (media : TIO.File_Type)
-   is
-      trace : TRC.Tracebacks_Array (1 .. 2_000);
-      trlen : Natural;
-   begin
-      TIO.Put_Line (media, "Dump of stack:");
-      TRC.Call_Chain (trace, trlen);
-      TIO.Put_Line (media, TRC.Symbolic.Symbolic_Traceback (trace (1 .. trlen)));
-   end dump_stack;
 
 
 end PortScan;
