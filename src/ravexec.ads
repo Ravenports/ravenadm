@@ -3,7 +3,7 @@
 
 private with Interfaces.C.Strings;
 
-package File_Operations.Builder_Log is
+package Ravexec is
 
    type File_Descriptor is new Integer;
    not_connected : constant File_Descriptor := -1;
