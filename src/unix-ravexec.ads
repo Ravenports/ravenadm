@@ -1,10 +1,10 @@
 --  SPDX-License-Identifier: ISC
 --  Reference: /License.txt
 
-private with Interfaces.C.Strings;
+with Definitions; use Definitions;
 private with Interfaces.C.Pointers;
 
-package Ravexec is
+package Unix.Ravexec is
 
    type File_Descriptor is new Integer;
    not_connected : constant File_Descriptor := -1;
@@ -18,33 +18,45 @@ package Ravexec is
    --  Write to builder log's file descriptor
    procedure scribe_to_log (fd : File_Descriptor; line : String);
 
+   --  wrapper for spawning external process that logs everything to the given file descriptor
+   function launch_separate_process
+     (builder   : builders;
+      log_fd    : File_Descriptor;
+      program   : String;
+      arguments : String) return pid_t;
+
 private
 
-   package IC renames Interfaces.C;
+   MAX_ARGS : constant IC.int := 255;
 
    subtype CNatural is IC.int range 0 .. IC.int'Last;
-   type CSVector is array (CNatural range <>) of aliased IC.Strings.chars_ptr;
+   type CSVector is array (CNatural range <>) of aliased ICS.chars_ptr;
 
    package Argv_Pointer is new IC.Pointers (
       Index              => CNatural,
-      Element            => IC.Strings.chars_ptr,
+      Element            => ICS.chars_ptr,
       Element_Array      => CSVector,
-      Default_Terminator => IC.Strings.Null_Ptr);
+      Default_Terminator => ICS.Null_Ptr);
 
    subtype Chars_Ptr_Ptr is Argv_Pointer.Pointer;
 
    function C_Close (fd : IC.int) return IC.int;
    pragma Import (C, C_Close, "close");
 
-   procedure C_Direct_Scribe (fd : IC.int; msg : IC.Strings.chars_ptr);
+   procedure C_Direct_Scribe (fd : IC.int; msg : ICS.chars_ptr);
    pragma Import (C, C_Direct_Scribe, "direct_scribe");
 
-   function C_Start_Log (path : IC.Strings.chars_ptr) return IC.int;
+   function C_Start_Log (path : ICS.chars_ptr) return IC.int;
    pragma Import (C, C_Start_Log, "start_new_log");
 
-   function C_Phase_Execution (builder : IC.int; fd : IC.int; prog : IC.Strings.chars_ptr;
+   function C_Phase_Execution (builder : IC.int; fd : IC.int; prog : ICS.chars_ptr;
                                argv : Chars_Ptr_Ptr) return IC.int;
    pragma Import (C, C_Phase_Execution, "phase_execution");
 
+   --  Given a string, fill out the arguments array.  Must be freed separately later.
+   procedure set_argument_vector
+     (Arg_String : String;
+      argvector  : in out CSVector;
+      num_args   : out IC.int);
 
-end Ravexec;
+end Unix.Ravexec;
