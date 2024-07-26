@@ -2,7 +2,6 @@
 --  Reference: /License.txt
 
 with Definitions; use Definitions;
-private with Interfaces.C.Pointers;
 
 package Unix.Ravexec is
 
@@ -33,16 +32,13 @@ private
 
    MAX_ARGS : constant IC.int := 255;
 
-   subtype CNatural is IC.int range 0 .. IC.int'Last;
-   type CSVector is array (CNatural range <>) of aliased ICS.chars_ptr;
-
-   package Argv_Pointer is new IC.Pointers (
-      Index              => CNatural,
-      Element            => ICS.chars_ptr,
-      Element_Array      => CSVector,
-      Default_Terminator => ICS.Null_Ptr);
-
-   subtype Chars_Ptr_Ptr is Argv_Pointer.Pointer;
+   type CSVector is array (0 .. MAX_ARGS) of aliased ICS.chars_ptr;
+   type struct_argv is
+      record
+         args : CSVector;
+      end record;
+   type struct_argv_access is access all struct_argv;
+   pragma Convention (C, struct_argv_access);
 
    function C_Close (fd : IC.int) return IC.int;
    pragma Import (C, C_Close, "close");
@@ -53,14 +49,17 @@ private
    function C_Start_Log (path : ICS.chars_ptr) return IC.int;
    pragma Import (C, C_Start_Log, "start_new_log_file");
 
-   function C_Phase_Execution (builder : IC.int; fd : IC.int; prog : ICS.chars_ptr;
-                               argv : Chars_Ptr_Ptr) return IC.int;
+   function C_Phase_Execution (builder : IC.int;
+                               fd      : IC.int;
+                               prog    : ICS.chars_ptr;
+                               argc    : IC.int;
+                               argv    : struct_argv_access) return IC.int;
    pragma Import (C, C_Phase_Execution, "phase_execution");
 
    --  Given a string, fill out the arguments array.  Must be freed separately later.
    procedure set_argument_vector
      (Arg_String : String;
-      argvector  : in out CSVector;
+      argvector  : in out struct_argv;
       num_args   : out IC.int);
 
 end Unix.Ravexec;

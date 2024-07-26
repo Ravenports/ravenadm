@@ -74,7 +74,7 @@ package body Unix.Ravexec is
    ---------------------------
    procedure set_argument_vector
      (Arg_String : String;
-      argvector  : in out CSVector;
+      argvector  : in out struct_argv;
       num_args   : out IC.int)
    is
       Idx : Integer;
@@ -134,7 +134,7 @@ package body Unix.Ravexec is
 
             --  Found an argument
 
-            argvector (num_args) := ICS.New_String (Arg_String (Old_Idx .. Idx - 1));
+            argvector.args (num_args) := ICS.New_String (Arg_String (Old_Idx .. Idx - 1));
             num_args := num_args + 1;
             exit when num_args = MAX_ARGS;
 
@@ -149,7 +149,7 @@ package body Unix.Ravexec is
          exit when Idx > Arg_String'Last;
       end loop;
 
-      argvector (num_args) := ICS.Null_Ptr;
+      argvector.args (num_args) := ICS.Null_Ptr;
 
    end set_argument_vector;
 
@@ -165,24 +165,22 @@ package body Unix.Ravexec is
    is
       cbuilder  : constant IC.int := IC.int (builder);
       cfd       : constant IC.int := IC.int (log_fd);
+      argvector : aliased struct_argv;
       cprogram  : ICS.chars_ptr;
-      argvector : CSVector (0 .. MAX_ARGS);
       num_args  : IC.int;
       pid_res   : IC.int;
-      argv      : Chars_Ptr_Ptr;
 
       use type IC.int;
    begin
       cprogram := ICS.New_String (program);
-      set_argument_vector (arguments, argvector, num_args);
-      argv := argvector (argvector'First)'Unchecked_Access;
+      set_argument_vector (program & " " & arguments, argvector, num_args);
 
-      pid_res := C_Phase_Execution (cbuilder, cfd, cprogram, argv);
+      pid_res := C_Phase_Execution (cbuilder, cfd, cprogram, num_args, argvector'Unchecked_Access);
 
       ICS.Free (cprogram);
       if num_args > 0 then
          for x in 0 .. num_args - 1 loop
-            ICS.Free (argvector (x));
+            ICS.Free (argvector.args (x));
          end loop;
       end if;
 
