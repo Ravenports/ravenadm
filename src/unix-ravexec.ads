@@ -51,7 +51,7 @@ private
    pragma Import (C, C_Direct_Scribe, "direct_scribe");
 
    function C_Start_Log (path : ICS.chars_ptr) return IC.int;
-   pragma Import (C, C_Start_Log, "start_new_log");
+   pragma Import (C, C_Start_Log, "start_new_log_file");
 
    function C_Phase_Execution (builder : IC.int; fd : IC.int; prog : ICS.chars_ptr;
                                argv : Chars_Ptr_Ptr) return IC.int;
