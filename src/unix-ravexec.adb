@@ -1,6 +1,7 @@
 --  SPDX-License-Identifier: ISC
 --  Reference: /License.txt
 
+with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with GNAT.Traceback.Symbolic;
 
@@ -33,9 +34,13 @@ package body Unix.Ravexec is
       cfd : constant IC.int := IC.int (fd);
       msg : IC.Strings.chars_ptr;
    begin
-      msg := IC.Strings.New_String (line);
-      C_Direct_Scribe (cfd, msg);
-      IC.Strings.Free (msg);
+      if fd = not_connected then
+         Ada.Text_IO.Put_Line ("FD closed: " & line);
+      else
+         msg := IC.Strings.New_String (line);
+         C_Direct_Scribe (cfd, msg);
+         IC.Strings.Free (msg);
+      end if;
    end write;
 
 
@@ -47,9 +52,13 @@ package body Unix.Ravexec is
       cfd : constant IC.int := IC.int (fd);
       msg : IC.Strings.chars_ptr;
    begin
-      msg := IC.Strings.New_String (line & LAT.LF);
-      C_Direct_Scribe (cfd, msg);
-      IC.Strings.Free (msg);
+      if fd = not_connected then
+         Ada.Text_IO.Put_Line ("FD closed: " & line);
+      else
+         msg := IC.Strings.New_String (line & LAT.LF);
+         C_Direct_Scribe (cfd, msg);
+         IC.Strings.Free (msg);
+      end if;
    end writeln;
 
 

@@ -576,9 +576,6 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
       /* child */
       ravenexec[zbuilder] = getpid();
 
-      dup2 (fd, STDOUT_FILENO);
-      dup2 (fd, STDERR_FILENO);
-
 #ifdef PROC_REAP_ACQUIRE
       /*
        * Set current process as the reaper for itself and future children
@@ -607,7 +604,11 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
       else if (inner_pid == 0)
       {
          /* inner child */
-          execv (prog, argv);
+
+         dup2 (fd, STDOUT_FILENO);
+         dup2 (fd, STDERR_FILENO);
+
+         execv (prog, argv);
 
          /* execv doesn't normally return, so command failed to execute */
          diagnostic_message(fd, prog, argc, argv);
@@ -634,7 +635,7 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
       }
 
       kill_process_tree (ravenexec[zbuilder]);
-      return (WEXITSTATUS (inner_status));
+      _exit (WEXITSTATUS (inner_status));
    }
 
    /* Parent */
