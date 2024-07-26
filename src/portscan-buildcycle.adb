@@ -1629,20 +1629,8 @@ package body PortScan.Buildcycle is
    --------------------------------------------------------------------------------------------
    procedure set_log_lines (id : builders)
    is
-      log_path : constant String := LOG.log_name (trackers (id).seq_id);
-      command  : constant String := HT.USS (PM.configuration.dir_sysroot) &
-                 "/usr/bin/wc -l " & log_path;
    begin
-      --  This keeps producing fatal raised ADA.IO_EXCEPTIONS.DEVICE_ERROR : Bad file descriptor
-      --  revert to nasty wc solution until this can be fixed.
-      --  trackers (id).loglines := FOP.lines_in_log (LOG.log_name (trackers (id).seq_id));
-      declare
-         numtext : constant String := HT.part_1 (HT.trim (generic_system_command (command)), " ");
-      begin
-         trackers (id).loglines := Natural'Value (numtext);
-      end;
-   exception
-      when others => null;  -- just skip this cycle
+      trackers (id).loglines := FOP.lines_in_log (LOG.log_name (trackers (id).seq_id));
    end set_log_lines;
 
 
