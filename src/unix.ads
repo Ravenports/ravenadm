@@ -86,9 +86,9 @@ package Unix is
    --  Returns true if given file is set at 400 permissions
    function file_secure (file_path : String) return Boolean;
 
-   --  time(3) from libc
+   --  time(3) from libc (Use passthrough version to support NetBSD)
    function unix_time (tloc : access int64) return int64;
-   pragma Import (C, unix_time, "time");
+   pragma Import (C, unix_time, "rf_time");
 
 private
 
