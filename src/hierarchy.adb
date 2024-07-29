@@ -222,6 +222,7 @@ package body Hierarchy is
       push ("/etc/group-");      --  Linux
       push ("/etc/passwd-");     --  Linux
       push ("/etc/ld.so.cache"); --  Linux
+      push ("/etc/usermgmt.conf");  --  NetBSD
 
    end set_single_file_filter;
 
