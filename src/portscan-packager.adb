@@ -26,8 +26,8 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    function exec_phase_package
      (specification : PSP.Portspecs;
-      log_handle    : in out TIO.File_Type;
-      log_name      : String;
+      log_fd        : RAX.File_Descriptor;
+      builder_id    : builders;
       phase_name    : String;
       seq_id        : port_id;
       port_prefix   : String;
@@ -383,25 +383,19 @@ package body PortScan.Packager is
          namebase : constant String := specification.get_namebase;
          filename : constant String := namebase & "-" & subpackage & "-" &
            HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
-         package_cmd : constant String :=
-           PM.chroot_cmd & rootdir & environ & RVN_CREATE & RVN_CREATE_ARGS;
+         arguments : constant String := rootdir & environ & RVN_CREATE & RVN_CREATE_ARGS;
       begin
          if still_good then
 
             if not DIR.Exists (rootdir & package_list) then
                still_good := False;
-               TIO.Put_Line
-                 (log_handle, "=> The package list " & package_list & " for the " &
-                    subpackage & " subpackage does not exist.");
+               RAX.writeln (log_fd, "=> The package list " & package_list & " for the " &
+                              subpackage & " subpackage does not exist.");
             end if;
-            TIO.Put_Line (log_handle, "===>  Creating " & filename & " package");
-            TIO.Close (log_handle);
+            RAX.writeln (log_fd, "===>  Creating " & filename & " package");
 
-            still_good := execute_command (package_cmd, log_name);
+            still_good := execute_command (builder_id, log_fd, PM.chroot_program, arguments);
 
-            TIO.Open (File => log_handle,
-                      Mode => TIO.Append_File,
-                      Name => log_name);
          end if;
       end package_it;
 
@@ -420,26 +414,26 @@ package body PortScan.Packager is
          if still_good then
             if not Unix.piped_mute_command (cp_command, cmd_output) then
                still_good := False;
-               TIO.Put_Line (log_handle, "Failed to copy " & built_loc & " to " & final_loc);
-               TIO.Put_Line (log_handle, "Message: " & HT.USS (cmd_output));
+               RAX.writeln (log_fd, "Failed to copy " & built_loc & " to " & final_loc);
+               RAX.writeln (log_fd, "Message: " & HT.USS (cmd_output));
             end if;
          end if;
       end copy_it_outside_sysroot;
 
    begin
-      LOG.log_phase_begin (log_handle, phase_name);
+      LOG.log_phase_begin (log_fd, phase_name);
 
       DIR.Create_Path (spkgdir);
       all_ports (seq_id).subpackages.Iterate (create_metadata_file'Access);
 
-      check_deprecation (specification, log_handle);
-      if not create_package_directory_if_necessary (log_handle) then
+      check_deprecation (specification, log_fd);
+      if not create_package_directory_if_necessary (log_fd) then
          return False;
       end if;
 
       all_ports (seq_id).subpackages.Iterate (package_it'Access);
       all_ports (seq_id).subpackages.Iterate (copy_it_outside_sysroot'Access);
-      LOG.log_phase_end (log_handle);
+      LOG.log_phase_end (log_fd);
 
       return still_good;
 
@@ -452,7 +446,7 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    --  create_package_directory_if_necessary
    --------------------------------------------------------------------------------------------
-   function create_package_directory_if_necessary (log_handle : TIO.File_Type) return Boolean
+   function create_package_directory_if_necessary (log_fd : RAX.File_Descriptor) return Boolean
    is
       packagedir : constant String := HT.USS (PM.configuration.dir_repository);
       packagedir_files : constant String := packagedir & "/files";
@@ -464,7 +458,7 @@ package body PortScan.Packager is
       return True;
    exception
       when others =>
-         TIO.Put_Line (log_handle, "=> Can't create directory " & packagedir_files);
+         RAX.writeln (log_fd, "=> Can't create directory " & packagedir_files);
          return False;
    end create_package_directory_if_necessary;
 
@@ -472,14 +466,14 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    --  check_deprecation
    --------------------------------------------------------------------------------------------
-   procedure check_deprecation (spec : PSP.Portspecs; log_handle : TIO.File_Type)
+   procedure check_deprecation (spec : PSP.Portspecs; log_fd : RAX.File_Descriptor)
    is
       deprecated  : String := spec.get_field_value (PSP.sp_deprecated);
       expire_date : String := spec.get_field_value (PSP.sp_expiration);
    begin
       if deprecated /= "" then
-         TIO.Put_Line
-           (log_handle,
+         RAX.writeln
+           (log_fd,
             "===>   NOTICE:" & LAT.LF & LAT.LF &
               "This port is deprecated; you may wish to consider avoiding its packages." & LAT.LF &
               LAT.LF & deprecated & LAT.Full_Stop & LAT.LF &
@@ -492,15 +486,18 @@ package body PortScan.Packager is
    --------------------------------------------------------------------------------------------
    --  execute_command
    --------------------------------------------------------------------------------------------
-   function execute_command (command : String; name_of_log : String) return Boolean
+   function execute_command
+     (builder_id : builders;
+      log_fd     : RAX.File_Descriptor;
+      program    : String;
+      arguments  : String) return Boolean
    is
       use type Unix.process_exit;
       pid         : Unix.pid_t;
       status      : Unix.process_exit;
       hangmonitor : constant Boolean := True;
-      truecommand : constant String := ravenexec & " " & name_of_log & " " & command;
    begin
-      pid := Unix.launch_process (truecommand);
+      pid := RAX.launch_separate_process (builder_id, log_fd, program, arguments);
       if Unix.fork_failed (pid) then
          return False;
       end if;

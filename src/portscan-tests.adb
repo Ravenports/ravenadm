@@ -23,7 +23,7 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    function exec_check_plist
      (specification : PSP.Portspecs;
-      log_handle    : TIO.File_Type;
+      log_fd        : RAX.File_Descriptor;
       phase_name    : String;
       seq_id        : port_id;
       port_prefix   : String;
@@ -35,12 +35,12 @@ package body PortScan.Tests is
       directory_list : entry_crate.Map;
       dossier_list   : entry_crate.Map;
    begin
-      LOG.log_phase_begin (log_handle, phase_name);
-      TIO.Put_Line (log_handle, "====> Checking for package manifest issues");
+      LOG.log_phase_begin (log_fd, phase_name);
+      RAX.writeln (log_fd, "====> Checking for package manifest issues");
 
       begin
          if not ingest_manifests (specification  => specification,
-                                  log_handle     => log_handle,
+                                  log_fd         => log_fd,
                                   directory_list => directory_list,
                                   dossier_list   => dossier_list,
                                   seq_id         => seq_id,
@@ -52,13 +52,13 @@ package body PortScan.Tests is
          end if;
       exception
          when surprise : others =>
-            TIO.Put_Line (log_handle, "exec_check_plist/ingest_manifests: " &
+            RAX.writeln (log_fd, "exec_check_plist/ingest_manifests: " &
                             EX.Exception_Information (surprise));
             passed_check := False;
       end;
 
       begin
-         if orphaned_directories_detected (log_handle     => log_handle,
+         if orphaned_directories_detected (log_fd         => log_fd,
                                            directory_list => directory_list,
                                            namebase       => namebase,
                                            port_prefix    => port_prefix,
@@ -68,24 +68,24 @@ package body PortScan.Tests is
          end if;
       exception
          when surprise : others =>
-            TIO.Put_Line (log_handle, "exec_check_plist/orphaned_directories_detected: " &
-                            EX.Exception_Information (surprise));
+            RAX.writeln (log_fd, "exec_check_plist/orphaned_directories_detected: " &
+                           EX.Exception_Information (surprise));
             passed_check := False;
       end;
 
       begin
-         if missing_directories_detected (log_handle, directory_list) then
+         if missing_directories_detected (log_fd, directory_list) then
             passed_check := False;
          end if;
       exception
          when surprise : others =>
-            TIO.Put_Line (log_handle, "exec_check_plist/missing_directories_detected: " &
-                            EX.Exception_Information (surprise));
+            RAX.writeln (log_fd, "exec_check_plist/missing_directories_detected: " &
+                           EX.Exception_Information (surprise));
             passed_check := False;
       end;
 
       begin
-         if orphaned_files_detected (log_handle   => log_handle,
+         if orphaned_files_detected (log_fd       => log_fd,
                                      dossier_list => dossier_list,
                                      namebase     => namebase,
                                      port_prefix  => port_prefix,
@@ -95,33 +95,33 @@ package body PortScan.Tests is
          end if;
       exception
          when surprise : others =>
-            TIO.Put_Line (log_handle, "exec_check_plist/orphaned_files_detected: " &
-                            EX.Exception_Information (surprise));
+            RAX.writeln (log_fd, "exec_check_plist/orphaned_files_detected: " &
+                           EX.Exception_Information (surprise));
             passed_check := False;
       end;
 
       begin
-         if missing_files_detected (log_handle, dossier_list) then
+         if missing_files_detected (log_fd, dossier_list) then
             passed_check := False;
          end if;
       exception
          when surprise : others =>
-            TIO.Put_Line (log_handle, "exec_check_plist/missing_files_detected: " &
-                            EX.Exception_Information (surprise));
+            RAX.writeln (log_fd, "exec_check_plist/missing_files_detected: " &
+                           EX.Exception_Information (surprise));
             passed_check := False;
       end;
 
       if passed_check then
-         TIO.Put_Line (log_handle, "====> No manifest issues found");
+         RAX.writeln (log_fd, "====> No manifest issues found");
       end if;
 
-      create_single_file_manifest (log_handle  => log_handle,
+      create_single_file_manifest (log_fd      => log_fd,
                                    namebase    => namebase,
                                    variant     => variant,
                                    port_prefix => port_prefix,
                                    rootdir     => rootdir);
 
-      LOG.log_phase_end (log_handle);
+      LOG.log_phase_end (log_fd);
       return passed_check;
    end exec_check_plist;
 
@@ -131,7 +131,7 @@ package body PortScan.Tests is
    --------------------------------------------------------------------------------------------
    function ingest_manifests
      (specification  : PSP.Portspecs;
-      log_handle     : TIO.File_Type;
+      log_fd         : RAX.File_Descriptor;
       directory_list : in out entry_crate.Map;
       dossier_list   : in out entry_crate.Map;
       seq_id         : port_id;
@@ -222,13 +222,13 @@ package body PortScan.Tests is
                                 HT.USS (directory_list.Element (dir_text).subpackage);
                            begin
                               if spkg /= "" then
-                                 TIO.Put_Line
-                                   (log_handle,
+                                 RAX.writeln
+                                   (log_fd,
                                     "Redundant @dir symbol, " & identifier & dir &
                                       " will already be created by the " & spkg & " manifest");
                               else
-                                 TIO.Put_Line
-                                   (log_handle,
+                                 RAX.writeln
+                                   (log_fd,
                                     "Redundant @dir symbol, " & identifier & dir &
                                       " will already be created by another manifest");
                               end if;
@@ -248,8 +248,8 @@ package body PortScan.Tests is
                         declare
                            spkg : String := HT.USS (dossier_list.Element (ml_text).subpackage);
                         begin
-                           TIO.Put_Line
-                             (log_handle,
+                           RAX.writeln
+                             (log_fd,
                               "Duplicate file entry, " & identifier & modline &
                                 " already present in " & spkg & " manifest");
                         end;
@@ -271,8 +271,8 @@ package body PortScan.Tests is
             if TIO.Is_Open (handle) then
                TIO.Close (handle);
             end if;
-            TIO.Put_Line
-              (log_handle,
+            RAX.writeln
+              (log_fd,
                identifier & "check-plist error: " & EX.Exception_Message (issue));
       end eat_plist;
    begin
@@ -370,7 +370,7 @@ package body PortScan.Tests is
    --  orphaned_directories_detected
    --------------------------------------------------------------------------------------------
    function orphaned_directories_detected
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       directory_list : in out entry_crate.Map;
       namebase       : String;
       port_prefix    : String;
@@ -405,9 +405,9 @@ package body PortScan.Tests is
                else
                   if not directory_excluded (port_prefix, line) then
                      if HT.leads (line, localbase) then
-                        TIO.Put_Line (log_handle, errprefix & HT.substring (line, lblen + 1, 0));
+                        RAX.writeln (log_fd, errprefix & HT.substring (line, lblen + 1, 0));
                      else
-                        TIO.Put_Line (log_handle, errprefix & line);
+                        RAX.writeln (log_fd, errprefix & line);
                      end if;
                      result := True;
                   end if;
@@ -432,7 +432,7 @@ package body PortScan.Tests is
    --  missing_directories_detected
    --------------------------------------------------------------------------------------------
    function missing_directories_detected
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       directory_list : in out entry_crate.Map) return Boolean
    is
       procedure check (position : entry_crate.Cursor);
@@ -445,8 +445,8 @@ package body PortScan.Tests is
          plist_dir : String := HT.USS (entry_crate.Key (position));
       begin
          if not rec.verified then
-            TIO.Put_Line
-              (log_handle,
+            RAX.writeln
+              (log_fd,
                "Directory " & plist_dir & " listed on " & HT.USS (rec.subpackage) &
                  " manifest is not present in the stage directory.");
             result := True;
@@ -462,7 +462,7 @@ package body PortScan.Tests is
    --  missing_files_detected
    --------------------------------------------------------------------------------------------
    function missing_files_detected
-     (log_handle   : TIO.File_Type;
+     (log_fd       : RAX.File_Descriptor;
       dossier_list : in out entry_crate.Map) return Boolean
    is
       procedure check (position : entry_crate.Cursor);
@@ -475,8 +475,8 @@ package body PortScan.Tests is
          plist_file : String := HT.USS (entry_crate.Key (position));
       begin
          if not rec.verified then
-            TIO.Put_Line
-              (log_handle,
+            RAX.writeln
+              (log_fd,
                "File " & plist_file & " listed on " & HT.USS (rec.subpackage) &
                  " manifest is not present in the stage directory.");
             result := True;
@@ -492,7 +492,7 @@ package body PortScan.Tests is
    --  orphaned_files_detected
    --------------------------------------------------------------------------------------------
    function orphaned_files_detected
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       dossier_list   : in out entry_crate.Map;
       namebase       : String;
       port_prefix    : String;
@@ -527,9 +527,9 @@ package body PortScan.Tests is
                else
                   if not file_excluded (localbase, line) then
                      if HT.leads (line, localbase) then
-                        TIO.Put_Line (log_handle, errprefix & HT.substring (line, lblen + 1, 0));
+                        RAX.writeln (log_fd, errprefix & HT.substring (line, lblen + 1, 0));
                      else
-                        TIO.Put_Line (log_handle, errprefix & line);
+                        RAX.writeln (log_fd, errprefix & line);
                      end if;
                      result := True;
                   end if;
@@ -586,7 +586,7 @@ package body PortScan.Tests is
    --  create_single_file_manifest
    --------------------------------------------------------------------------------------------
    procedure create_single_file_manifest
-     (log_handle     : TIO.File_Type;
+     (log_fd         : RAX.File_Descriptor;
       namebase       : String;
       variant        : String;
       port_prefix    : String;
@@ -610,7 +610,7 @@ package body PortScan.Tests is
    begin
       if status /= 0 then
          TIO.Put_Line ("create_single_file_manifest: command error: " & comres);
-         TIO.Put_Line (log_handle, no_string);
+         RAX.writeln (log_fd, no_string);
          return;
       end if;
 
@@ -623,7 +623,7 @@ package body PortScan.Tests is
       exception
          when TIO.Use_Error | TIO.Status_Error =>
             TIO.Put_Line ("create_single_file_manifest: failed to create " & dossier);
-            TIO.Put_Line (log_handle, no_string);
+            RAX.writeln (log_fd, no_string);
             return;
       end;
 
@@ -645,7 +645,7 @@ package body PortScan.Tests is
             end;
          end loop;
          TIO.Close (handle);
-         TIO.Put_Line (log_handle, si_string);
+         RAX.writeln (log_fd, si_string);
          MAN.sort_manifest (MAN.Filename (dossier));
          return;
       exception
@@ -653,7 +653,7 @@ package body PortScan.Tests is
             if TIO.Is_Open (handle) then
                TIO.Close (handle);
             end if;
-            TIO.Put_Line (log_handle, no_string);
+            RAX.writeln (log_fd, no_string);
             return;
       end;
    end create_single_file_manifest;

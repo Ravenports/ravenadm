@@ -5,6 +5,7 @@ with Display;
 with Hierarchy;
 with Port_Specification;
 private with Ada.Calendar;
+private with Unix.Ravexec;
 
 package PortScan.Buildcycle is
 
@@ -62,7 +63,7 @@ private
          seq_id      : port_id;
          head_time   : CAL.Time;
          tail_time   : CAL.Time;
-         log_handle  : aliased TIO.File_Type;
+         log_fd      : Unix.Ravexec.File_Descriptor;
          dynlink     : string_crate.Vector;
          runpaths    : string_crate.Vector;
          nonexistent : string_crate.Vector;
@@ -153,6 +154,7 @@ private
    function generic_execute
      (id            : builders;
       command       : String;
+      arguments     : String;
       dogbite       : out Boolean;
       time_limit    : execution_limit) return Boolean;
 

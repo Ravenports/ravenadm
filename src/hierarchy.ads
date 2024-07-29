@@ -7,12 +7,14 @@ with Archive;
 with Blake_3;
 with HelperText;
 with admtypes;
+with Unix.Ravexec;
 
 package Hierarchy is
 
    package CON renames Ada.Containers;
    package TIO renames Ada.Text_IO;
    package HT  renames HelperText;
+   package RAX renames Unix.Ravexec;
 
    type direntrec is
       record
@@ -44,7 +46,7 @@ package Hierarchy is
    --  Given the results of the snapshot, this function displays any missing, extra or
    --  modified files and returns False if any of those occur.  (True means check passed)
    function detect_leftovers_and_MIA
-     (log_handle  : TIO.File_Type;
+     (log_fd      : RAX.File_Descriptor;
       DC          : in out Dirent_Collection.Map;
       rootdir     : String;
       description : String;

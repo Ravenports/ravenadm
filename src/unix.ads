@@ -32,7 +32,7 @@ package Unix is
    function external_command (command : String) return Boolean;
 
    --  wrapper for nonblocking spawn
-   function launch_process (command : String) return pid_t;
+   --  function launch_process (command : String) return pid_t;
 
    --  Returns True if pid is less than zero
    function fork_failed (pid : pid_t) return Boolean;
@@ -86,9 +86,9 @@ package Unix is
    --  Returns true if given file is set at 400 permissions
    function file_secure (file_path : String) return Boolean;
 
-   --  time(3) from libc
+   --  time(3) from libc (Use passthrough version to support NetBSD)
    function unix_time (tloc : access int64) return int64;
-   pragma Import (C, unix_time, "time");
+   pragma Import (C, unix_time, "rf_time");
 
 private
 

@@ -647,19 +647,6 @@ package body Pilot is
 
 
    --------------------------------------------------------------------------------------------
-   --  ravenexec_missing
-   --------------------------------------------------------------------------------------------
-   function ravenexec_missing return Boolean is
-   begin
-      if DIR.Exists (ravenexec) then
-         return False;
-      end if;
-      TIO.Put_Line (ravenexec & " missing!" & bailing);
-      return True;
-   end ravenexec_missing;
-
-
-   --------------------------------------------------------------------------------------------
    --  launch_configure_menu
    --------------------------------------------------------------------------------------------
    procedure launch_configure_menu is

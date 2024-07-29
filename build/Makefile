@@ -7,7 +7,7 @@
 #
 # Expected to be executed at ${WRKSRC}/some-obj-directory
 
-all: ravenadm ravenexec
+all: ravenadm
 
 unix_core.o: ../src/unix_core.c
 	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
@@ -21,14 +21,11 @@ open.o: ../rvn-format/src/unix/open.c
 stat_opsc.o: ../rvn-format/src/unix/stat_opsc.c
 	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
 
-dprint2.o: ../rvn-format/src/unix/dprint2.c
+embedded_exec.o: ../src/embedded_exec.c
 	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
 
-ravenexec: ../ravenexec/ravenexec.c
-	${CC} ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
-
 ADAFLAGS= -gnatA -gnatyaAbBcdehfiklM100nOprsStx -fstack-check
-COBJS= unix_core.o walkdir.o open.o stat_opsc.o dprint2.o
+COBJS= unix_core.o walkdir.o open.o stat_opsc.o embedded_exec.o
 BASELIBS= -lucl_pic -lblake3_pic -lzstd_pic -lm
 BASEINCS= -I../rvn-format/src -I../rvn-format/src/ucl -I../rvn-format/src/blake3 \
 	-I../rvn-format/src/zstandard -I../rvn-format/src/unix -I../rvn-format/src/elf
