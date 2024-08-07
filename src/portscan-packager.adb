@@ -381,8 +381,8 @@ package body PortScan.Packager is
            " --whitelist " & package_list &
            " --metadata " & chspkgdir & subpackage & ".ucl ";
          namebase : constant String := specification.get_namebase;
-         filename : constant String := namebase & "-" & subpackage & "-" &
-           HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
+         filename : constant String := namebase & LAT.Tilde & subpackage & LAT.Tilde &
+           HT.USS (all_ports (seq_id).port_variant) & LAT.Tilde & pkgvers & arc_ext;
          arguments : constant String := rootdir & environ & RVN_CREATE & RVN_CREATE_ARGS;
       begin
          if still_good then
@@ -403,8 +403,8 @@ package body PortScan.Packager is
       is
          subpackage : constant String := HT.USS (subpackage_crate.Element (position).subpackage);
          namebase   : constant String := specification.get_namebase;
-         pkgarchive : String := namebase & "-" & subpackage & "-" &
-                      HT.USS (all_ports (seq_id).port_variant) & "-" & pkgvers & arc_ext;
+         pkgarchive : String := namebase & LAT.Tilde & subpackage & LAT.Tilde &
+                      HT.USS (all_ports (seq_id).port_variant) & LAT.Tilde & pkgvers & arc_ext;
          built_loc  : constant String := rootdir & rfilesdir & "/" & pkgarchive;
          final_loc  : constant String := realpkgdir & "/files/" & pkgarchive;
          cp_program : constant String := sysroot & "/bin/cp -RpP ";

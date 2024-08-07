@@ -209,7 +209,7 @@ package body PortScan is
       variant    : constant String := HT.USS (all_ports (id).port_variant);
       pkgversion : constant String := HT.USS (all_ports (id).pkgversion);
    begin
-      return namebase & "-" & subpackage & "-" & variant & "-" & pkgversion;
+      return namebase & LAT.Tilde & subpackage & LAT.Tilde & variant & LAT.Tilde & pkgversion;
    end calculate_package_name;
 
 
@@ -221,7 +221,7 @@ package body PortScan is
       namebase : constant String := HT.USS (all_ports (id).port_namebase);
       variant  : constant String := HT.USS (all_ports (id).port_variant);
    begin
-      return namebase & "-" & subpackage & "-" & variant;
+      return namebase & LAT.Tilde & subpackage & LAT.Tilde & variant;
    end calculate_nsv;
 
 
@@ -250,14 +250,16 @@ package body PortScan is
    --------------------------------------------------------------------------------------------
    function subpackage_from_pkgname (pkgname : String) return String
    is
-      --  expected format: namebase-subpackage-variant-version.rvn
-      --  could be:        np1-np02-subpackage-variant-version.rvn
-      numdash : Natural := HT.count_char (pkgname, LAT.Hyphen);
+      --  expected format: namebase~subpackage~variant~version.rvn
+      --  could be:        np1-np02~subpackage~variant~version.rvn
+      --  Hyphens used to be used instead of Tildes so there could be more than 3 delimiters then
+      numdash : constant Natural := HT.count_char (pkgname, LAT.Tilde);
+      delim   : constant String (1 .. 1) := (1 => LAT.Tilde);
    begin
       if numdash < 3 then
          return "error";
       end if;
-      return HT.tail (HT.head (HT.head (pkgname, "-"), "-"), "-");
+      return HT.tail (HT.head (HT.head (pkgname, delim), delim), delim);
    end subpackage_from_pkgname;
 
 
@@ -268,15 +270,16 @@ package body PortScan is
    is
       --  expected format: namebase-subpackage-variant
       --  could be:        np1-np02-subpackage-variant
-      numdash : Natural := HT.count_char (pkgname, LAT.Hyphen);
+      numdash : Natural := HT.count_char (pkgname, LAT.Tilde);
+      delim   : constant String (1 .. 1) := (1 => LAT.Tilde);
    begin
       if numdash < 3 then
          return "error";
       end if;
       declare
-         nsv      : constant String := HT.head (pkgname, "-");
-         variant  : constant String := HT.tail (nsv, "-");
-         namebase : constant String := HT.head (HT.head (nsv, "-"), "-");
+         nsv      : constant String := HT.head (pkgname, delim);
+         variant  : constant String := HT.tail (nsv, delim);
+         namebase : constant String := HT.head (HT.head (nsv, delim), delim);
       begin
          return namebase & LAT.Colon & variant;
       end;
