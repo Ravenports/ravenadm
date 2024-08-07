@@ -52,7 +52,6 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
-   GNOMELIB : constant String := "glib:primary:standard";
    PYTHON311 : constant String := single_triplet ("python311");
    PYTHON312 : constant String := primary_triplet ("python312");
    PY312DEV  : constant String := dev_triplet ("python312");
