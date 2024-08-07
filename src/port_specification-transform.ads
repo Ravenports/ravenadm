@@ -106,7 +106,6 @@ private
    procedure apply_cargo_module     (specs : in out Portspecs);
    procedure apply_fonts_module     (specs : in out Portspecs);
    procedure apply_cmake_module     (specs : in out Portspecs);
-   procedure apply_imake_module     (specs : in out Portspecs);
    procedure apply_meson_module     (specs : in out Portspecs);
    procedure apply_ninja_module     (specs : in out Portspecs);
    procedure apply_mysql_module     (specs : in out Portspecs);

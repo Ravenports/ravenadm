@@ -303,7 +303,6 @@ package body Port_Specification.Transform is
       apply_display_module (specs);
       apply_sqlite_module (specs);
       apply_cmake_module (specs);
-      apply_imake_module (specs);
       apply_perl_module (specs);
       apply_bdb_module (specs);
       apply_ssl_module (specs);
@@ -1096,18 +1095,6 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  apply_imake_module
-   --------------------------------------------------------------------------------------------
-   procedure apply_imake_module (specs : in out Portspecs)
-   is
-      module     : constant String := "imake";
-      dependency : constant String := single_triplet (module);
-   begin
-      generic_build_module (specs, module, dependency);
-   end apply_imake_module;
-
-
-   --------------------------------------------------------------------------------------------
    --  apply_clang_module
    --------------------------------------------------------------------------------------------
    procedure apply_clang_module (specs : in out Portspecs)
@@ -1513,8 +1500,8 @@ package body Port_Specification.Transform is
    procedure apply_autoconf_module  (specs : in out Portspecs)
    is
       module   : constant String := "autoreconf";
-      AUTOCONF : constant String := single_triplet ("autoconf");
-      AUTOMAKE : constant String := single_triplet ("automake");
+      AUTOCONF : constant String := primary_triplet ("autoconf");
+      AUTOMAKE : constant String := primary_triplet ("automake");
       LIBTOOL  : constant String := single_triplet ("libtool");
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
@@ -1565,7 +1552,7 @@ package body Port_Specification.Transform is
          add_build_depends (specs, "xorg-server:single:virtual");
          add_build_depends (specs, single_triplet ("xorg-misc-bitmap-fonts"));
          add_build_depends (specs, single_triplet ("xorg-font-alias"));
-         add_build_depends (specs, single_triplet ("daemonize"));
+         add_build_depends (specs, primary_triplet ("daemonize"));
       end if;
    end apply_display_module;
 
@@ -1970,7 +1957,7 @@ package body Port_Specification.Transform is
          add_run_depends (specs, primary_triplet (flavor));
       end if;
       if hit_phpize or else hit_ext or else hit_zend then
-         add_build_depends (specs, single_triplet ("autoconf"));
+         add_build_depends (specs, primary_triplet ("autoconf"));
       end if;
 
    end apply_php_module;
