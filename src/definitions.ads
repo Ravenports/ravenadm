@@ -10,7 +10,7 @@ package Definitions is
    copyright_years     : constant String := "2015-2024";
 
    raven_tool        : constant String := "ravenadm";
-   variant_standard  : constant String := "standard";
+   variant_standard  : constant String := "std";
    contact_nobody    : constant String := "nobody";
    contact_automaton : constant String := "automaton";
    dlgroup_main      : constant String := "main";

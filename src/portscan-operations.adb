@@ -2849,7 +2849,8 @@ package body PortScan.Operations is
                   if DIR.Exists (optfile) then
                      if not read_option_file then
                         TIO.Put_Line ("BATCH MODE ERROR: Invalid option configuration of " &
-                                        specification.get_namebase & ":standard port");
+                                        specification.get_namebase & ":" &
+                                        variant_standard & " port");
                         TIO.Put_Line ("Run ravenadm set-options " & specification.get_namebase &
                                         " to rectify the issue");
                         TIO.Put_Line ("Alternatively, set configuration option '[Q] Assume " &

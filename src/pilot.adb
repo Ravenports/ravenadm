@@ -1053,7 +1053,7 @@ package body Pilot is
                   if HT.contains (Argk, ":") then
                      TIO.Put_Line (badvariant & "'" & Argk & "'");
                   else
-                     TIO.Put_Line (badvariant & "(:standard)'" & Argk & "'");
+                     TIO.Put_Line (badvariant & "(:" & variant_standard  & ")'" & Argk & "'");
                   end if;
                end if;
                return False;

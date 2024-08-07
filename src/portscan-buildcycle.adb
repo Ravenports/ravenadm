@@ -465,7 +465,7 @@ package body PortScan.Buildcycle is
 
          function ccnsv (subpackage : String) return HT.Text
          is
-            nsv : constant String := "ravensys-gcc:" & subpackage & ":standard";
+            nsv : constant String := "ravensys-gcc:" & subpackage & ":" & variant_standard;
          begin
             return HT.SUS (nsv);
          end ccnsv;
