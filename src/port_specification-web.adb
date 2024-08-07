@@ -357,7 +357,7 @@ package body Port_Specification.Web is
 
       num_pkgs : Natural := specs.get_subpackage_length (variant);
       result   : HT.Text;
-      id2      : constant String := namebase & LAT.Hyphen & variant;
+      id2      : constant String := namebase & LAT.Colon & variant;
 
       function description (variant, subpackage : String) return String
       is

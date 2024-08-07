@@ -349,7 +349,7 @@ package body PortScan.Buildcycle is
       is
          --  Only run for top-level dependencies, so piggy-back to build the install list.
          colon_nsv : HT.Text renames string_crate.Element (Position);
-         pkgname   : constant String := HT.replace_all (HT.USS (colon_nsv), LAT.Colon, LAT.Hyphen);
+         pkgname   : constant String := HT.replace_all (HT.USS (colon_nsv), LAT.Colon, LAT.Tilde);
       begin
          seen.Append (colon_nsv);
          HT.SU.Append (exact_list, " " & pkgname);
@@ -360,9 +360,9 @@ package body PortScan.Buildcycle is
          colon_nsv  : constant String  := HT.USS (string_crate.Element (Position));
          portkey    : constant String  := convert_colon_nsv_to_portkey (colon_nsv);
          ptid       : constant port_id := ports_keys (HT.SUS (portkey));
-         pkgname    : constant String  := HT.replace_all (colon_nsv, LAT.Colon, LAT.Hyphen);
+         pkgname    : constant String  := HT.replace_all (colon_nsv, LAT.Colon, LAT.Tilde);
          pkgversion : constant String  := HT.USS (all_ports (ptid).pkgversion);
-         pkgfile    : constant String  := pkgname & LAT.Hyphen & pkgversion & arc_ext;
+         pkgfile    : constant String  := pkgname & LAT.Tilde & pkgversion & arc_ext;
          systempath : constant String  := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
          slavepath  : constant String  := root & "/repo/files/" & pkgfile;
       begin

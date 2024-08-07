@@ -1351,10 +1351,10 @@ package body Pilot is
          function pkg_name (cname, vsn_binutils, vsn_compiler : String) return String is
          begin
             if subpackage = binutils then
-               return "ravensys-binutils-single-standard-" & vsn_binutils & arc_ext;
+               return "ravensys-binutils~single~standard~" & vsn_binutils & arc_ext;
             else
-               return cname & LAT.Hyphen & subpackage & LAT.Hyphen &
-                 variant_standard & LAT.Hyphen & vsn_compiler & arc_ext;
+               return cname & LAT.Tilde & subpackage & LAT.Tilde &
+                 variant_standard & LAT.Tilde & vsn_compiler & arc_ext;
             end if;
          end pkg_name;
       begin

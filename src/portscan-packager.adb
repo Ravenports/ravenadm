@@ -255,7 +255,7 @@ package body PortScan.Packager is
                n     : constant String := HT.USS (all_ports (sprec.port).port_namebase);
                s     : constant String := HT.USS (sprec.subpackage);
                v     : constant String := HT.USS (all_ports (sprec.port).port_variant);
-               dkey  : constant String := n & LAT.Hyphen & s & LAT.Hyphen & v;
+               dkey  : constant String := n & LAT.Tilde & s & LAT.Tilde & v;
                ver   : constant String := HT.USS (all_ports (sprec.port).pkgversion);
             begin
                if not already_inserted.Contains (HT.SUS (dkey)) then

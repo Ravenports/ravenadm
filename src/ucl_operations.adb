@@ -3,6 +3,7 @@
 
 with Ada.Text_IO;
 with Ada.Directories;
+with Ada.Characters.Latin_1;
 with Ada.Containers.Vectors;
 with ThickUCL.Files;
 with HelperText;
@@ -10,6 +11,7 @@ with HelperText;
 package body UCL_Operations is
 
    package HT  renames HelperText;
+   package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package CON renames Ada.Containers;
    package TIO renames Ada.Text_IO;
@@ -716,7 +718,7 @@ package body UCL_Operations is
                      nsv : HT.Text renames ThickUCL.jar_string.Element (Position).payload;
                      vsn : constant String := tree.get_object_value (ondx, HT.USS (nsv));
                   begin
-                     metadata.dependencies.Append (HT.SUS (HT.USS (nsv) & "-" & vsn));
+                     metadata.dependencies.Append (HT.SUS (HT.USS (nsv) & LAT.Tilde & vsn));
                   end add_dep;
                begin
                   ondx := tree.get_index_of_base_ucl_object (KEY_DEP);
