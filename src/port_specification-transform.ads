@@ -52,23 +52,25 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
-   PYTHON311 : constant String := "python311:single:standard";
-   PYTHON312 : constant String := "python312:primary:standard";
-   PY312DEV  : constant String := "python312:dev:standard";
-
-   TCL85    : constant String := "tcl85:tools:standard";
-   TCL86    : constant String := "tcl86:tools:standard";
-   RUBY31   : constant String := "ruby31:primary:standard";
-   RUBY32   : constant String := "ruby32:primary:standard";
-   RUBY33   : constant String := "ruby33:primary:standard";
-   NINJA    : constant String := "ninja:single:standard";
    GNOMELIB : constant String := "glib:primary:standard";
-   GLIBDEV  : constant String := "glib:dev:standard";
-   GTDEV    : constant String := "gettext:dev:standard";
-   GTBTOOLS : constant String := "gettext:bldtools:standard";
-   GTSOLINX : constant String := "gettext:solinks:standard";
-   GTLIB    : constant String := "gettext:primary:standard";
-   GTTOOLS  : constant String := "gettext:tools:standard";
+   PYTHON311 : constant String := single_triplet ("python311");
+   PYTHON312 : constant String := primary_triplet ("python312");
+   PY312DEV  : constant String := dev_triplet ("python312");
+
+   GETTEXT  : constant String := "gettext";
+   TCL85    : constant String := generic_triplet ("tcl85", "tools");
+   TCL86    : constant String := generic_triplet ("tcl86", "tools");
+   RUBY31   : constant String := primary_triplet ("ruby31");
+   RUBY32   : constant String := primary_triplet ("ruby32");
+   RUBY33   : constant String := primary_triplet ("ruby33");
+   NINJA    : constant String := single_triplet ("ninja");
+   GNOMELIB : constant String := primary_triplet ("glib");
+   GLIBDEV  : constant String := dev_triplet ("glib");
+   GTDEV    : constant String := dev_triplet (GETTEXT);
+   GTLIB    : constant String := primary_triplet (GETTEXT);
+   GTBTOOLS : constant String := generic_triplet (GETTEXT, "bldtools");
+   GTSOLINX : constant String := generic_triplet (GETTEXT, "solinks");
+   GTTOOLS  : constant String := generic_triplet (GETTEXT, "tools");
 
    --  Returns true if all '0' .. '9', and also single '.' if it's not in first or last place.
    function release_format (candidate : String) return Boolean;

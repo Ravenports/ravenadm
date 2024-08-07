@@ -15,6 +15,43 @@ package body Port_Specification is
    package LAT renames Ada.Characters.Latin_1;
    package CAL renames Ada.Calendar;
 
+
+   -------------------
+   --  dev_triplet  --
+   -------------------
+   function dev_triplet (namebase : String) return String is
+   begin
+      return namebase & ":dev:" & variant_standard;
+   end dev_triplet;
+
+
+   ----------------------
+   --  single_triplet  --
+   ----------------------
+   function single_triplet (namebase : String) return String is
+   begin
+      return namebase & ":single:" & variant_standard;
+   end single_triplet;
+
+
+   -----------------------
+   --  primary_triplet  --
+   -----------------------
+   function primary_triplet (namebase : String) return String is
+   begin
+      return namebase & ":primary:" & variant_standard;
+   end primary_triplet;
+
+
+   -----------------------
+   --  generic_triplet  --
+   -----------------------
+   function generic_triplet (namebase : String; subpackage : String) return String is
+   begin
+      return namebase & ":" & subpackage & ":" & variant_standard;
+   end generic_triplet;
+
+
    --------------------------------------------------------------------------------------------
    --  initialize
    --------------------------------------------------------------------------------------------

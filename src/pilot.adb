@@ -1432,7 +1432,7 @@ package body Pilot is
         package_copy (binutils) and then
         package_copy ("ada_run") and then
         package_copy ("compilers") and then
-        package_copy ("complete") and then
+        package_copy (spkg_complete) and then
         package_copy ("cxx_run") and then
         package_copy ("fortran_run") and then
         package_copy ("infopages") and then

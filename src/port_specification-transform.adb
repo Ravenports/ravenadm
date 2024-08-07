@@ -864,8 +864,8 @@ package body Port_Specification.Transform is
                                      namebase   : String)
    is
    begin
-      add_build_depends (specs, namebase & ":dev:" & variant_standard);
-      add_buildrun_depends (specs, namebase & ":primary:" & variant_standard);
+      add_build_depends (specs, dev_triplet (namebase));
+      add_buildrun_depends (specs, primary_triplet (namebase));
    end add_primdev_submodule;
 
    --------------------------------------------------------------------------------------------
@@ -906,8 +906,8 @@ package body Port_Specification.Transform is
       module    : String;
       depprefix : String)
    is
-      dev_dependency     : String := depprefix & ":dev:" & variant_standard;
-      primary_dependency : String := depprefix & ":primary:" & variant_standard;
+      dev_dependency     : constant String := dev_triplet (depprefix);
+      primary_dependency : constant String := primary_triplet (depprefix);
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, dev_dependency);
@@ -938,8 +938,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_scons_module (specs : in out Portspecs)
    is
-      module     : String := "scons";
-      dependency : String := "scons:single:" & variant_standard;
+      module     : constant String := "scons";
+      dependency : constant String := single_triplet (module);
    begin
       generic_build_module (specs, module, dependency);
    end apply_scons_module;
@@ -950,8 +950,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mold_module (specs : in out Portspecs)
    is
-      module     : String := "mold";
-      dependency : String := "mold:primary:" & variant_standard;
+      module     : constant String := "mold";
+      dependency : constant String := primary_triplet (module);
    begin
       generic_build_module (specs, module, dependency);
    end apply_mold_module;
@@ -962,8 +962,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gmake_module (specs : in out Portspecs)
    is
-      module     : String := "gmake";
-      dependency : String := "gmake:primary:" & variant_standard;
+      module     : constant String := "gmake";
+      dependency : constant String := primary_triplet (module);
    begin
       generic_build_module (specs, module, dependency);
    end apply_gmake_module;
@@ -975,7 +975,7 @@ package body Port_Specification.Transform is
    procedure apply_cargo_module (specs : in out Portspecs)
    is
       module     : constant String := "cargo";
-      dependency : constant String := "rust:single:" & variant_standard;
+      dependency : constant String := single_triplet ("rust");
    begin
       generic_build_module (specs, module, dependency);
    end apply_cargo_module;
@@ -986,7 +986,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ninja_module (specs : in out Portspecs)
    is
-      module     : String := "ninja";
+      module     : constant String := "ninja";
       dependency : String renames NINJA;
    begin
       generic_build_module (specs, module, dependency);
@@ -998,8 +998,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_meson_module (specs : in out Portspecs)
    is
-      module     : String := "meson";
-      dependency : String := "meson:single:" & variant_standard;
+      module     : constant String := "meson";
+      dependency : constant String := single_triplet (module);
    begin
       generic_build_module (specs, module, dependency);
       generic_build_module (specs, module, NINJA);
@@ -1022,7 +1022,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mesa_module (specs : in out Portspecs)
    is
-      mesa : String := "mesa";
+      mesa : constant String := "mesa";
    begin
       generic_devlib_module (specs, mesa, mesa);
    end apply_mesa_module;
@@ -1033,8 +1033,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_makeinfo_module  (specs : in out Portspecs)
    is
-      module     : String := "makeinfo";
-      dependency : String := "texinfo:primary:" & variant_standard;
+      module     : constant String := "makeinfo";
+      dependency : constant String := primary_triplet ("texinfo");
    begin
       generic_build_module (specs, module, dependency);
    end apply_makeinfo_module;
@@ -1045,7 +1045,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_readline_module  (specs : in out Portspecs)
    is
-      module : String := "readline";
+      module : constant String := "readline";
    begin
       generic_devlib_module (specs, module, module);
    end apply_readline_module;
@@ -1056,7 +1056,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_sqlite_module  (specs : in out Portspecs)
    is
-      module : String := "sqlite";
+      module : constant String := "sqlite";
    begin
       generic_devlib_module (specs, module, module);
    end apply_sqlite_module;
@@ -1067,7 +1067,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_execinfo_module  (specs : in out Portspecs)
    is
-      module     : String := "execinfo";
+      module : constant String := "execinfo";
    begin
       if platform_type /= macos then
          --  MacOS has Mach-O formatted files while libexecinfo only
@@ -1082,8 +1082,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_cmake_module (specs : in out Portspecs)
    is
-      module     : String := "cmake";
-      dependency : String := "cmake:primary:" & variant_standard;
+      module     : constant String := "cmake";
+      dependency : constant String := primary_triplet (module);
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if argument_present (specs, module, RUN) then
@@ -1100,8 +1100,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_imake_module (specs : in out Portspecs)
    is
-      module     : String := "imake";
-      dependency : String := "imake:single:" & variant_standard;
+      module     : constant String := "imake";
+      dependency : constant String := single_triplet (module);
    begin
       generic_build_module (specs, module, dependency);
    end apply_imake_module;
@@ -1112,8 +1112,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_clang_module (specs : in out Portspecs)
    is
-      module     : String := "clang";
-      dependency : String := "clang:complete:" & variant_standard;
+      module     : constant String := "clang";
+      dependency : constant String := generic_triplet (module, spkg_complete);
    begin
       generic_build_module (specs, module, dependency);
    end apply_clang_module;
@@ -1124,8 +1124,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gtkdoc_module (specs : in out Portspecs)
    is
-      module     : String := "gtk-doc";
-      dependency : String := "gtk-doc:single:" & variant_standard;
+      module     : constant String := "gtk-doc";
+      dependency : constant String := single_triplet (module);
    begin
       generic_build_module (specs, module, dependency);
    end apply_gtkdoc_module;
@@ -1136,14 +1136,13 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_cran_module (specs : in out Portspecs)
    is
-      module    : String := "cran";
-      cran_main : String := "R:primary:" & variant_standard;
-      cran_nls  : String := "R:nls:" & variant_standard;
+      module    : constant String := "cran";
+      cran_main : constant String := primary_triplet ("R");
    begin
       generic_build_module (specs, module, cran_main);
-      generic_build_module (specs, module, "icu:dev:" & variant_standard);
+      generic_build_module (specs, module, dev_triplet ("icu"));
       generic_run_module   (specs, module, cran_main);
-      generic_run_module   (specs, module, cran_nls);
+      generic_run_module   (specs, module, generic_triplet ("R", spkg_nls));
    end apply_cran_module;
 
 
@@ -1156,16 +1155,10 @@ package body Port_Specification.Transform is
                                    gccsubpackage : String)
    is
       procedure scan (position : string_crate.Cursor);
-      function cc_tuple (subpkg : String) return String;
 
-      function cc_tuple (subpkg : String) return String is
-      begin
-         return default_compiler & ":" & subpkg & ":" & variant_standard;
-      end cc_tuple;
-
-      dependency : constant String := cc_tuple (gccsubpackage);
-      cc_libs    : constant String := cc_tuple ("libs");
-      cc_cxx_run : constant String := cc_tuple ("cxx_run");
+      dependency : constant String := generic_triplet (default_compiler, gccsubpackage);
+      cc_libs    : constant String := generic_triplet (default_compiler, "libs");
+      cc_cxx_run : constant String := generic_triplet (default_compiler, "cxx_run");
 
       procedure scan (position : string_crate.Cursor)
       is
@@ -1226,7 +1219,7 @@ package body Port_Specification.Transform is
       end if;
 
       declare
-         dependency : String := default_compiler & ":libs:" & variant_standard;
+         dependency : constant String := generic_triplet (default_compiler, "libs:");
       begin
          --  Check if cclibs:<subpackage> has already been set, and abort if so
          if specs.extra_rundeps.Contains (prime_pkg) and then
@@ -1249,19 +1242,19 @@ package body Port_Specification.Transform is
    is
       function determine_dependency return String;
 
-      module : String := "mysql";
+      module : constant String := "mysql";
 
       function determine_dependency return String is
       begin
          if argument_present (specs, module, "server") then
-            return determine_mysql_namebase & ":server:" & variant_standard;
+            return generic_triplet (determine_mysql_namebase, "server");
          else
-            return determine_mysql_namebase & ":client:" & variant_standard;
+            return generic_triplet (determine_mysql_namebase, "client");
          end if;
       end determine_dependency;
 
       dependency : String := determine_dependency;
-      dev_package : String := determine_mysql_namebase & ":dev:" & variant_standard;
+      dev_package : String := dev_triplet (determine_mysql_namebase);
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, dev_package);
@@ -1282,13 +1275,13 @@ package body Port_Specification.Transform is
       procedure set_dependency (subpackage : String);
       procedure set_dependency_on_subpackage (subpackage : String);
 
-      module : String := "pgsql";
+      module : constant String := "pgsql";
       namebase : String := determine_pgsql_namebase;
       build_only : Boolean := argument_present (specs, module, BUILD);
 
       procedure set_dependency (subpackage : String)
       is
-         dependency : String := namebase & ":" & subpackage & ":" & variant_standard;
+         dependency : constant String := generic_triplet (namebase, subpackage);
       begin
          if build_only then
             add_build_depends (specs, dependency);
@@ -1305,7 +1298,7 @@ package body Port_Specification.Transform is
       end set_dependency_on_subpackage;
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
-         add_build_depends (specs, namebase & ":dev:" & variant_standard);
+         add_build_depends (specs, dev_triplet (namebase));
          if no_arguments_present (specs, module) then
             set_dependency ("client");
          elsif argument_present (specs, module, "all") then
@@ -1334,7 +1327,7 @@ package body Port_Specification.Transform is
    begin
       generic_devlib_module (specs, ncurses, ncurses);
       if specs.uses_base.Contains (HT.SUS (ncurses)) then
-         add_buildrun_depends (specs, "ncurses:terminfo:" & variant_standard);
+         add_buildrun_depends (specs, generic_triplet ("ncurses", "terminfo"));
       end if;
    end apply_ncurses_module;
 
@@ -1344,8 +1337,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_libtool_module (specs : in out Portspecs)
    is
-      module     : String := "libtool";
-      dependency : String := "libtool:single:" & variant_standard;
+      module     : constant String := "libtool";
+      dependency : constant String := single_triplet (module);
    begin
       if specs.uses_base.Contains (HT.SUS (module)) and then
         argument_present (specs, module, BUILD)
@@ -1474,7 +1467,7 @@ package body Port_Specification.Transform is
    is
       procedure scan (position : string_crate.Cursor);
 
-      dependency : constant String := "indexinfo:single:" & variant_standard;
+      dependency : constant String := single_triplet ("indexinfo");
 
       procedure scan (position : string_crate.Cursor)
       is
@@ -1493,8 +1486,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_pkgconfig_module (specs : in out Portspecs)
    is
-      module     : String := "pkgconfig";
-      dependency : String := "pkgconf:primary:" & variant_standard;
+      module     : constant String := "pkgconfig";
+      dependency : constant String := primary_triplet ("pkgconf");
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1519,10 +1512,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_autoconf_module  (specs : in out Portspecs)
    is
-      module   : String := "autoreconf";
-      AUTOCONF : String := "autoconf:single:" & variant_standard;
-      AUTOMAKE : String := "automake:single:" & variant_standard;
-      LIBTOOL  : String := "libtool:single:" & variant_standard;
+      module   : constant String := "autoreconf";
+      AUTOCONF : constant String := single_triplet ("autoconf");
+      AUTOMAKE : constant String := single_triplet ("automake");
+      LIBTOOL  : constant String := single_triplet ("libtool");
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1540,8 +1533,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gprbuild_module (specs : in out Portspecs)
    is
-      module     : String := "gprbuild";
-      dependency : String := "gprbuild:primary:" & variant_standard;
+      module     : constant String := "gprbuild";
+      dependency : constant String := primary_triplet (module);
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1570,9 +1563,9 @@ package body Port_Specification.Transform is
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, "xorg-server:single:virtual");
-         add_build_depends (specs, "xorg-misc-bitmap-fonts:single:" & variant_standard);
-         add_build_depends (specs, "xorg-font-alias:single:" & variant_standard);
-         add_build_depends (specs, "daemonize:single:" & variant_standard);
+         add_build_depends (specs, single_triplet ("xorg-misc-bitmap-fonts"));
+         add_build_depends (specs, single_triplet ("xorg-font-alias"));
+         add_build_depends (specs, single_triplet ("daemonize"));
       end if;
    end apply_display_module;
 
@@ -1582,8 +1575,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gnome_icons_module (specs : in out Portspecs)
    is
-      module     : String := "gnome-icons";
-      dependency : String := "gtk3:icon_cache:" & variant_standard;
+      module     : constant String := "gnome-icons";
+      dependency : constant String := generic_triplet ("gtk3", "icon_cache");
    begin
       generic_run_module (specs, module, dependency);
    end apply_gnome_icons_module;
@@ -1594,10 +1587,10 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mime_info_module (specs : in out Portspecs)
    is
-      module     : String := "mime-info";
-      dep_prefix : String := "shared-mime-info";
+      module     : constant String := "mime-info";
+      dependency : constant String := primary_triplet ("shared-mime-info");
    begin
-      generic_run_module (specs, module, dep_prefix & ":primary:" & variant_standard);
+      generic_run_module (specs, module, dependency);
    end apply_mime_info_module;
 
 
@@ -1606,7 +1599,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_schemas_module (specs : in out Portspecs)
    is
-      module     : String := "schemas";
+      module     : constant String := "schemas";
       dependency : String renames GNOMELIB;
    begin
       generic_run_module (specs, module, dependency);
@@ -1618,8 +1611,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_desktop_utils_module (specs : in out Portspecs)
    is
-      module     : String := "desktop-utils";
-      dependency : String := "desktop-file-utils:primary:" & variant_standard;
+      module     : constant String := "desktop-utils";
+      dependency : constant String := primary_triplet ("desktop-file-utils");
    begin
       generic_library_module (specs, module, dependency);
    end apply_desktop_utils_module;
@@ -1630,17 +1623,17 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gettext_module (specs : in out Portspecs)
    is
-      gettext : constant String := "gettext";
+      ASPRINT : constant String := "asprintf";
    begin
-      if specs.uses_base.Contains (HT.SUS (gettext)) then
+      if specs.uses_base.Contains (HT.SUS (GETTEXT)) then
          add_build_depends (specs, GTDEV);
          add_build_depends (specs, GTBTOOLS);
          add_build_depends (specs, GTTOOLS);
-         if not argument_present (specs, gettext, BUILD) then
+         if not argument_present (specs, GETTEXT, BUILD) then
             add_build_depends (specs, GTSOLINX);
             add_buildrun_depends (specs, GTLIB);
-            if argument_present (specs, gettext, "asprintf") then
-               add_buildrun_depends (specs, "gettext:asprintf:" & variant_standard);
+            if argument_present (specs, GETTEXT, ASPRINT) then
+               add_buildrun_depends (specs, generic_triplet (GETTEXT, ASPRINT));
             end if;
          end if;
       end if;
@@ -1659,7 +1652,7 @@ package body Port_Specification.Transform is
       module     : constant String := "python";
       PY312      : constant String := "v12";
       PY311      : constant String := "v11";
-      autopython : constant String := "autoselect-python:single:" & variant_standard;
+      autopython : constant String := single_triplet ("autoselect-python");
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
@@ -1781,7 +1774,7 @@ package body Port_Specification.Transform is
    is
       module      : constant String := "fonts";
       fontconfig  : constant String := "fontconfig";
-      mkfontscale : constant String := "xorg-mkfontscale:primary:" & variant_standard;
+      mkfontscale : constant String := primary_triplet ("xorg-mkfontscale");
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -1800,8 +1793,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_bison_module (specs : in out Portspecs)
    is
-      module     : String := "bison";
-      dependency : String := "bison:primary:" & variant_standard;
+      module     : constant String := "bison";
+      dependency : constant String := primary_triplet (module);
    begin
       generic_3B_module (specs, module, dependency);
    end apply_bison_module;
@@ -1886,7 +1879,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_png_module (specs : in out Portspecs)
    is
-      module : String := "png";
+      module : constant String := "png";
    begin
       generic_devlib_module (specs, module, module);
    end apply_png_module;
@@ -1897,7 +1890,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gif_module (specs : in out Portspecs)
    is
-      module : String := "gif";
+      module : constant String := "gif";
    begin
       generic_devlib_module (specs, module, "giflib");
    end apply_gif_module;
@@ -1908,7 +1901,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_tiff_module (specs : in out Portspecs)
    is
-      module     : String := "tiff";
+      module : constant String := "tiff";
    begin
       generic_devlib_module (specs, module, module);
    end apply_tiff_module;
@@ -1919,8 +1912,8 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_gem_module (specs : in out Portspecs)
    is
-      module : String := "gem";
-      defver : String (1 .. 2) :=
+      module : constant String := "gem";
+      defver : constant String (1 .. 2) :=
                default_ruby (default_ruby'First) & default_ruby (default_ruby'Last);
       flavor : String := "v" & defver;
    begin
@@ -1945,7 +1938,6 @@ package body Port_Specification.Transform is
    procedure apply_php_module (specs : in out Portspecs)
    is
       module      : constant String := "php";
-      primary     : constant String := ":primary:" & variant_standard;
       --  This defver works until PHP 10 is released
       defver : String (1 .. 2) := default_php (default_php'First) & default_php (default_php'Last);
       flavor : String := "php" & defver;
@@ -1972,13 +1964,13 @@ package body Port_Specification.Transform is
          hit_zend    := argument_present (specs, module, "zend");
       end if;
       if hit_build or else hit_phpize or else hit_ext or else hit_zend then
-         add_buildrun_depends (specs, flavor & primary);
-         add_build_depends (specs, flavor & ":dev:" & variant_standard);
+         add_buildrun_depends (specs, primary_triplet (flavor));
+         add_build_depends (specs, dev_triplet (flavor));
       else
-         add_run_depends (specs, flavor & primary);
+         add_run_depends (specs, primary_triplet (flavor));
       end if;
       if hit_phpize or else hit_ext or else hit_zend then
-         add_build_depends (specs, "autoconf:single:" & variant_standard);
+         add_build_depends (specs, single_triplet ("autoconf"));
       end if;
 
    end apply_php_module;
@@ -1991,7 +1983,7 @@ package body Port_Specification.Transform is
    is
       function pick_lua return String;
 
-      module     : String := "lua";
+      module     : constant String := "lua";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
@@ -1999,10 +1991,10 @@ package body Port_Specification.Transform is
 
       function pick_lua return String
       is
-         LUA52 : String := "lua52";
-         LUA53 : String := "lua53";
-         LUA54 : String := "lua54";
-         def_setting : String := HT.USS (Parameters.configuration.def_lua);
+         LUA52 : constant String := "lua52";
+         LUA53 : constant String := "lua53";
+         LUA54 : constant String := "lua54";
+         def_setting : constant String := HT.USS (Parameters.configuration.def_lua);
       begin
          if argument_present (specs, module, "5.2") then
             return LUA52;
@@ -2026,9 +2018,9 @@ package body Port_Specification.Transform is
       end pick_lua;
 
       dependency         : constant String := pick_lua;
-      dev_subpackage     : constant String := dependency & ":dev:" & variant_standard;
-      primary_subpackage : constant String := dependency & ":primary:" & variant_standard;
-      tools_subpackage   : constant String := dependency & ":tools:" & variant_standard;
+      dev_subpackage     : constant String := dev_triplet (dependency);
+      primary_subpackage : constant String := primary_triplet (dependency);
+      tools_subpackage   : constant String := generic_triplet (dependency, "tools");
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
@@ -2076,7 +2068,7 @@ package body Port_Specification.Transform is
       procedure link_tk_packages;
       procedure link_tcl_packages;
 
-      module     : String := "tcl";
+      module     : constant String := "tcl";
       hit_run    : Boolean;
       hit_build  : Boolean;
       hit_both   : Boolean;
@@ -2104,15 +2096,15 @@ package body Port_Specification.Transform is
       begin
          if dev_package then
             if use_latest then
-               return "tk86:dev:" & variant_standard;
+               return dev_triplet ("tk86");
             else
-               return "tk85:dev:" & variant_standard;
+               return dev_triplet ("tk85");
             end if;
          else
             if use_latest then
-               return "tk86:tools:" & variant_standard;
+               return generic_triplet ("tk86", "tools");
             else
-               return "tk85:tools:" & variant_standard;
+               return generic_triplet ("tk85", "tools");
             end if;
          end if;
       end tk_package_name;
@@ -2121,9 +2113,9 @@ package body Port_Specification.Transform is
       begin
          if dev_package then
             if use_latest then
-               return "tcl86:dev:" & variant_standard;
+               return dev_triplet ("tcl86");
             else
-               return "tcl85:dev:" & variant_standard;
+               return dev_triplet ("tcl85");
             end if;
          else
             if use_latest then
@@ -2217,8 +2209,8 @@ package body Port_Specification.Transform is
       declare
          normvar : constant String := Parameters.ssl_selection (Parameters.configuration);
          myssl   : constant String := specs.get_ssl_variant (normvar);
-         primary : constant String := myssl & ":primary:" & variant_standard;
-         devpkg  : constant String := myssl & ":dev:" & variant_standard;
+         primary : constant String := primary_triplet (myssl);
+         devpkg  : constant String := dev_triplet (myssl);
       begin
          if hit_both or else (hit_build and hit_run) then
             add_build_depends (specs, devpkg);
@@ -2237,7 +2229,7 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_bdb_module (specs : in out Portspecs)
    is
-      module : String  := "bdb";
+      module : constant String  := "bdb";
    begin
       if argument_present (specs, module, "18") then
          generic_devlib_module (specs, module, "db18");
@@ -2270,23 +2262,22 @@ package body Port_Specification.Transform is
       function retrieve_dependency return String
       is
          rport_default : String := "perl-" & default_perl;
-         suffix        : String := ":primary:" & variant_standard;
          def_setting   : String := HT.USS (Parameters.configuration.def_perl);
          override_dep  : String := "perl-" & def_setting;
       begin
          if argument_present (specs, module, perl_540) then
             dep_suffix := perl_540;
-            return "perl-5.40" & suffix;
+            return primary_triplet ("perl-5.40");
          elsif argument_present (specs, module, perl_538) then
             dep_suffix := perl_538;
-            return "perl-5.38" & suffix;
+            return primary_triplet ("perl-5.38");
          else
             if def_setting = ports_default then
                dep_suffix := HT.replace_char (default_perl, LAT.Full_Stop, "");
-               return rport_default & suffix;
+               return primary_triplet (rport_default);
             else
                dep_suffix := HT.replace_char (def_setting, LAT.Full_Stop, "");
-               return override_dep & suffix;
+               return primary_triplet (override_dep);
             end if;
          end if;
       end retrieve_dependency;
@@ -2717,9 +2708,9 @@ package body Port_Specification.Transform is
                setting : String := HT.USS (Parameters.configuration.def_ssl);
             begin
                if setting = ports_default then
-                  Element := HT.SUS ("libressl:primary:" & variant_standard);
+                  Element := HT.SUS (primary_triplet ("libressl"));
                else
-                  Element := HT.SUS (setting & ":primary:" & variant_standard);
+                  Element := HT.SUS (primary_triplet (setting));
                end if;
             end;
          elsif exrundep = "python" then
@@ -2737,20 +2728,19 @@ package body Port_Specification.Transform is
          elsif exrundep = "perl" then
             declare
                setting : String := HT.USS (Parameters.configuration.def_perl);
-               suffix  : String := ":primary:" & variant_standard;
             begin
                if setting = ports_default then
-                  Element := HT.SUS ("perl-" & default_perl & suffix);
+                  Element := HT.SUS (primary_triplet ("perl-" & default_perl));
                else
-                  Element := HT.SUS ("perl-" & setting & suffix);
+                  Element := HT.SUS (primary_triplet ("perl-" & setting));
                end if;
             end;
          elsif exrundep = "mysql" then
             --  only mysql:client is supported by EXRUN
-            Element := HT.SUS (determine_mysql_namebase & ":client:" & variant_standard);
+            Element := HT.SUS (generic_triplet (determine_mysql_namebase, "client"));
          elsif exrundep = "pgsql" then
             --  only pgsql:client is supported by EXRUN
-            Element := HT.SUS (determine_pgsql_namebase & ":client:" & variant_standard);
+            Element := HT.SUS (generic_triplet (determine_pgsql_namebase, "client"));
          end if;
       end convert3;
 
@@ -2792,7 +2782,7 @@ package body Port_Specification.Transform is
    begin
       --  unzip is already in base
       if not specs.extract_7z.Is_Empty then
-         add_build_depends (specs, "p7zip:primary:" & variant_standard);
+         add_build_depends (specs, primary_triplet ("p7zip"));
       end if;
       --  TODO: placeholder for LHA
    end apply_extraction_deps;
@@ -2974,9 +2964,6 @@ package body Port_Specification.Transform is
       procedure implies (comp : gnome_type);
 
       defpy     : constant String := "v" & HT.part_2 (default_python3, ".");
-      ss        : constant String := ":single:" & variant_standard;
-      ps        : constant String := ":primary:" & variant_standard;
-      ds        : constant String := ":dev:" & variant_standard;
       uses_py   : HT.Text := HT.SUS ("python");
       pybuild   : HT.Text := HT.SUS ("python:build");
       component : array (gnome_type) of Boolean := (others => False);
@@ -3073,9 +3060,9 @@ package body Port_Specification.Transform is
             when cairomm10 =>
                add_primdev_submodule (specs, "cairomm10");
             when dconf =>
-               add_buildrun_depends (specs, "dconf" & ps);
+               add_buildrun_depends (specs, primary_triplet ("dconf"));
             when gconf =>
-               add_buildrun_depends (specs, "gconf" & ps);
+               add_buildrun_depends (specs, primary_triplet ("gconf"));
             when gdkpixbuf =>
                add_primdev_submodule (specs, "gdk-pixbuf");
             when glib =>
@@ -3100,7 +3087,7 @@ package body Port_Specification.Transform is
                add_primdev_submodule (specs, "gtk2");
             when gtk3 =>
                add_primdev_submodule (specs, "gtk3");
-               add_run_depends (specs, "adwaita-icon-theme" & ss);
+               add_run_depends (specs, single_triplet ("adwaita-icon-theme"));
             when gtk4 =>
                add_primdev_submodule (specs, "gtk4");
             when gtkmm30 =>
@@ -3114,10 +3101,10 @@ package body Port_Specification.Transform is
             when gtksourceview5 =>
                add_primdev_submodule (specs, "gtksourceview5");
             when intltool =>
-               add_build_depends    (specs, "intltool" & ps);
+               add_build_depends    (specs, primary_triplet ("intltool"));
             when introspection =>
-               add_build_depends    (specs, "gobject-introspection" & ps);
-               add_build_depends    (specs, "gobject-introspection" & ds);
+               add_build_depends    (specs, primary_triplet ("gobject-introspection"));
+               add_build_depends    (specs, dev_triplet ("gobject-introspection"));
                specs.make_env.Append (HT.SUS ("GI_SCANNER_DISABLE_CACHE=1"));
                specs.make_env.Append (HT.SUS ("XDG_CACHE_HOME=${WRKDIR}"));
             when libcroco =>
@@ -3244,7 +3231,7 @@ package body Port_Specification.Transform is
          if HT.trails (component, "proto") or else
            component = "xbitmaps"
          then
-            add_build_depends (specs, "xorg-" & component & ":single:" & variant_standard);
+            add_build_depends (specs, single_triplet ("xorg-" & component));
          else
             add_primdev_submodule (specs, "xorg-" & component);
          end if;
@@ -3253,8 +3240,8 @@ package body Port_Specification.Transform is
    begin
       specs.xorg_comps.Iterate (import'Access);
       if uses_xorg and then not HT.trails (specs.get_namebase, "proto") then
-         add_build_depends (specs, "xorg-macros:single:" & variant_standard);
-         add_build_depends (specs, "pkgconf:primary:" & variant_standard);
+         add_build_depends (specs, single_triplet ("xorg-macros"));
+         add_build_depends (specs, primary_triplet ("pkgconf"));
       end if;
    end apply_xorg_components_dependencies;
 
@@ -3267,7 +3254,6 @@ package body Port_Specification.Transform is
       procedure import (position : string_crate.Cursor);
 
       php_module  : constant String := "php";
-      std_suffix  : constant String := ":single:" & variant_standard;
       hit_build   : Boolean := False;
       hit_ext     : Boolean := False;
       --  This defver works until PHP 10 is released
@@ -3278,7 +3264,7 @@ package body Port_Specification.Transform is
       is
          extension_text : HT.Text renames string_crate.Element (position);
          extension      : constant String := HT.USS (extension_text);
-         dependency     : constant String := flavor & "-" & extension & std_suffix;
+         dependency     : constant String := single_triplet (flavor & "-" & extension);
       begin
          if hit_build or else hit_ext then
             add_buildrun_depends (specs, dependency);

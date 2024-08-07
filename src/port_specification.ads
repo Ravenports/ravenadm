@@ -773,4 +773,16 @@ private
    --  if module is not defined, return empty string
    function retrieve_module_arguments (specs : Portspecs; module : String) return String;
 
+   --  returns "<namebase>:dev:<variant_standard>"
+   function dev_triplet (namebase : String) return String;
+
+   --  returns "<namebase>:single:<variant_standard>"
+   function single_triplet (namebase : String) return String;
+
+    --  returns "<namebase>:primary:<variant_standard>"
+   function primary_triplet (namebase : String) return String;
+
+    --  returns "<namebase>:<subpackage>:<variant_standard>"
+   function generic_triplet (namebase : String; subpackage : String) return String;
+
 end Port_Specification;

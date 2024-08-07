@@ -6,7 +6,7 @@ package Definitions is
    pragma Pure;
 
    raven_version_major : constant String := "3";
-   raven_version_minor : constant String := "10";
+   raven_version_minor : constant String := "11";
    copyright_years     : constant String := "2015-2024";
 
    raven_tool        : constant String := "ravenadm";
@@ -20,7 +20,7 @@ package Definitions is
    broken_all        : constant String := "all";
    boolean_yes       : constant String := "yes";
    homepage_none     : constant String := "none";
-   spkg_complete     : constant String := "complete";
+   spkg_complete     : constant String := "set";
    spkg_docs         : constant String := "docs";
    spkg_examples     : constant String := "examples";
    spkg_nls          : constant String := "nls";
@@ -38,7 +38,7 @@ package Definitions is
    default_ruby      : constant String := "3.2";
    default_tcltk     : constant String := "8.6";
 
-   default_binutils  : constant String := "ravensys-binutils:standard";
+   default_binutils  : constant String := "ravensys-binutils:" & variant_standard;
    binutils_version  : constant String := "2.41";
    previous_binutils : constant String := "2.37";
 
