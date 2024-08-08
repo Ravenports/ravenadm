@@ -906,8 +906,8 @@ package body Port_Specification.Buildsheet is
         "NAMEBASE=" & tab & tab & "..." & CR &
         "VERSION=" & tab & tab & "${PORTVERSION}" & CR &
         "KEYWORDS=" & tab & tab & "..." & CR &
-        "VARIANTS=" & tab & tab & "standard" & CR &
-        "SDESC[standard]=" & tab & "..." & CR &
+        "VARIANTS=" & tab & tab & "std" & CR &
+        "SDESC[std]=" & tab & tab & "..." & CR &
         "HOMEPAGE=" & tab & tab & "none" & CR &
         "CONTACT=" & tab & tab & "Jay_Leno[jay@aarp.org]" & CR & CR &
         "DOWNLOAD_GROUPS=" & tab & "main" & CR &
