@@ -476,7 +476,7 @@ package body PortScan.Buildcycle is
          queue.Clear;
          queue.Append (ccnsv ("ada_run"));
          queue.Append (ccnsv ("compilers"));
-         queue.Append (ccnsv ("complete"));
+         queue.Append (ccnsv ("set"));
          queue.Append (ccnsv ("cxx_run"));
          queue.Append (ccnsv ("fortran_run"));
          queue.Append (ccnsv ("infopages"));
