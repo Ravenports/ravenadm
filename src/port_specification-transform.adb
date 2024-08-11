@@ -1325,7 +1325,7 @@ package body Port_Specification.Transform is
    procedure apply_libtool_module (specs : in out Portspecs)
    is
       module     : constant String := "libtool";
-      dependency : constant String := single_triplet (module);
+      dependency : constant String := primary_triplet (module);
    begin
       if specs.uses_base.Contains (HT.SUS (module)) and then
         argument_present (specs, module, BUILD)
@@ -1502,7 +1502,7 @@ package body Port_Specification.Transform is
       module   : constant String := "autoreconf";
       AUTOCONF : constant String := primary_triplet ("autoconf");
       AUTOMAKE : constant String := primary_triplet ("automake");
-      LIBTOOL  : constant String := single_triplet ("libtool");
+      LIBTOOL  : constant String := primary_triplet ("libtool");
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
          return;
