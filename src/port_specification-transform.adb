@@ -3047,9 +3047,9 @@ package body Port_Specification.Transform is
             when cairomm10 =>
                add_primdev_submodule (specs, "cairomm10");
             when dconf =>
-               add_buildrun_depends (specs, primary_triplet ("dconf"));
+               add_primdev_submodule (specs, "dconf");
             when gconf =>
-               add_buildrun_depends (specs, primary_triplet ("gconf"));
+               add_primdev_submodule (specs, "gconf");
             when gdkpixbuf =>
                add_primdev_submodule (specs, "gdk-pixbuf");
             when glib =>
