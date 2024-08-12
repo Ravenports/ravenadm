@@ -913,7 +913,7 @@ package body Port_Specification.Buildsheet is
         "DOWNLOAD_GROUPS=" & tab & "main" & CR &
         "SITES[main]=" & tab & tab & "http://www.example.com/" & CR &
         "DISTFILE[1]=" & tab & tab & "x-${PORTVERSION}.tar.gz:main" & CR & CR &
-        "SPKGS[standard]=" & tab & "single" & CR & CR &
+        "SPKGS[std]=" & tab & tab & "single" & CR & CR &
         "OPTIONS_AVAILABLE=" & tab & "none" & CR &
         "OPTIONS_STANDARD=" & tab & "none" & CR & CR &
         "FPC_EQUIVALENT=" & tab & tab & "...";
