@@ -420,27 +420,39 @@ package body PortScan.Buildcycle is
       is
          cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
          arguments  : constant String := root & environ & cmd;
+         max_time   : constant execution_limit := 4;
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, max_time);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Generate repository command timed out.");
+         end if;
       end generate_local_repo;
 
       procedure install_catalog
       is
          cmd        : constant String := rvn_repos & "catalog --force";
          arguments  : constant String := root & environ & cmd;
+         max_time   : constant execution_limit := 3;
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, max_time);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Install catalog command timed out.");
+         end if;
       end install_catalog;
 
       procedure prefetch_all_packages
       is
          cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
          arguments  : constant String := root & environ & cmd;
+         max_time   : constant execution_limit := 5;
          timed_out  : Boolean;
       begin
-         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, max_time);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Prefetch package command timed out.");
+         end if;
       end prefetch_all_packages;
 
       procedure install_dependency_pyramid
@@ -450,6 +462,9 @@ package body PortScan.Buildcycle is
          timed_out  : Boolean;
       begin
          still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Dependency install command timed out.");
+         end if;
       end install_dependency_pyramid;
 
       procedure special_case_ravensys_toolchain
