@@ -592,31 +592,40 @@ package body PortScan.Buildcycle is
       procedure generate_local_repo
       is
          cmd        : constant String := "/usr/bin/rvn genrepo --quiet /repo";
-         command    : constant String := PM.chroot_program & " " & root & environ & cmd;
+         arguments  : constant String := root & environ & cmd;
+         max_time   : constant execution_limit := 4;
+         timed_out  : Boolean;
       begin
-         RAX.writeln (trackers (id).log_fd, generic_system_command (command));
-      exception
-         when cycle_cmd_error => still_good := False;
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, max_time);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Generate repository command timed out.");
+         end if;
       end generate_local_repo;
 
       procedure install_catalog
       is
          cmd        : constant String := rvn_repos & "catalog --force";
-         command    : constant String := PM.chroot_program & " " & root & environ & cmd;
+         arguments  : constant String := root & environ & cmd;
+         max_time   : constant execution_limit := 3;
+         timed_out  : Boolean;
       begin
-         RAX.writeln (trackers (id).log_fd, generic_system_command (command));
-      exception
-         when cycle_cmd_error => still_good := False;
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, max_time);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Install catalog command timed out.");
+         end if;
       end install_catalog;
 
       procedure prefetch_all_packages
       is
          cmd        : constant String := rvn_repos & "fetch --all --no-repo-update --quiet";
-         command    : constant String := PM.chroot_program & " " & root & environ & cmd;
+         arguments  : constant String := root & environ & cmd;
+         max_time   : constant execution_limit := 5;
+         timed_out  : Boolean;
       begin
-         RAX.writeln (trackers (id).log_fd, generic_system_command (command));
-      exception
-         when cycle_cmd_error => still_good := False;
+         still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, max_time);
+         if timed_out then
+            RAX.writeln (trackers (id).log_fd, "FATAL: Prefetch package command timed out.");
+         end if;
       end prefetch_all_packages;
 
       procedure build_list (position : subpackage_crate.Cursor)
