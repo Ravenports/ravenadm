@@ -181,6 +181,9 @@ package body PortScan.Packager is
             if DIR.Exists (description_filename) then
                return FOP.get_file_contents (description_filename);
             end if;
+            still_good := False;
+            RAX.writeln (log_fd, "=> The package description file for the " & subpackage &
+                           " subpackage does not exist.");
             return "Developer error: " & subpackage & " subpackage description missing.";
          end long_description;
 
@@ -337,6 +340,9 @@ package body PortScan.Packager is
                null;  --  should not happen since it's already been validated
          end insert_script_set;
       begin
+         if not still_good then
+            return;
+         end if;
          metatree.insert ("namebase", namebase);
          metatree.insert ("subpackage", subpackage);
          metatree.insert ("variant", variant);
@@ -392,6 +398,8 @@ package body PortScan.Packager is
                RAX.writeln (log_fd, "=> The package list " & package_list & " for the " &
                               subpackage & " subpackage does not exist.");
             end if;
+         end if;
+         if still_good then
             RAX.writeln (log_fd, "===>  Creating " & filename & " package");
 
             still_good := execute_command (builder_id, log_fd, PM.chroot_program, arguments);
@@ -424,13 +432,13 @@ package body PortScan.Packager is
       LOG.log_phase_begin (log_fd, phase_name);
 
       DIR.Create_Path (spkgdir);
-      all_ports (seq_id).subpackages.Iterate (create_metadata_file'Access);
 
       check_deprecation (specification, log_fd);
       if not create_package_directory_if_necessary (log_fd) then
          return False;
       end if;
 
+      all_ports (seq_id).subpackages.Iterate (create_metadata_file'Access);
       all_ports (seq_id).subpackages.Iterate (package_it'Access);
       all_ports (seq_id).subpackages.Iterate (copy_it_outside_sysroot'Access);
       LOG.log_phase_end (log_fd);
