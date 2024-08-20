@@ -104,7 +104,7 @@ package body Pilot is
       result   : Boolean;
       level2ok : Boolean := False;
       man_page : constant String :=
-        host_localbase & "/share/man/man8/ravenadm-" & level2 & ".8.gz";
+        host_localbase & "/share/man/man8/ravenadm-" & level2 & ".8";
 
       function man_command return String is
       begin
