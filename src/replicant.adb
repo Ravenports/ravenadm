@@ -887,11 +887,10 @@ package body Replicant is
             end case;
          end if;
       else
-         --  Unlimited, previous limited slave to 24Gb, covers localbase + construction mainly
-         mount_tmpfs (slave_base);
+         --  Limit slave to 24Gb, covers localbase + construction mainly
+         mount_tmpfs (slave_base, 24 * 1024);
          if lbase = bsd_localbase then
-            --  Unlimited, previous limited slave to 12Gb
-            mount_tmpfs (slave_base & bsd_localbase);
+            mount_tmpfs (slave_base & bsd_localbase, 12 * 1024);
          end if;
       end if;
 
