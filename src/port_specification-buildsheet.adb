@@ -802,6 +802,7 @@ package body Port_Specification.Buildsheet is
       send ("INFRASTRUCTURE",       specs.infrastructure, True);
       send ("BLOCK_WATCHDOG",       specs.kill_watchdog, True);
       send ("SET_DEBUGGING_ON",     specs.debugging_on, True);
+      send ("KAIJU",                specs.kaiju, True);
       send ("CFLAGS",               specs.cflags, 1);
       send ("CXXFLAGS",             specs.cxxflags, 1);
       send ("CPPFLAGS",             specs.cppflags, 1);

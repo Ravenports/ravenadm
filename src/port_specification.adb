@@ -120,6 +120,7 @@ package body Port_Specification is
       specs.skip_opsys_dep := False;
       specs.infrastructure := False;
       specs.kill_watchdog  := False;
+      specs.kaiju          := False;
       specs.build_wrksrc   := HT.blank;
       specs.makefile       := HT.blank;
       specs.destdirname    := HT.blank;
@@ -1691,6 +1692,8 @@ package body Port_Specification is
             specs.cgo_skip_build := value;
          when sp_cgo_inst =>
             specs.cgo_skip_inst := value;
+         when sp_kaiju =>
+            specs.kaiju := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -5855,6 +5858,7 @@ package body Port_Specification is
             when sp_cgo_conf       => TIO.Put_Line (specs.cgo_skip_conf'Img);
             when sp_cgo_build      => TIO.Put_Line (specs.cgo_skip_build'Img);
             when sp_cgo_inst       => TIO.Put_Line (specs.cgo_skip_inst'Img);
+            when sp_kaiju          => TIO.Put_Line (specs.kaiju'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -5950,6 +5954,7 @@ package body Port_Specification is
       print_boolean     ("INSTALL_REQ_TOOLCHAIN", sp_inst_tchain);
       print_boolean     ("SINGLE_JOB", sp_single_job);
       print_boolean     ("SET_DEBUGGING_ON", sp_debugging);
+      print_boolean     ("KAIJU", sp_kaiju);
       print_boolean     ("DESTDIR_VIA_ENV", sp_destdir_env);
       print_boolean     ("INFRASTRUCTURE", sp_infra);
       print_boolean     ("BLOCK_WATCHDOG", sp_killdog);

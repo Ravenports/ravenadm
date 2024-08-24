@@ -454,6 +454,7 @@ package body Specification_Parser is
                      when cgo_conf         => set_boolean (spec, PSP.sp_cgo_conf, line);
                      when cgo_build        => set_boolean (spec, PSP.sp_cgo_build, line);
                      when cgo_inst         => set_boolean (spec, PSP.sp_cgo_inst, line);
+                     when monster_port     => set_boolean (spec, PSP.sp_kaiju, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -1074,7 +1075,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 190;
+      total_singlets : constant Positive := 191;
 
       type singlet_pair is
          record
@@ -1179,6 +1180,7 @@ package body Specification_Parser is
          ("INSTALL_TARGET        ", 14, install_tgt),
          ("INSTALL_WRKSRC        ", 14, install_wrksrc),
          ("INVALID_RPATH         ", 13, invalid_rpath),
+         ("KAIJU                 ",  5, monster_port),
          ("KEYWORDS              ",  8, keywords),
          ("LDFLAGS               ",  7, ldflags),
          ("LICENSE               ",  7, licenses),
