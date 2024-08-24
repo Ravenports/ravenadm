@@ -922,16 +922,10 @@ package body Replicant is
       case platform_type is
          when freebsd | dragonfly | netbsd | openbsd | midnightbsd =>
             --  should be limited to rtld executable
-            if PM.configuration.avoid_tmpfs then
-               mount_hardlink (target      => location (dir_system, libexec),
-                               mount_point => location (slave_base, libexec),
-                               sysroot     => dir_system);
-            else
-               --  saves a null mount (at the cost of memory)
-               mount_fullcopy (target      => location (dir_system, libexec),
-                               mount_point => location (slave_base, libexec),
-                               sysroot     => dir_system);
-            end if;
+            --  saves a null mount (at the cost of memory)
+            mount_fullcopy (target      => location (dir_system, libexec),
+                            mount_point => location (slave_base, libexec),
+                            sysroot     => dir_system);
          when linux =>
             mount_nullfs (location (dir_system, lib),   location (slave_base, lib));
             mount_nullfs (location (dir_system, lib64), location (slave_base, lib64));
