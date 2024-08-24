@@ -718,6 +718,7 @@ package body Port_Specification.Transform is
          LIST_MYSQL_FAILURE : constant String := "Does not build with MySQL default '";
          LIST_PGSQL_FAILURE : constant String := "Does not build with PGSQL default '";
       begin
+         --  Handle BROKEN by Operating System
          if not specs.skip_opsys_dep then
             if specs.exc_opsys.Contains (HT.SUS (UTL.lower_opsys (opsys))) or else
               (not specs.inc_opsys.Is_Empty and then
@@ -771,6 +772,21 @@ package body Port_Specification.Transform is
             if specs.broken_pgsql.Contains (Parameters.configuration.def_postgresql) then
                reason := HT.SUS (LIST_PGSQL_FAILURE &
                                    HT.USS (Parameters.configuration.def_postgresql) & "'");
+               local_broken.list.Append (reason);
+            end if;
+         end if;
+
+         --  Handle BROKEN on Kaiju port where builders > 1 or TMPFS set.
+         if specs.kaiju then
+            if Parameters.configuration.num_builders > 1 then
+               reason := HT.SUS ("Monster port builder limit is 1, but this profile uses" &
+                                   Parameters.configuration.num_builders'Img &
+                                   " builders.");
+               local_broken.list.Append (reason);
+            end if;
+            if not Parameters.configuration.avoid_tmpfs then
+               reason := HT.SUS ("Monster port is resource intensive, but this profile uses " &
+                                   "tmpfs.  Supress tmpfs use to enable building this port.");
                local_broken.list.Append (reason);
             end if;
          end if;
