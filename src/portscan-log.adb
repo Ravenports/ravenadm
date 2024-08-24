@@ -416,16 +416,6 @@ package body PortScan.Log is
       RAX.write   (log_fd, FOP.get_file_contents (slave_root & CFG1));
       RAX.writeln (log_fd, "" & LAT.LF);
 
-      --  begin
-      --     SIO.Open (File => sio_handle,
-      --               Mode => SIO.In_File,
-      --               Name => log_path,
-      --               Form => shared);
-      --  exception
-      --     when error : others =>
-      --        raise scan_log_error
-      --          with "failed to open SIO log " & log_path;
-      --  end;
       return True;
 
    end initialize_log;
