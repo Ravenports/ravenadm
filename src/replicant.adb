@@ -903,11 +903,7 @@ package body Replicant is
          mk_directory : constant String := mount_target (xports) & "/Mk";
          slave_mk     : constant String := location (slave_base, xports) & "/Mk";
       begin
-         if PM.configuration.avoid_tmpfs then
-            mount_hardlink (mk_directory, slave_mk, dir_system);
-         else
-            mount_fullcopy (mk_directory, slave_mk, dir_system);
-         end if;
+         mount_fullcopy (mk_directory, slave_mk, dir_system);
          process_keyword_files (slave_mk, lbase);
       end;
 
