@@ -780,13 +780,7 @@ package body Port_Specification.Transform is
          if specs.kaiju then
             if Parameters.configuration.num_builders > 1 then
                reason := HT.SUS ("Monster port builder limit is 1, but this profile uses" &
-                                   Parameters.configuration.num_builders'Img &
-                                   " builders.");
-               local_broken.list.Append (reason);
-            end if;
-            if not Parameters.configuration.avoid_tmpfs then
-               reason := HT.SUS ("Monster port is resource intensive, but this profile uses " &
-                                   "tmpfs.  Supress tmpfs use to enable building this port.");
+                                   Parameters.configuration.num_builders'Img & " builders.");
                local_broken.list.Append (reason);
             end if;
          end if;
