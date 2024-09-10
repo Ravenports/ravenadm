@@ -582,16 +582,14 @@ package body Replicant is
             raise scenario_unexpected with
               "tmpfs not supported on " & platform_type'Img;
       end case;
-      if max_size_M > 0 then
-         case platform_type is
-            when netbsd =>
-               HT.SU.Append (command, " -o -s" & HT.trim (max_size_M'Img) & "M");
-            when macos     => null;
-            when openbsd   => null;
-            when others =>
-               HT.SU.Append (command, " -o size=" & HT.trim (max_size_M'Img) & "M");
-         end case;
-      end if;
+      case platform_type is
+         when netbsd =>
+            HT.SU.Append (command, " -o -s" & HT.trim (max_size_M'Img) & "M");
+         when macos     => null;
+         when openbsd   => null;
+         when others =>
+            HT.SU.Append (command, " -o size=" & HT.trim (max_size_M'Img) & "M");
+      end case;
       case platform_type is
          when sunos     => HT.SU.Append (command, " swap " & mount_point);
          when freebsd   |
