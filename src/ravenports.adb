@@ -85,7 +85,7 @@ package body Ravenports is
    is
       sysroot       : constant String := HT.USS (PM.configuration.dir_sysroot);
       fetch_program : constant String := sysroot & "/usr/bin/fetch";
-      certficate    : constant String := sysroot & "/usr/share/cert.pem "
+      certficate    : constant String := sysroot & "/usr/share/cert.pem ";
       tarball       : constant String := github_archive & "/" & latest_version & ".tar.gz";
       cmd_output    : HT.Text;
       cmd           : constant String := "/usr/bin/env SSL_CA_CERT_PATH=" & certficate &

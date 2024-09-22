@@ -81,8 +81,7 @@ private
    version_E : constant String := "12:13:14:" & default_pgsql & ":16";
    version_F : constant String := "3.11:" & default_python3;
    version_G : constant String := "3.1:" & default_ruby & ":3.3";
-   version_H : constant String := "openssl10:openssl11:openssl30:" &
-                                   default_ssl & ":libressl-devel";
+   version_H : constant String := "openssl30:" & default_ssl & ":libressl-devel";
    version_I : constant String := "8.5:" & default_tcltk;
 
    procedure clear_screen;

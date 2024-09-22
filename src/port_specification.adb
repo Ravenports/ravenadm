@@ -1086,9 +1086,7 @@ package body Port_Specification is
             if specs.broken_ssl.Contains (text_value) then
                raise dupe_list_value with "Duplicate item '" & value & "'";
             end if;
-            if value = "openssl10" or else
-              value = "openssl11" or else
-              value = "openssl30" or else
+            if value = "openssl30" or else
               value = "libressl" or else
               value = "libressl-devel"
             then
@@ -5462,15 +5460,11 @@ package body Port_Specification is
 
       function known_ssl_variant (candidate : String) return Boolean
       is
-         OSS1 : constant String := "openssl10";
-         OSS2 : constant String := "openssl11";
          OSS3 : constant String := "openssl30";
          LSS1 : constant String := "libressl";
          LSS2 : constant String := "libressl-devel";
       begin
          return
-           candidate = OSS1 or else
-           candidate = OSS2 or else
            candidate = OSS3 or else
            candidate = LSS1 or else
            candidate = LSS2;
