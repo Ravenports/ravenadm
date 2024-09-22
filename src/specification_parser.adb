@@ -1756,6 +1756,9 @@ package body Specification_Parser is
       if spec.missing_subpackage_definition then
          return "At least one variant has no subpackages defined.";
       end if;
+      if spec.core_subpackage_detected then
+         return "At least one variant has a subpackage illegally named 'core'";
+      end if;
       if not spec.post_parse_license_check_passes then
          return "The LICENSE settings are not valid.";
       end if;

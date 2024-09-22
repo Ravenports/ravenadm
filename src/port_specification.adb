@@ -3506,8 +3506,6 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function missing_subpackage_definition (specs : Portspecs) return Boolean
    is
-      procedure check (position : list_crate.Cursor);
-
       triggered : Boolean := False;
 
       procedure check (position : list_crate.Cursor)
@@ -3522,6 +3520,31 @@ package body Port_Specification is
       specs.subpackages.Iterate (check'Access);
       return triggered;
    end missing_subpackage_definition;
+
+
+   --------------------------------------------------------------------------------------------
+   --  core_subpackage_detected
+   --------------------------------------------------------------------------------------------
+   function core_subpackage_detected (specs : Portspecs) return Boolean
+   is
+      triggered : Boolean := False;
+
+      procedure check (position : list_crate.Cursor)
+      is
+         rec : group_list renames list_crate.Element (position);
+         num_subpackages : Natural;
+      begin
+         num_subpackages := Natural (rec.list.Length);
+         for x in 1 .. num_subpackages loop
+            if HT.equivalent (rec.list.Element (x), "core") then
+               triggered := True;
+            end if;
+         end loop;
+      end check;
+   begin
+      specs.subpackages.Iterate (check'Access);
+      return triggered;
+   end core_subpackage_detected;
 
 
    --------------------------------------------------------------------------------------------

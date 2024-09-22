@@ -234,6 +234,9 @@ package Port_Specification is
    --  Returns True if one or more variants have no defined subpackages.
    function missing_subpackage_definition (specs : Portspecs) return Boolean;
 
+   --  Returns True if one or more variants have a subpackage named "core"
+   function core_subpackage_detected (specs : Portspecs) return Boolean;
+
    --  Return container of unique build + buildrun + run depends (optional)
    --  If limit_to_run is true, only run dependencies are returned
    procedure combined_dependency_nsv
