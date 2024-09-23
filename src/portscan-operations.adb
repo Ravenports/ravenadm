@@ -1547,7 +1547,7 @@ package body PortScan.Operations is
             declare
                cmd : constant String :=
                  host_rvn & " fetch --no-repo-update --yes --exact-match --output " &
-                 HT.USS (PM.configuration.dir_packages) & "/files" & HT.USS (package_list);
+                 HT.USS (PM.configuration.dir_repository) & HT.USS (package_list);
             begin
                if Unix.external_command (cmd) then
                   null;
