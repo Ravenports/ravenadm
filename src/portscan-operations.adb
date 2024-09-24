@@ -1425,11 +1425,10 @@ package body PortScan.Operations is
          loc     : constant String := HT.USS (PM.configuration.dir_repository) & "/" & pkgfile;
       begin
          if DIR.Exists (loc) then
-            declare
-                nrec : subpackage_identifier := (id, subpackage_queue.Element (cursor).subpackage);
-            begin
-               already_built.Append (nrec);
-            end;
+            if not prune_list.Contains (id) then
+               --  Any subpackage prunes entire package set from list.
+               prune_list.Append (id);
+            end if;
          else
             TIO.Put_Line ("Download failed: " & pkgfile);
             fetch_fail := True;
