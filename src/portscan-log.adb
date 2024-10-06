@@ -3,6 +3,7 @@
 
 with Ada.Calendar.Arithmetic;
 with Ada.Calendar.Formatting;
+with Ada.Calendar.Time_Zones;
 with Ada.Characters.Latin_1;
 with Ada.Directories;
 with File_Operations;
@@ -14,6 +15,7 @@ package body PortScan.Log is
    package DIR renames Ada.Directories;
    package CAR renames Ada.Calendar.Arithmetic;
    package CFM renames Ada.Calendar.Formatting;
+   package CTZ renames Ada.Calendar.Time_Zones;
    package LAT renames Ada.Characters.Latin_1;
    package FOP renames File_Operations;
    package PM  renames Parameters;
@@ -94,7 +96,7 @@ package body PortScan.Log is
 
       function MON (T : CAL.Time) return String
       is
-         num : CAL.Month_Number := CAL.Month (T);
+         num : CAL.Month_Number := CFM.Month (T);
       begin
          case num is
             when 1 => return "JAN";
@@ -114,7 +116,11 @@ package body PortScan.Log is
 
       function WKDAY (T : CAL.Time) return String
       is
-         day : CFM.Day_Name := CFM.Day_Of_Week (T);
+         --  Day of week ignores the timezone so we have to subtract it manually
+         zoffset  : constant CTZ.Time_Offset := CTZ.UTC_Time_Offset (T);
+         zoffset2 : constant Duration := Duration (zoffset) * 60;
+         new_time : constant CAL.Time := CAL."-" (T, zoffset2);
+         day      : constant CFM.Day_Name := CFM.Day_Of_Week (new_time);
       begin
          case day is
             when CFM.Monday    => return "Monday";
@@ -129,7 +135,7 @@ package body PortScan.Log is
 
       function daystring (T : CAL.Time) return String
       is
-         daynum : Natural := Natural (CAL.Day (T));
+         daynum : Natural := Natural (CFM.Day (T));
       begin
          return HT.zeropad (daynum, 2);
       end daystring;
@@ -137,10 +143,10 @@ package body PortScan.Log is
    begin
       if www_format then
          return daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
-           ", " & CFM.Image (hack)(11 .. 19) & " UTC";
+           "," & CFM.Image (hack)(11 .. 19) & " UTC";
       end if;
 
-      return WKDAY (hack) & "," & daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
+      return WKDAY (hack) & ", " & daystring (hack) & " " & MON (hack) & CAL.Year (hack)'Img &
         " at" & CFM.Image (hack)(11 .. 19) & " UTC";
    end timestamp;
 
