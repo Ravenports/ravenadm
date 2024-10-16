@@ -379,12 +379,14 @@ package body Port_Specification.Web is
             return "This is the native language support" & final;
          elsif subpackage = "man" then
             return "This is the man page" & final;
+         elsif subpackage = "info" then
+            return "This is the GNU Info manual page" & final;
          elsif subpackage = "lang" then
             return "This is the language" & final;
          elsif subpackage = "dev" then
             return "This is the developer" & final & LAT.LF &
               "It may contain headers, pc files, static and PIC libraries and SO links.";
-         elsif subpackage = "complete" then
+         elsif subpackage = "set" then
             return
               "This is the " & id2 & " metapackage." & LAT.LF &
               "It pulls in all subpackages of " & id2 & ".";
