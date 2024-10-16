@@ -2839,7 +2839,12 @@ package body PortScan.Scan is
                         namebase : HT.Text := HT.SUS (DIR.Simple_Name (Inner_Dirent));
                      begin
                         newrec.lastmod := DIR.Modification_Time (Inner_Dirent);
-                        crate.Insert (namebase, newrec);
+                        if crate.Contains (namebase) then
+                           TIO.Put_Line ("Duplicate " & DIR.Simple_Name (Inner_Dirent) &
+                                           " spec sheet ignored");
+                        else
+                           crate.Insert (namebase, newrec);
+                        end if;
                      end;
                   end loop;
                   DIR.End_Search (Inner_Search);
