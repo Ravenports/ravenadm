@@ -459,16 +459,17 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure unmount (device_or_node : String; retry_times : Natural := 6)
    is
-      bsd_command : constant String := "/sbin/umount -f " & device_or_node;
-      sol_command : constant String := "/usr/sbin/umount -f " & device_or_node;
-      lin_command : constant String := "/bin/umount -f " & device_or_node;
-      lazycommand : constant String := "/bin/umount -l " & device_or_node;
-      lsof_cmd    : constant String := "/usr/bin/lsof " & device_or_node;
-      counter     : Natural := 0;
-      success     : Boolean := False;
+      command_bsd   : constant String := "/sbin/umount";
+      command_linux : constant String := "/bin/umount";
+      command_sunos : constant String := "/usr/sbin/umount";
+      command_lsof  : constant String := "/usr/bin/lsof";
+      counter       : Natural := 0;
+      success       : Boolean := False;
    begin
       --  failure to unmount causes stderr squawks which messes up curses display
-      --  Just log it and ignore for now (Add robustness later)
+      --  Just abnormally log it.
+      --  Attempt regular umount retry - 1 times, and then force it on the last time.
+      --  If retry_times = 0, then do a second attempt on failure with the force flag.
       loop
          begin
             exit when counter > retry_times;
@@ -478,36 +479,55 @@ package body Replicant is
                     macos     |
                     netbsd    |
                     openbsd   |
-                    midnightbsd => execute (bsd_command);
-               when linux       => execute (lin_command);
-               when sunos       => execute (sol_command);
+                    midnightbsd => execute (command_bsd & " " & device_or_node);
+               when sunos       => execute (command_sunos & " " & device_or_node);
+               when linux       => execute (command_linux & " " & device_or_node);
             end case;
             success := True;
             exit;
          exception
-            when others =>
-               case platform_type is
-                  when linux  =>
-                     if counter = retry_times - 1 then
-                        begin
-                           execute (lsof_cmd);
-                        exception
-                           when scenario_unexpected =>
-                              TIO.Put_Line (abnormal_log, "LSOF command failed, ignored");
-                        end;
-                        begin
-                           execute (lazycommand);
-                        exception
-                           when scenario_unexpected =>
-                              TIO.Put_Line (abnormal_log, "lazy command failed, ignored");
-                        end;
-                     end if;
-                  when others => null;
-               end case;
+            when scenario_unexpected =>
+               TIO.Put_Line (abnormal_log,
+                             "umount & " & device_or_node & " command failed, ignored");
                counter := counter + 1;
                delay 10.0;
+            when shock : others =>
+               TIO.Put_Line (abnormal_log, EX.Exception_Information (shock));
+               exit;
          end;
       end loop;
+      if not success then
+         --  Unmounting failed even with retries, so try again with the force flag
+         if counter = retry_times then
+            begin
+               case platform_type is
+                  when dragonfly |
+                       freebsd   |
+                       macos     |
+                       netbsd    |
+                       openbsd   |
+                       midnightbsd => execute (command_bsd & " -f " & device_or_node);
+                  when sunos       => execute (command_sunos & " -f " & device_or_node);
+                  when linux       =>
+                     begin
+                        execute (command_lsof & " " & device_or_node);
+                     exception
+                        when scenario_unexpected =>
+                           TIO.Put_Line (abnormal_log, "LSOF command failed, ignored");
+                     end;
+                     --  lazy umount
+                     execute (command_linux & " -l " & device_or_node);
+               end case;
+               success := True;
+            exception
+               when scenario_unexpected =>
+                  TIO.Put_Line (abnormal_log,
+                                "fatal: forced umount & " & device_or_node & " failed");
+               when shock : others =>
+                  TIO.Put_Line (abnormal_log, EX.Exception_Information (shock));
+            end;
+         end if;
+      end if;
       if not success then
          raise failed_unmount with device_or_node;
       end if;
