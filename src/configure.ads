@@ -82,7 +82,7 @@ private
    version_F : constant String := "3.11:" & default_python3;
    version_G : constant String := "3.1:" & default_ruby & ":3.3";
    version_H : constant String := "openssl30:" & default_ssl & ":libressl-devel";
-   version_I : constant String := default_tcltk & ":8.6";
+   version_I : constant String := default_tcltk & ":9.0";
 
    procedure clear_screen;
    procedure print_header;
