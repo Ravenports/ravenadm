@@ -2075,33 +2075,33 @@ package body Port_Specification.Transform is
       function use_the_newest_tcltk return Boolean
       is
       begin
-         if argument_present (specs, module, "8.5") then
+         if argument_present (specs, module, "8.6") then
             return False;
          end if;
-         if argument_present (specs, module, "8.6") then
+         if argument_present (specs, module, "9.0") then
             return True;
          end if;
-         if HT.USS (Parameters.configuration.def_tcl_tk) = "8.5" then
-            return False;
+         if HT.USS (Parameters.configuration.def_tcl_tk) = "9.0" then
+            return True;
          end if;
          --  If we get here, the port did not specify the version and ravenadm is configured
          --  either to use version 8.6 or it's floating to the default (also 8.6)
-         return True;
+         return False;
       end use_the_newest_tcltk;
 
       function tk_package_name (dev_package : Boolean) return String is
       begin
          if dev_package then
             if use_latest then
-               return dev_triplet ("tk86");
+               return dev_triplet ("tk90");
             else
-               return dev_triplet ("tk85");
+               return dev_triplet ("tk86");
             end if;
          else
             if use_latest then
-               return generic_triplet ("tk86", "tools");
+               return generic_triplet ("tk90", "tools");
             else
-               return generic_triplet ("tk85", "tools");
+               return generic_triplet ("tk86", "tools");
             end if;
          end if;
       end tk_package_name;
@@ -2110,15 +2110,15 @@ package body Port_Specification.Transform is
       begin
          if dev_package then
             if use_latest then
-               return dev_triplet ("tcl86");
+               return dev_triplet ("tcl90");
             else
-               return dev_triplet ("tcl85");
+               return dev_triplet ("tcl86");
             end if;
          else
             if use_latest then
-               return TCL86;
+               return TCL90;
             else
-               return TCL85;
+               return TCL86;
             end if;
          end if;
       end tcl_package_name;
@@ -2717,8 +2717,8 @@ package body Port_Specification.Transform is
                Element := HT.SUS (PYTHON312);
             end if;
          elsif exrundep = "tcl" then
-            if specs.buildrun_deps.Contains (HT.SUS (TCL85)) then
-               Element := HT.SUS (TCL85);
+            if specs.buildrun_deps.Contains (HT.SUS (TCL90)) then
+               Element := HT.SUS (TCL90);
             else
                Element := HT.SUS (TCL86);
             end if;

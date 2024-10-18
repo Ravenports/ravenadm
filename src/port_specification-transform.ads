@@ -57,8 +57,8 @@ private
    PY312DEV  : constant String := dev_triplet ("python312");
 
    GETTEXT  : constant String := "gettext";
-   TCL85    : constant String := generic_triplet ("tcl85", "tools");
    TCL86    : constant String := generic_triplet ("tcl86", "tools");
+   TCL90    : constant String := generic_triplet ("tcl90", "tools");
    RUBY31   : constant String := primary_triplet ("ruby31");
    RUBY32   : constant String := primary_triplet ("ruby32");
    RUBY33   : constant String := primary_triplet ("ruby33");
