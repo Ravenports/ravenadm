@@ -298,38 +298,6 @@ package body File_Operations is
    end convert_ORIGIN_in_runpath;
 
 
-   --------------------------------
-   --  update_latest_log_length  --
-   --------------------------------
-   --  procedure update_latest_log_length
-   --    (handle     : in out SIO.File_Type;
-   --     num_lines  : in out Natural;
-   --     log_offset : in out SIO.Positive_Count)
-   --  is
-   --     buffer    : Ada.Streams.Stream_Element_Array (1 .. 4096);
-   --     last_read : Ada.Streams.Stream_Element_Offset;
-   --     linefeed  : constant Ada.Streams.Stream_Element := 10;
-   --
-   --     use type Ada.Streams.Stream_Element;
-   --     use type Ada.Streams.Stream_Element_Offset;
-   --     use type SIO.Count;
-   --  begin
-   --     loop
-   --        SIO.Read (File => handle,
-   --                  Item => buffer,
-   --                  Last => last_read,
-   --                  From => log_offset);
-   --        for x in 1 .. last_read loop
-   --           if buffer (x) = linefeed then
-   --              num_lines := num_lines + 1;
-   --           end if;
-   --        end loop;
-   --        log_offset := log_offset + SIO.Positive_Count (last_read);
-   --        exit when last_read < buffer'Last;
-   --     end loop;
-   --  end update_latest_log_length;
-
-
    --------------------
    --  lines_in_log  --
    --------------------
@@ -345,6 +313,9 @@ package body File_Operations is
       use type Ada.Streams.Stream_Element;
       use type Ada.Streams.Stream_Element_Offset;
       use type SIO.Count;
+
+      log_file_size : SIO.Count;
+      already_read  : SIO.Count := 0;
    begin
       begin
          SIO.Open (File => sio_handle,
@@ -356,6 +327,8 @@ package body File_Operations is
             return 0;
       end;
 
+      log_file_size := SIO.Size (sio_handle);
+
       loop
          SIO.Read (File => sio_handle,
                    Item => buffer,
@@ -366,6 +339,8 @@ package body File_Operations is
             end if;
          end loop;
          exit when last_read < buffer'Last;
+         already_read := already_read + SIO.Count (last_read);
+         exit when already_read >= log_file_size;
       end loop;
 
       SIO.Close (sio_handle);
