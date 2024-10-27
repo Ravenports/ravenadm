@@ -488,7 +488,7 @@ package body Replicant is
          exception
             when scenario_unexpected =>
                TIO.Put_Line (abnormal_log,
-                             "umount & " & device_or_node & " command failed, ignored");
+                             "umount " & device_or_node & " command failed, ignored");
                counter := counter + 1;
                delay 10.0;
             when shock : others =>
