@@ -5,6 +5,7 @@ with Ada.Exceptions;
 with Ada.Directories;
 with Ada.Containers.Vectors;
 with Ada.Characters.Latin_1;
+with Ada.Calendar.Formatting;
 with File_Operations;
 with Parameters;
 with Signals;
@@ -17,6 +18,7 @@ package body Replicant is
    package CON renames Ada.Containers;
    package DIR renames Ada.Directories;
    package LAT renames Ada.Characters.Latin_1;
+   package CFM renames Ada.Calendar.Formatting;
    package FOP renames File_Operations;
 
    --------------------------------------------------------------------------------------------
@@ -217,7 +219,7 @@ package body Replicant is
       output : HT.Text := Unix.piped_command (command, Exit_Status);
    begin
       if abn_log_ready and then not HT.IsBlank (output) then
-         TIO.Put_Line (abnormal_log, HT.USS (output));
+         append_abnormal_log (HT.USS (output));
       end if;
       if Exit_Status /= 0 then
          raise scenario_unexpected with
@@ -236,8 +238,7 @@ package body Replicant is
    begin
       if not success then
          if abn_log_ready and then not HT.IsBlank (cmd_output) then
-            TIO.Put_Line (abnormal_log, "piped_mute_command failure:");
-            TIO.Put_Line (abnormal_log, HT.USS (cmd_output));
+            append_abnormal_log ("piped_mute_command failure: " & HT.USS (cmd_output));
          end if;
          raise scenario_unexpected with
            command & " => failed (exit code not 0)";
@@ -248,9 +249,11 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    --  append_abnormal_log
    --------------------------------------------------------------------------------------------
-   procedure append_abnormal_log (line : String) is
+   procedure append_abnormal_log (line : String)
+   is
+      right_now : Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      TIO.Put_Line (abnormal_log, line);
+      TIO.Put_Line (abnormal_log, "[" & CFM.Image (right_now) & "] " & line);
    end append_abnormal_log;
 
 
@@ -487,12 +490,11 @@ package body Replicant is
             exit;
          exception
             when scenario_unexpected =>
-               TIO.Put_Line (abnormal_log,
-                             "umount " & device_or_node & " command failed, ignored");
+               append_abnormal_log ("umount " & device_or_node & " command failed, ignored");
                counter := counter + 1;
                delay 10.0;
             when shock : others =>
-               TIO.Put_Line (abnormal_log, EX.Exception_Information (shock));
+               append_abnormal_log (EX.Exception_Information (shock));
                exit;
          end;
       end loop;
@@ -513,7 +515,7 @@ package body Replicant is
                         execute (command_lsof & " " & device_or_node);
                      exception
                         when scenario_unexpected =>
-                           TIO.Put_Line (abnormal_log, "LSOF command failed, ignored");
+                           append_abnormal_log ("LSOF command failed, ignored");
                      end;
                      --  lazy umount
                      execute (command_linux & " -l " & device_or_node);
@@ -521,10 +523,9 @@ package body Replicant is
                success := True;
             exception
                when scenario_unexpected =>
-                  TIO.Put_Line (abnormal_log,
-                                "fatal: forced umount & " & device_or_node & " failed");
+                  append_abnormal_log ("fatal: forced umount & " & device_or_node & " failed");
                when shock : others =>
-                  TIO.Put_Line (abnormal_log, EX.Exception_Information (shock));
+                  append_abnormal_log (EX.Exception_Information (shock));
             end;
          end if;
       end if;
@@ -992,8 +993,8 @@ package body Replicant is
 
    exception
       when hiccup : others =>
-         TIO.Put_Line (abnormal_log,
-                       "LAUNCH SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
+         append_abnormal_log
+           ("LAUNCH SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
          Signals.initiate_shutdown;
    end launch_slave;
 
@@ -1068,8 +1069,8 @@ package body Replicant is
 
    exception
       when hiccup : others =>
-         TIO.Put_Line (abnormal_log,
-                       "DESTROY SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
+         append_abnormal_log
+           ("DESTROY SLAVE" & id'Img & " FAILED: " & EX.Exception_Information (hiccup));
          Signals.initiate_shutdown;
    end destroy_slave;
 
