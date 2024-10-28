@@ -254,6 +254,7 @@ package body Replicant is
       right_now : Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
       TIO.Put_Line (abnormal_log, "[" & CFM.Image (right_now) & "] " & line);
+      TIO.Flush (abnormal_log);
    end append_abnormal_log;
 
 
