@@ -253,7 +253,7 @@ package body Replicant is
    is
       right_now : Ada.Calendar.Time := Ada.Calendar.Clock;
    begin
-      TIO.Put_Line (abnormal_log, "[" & CFM.Image (right_now) & "] " & line);
+      TIO.Put_Line (abnormal_log, "[" & CFM.Image (right_now) & "] " & HT.trim (line));
       TIO.Flush (abnormal_log);
    end append_abnormal_log;
 
@@ -469,6 +469,7 @@ package body Replicant is
       command_lsof  : constant String := "/usr/bin/lsof";
       counter       : Natural := 0;
       success       : Boolean := False;
+      shocked       : Boolean := False;
    begin
       --  failure to unmount causes stderr squawks which messes up curses display
       --  Just abnormally log it.
@@ -496,12 +497,13 @@ package body Replicant is
                delay 10.0;
             when shock : others =>
                append_abnormal_log (EX.Exception_Information (shock));
+               shocked := True;
                exit;
          end;
       end loop;
       if not success then
          --  Unmounting failed even with retries, so try again with the force flag
-         if counter = retry_times then
+         if not shocked then
             begin
                case platform_type is
                   when dragonfly |
