@@ -112,6 +112,9 @@ package HelperText is
    --  True when trailing white space detected
    function trailing_whitespace_present (line : String) return Boolean;
 
+   --  Return line without trailing spaces, tabs or line feeds
+   function strip_trailing_whitespace (line : String) return String;
+
    --  True when tab preceded by space character is present
    function trapped_space_character_present (line : String) return Boolean;
 

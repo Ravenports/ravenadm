@@ -524,14 +524,36 @@ package body HelperText is
    --------------------------------------------------------------------------------------------
    function trailing_whitespace_present (line : String) return Boolean
    is
-      --  For now, whitespace is considered a hard tab and a space character
+      --  Whitespace is considered a hard tab, space character or line feed
       last_char : constant Character := line (line'Last);
    begin
       case last_char is
-         when LAT.Space | LAT.HT => return True;
+         when LAT.Space | LAT.HT | LAT.LF => return True;
          when others => return False;
       end case;
    end trailing_whitespace_present;
+
+
+   --------------------------------------------------------------------------------------------
+   --  strip_trailing_whitespace
+   --------------------------------------------------------------------------------------------
+   function strip_trailing_whitespace (line : String) return String
+   is
+      this_char : Character;
+   begin
+      if trailing_whitespace_present (line) then
+         for x in reverse line'Range loop
+            this_char := line (x);
+            case this_char is
+               when LAT.Space | LAT.HT | LAT.LF => null;
+               when others =>
+                  return line (line'First .. x);
+            end case;
+         end loop;
+         return "";
+      end if;
+      return line;
+   end strip_trailing_whitespace;
 
 
    --------------------------------------------------------------------------------------------
