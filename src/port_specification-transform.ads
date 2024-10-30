@@ -183,6 +183,7 @@ private
 
    function argument_present (specs : Portspecs; module, argument : String) return Boolean;
    function no_arguments_present (specs : Portspecs; module : String) return Boolean;
+   function get_argument (specs : Portspecs; module : String) return String;
 
    procedure add_build_depends    (specs : in out Portspecs; dependency : String);
    procedure add_buildrun_depends (specs : in out Portspecs; dependency : String);

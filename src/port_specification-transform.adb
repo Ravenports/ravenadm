@@ -1569,8 +1569,10 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "gnome-icons";
       dependency : constant String := generic_triplet ("gtk3", "icon_cache");
+      subpackage : constant String := get_argument (specs, module);
    begin
-      generic_run_module (specs, module, dependency);
+      --  argument already validated to be exactly one subpackage.
+      add_exrun_depends (specs, dependency, subpackage);
    end apply_gnome_icons_module;
 
 
@@ -1581,8 +1583,10 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "mime-info";
       dependency : constant String := primary_triplet ("shared-mime-info");
+      subpackage : constant String := get_argument (specs, module);
    begin
-      generic_run_module (specs, module, dependency);
+      --  argument already validated to be exactly one subpackage.
+      add_exrun_depends (specs, dependency, subpackage);
    end apply_mime_info_module;
 
 
@@ -1593,8 +1597,10 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "schemas";
       dependency : String renames GNOMELIB;
+      subpackage : constant String := get_argument (specs, module);
    begin
-      generic_run_module (specs, module, dependency);
+      --  argument already validated to be exactly one subpackage.
+      add_exrun_depends (specs, dependency, subpackage);
    end apply_schemas_module;
 
 
@@ -1605,8 +1611,11 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "desktop-utils";
       dependency : constant String := primary_triplet ("desktop-file-utils");
+      subpackage : constant String := get_argument (specs, module);
    begin
-      generic_library_module (specs, module, dependency);
+      --  argument already validated to be exactly one subpackage.
+      generic_build_module (specs, module, dependency);
+      add_exrun_depends (specs, dependency, subpackage);
    end apply_desktop_utils_module;
 
 
@@ -2587,11 +2596,39 @@ package body Port_Specification.Transform is
 
 
    --------------------------------------------------------------------------------------------
-   --  argument_present
+   --  get_argument
    --------------------------------------------------------------------------------------------
-   procedure shift_extra_patches
-     (specs         : Portspecs;
-      extract_dir   : String)
+   function get_argument (specs : Portspecs; module : String) return String
+   is
+      result : HT.Text;
+      found : Boolean := False;
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         value_text : HT.Text renames string_crate.Element (position);
+         value      : String := HT.USS (value_text);
+      begin
+         if not found and then HT.count_char (value, LAT.Colon) = 1 then
+            declare
+               modulestr : String := HT.part_1 (value, ":");
+            begin
+               if modulestr = module then
+                  found := True;
+                  result := HT.SUS (HT.part_2 (value, ":"));
+               end if;
+            end;
+         end if;
+      end scan;
+   begin
+      specs.uses.Iterate (scan'Access);
+      return HT.USS (result);
+   end get_argument;
+
+
+   --------------------------------------------------------------------------------------------
+   --  shift_extra_patches
+   --------------------------------------------------------------------------------------------
+   procedure shift_extra_patches (specs : Portspecs; extract_dir   : String)
    is
       num_extra_patch : Natural := specs.get_list_length (sp_extra_patches);
       patchdir : constant String := extract_dir & "/patches";
