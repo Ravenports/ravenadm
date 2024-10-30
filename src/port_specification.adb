@@ -3773,11 +3773,11 @@ package body Port_Specification is
    function valid_broken_pgsql_value (value : String) return Boolean is
    begin
       return
+        value = "17" or else
+        value = "16" or else
+        value = "15" or else
         value = "14" or else
-        value = "13" or else
-        value = "12" or else
-        value = "11" or else
-        value = "10";
+        value = "13";
    end valid_broken_pgsql_value;
 
 
@@ -5263,6 +5263,7 @@ package body Port_Specification is
       if stripped = "ada" or else
         stripped = "c++" or else
         stripped = "fortan" or else
+        stripped = "compiler" or else
         stripped = "cclibs"
       then
          if HT.IsBlank (module_args) then

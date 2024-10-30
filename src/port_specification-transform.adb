@@ -350,7 +350,7 @@ package body Port_Specification.Transform is
          apply_gcc_run_module (specs, variant, "c++", "cxx_run");
          apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
          apply_gcc_run_module (specs, variant, "cclibs", "libs");
-         apply_gcc_run_module (specs, variant, "compiler", "complete");
+         apply_gcc_run_module (specs, variant, "compiler", "set");
          if platform_type = sunos or else platform_type = macos
          then
             --  Solaris 10 doesn't use dl_iterate_phdr, so many packages have executables that
@@ -1155,7 +1155,6 @@ package body Port_Specification.Transform is
 
       dependency : constant String := generic_triplet (default_compiler, gccsubpackage);
       cc_libs    : constant String := generic_triplet (default_compiler, "libs");
-      cc_cxx_run : constant String := generic_triplet (default_compiler, "cxx_run");
 
       procedure scan (position : string_crate.Cursor)
       is
@@ -1163,13 +1162,9 @@ package body Port_Specification.Transform is
       begin
          if argument_present (specs, module, subpackage) then
             add_exrun_depends (specs, dependency, subpackage);
-            if gccsubpackage = "compilers" then
-               add_exrun_depends (specs, cc_cxx_run, subpackage);
-            end if;
             if gccsubpackage = "cxx_run" or else
               gccsubpackage = "fortran_run" or else
-              gccsubpackage = "ada_run" or else
-              gccsubpackage = "compilers"
+              gccsubpackage = "ada_run"
             then
                add_exrun_depends (specs, cc_libs, subpackage);
             end if;
