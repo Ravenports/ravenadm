@@ -2043,10 +2043,11 @@ package body Port_Specification.Transform is
       end if;
 
       if hit_both or else (hit_build and hit_run) then
-         add_buildrun_depends (specs, dev_subpackage);
+         add_build_depends (specs, dev_subpackage);
          add_buildrun_depends (specs, primary_subpackage);
       elsif hit_build then
          add_build_depends (specs, dev_subpackage);
+         add_build_depends (specs, primary_subpackage);
       else
          add_run_depends (specs, primary_subpackage);
       end if;
