@@ -1075,7 +1075,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 190;
+      total_singlets : constant Positive := 189;
 
       type singlet_pair is
          record
@@ -1199,7 +1199,6 @@ package body Specification_Parser is
          ("MESON_BUILD_DIR       ", 15, catchall),
          ("MUST_CONFIGURE        ", 14, must_configure),
          ("NAMEBASE              ",  8, namebase),
-         ("NCURSES_RPATH         ", 13, catchall),
          ("NOT_FOR_ARCH          ", 12, exc_arch),
          ("NOT_FOR_OPSYS         ", 13, exc_opsys),
          ("ONLY_FOR_OPSYS        ", 14, inc_opsys),
