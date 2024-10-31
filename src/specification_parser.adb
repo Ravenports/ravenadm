@@ -1075,7 +1075,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 191;
+      total_singlets : constant Positive := 190;
 
       type singlet_pair is
          record
@@ -1197,7 +1197,6 @@ package body Specification_Parser is
          ("MANDIRS               ",  7, mandirs),
          ("MESON_ARGS            ", 10, catchall),
          ("MESON_BUILD_DIR       ", 15, catchall),
-         ("MESON_INSERT_RPATH    ", 18, catchall),
          ("MUST_CONFIGURE        ", 14, must_configure),
          ("NAMEBASE              ",  8, namebase),
          ("NCURSES_RPATH         ", 13, catchall),
