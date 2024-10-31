@@ -1232,28 +1232,27 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_mysql_module (specs : in out Portspecs)
    is
-      function determine_dependency return String;
-
       module : constant String := "mysql";
 
-      function determine_dependency return String is
-      begin
-         if argument_present (specs, module, "server") then
-            return generic_triplet (determine_mysql_namebase, "server");
-         else
-            return generic_triplet (determine_mysql_namebase, "client");
-         end if;
-      end determine_dependency;
-
-      dependency : String := determine_dependency;
-      dev_package : String := dev_triplet (determine_mysql_namebase);
+      db_namebase    : constant String := determine_mysql_namebase;
+      dev_package    : constant String := dev_triplet (db_namebase);
+      server_package : constant String := generic_triplet (db_namebase, "server");
+      client_package : constant String := generic_triplet (db_namebase, "client");
+      only_build     : constant Boolean := argument_present (specs, module, "build");
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          add_build_depends (specs, dev_package);
-         if argument_present (specs, module, "build") then
-            add_build_depends (specs, dependency);
+         if only_build then
+            add_build_depends (specs, client_package);
          else
-            add_buildrun_depends (specs, dependency);
+            add_buildrun_depends (specs, client_package);
+         end if;
+         if argument_present (specs, module, "server") then
+            if only_build then
+               add_build_depends (specs, server_package);
+            else
+               add_buildrun_depends (specs, server_package);
+            end if;
          end if;
       end if;
    end apply_mysql_module;
