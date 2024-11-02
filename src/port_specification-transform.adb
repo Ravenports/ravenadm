@@ -1571,7 +1571,9 @@ package body Port_Specification.Transform is
       subpackage : constant String := get_argument (specs, module);
    begin
       --  argument already validated to be exactly one subpackage.
-      add_exrun_depends (specs, dependency, subpackage);
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_exrun_depends (specs, dependency, subpackage);
+      end if;
    end apply_gnome_icons_module;
 
 
@@ -1585,7 +1587,9 @@ package body Port_Specification.Transform is
       subpackage : constant String := get_argument (specs, module);
    begin
       --  argument already validated to be exactly one subpackage.
-      add_exrun_depends (specs, dependency, subpackage);
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_exrun_depends (specs, dependency, subpackage);
+      end if;
    end apply_mime_info_module;
 
 
@@ -1599,7 +1603,9 @@ package body Port_Specification.Transform is
       subpackage : constant String := get_argument (specs, module);
    begin
       --  argument already validated to be exactly one subpackage.
-      add_exrun_depends (specs, dependency, subpackage);
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         add_exrun_depends (specs, dependency, subpackage);
+      end if;
    end apply_schemas_module;
 
 
@@ -1613,8 +1619,10 @@ package body Port_Specification.Transform is
       subpackage : constant String := get_argument (specs, module);
    begin
       --  argument already validated to be exactly one subpackage.
-      generic_build_module (specs, module, dependency);
-      add_exrun_depends (specs, dependency, subpackage);
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         generic_build_module (specs, module, dependency);
+         add_exrun_depends (specs, dependency, subpackage);
+      end if;
    end apply_desktop_utils_module;
 
 
