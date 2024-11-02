@@ -2017,7 +2017,7 @@ package body Port_Specification.Transform is
          if def_setting = "5.2" then
             return LUA52;
          elsif def_setting = "5.3" then
-            return LUA54;
+            return LUA53;
          else
             --  current default: lua54
             return LUA54;
