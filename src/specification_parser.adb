@@ -455,6 +455,7 @@ package body Specification_Parser is
                      when cgo_build        => set_boolean (spec, PSP.sp_cgo_build, line);
                      when cgo_inst         => set_boolean (spec, PSP.sp_cgo_inst, line);
                      when monster_port     => set_boolean (spec, PSP.sp_kaiju, line);
+                     when mount_procfs     => set_boolean (spec, PSP.sp_procfs, line);
                      when keywords         => build_list (spec, PSP.sp_keywords, line);
                      when variants         => build_list (spec, PSP.sp_variants, line);
                      when contacts         => build_list (spec, PSP.sp_contacts, line);
@@ -1075,7 +1076,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 189;
+      total_singlets : constant Positive := 190;
 
       type singlet_pair is
          record
@@ -1197,6 +1198,7 @@ package body Specification_Parser is
          ("MANDIRS               ",  7, mandirs),
          ("MESON_ARGS            ", 10, catchall),
          ("MESON_BUILD_DIR       ", 15, catchall),
+         ("MOUNT_PROCFS          ", 12, mount_procfs),
          ("MUST_CONFIGURE        ", 14, must_configure),
          ("NAMEBASE              ",  8, namebase),
          ("NOT_FOR_ARCH          ", 12, exc_arch),

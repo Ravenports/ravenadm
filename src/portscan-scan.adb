@@ -600,6 +600,7 @@ package body PortScan.Scan is
       rec.pkgversion    := HT.SUS (thespec.calculate_pkgversion);
       rec.ignore_reason := HT.SUS (thespec.aggregated_ignore_reason);
       rec.ignored       := not HT.IsBlank (rec.ignore_reason);
+      rec.use_procfs    := thespec.requires_procfs;
       rec.scanned       := True;
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
          populate_set_depends (target,

@@ -48,7 +48,7 @@ package Port_Specification is
                        sp_xorg, sp_sdl, sp_phpext, sp_job_limit, sp_soversion, sp_os_uses,
                        sp_lic_terms, sp_lic_awk, sp_lic_src, sp_infra, sp_killdog,
                        sp_cgo_conf, sp_cgo_build, sp_cgo_inst, sp_cgo_cargs, sp_cgo_bargs,
-                       sp_cgo_iargs, sp_cgo_feat, sp_verbatim, sp_kaiju);
+                       sp_cgo_iargs, sp_cgo_feat, sp_verbatim, sp_kaiju, sp_procfs);
 
    type spec_option  is (not_helper_format, not_supported_helper, broken_on, buildrun_depends_off,
                          buildrun_depends_on, build_depends_off, build_depends_on,
@@ -336,6 +336,9 @@ package Port_Specification is
    --  Detects SSL variant override by checking module arguments
    function get_ssl_variant (specs : Portspecs; normal_variant : String) return String;
 
+   --  Returns true if MOUNT_PROCFS was present on the spec sheet
+   function requires_procfs (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;
@@ -572,6 +575,7 @@ private
          infrastructure : Boolean;
          kill_watchdog  : Boolean;
          kaiju          : Boolean;
+         procfs_mount   : Boolean;
          prefix         : HT.Text;
          build_wrksrc   : HT.Text;
          makefile       : HT.Text;

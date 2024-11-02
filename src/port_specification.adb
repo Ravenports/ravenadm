@@ -1692,6 +1692,8 @@ package body Port_Specification is
             specs.cgo_skip_inst := value;
          when sp_kaiju =>
             specs.kaiju := value;
+         when sp_procfs =>
+            specs.procfs_mount := value;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -5389,6 +5391,15 @@ package body Port_Specification is
       when others =>
          return "equivalent_fpc_port/error";
    end equivalent_fpc_port;
+
+
+   --------------------------------------------------------------------------------------------
+   --  requires_procfs
+   --------------------------------------------------------------------------------------------
+   function requires_procfs (specs : Portspecs) return Boolean is
+   begin
+      return specs.procfs_mount;
+   end requires_procfs;
 
 
    --------------------------------------------------------------------------------------------
