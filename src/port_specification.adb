@@ -5888,6 +5888,7 @@ package body Port_Specification is
             when sp_cgo_build      => TIO.Put_Line (specs.cgo_skip_build'Img);
             when sp_cgo_inst       => TIO.Put_Line (specs.cgo_skip_inst'Img);
             when sp_kaiju          => TIO.Put_Line (specs.kaiju'Img);
+            when sp_procfs         => TIO.Put_Line (specs.procfs_mount'Img);
             when others => null;
          end case;
       end print_boolean;
@@ -6024,6 +6025,7 @@ package body Port_Specification is
       print_vector_list ("TEST_ENV", sp_test_env);
       print_vector_list ("RC_SUBR", sp_rcscript);
       print_boolean     ("GENERATED", sp_generated);
+      print_boolean     ("MOUNT_PROCFS", sp_procfs);
       print_single      ("MAKE_JOBS_NUMBER_LIMIT", sp_job_limit);
 
       print_group_list  ("Makefile Targets", sp_makefile_targets);
