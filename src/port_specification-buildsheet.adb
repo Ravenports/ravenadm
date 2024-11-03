@@ -803,6 +803,7 @@ package body Port_Specification.Buildsheet is
       send ("BLOCK_WATCHDOG",       specs.kill_watchdog, True);
       send ("SET_DEBUGGING_ON",     specs.debugging_on, True);
       send ("KAIJU",                specs.kaiju, True);
+      send ("MOUNT_PROCFS",         specs.procfs_mount, True);
       send ("CFLAGS",               specs.cflags, 1);
       send ("CXXFLAGS",             specs.cxxflags, 1);
       send ("CPPFLAGS",             specs.cppflags, 1);
