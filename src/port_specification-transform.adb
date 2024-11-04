@@ -1196,6 +1196,7 @@ package body Port_Specification.Transform is
             add_exrun_depends (specs, generic_triplet (default_compiler, "infopages"), subpkg);
             add_exrun_depends (specs, generic_triplet (default_compiler, "compilers"), subpkg);
             add_exrun_depends (specs, generic_triplet (default_compiler, "set"), subpkg);
+            add_exrun_depends (specs, single_triplet (default_binutils), subpkg);
          end if;
       end scan;
    begin
