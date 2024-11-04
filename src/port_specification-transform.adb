@@ -350,7 +350,6 @@ package body Port_Specification.Transform is
          apply_gcc_run_module (specs, variant, "c++", "cxx_run");
          apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
          apply_gcc_run_module (specs, variant, "cclibs", "libs");
-         apply_gcc_run_module (specs, variant, "compiler", "set");
          if platform_type = sunos or else platform_type = macos
          then
             --  Solaris 10 doesn't use dl_iterate_phdr, so many packages have executables that
@@ -359,6 +358,7 @@ package body Port_Specification.Transform is
             --  gcc6, gcc7, gcc8 and later).
             add_exrun_cclibs (specs, variant);
          end if;
+         apply_gcc_full_set (specs, variant);
       end if;
       apply_curly_bracket_conversions (specs);
       apply_default_version_transformations (specs);
@@ -1175,6 +1175,34 @@ package body Port_Specification.Transform is
          specs.subpackages.Element (HT.SUS (variant)).list.Iterate (scan'Access);
       end if;
    end apply_gcc_run_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_gcc_full_set
+   --------------------------------------------------------------------------------------------
+   procedure apply_gcc_full_set (specs : in out Portspecs; variant : String)
+   is
+      module : constant String := "compiler";
+
+      procedure scan (position : string_crate.Cursor)
+      is
+         subpkg : constant String := HT.USS (string_crate.Element (position));
+      begin
+         if argument_present (specs, module, subpkg) then
+            add_exrun_depends (specs, generic_triplet (default_compiler, "libs"), subpkg);
+            add_exrun_depends (specs, generic_triplet (default_compiler, "ada_run"), subpkg);
+            add_exrun_depends (specs, generic_triplet (default_compiler, "cxx_run"), subpkg);
+            add_exrun_depends (specs, generic_triplet (default_compiler, "fortran_run"), subpkg);
+            add_exrun_depends (specs, generic_triplet (default_compiler, "infopages"), subpkg);
+            add_exrun_depends (specs, generic_triplet (default_compiler, "compilers"), subpkg);
+            add_exrun_depends (specs, generic_triplet (default_compiler, "set"), subpkg);
+         end if;
+      end scan;
+   begin
+      if specs.uses_base.Contains (HT.SUS (module)) then
+         specs.subpackages.Element (HT.SUS (variant)).list.Iterate (scan'Access);
+      end if;
+   end apply_gcc_full_set;
 
 
    --------------------------------------------------------------------------------------------

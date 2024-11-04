@@ -162,6 +162,7 @@ private
                                      variant : String;
                                      module  : String;
                                      gccsubpackage : String);
+   procedure apply_gcc_full_set     (specs : in out Portspecs; variant : String);
    procedure add_exrun_cclibs       (specs : in out Portspecs; variant : String);
 
    procedure apply_fontconfig_module      (specs : in out Portspecs);

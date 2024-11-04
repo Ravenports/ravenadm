@@ -418,7 +418,7 @@ package body PortScan.Buildcycle is
 
       procedure dump_catalog (dump_type : String)
       is
-         cat_ucl : constant String := root & "var/cache/rvn/remote/catalog.ucl";
+         cat_ucl : constant String := root & "/var/cache/rvn/remote/catalog.ucl";
       begin
          if DIR.Exists (cat_ucl) then
             RAX.writeln (trackers (id).log_fd, "Diagnostic catalog dump (" & dump_type & "):");
