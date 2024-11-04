@@ -1211,7 +1211,7 @@ package body Port_Specification.Transform is
       end if;
 
       declare
-         dependency : constant String := generic_triplet (default_compiler, "libs:");
+         dependency : constant String := generic_triplet (default_compiler, "libs");
       begin
          --  Check if cclibs:<subpackage> has already been set, and abort if so
          if specs.extra_rundeps.Contains (prime_pkg) and then
