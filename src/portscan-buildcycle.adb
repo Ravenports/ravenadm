@@ -459,11 +459,33 @@ package body PortScan.Buildcycle is
       is
          cmd        : constant String := rvn_repos & "install --no-repo-update --exact-match --yes";
          arguments  : constant String := root & environ & cmd & HT.USS (exact_list);
+         cat_ucl    : constant String := root & "var/cache/rvn/remote/catalog.ucl";
          timed_out  : Boolean;
       begin
          still_good := generic_execute (id, PM.chroot_program, arguments, timed_out, time_limit);
          if timed_out then
             RAX.writeln (trackers (id).log_fd, "FATAL: Dependency install command timed out.");
+         end if;
+         if not still_good then
+            if DIR.Exists (cat_ucl) then
+               RAX.writeln (trackers (id).log_fd, "Diagnostic catalog dump:");
+               declare
+                  handle : TIO.File_Type;
+               begin
+                  TIO.Open (File => handle,
+                            Mode => TIO.In_File,
+                            Name => cat_ucl);
+                  while not TIO.End_Of_File (handle) loop
+                     RAX.writeln (trackers (id).log_fd, TIO.Get_Line (handle));
+                  end loop;
+                  TIO.Close (handle);
+               exception
+                  when others =>
+                     if TIO.Is_Open (handle) then
+                        TIO.Close (handle);
+                     end if;
+               end;
+            end if;
          end if;
       end install_dependency_pyramid;
 
