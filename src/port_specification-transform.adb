@@ -1682,34 +1682,13 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_python_module (specs : in out Portspecs)
    is
-      procedure set_single_snake_ports (build_only : Boolean; python_port, py_variant : String);
-      procedure set_split_snakes (build_only : Boolean;
-                                  primary_spkg, dev_spkg, py_variant : String);
-
       module     : constant String := "python";
       PY312      : constant String := "v12";
-      PY311      : constant String := "v11";
+      PY313      : constant String := "v13";
       autopython : constant String := single_triplet ("autoselect-python");
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
-
-      --  Remove after python 3.11 retired
-      procedure set_single_snake_ports (build_only : Boolean; python_port, py_variant : String) is
-      begin
-         if build_only then
-            add_build_depends (specs, python_port);
-         else
-            add_buildrun_depends (specs, python_port);
-         end if;
-         if use_pip then
-            add_build_depends (specs, "python-pip:single:" & py_variant);
-         end if;
-         if use_setup then
-            add_build_depends (specs, "python-setuptools:single:" & py_variant);
-         end if;
-         specs.used_python := HT.SUS (py_variant);
-      end set_single_snake_ports;
 
       procedure set_split_snakes (build_only : Boolean;
                                   primary_spkg, dev_spkg, py_variant : String)
@@ -1746,14 +1725,14 @@ package body Port_Specification.Transform is
       end if;
 
       if argument_present (specs, module, "build") then
-         if argument_present (specs, module, PY311) then
-            set_single_snake_ports (True, PYTHON311, PY311);
+         if argument_present (specs, module, PY313) then
+            set_split_snakes (True, PYTHON313, PY313DEV, PY313);
          else -- default to py312
             set_split_snakes (True, PYTHON312, PY312DEV, PY312);
          end if;
       else
-         if argument_present (specs, module, PY311) then
-            set_single_snake_ports (False, PYTHON311, PY311);
+         if argument_present (specs, module, PY313) then
+            set_split_snakes (False, PYTHON313, PY313DEV, PY313);
          else -- default to py312
             set_split_snakes (False, PYTHON312, PY312DEV, PY312);
          end if;
@@ -2780,8 +2759,8 @@ package body Port_Specification.Transform is
                end if;
             end;
          elsif exrundep = "python" then
-            if specs.buildrun_deps.Contains (HT.SUS (PYTHON311)) then
-               Element := HT.SUS (PYTHON311);
+            if specs.buildrun_deps.Contains (HT.SUS (PYTHON313)) then
+               Element := HT.SUS (PYTHON313);
             else
                Element := HT.SUS (PYTHON312);
             end if;
@@ -2875,7 +2854,7 @@ package body Port_Specification.Transform is
             if setting = ports_default or else setting = default_python3 then
                return name_subpackage & "v12";
             else
-               return name_subpackage & "v11";
+               return name_subpackage & "v13";
             end if;
          end;
       elsif trailer = "perl_default" then

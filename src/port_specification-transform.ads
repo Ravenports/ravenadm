@@ -52,9 +52,11 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
-   PYTHON311 : constant String := single_triplet ("python311");
    PYTHON312 : constant String := primary_triplet ("python312");
+   PYTHON313 : constant String := primary_triplet ("python313");
+
    PY312DEV  : constant String := dev_triplet ("python312");
+   PY313DEV  : constant String := dev_triplet ("python313");
 
    GETTEXT  : constant String := "gettext";
    TCL86    : constant String := generic_triplet ("tcl86", "tools");
