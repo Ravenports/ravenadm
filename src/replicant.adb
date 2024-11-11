@@ -966,10 +966,7 @@ package body Replicant is
 
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
-      if need_procfs or else
-        platform_type = linux or else
-        platform_type = sunos
-      then
+      if need_procfs then
          mount_procfs (path_to_proc => location (slave_base, proc));
       end if;
 
@@ -1022,10 +1019,7 @@ package body Replicant is
          unmount (location (slave_base, ccache), retry1min);
       end if;
 
-      if need_procfs or else
-        platform_type = linux or else
-        platform_type = sunos
-      then
+      if need_procfs then
          unmount_procfs (location (slave_base, proc));
       end if;
 
