@@ -1689,10 +1689,13 @@ package body Port_Specification.Transform is
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
+      use_pep517 : Boolean := False;
 
       procedure set_split_snakes (build_only : Boolean;
                                   primary_spkg, dev_spkg, py_variant : String)
       is
+         pair_pip     : constant String := "python-pip:single:";
+         pair_sutools : constant String := "python-setuptools:single:";
       begin
          add_build_depends (specs, dev_spkg);
          if build_only then
@@ -1701,10 +1704,17 @@ package body Port_Specification.Transform is
             add_buildrun_depends (specs, primary_spkg);
          end if;
          if use_pip then
-            add_build_depends (specs, "python-pip:single:" & py_variant);
+            add_build_depends (specs, pair_pip & py_variant);
          end if;
          if use_setup then
-            add_build_depends (specs, "python-setuptools:single:" & py_variant);
+            add_build_depends (specs, pair_sutools & py_variant);
+         end if;
+         if use_pep517 then
+            add_build_depends (specs, pair_pip & py_variant);
+            add_build_depends (specs, pair_sutools & py_variant);
+            add_build_depends (specs, "python-wheel:single:" & py_variant);
+            add_build_depends (specs, "python-build:single:" & py_variant);
+            add_build_depends (specs, "python-installer:single:" & py_variant);
          end if;
          specs.used_python := HT.SUS (py_variant);
       end set_split_snakes;
@@ -1716,11 +1726,11 @@ package body Port_Specification.Transform is
 
       --  When changing python defaults, don't forget to alter convert_exrun_versions() too.
 
-      if argument_present (specs, module, "wheel") then
+      if argument_present (specs, module, "pep517") then
+         use_pep517 := True;
+      elsif argument_present (specs, module, "wheel") then
          use_pip := True;
-      end if;
-
-      if argument_present (specs, module, "sutools") then
+      elsif argument_present (specs, module, "sutools") then
          use_setup := True;
       end if;
 
