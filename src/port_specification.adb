@@ -121,6 +121,7 @@ package body Port_Specification is
       specs.infrastructure := False;
       specs.kill_watchdog  := False;
       specs.kaiju          := False;
+      specs.procfs_mount   := False;
       specs.build_wrksrc   := HT.blank;
       specs.makefile       := HT.blank;
       specs.destdirname    := HT.blank;
