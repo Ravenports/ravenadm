@@ -1682,27 +1682,63 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_python_module (specs : in out Portspecs)
    is
-      module     : constant String := "python";
-      PY312      : constant String := "v12";
-      PY313      : constant String := "v13";
-      autopython : constant String := single_triplet ("autoselect-python");
+      module        : constant String := "python";
+      autopython    : constant String := single_triplet ("autoselect-python");
+      sqlite_module : constant String := "sqlite";
+      PYVARIANT     : String := PY312;  -- DEFAULT
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
       use_pep517 : Boolean := False;
+      use_sqlite : Boolean := False;
+      build_only : Boolean := False;
+      default_py : Boolean := True;
 
-      procedure set_split_snakes (build_only : Boolean;
-                                  primary_spkg, dev_spkg, py_variant : String)
+      procedure set_base_python_modules
       is
-         pair_pip     : constant String := "python-pip:single:";
-         pair_sutools : constant String := "python-setuptools:single:";
+         function dev_spkg return String is
+         begin
+            if default_py then
+               return dev_triplet (PYTHONPRI);
+            end if;
+            return dev_triplet (PYTHONALT);
+         end dev_spkg;
+
+         function primary_spkg return String is
+         begin
+            if default_py then
+               return primary_triplet (PYTHONPRI);
+            end if;
+            return primary_triplet (PYTHONALT);
+         end primary_spkg;
+
+         function sqlite_spkg return String is
+         begin
+            if default_py then
+               return generic_triplet (PYTHONPRI, sqlite_module);
+            end if;
+            return generic_triplet (PYTHONALT, sqlite_module);
+         end sqlite_spkg;
       begin
          add_build_depends (specs, dev_spkg);
          if build_only then
             add_build_depends (specs, primary_spkg);
+            if use_sqlite then
+               add_build_depends (specs, sqlite_spkg);
+            end if;
          else
             add_buildrun_depends (specs, primary_spkg);
+            if use_sqlite then
+               add_buildrun_depends (specs, sqlite_spkg);
+            end if;
          end if;
+      end set_base_python_modules;
+
+      procedure set_build_tools (py_variant : String)
+      is
+         pair_pip     : constant String := "python-pip:single:";
+         pair_sutools : constant String := "python-setuptools:single:";
+      begin
          if use_pip then
             add_build_depends (specs, pair_pip & py_variant);
          end if;
@@ -1717,7 +1753,7 @@ package body Port_Specification.Transform is
             add_build_depends (specs, "python-installer:single:" & py_variant);
          end if;
          specs.used_python := HT.SUS (py_variant);
-      end set_split_snakes;
+      end set_build_tools;
 
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
@@ -1734,19 +1770,21 @@ package body Port_Specification.Transform is
          use_setup := True;
       end if;
 
-      if argument_present (specs, module, "build") then
-         if argument_present (specs, module, PY313) then
-            set_split_snakes (True, PYTHON313, PY313DEV, PY313);
-         else -- default to py312
-            set_split_snakes (True, PYTHON312, PY312DEV, PY312);
-         end if;
-      else
-         if argument_present (specs, module, PY313) then
-            set_split_snakes (False, PYTHON313, PY313DEV, PY313);
-         else -- default to py312
-            set_split_snakes (False, PYTHON312, PY312DEV, PY312);
-         end if;
+      if argument_present (specs, module, sqlite_module) then
+         use_sqlite := True;
       end if;
+
+      if argument_present (specs, module, PY313) then
+         PYVARIANT  := PY313;
+         default_py := False;
+      end if;
+
+      if argument_present (specs, module, "build") then
+         build_only := True;
+      end if;
+
+      set_base_python_modules;
+      set_build_tools (PYVARIANT);
       add_build_depends (specs, autopython);
    end apply_python_module;
 
@@ -2769,10 +2807,10 @@ package body Port_Specification.Transform is
                end if;
             end;
          elsif exrundep = "python" then
-            if specs.buildrun_deps.Contains (HT.SUS (PYTHON313)) then
-               Element := HT.SUS (PYTHON313);
+            if specs.buildrun_deps.Contains (HT.SUS (primary_triplet (PYTHONALT))) then
+               Element := HT.SUS (primary_triplet (PYTHONALT));
             else
-               Element := HT.SUS (PYTHON312);
+               Element := HT.SUS (primary_triplet (PYTHONPRI));
             end if;
          elsif exrundep = "tcl" then
             if specs.buildrun_deps.Contains (HT.SUS (TCL90)) then
@@ -2862,9 +2900,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & "v12";
+               return name_subpackage & PY312;
             else
-               return name_subpackage & "v13";
+               return name_subpackage & PY313;
             end if;
          end;
       elsif trailer = "perl_default" then
