@@ -1279,8 +1279,10 @@ package body PortScan.Buildcycle is
          systemdir_2 : constant String := get_system_lib_level_2;
          systemlib_1 : constant String := systemdir_1 & "/" & library;
          systemlib_2 : constant String := systemdir_2 & "/" & library;
-         syslib_1txt : HT.Text := HT.SUS (systemlib_1);
-         syslib_2txt : HT.Text := HT.SUS (systemlib_2);
+         syslib_1txt : constant HT.Text := HT.SUS (systemlib_1);
+         syslib_2txt : constant HT.Text := HT.SUS (systemlib_2);
+         library_txt : constant HT.Text := HT.SUS (library);
+         abs_path    : constant Boolean := library (library'First) = '/';
 
          procedure squawk is
          begin
@@ -1297,22 +1299,42 @@ package body PortScan.Buildcycle is
             return;
          end if;
 
-         if not trackers (id).nonexistent.Contains (syslib_1txt) then
-            if Unix.target_exists (root & systemlib_1) then
-               trackers (id).seen_libs.Append (syslib_1txt);
-               return;
-            end if;
-            trackers (id).nonexistent.Append (syslib_1txt);
-            attempted := True;
-         end if;
+         --  Check for shared libraries with absolute paths (rare)
+         --  Issue 86 (handle library with absolute path, e.g. /raven/lib/lua/5.1/lpeg.so
+         if abs_path then
 
-         if not trackers (id).nonexistent.Contains (syslib_2txt) then
-            if Unix.target_exists (root & systemlib_2) then
-               trackers (id).seen_libs.Append (syslib_2txt);
+            if trackers (id).seen_libs.Contains (library_txt) then
                return;
             end if;
-            trackers (id).nonexistent.Append (syslib_2txt);
-            attempted := True;
+
+            if not trackers (id).nonexistent.Contains (library_txt) then
+               if Unix.target_exists (root & library) then
+                  trackers (id).seen_libs.Append (HT.SUS (library));
+                  return;
+               end if;
+               trackers (id).nonexistent.Append (library_txt);
+               attempted := True;
+            end if;
+         else
+
+            if not trackers (id).nonexistent.Contains (syslib_1txt) then
+               if Unix.target_exists (root & systemlib_1) then
+                  trackers (id).seen_libs.Append (syslib_1txt);
+                  return;
+               end if;
+               trackers (id).nonexistent.Append (syslib_1txt);
+               attempted := True;
+            end if;
+
+            if not trackers (id).nonexistent.Contains (syslib_2txt) then
+               if Unix.target_exists (root & systemlib_2) then
+                  trackers (id).seen_libs.Append (syslib_2txt);
+                  return;
+               end if;
+               trackers (id).nonexistent.Append (syslib_2txt);
+               attempted := True;
+            end if;
+
          end if;
 
          if HT.IsBlank (paths) then
