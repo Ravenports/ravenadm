@@ -327,7 +327,7 @@ package body PortScan.Scan is
          declare
             portkey : String := get_port_variant (all_ports (x));
          begin
-            if not HT.equivalent (all_ports (x).port_namebase, default_compiler) then
+            if not HT.equivalent (all_ports (x).port_namebase, ports_compiler) then
                portlist.Append (HT.SUS (portkey));
             end if;
          end;
@@ -767,7 +767,7 @@ package body PortScan.Scan is
               get_port_variant (all_ports (depindex)) & ")";
          end if;
       end if;
-      if HT.USS (all_ports (depindex).port_namebase) = default_compiler then
+      if HT.USS (all_ports (depindex).port_namebase) = ports_compiler then
          if dtype = extra_runtime then
             return;
          else
@@ -1070,7 +1070,7 @@ package body PortScan.Scan is
 
       successful    : Boolean := True;
       just_stop_now : Boolean;
-      compiler_key  : HT.Text := HT.SUS (default_compiler & ":" & variant_standard);
+      compiler_key  : HT.Text := HT.SUS (ports_compiler & ":" & variant_standard);
 
       procedure scan (plcursor : string_crate.Cursor)
       is

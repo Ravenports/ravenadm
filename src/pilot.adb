@@ -1360,9 +1360,9 @@ package body Pilot is
          end pkg_name;
       begin
          if use_prev then
-            return pkg_name (previous_default, previous_binutils, previous_compiler);
+            return pkg_name (ports_compiler, previous_binutils, previous_compiler);
          else
-            return pkg_name (default_compiler, binutils_version, compiler_version);
+            return pkg_name (ports_compiler, binutils_version, compiler_version);
          end if;
       end get_package_name;
 

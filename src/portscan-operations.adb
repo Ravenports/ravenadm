@@ -651,7 +651,7 @@ package body PortScan.Operations is
    is
       procedure force_delete (plcursor : string_crate.Cursor);
 
-      compkey  : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      compkey  : HT.Text := HT.SUS (ports_compiler & LAT.Colon & variant_standard);
       compiler : constant port_index := ports_keys.Element (compkey);
       binutils : constant port_index := ports_keys.Element (HT.SUS (default_binutils));
 
@@ -1282,7 +1282,7 @@ package body PortScan.Operations is
       procedure set_delete  (Element : in out subpackage_record);
       procedure kill_remote (Element : in out subpackage_record);
 
-      compkey       : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      compkey       : HT.Text := HT.SUS (ports_compiler & LAT.Colon & variant_standard);
       bukey         : HT.Text := HT.SUS (default_binutils);
       compiler      : constant port_index := ports_keys.Element (compkey);
       binutils      : constant port_index := ports_keys.Element (bukey);

@@ -1249,7 +1249,7 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure preplace_libgcc_s (path_to_toolchain : String)
    is
-      mpath : constant String := "/" & default_compiler & "/lib";
+      mpath : constant String := "/" & ports_compiler & "/lib";
       dylib : constant String := mpath & "/libgcc_s.1.dylib";
       TC : constant String := mount_target (toolchain);
    begin

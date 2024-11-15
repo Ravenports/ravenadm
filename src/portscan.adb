@@ -335,7 +335,7 @@ package body PortScan is
    --------------------------------------------------------------------------------------------
    function jail_port_compiler_specified return Boolean
    is
-      compkey : HT.Text := HT.SUS (default_compiler & LAT.Colon & variant_standard);
+      compkey : HT.Text := HT.SUS (ports_compiler & LAT.Colon & variant_standard);
       compver : constant String := HT.USS (all_ports (ports_keys.Element (compkey)).pkgversion);
    begin
       return portlist.Contains (compkey) and then compver = compiler_version;

@@ -1153,8 +1153,8 @@ package body Port_Specification.Transform is
    is
       procedure scan (position : string_crate.Cursor);
 
-      dependency : constant String := generic_triplet (default_compiler, gccsubpackage);
-      cc_libs    : constant String := generic_triplet (default_compiler, "libs");
+      dependency : constant String := generic_triplet (ports_compiler, gccsubpackage);
+      cc_libs    : constant String := generic_triplet (ports_compiler, "libs");
 
       procedure scan (position : string_crate.Cursor)
       is
@@ -1189,13 +1189,13 @@ package body Port_Specification.Transform is
          subpkg : constant String := HT.USS (string_crate.Element (position));
       begin
          if argument_present (specs, module, subpkg) then
-            add_exrun_depends (specs, generic_triplet (default_compiler, "libs"), subpkg);
-            add_exrun_depends (specs, generic_triplet (default_compiler, "ada_run"), subpkg);
-            add_exrun_depends (specs, generic_triplet (default_compiler, "cxx_run"), subpkg);
-            add_exrun_depends (specs, generic_triplet (default_compiler, "fortran_run"), subpkg);
-            add_exrun_depends (specs, generic_triplet (default_compiler, "infopages"), subpkg);
-            add_exrun_depends (specs, generic_triplet (default_compiler, "compilers"), subpkg);
-            add_exrun_depends (specs, generic_triplet (default_compiler, "set"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "libs"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "ada_run"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "cxx_run"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "fortran_run"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "infopages"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "compilers"), subpkg);
+            add_exrun_depends (specs, generic_triplet (ports_compiler, "set"), subpkg);
             add_exrun_depends (specs, single_triplet ("ravensys-binutils"), subpkg);
          end if;
       end scan;
@@ -1240,7 +1240,7 @@ package body Port_Specification.Transform is
       end if;
 
       declare
-         dependency : constant String := generic_triplet (default_compiler, "libs");
+         dependency : constant String := generic_triplet (ports_compiler, "libs");
       begin
          --  Check if cclibs:<subpackage> has already been set, and abort if so
          if specs.extra_rundeps.Contains (prime_pkg) and then

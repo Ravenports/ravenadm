@@ -848,25 +848,19 @@ package body PortScan.Buildcycle is
 
       function toolchain_path return String
       is
-         defcomp : String := localbase & "/toolchain/" & default_comppath & "/bin:";
+         defcomp : String := localbase & "/toolchain/" & ports_compiler & "/bin:";
       begin
-         if toolchain
-         then
-            if default_comppath /= previous_comppath then
-               return defcomp & localbase & "/toolchain/" & previous_comppath & "/bin:";
-            else
-               return defcomp;
-            end if;
-         else
-            return "";
+         if toolchain then
+            return defcomp;
          end if;
+         return "";
       end toolchain_path;
 
       function dyld_fallback return String is
       begin
          case platform_type is
             when macos => return "DYLD_FALLBACK_LIBRARY_PATH=" &
-                                 localbase & "/toolchain-fallback/" & default_comppath & "/lib ";
+                                 localbase & "/toolchain-fallback/" & ports_compiler & "/lib ";
             when others => return "";
          end case;
       end dyld_fallback;
