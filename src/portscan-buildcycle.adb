@@ -1701,7 +1701,25 @@ package body PortScan.Buildcycle is
    procedure set_log_lines (id : builders)
    is
    begin
-      trackers (id).loglines := FOP.lines_in_log (LOG.log_name (trackers (id).seq_id));
+      case platform_type is
+         when freebsd | midnightbsd =>
+            --  Unexplained freezing. Theory is the SIO.Read never returns, zfs bug??
+            --  I've run out of ideas, so go back to the nasty WC solution
+            declare
+               command  : constant String := HT.USS (PM.configuration.dir_sysroot) &
+                 "/usr/bin/wc -l " & LOG.log_name (trackers (id).seq_id);
+            begin
+               declare
+                  lc : constant String := generic_system_command (command);
+               begin
+                  trackers (id).loglines := Natural'Value (HT.part_1 (lc, " "));
+               end;
+            exception
+               when others => null;  -- just skip this cycle
+            end;
+         when others =>
+            trackers (id).loglines := FOP.lines_in_log (LOG.log_name (trackers (id).seq_id));
+      end case;
    end set_log_lines;
 
 

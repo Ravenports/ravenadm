@@ -338,6 +338,7 @@ package body File_Operations is
                num_lines := num_lines + 1;
             end if;
          end loop;
+         exit when SIO.End_Of_File (sio_handle);
          exit when last_read < buffer'Last;
          already_read := already_read + SIO.Count (last_read);
          exit when already_read >= log_file_size;
