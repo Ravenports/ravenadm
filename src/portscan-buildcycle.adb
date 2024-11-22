@@ -1702,9 +1702,9 @@ package body PortScan.Buildcycle is
    is
    begin
       case platform_type is
-         when freebsd | midnightbsd =>
-            --  Unexplained freezing. Theory is the SIO.Read never returns, zfs bug??
-            --  I've run out of ideas, so go back to the nasty WC solution
+         when macos =>
+            --  essentially disable this code without removing it.
+            --  It was thought lines_in_log() was causing freezing on FreeBSD but it wasn't.
             declare
                command  : constant String := HT.USS (PM.configuration.dir_sysroot) &
                  "/usr/bin/wc -l " & LOG.log_name (trackers (id).seq_id);
