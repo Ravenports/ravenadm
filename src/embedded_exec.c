@@ -549,6 +549,7 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
 {
    pid_t root_pid;
    pid_t inner_pid;
+   pid_t inner_wpid;
    int zbuilder;
    int inner_status = 0;
 
@@ -619,20 +620,11 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
       set_handler(zbuilder);
       signal(SIGINT, SIG_IGN);
 
-      for (;;) {
-         pid_t inner_cpid;
-
-         inner_cpid = wait3(&inner_status, 0, NULL);
-         if (inner_cpid == inner_pid)
-         {
-            break;
-         }
-         if (inner_cpid < 0 && errno != EINTR)
-         {
-            inner_status = W_EXITCODE(1, 0);
-            break;
-         }
-      }
+      inner_wpid = waitpid (inner_pid, &inner_status, 0);
+      if (inner_wpid < 0)
+      {
+         inner_status = W_EXITCODE(1, 0);
+      };
 
       kill_process_tree (ravenexec[zbuilder]);
       _exit (WEXITSTATUS (inner_status));
