@@ -960,6 +960,11 @@ package body Replicant is
             forge_directory (location (slave_base, frameworks));
             mount_nullfs (location (dir_system, frameworks), location (slave_base, frameworks));
       end case;
+      case platform_type is
+         when dragonfly =>
+            forge_directory (slave_base & "/boot/modules.local");
+         when others => null;
+      end case;
 
       folder_access (location (slave_base, home), lock);
       folder_access (location (slave_base, root), lock);
