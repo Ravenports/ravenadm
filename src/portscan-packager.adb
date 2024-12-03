@@ -503,7 +503,6 @@ package body PortScan.Packager is
       use type Unix.process_exit;
       pid         : Unix.pid_t;
       status      : Unix.process_exit;
-      hangmonitor : constant Boolean := True;
    begin
       pid := RAX.launch_separate_process (builder_id, log_fd, program, arguments);
       if Unix.fork_failed (pid) then
