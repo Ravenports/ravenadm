@@ -179,150 +179,163 @@ kill_process_tree (pid_t reaper_pid)
 
 
 /*
+ * -----------------------
+ * --  abort_execution  --
+ * -----------------------
+ */
+static void
+abort_execution (pid_t top_pid)
+{
+   kill_process_tree (top_pid);
+   reap_process (top_pid);
+}
+
+
+/*
  * -------------------
  * --  handler_xxx  --
  * -------------------
  */
-static void handler_000 (int signo __unused) {kill_process_tree (ravenexec[0]);}
-static void handler_001 (int signo __unused) {kill_process_tree (ravenexec[1]);}
-static void handler_002 (int signo __unused) {kill_process_tree (ravenexec[2]);}
-static void handler_003 (int signo __unused) {kill_process_tree (ravenexec[3]);}
-static void handler_004 (int signo __unused) {kill_process_tree (ravenexec[4]);}
-static void handler_005 (int signo __unused) {kill_process_tree (ravenexec[5]);}
-static void handler_006 (int signo __unused) {kill_process_tree (ravenexec[6]);}
-static void handler_007 (int signo __unused) {kill_process_tree (ravenexec[7]);}
-static void handler_008 (int signo __unused) {kill_process_tree (ravenexec[8]);}
-static void handler_009 (int signo __unused) {kill_process_tree (ravenexec[9]);}
+static void handler_000 (int signo __unused) {abort_execution (ravenexec[0]);}
+static void handler_001 (int signo __unused) {abort_execution (ravenexec[1]);}
+static void handler_002 (int signo __unused) {abort_execution (ravenexec[2]);}
+static void handler_003 (int signo __unused) {abort_execution (ravenexec[3]);}
+static void handler_004 (int signo __unused) {abort_execution (ravenexec[4]);}
+static void handler_005 (int signo __unused) {abort_execution (ravenexec[5]);}
+static void handler_006 (int signo __unused) {abort_execution (ravenexec[6]);}
+static void handler_007 (int signo __unused) {abort_execution (ravenexec[7]);}
+static void handler_008 (int signo __unused) {abort_execution (ravenexec[8]);}
+static void handler_009 (int signo __unused) {abort_execution (ravenexec[9]);}
 
-static void handler_010 (int signo __unused) {kill_process_tree (ravenexec[10]);}
-static void handler_011 (int signo __unused) {kill_process_tree (ravenexec[11]);}
-static void handler_012 (int signo __unused) {kill_process_tree (ravenexec[12]);}
-static void handler_013 (int signo __unused) {kill_process_tree (ravenexec[13]);}
-static void handler_014 (int signo __unused) {kill_process_tree (ravenexec[14]);}
-static void handler_015 (int signo __unused) {kill_process_tree (ravenexec[15]);}
-static void handler_016 (int signo __unused) {kill_process_tree (ravenexec[16]);}
-static void handler_017 (int signo __unused) {kill_process_tree (ravenexec[17]);}
-static void handler_018 (int signo __unused) {kill_process_tree (ravenexec[18]);}
-static void handler_019 (int signo __unused) {kill_process_tree (ravenexec[19]);}
+static void handler_010 (int signo __unused) {abort_execution (ravenexec[10]);}
+static void handler_011 (int signo __unused) {abort_execution (ravenexec[11]);}
+static void handler_012 (int signo __unused) {abort_execution (ravenexec[12]);}
+static void handler_013 (int signo __unused) {abort_execution (ravenexec[13]);}
+static void handler_014 (int signo __unused) {abort_execution (ravenexec[14]);}
+static void handler_015 (int signo __unused) {abort_execution (ravenexec[15]);}
+static void handler_016 (int signo __unused) {abort_execution (ravenexec[16]);}
+static void handler_017 (int signo __unused) {abort_execution (ravenexec[17]);}
+static void handler_018 (int signo __unused) {abort_execution (ravenexec[18]);}
+static void handler_019 (int signo __unused) {abort_execution (ravenexec[19]);}
 
-static void handler_020 (int signo __unused) {kill_process_tree (ravenexec[20]);}
-static void handler_021 (int signo __unused) {kill_process_tree (ravenexec[21]);}
-static void handler_022 (int signo __unused) {kill_process_tree (ravenexec[22]);}
-static void handler_023 (int signo __unused) {kill_process_tree (ravenexec[23]);}
-static void handler_024 (int signo __unused) {kill_process_tree (ravenexec[24]);}
-static void handler_025 (int signo __unused) {kill_process_tree (ravenexec[25]);}
-static void handler_026 (int signo __unused) {kill_process_tree (ravenexec[26]);}
-static void handler_027 (int signo __unused) {kill_process_tree (ravenexec[27]);}
-static void handler_028 (int signo __unused) {kill_process_tree (ravenexec[28]);}
-static void handler_029 (int signo __unused) {kill_process_tree (ravenexec[29]);}
+static void handler_020 (int signo __unused) {abort_execution (ravenexec[20]);}
+static void handler_021 (int signo __unused) {abort_execution (ravenexec[21]);}
+static void handler_022 (int signo __unused) {abort_execution (ravenexec[22]);}
+static void handler_023 (int signo __unused) {abort_execution (ravenexec[23]);}
+static void handler_024 (int signo __unused) {abort_execution (ravenexec[24]);}
+static void handler_025 (int signo __unused) {abort_execution (ravenexec[25]);}
+static void handler_026 (int signo __unused) {abort_execution (ravenexec[26]);}
+static void handler_027 (int signo __unused) {abort_execution (ravenexec[27]);}
+static void handler_028 (int signo __unused) {abort_execution (ravenexec[28]);}
+static void handler_029 (int signo __unused) {abort_execution (ravenexec[29]);}
 
-static void handler_030 (int signo __unused) {kill_process_tree (ravenexec[30]);}
-static void handler_031 (int signo __unused) {kill_process_tree (ravenexec[31]);}
-static void handler_032 (int signo __unused) {kill_process_tree (ravenexec[32]);}
-static void handler_033 (int signo __unused) {kill_process_tree (ravenexec[33]);}
-static void handler_034 (int signo __unused) {kill_process_tree (ravenexec[34]);}
-static void handler_035 (int signo __unused) {kill_process_tree (ravenexec[35]);}
-static void handler_036 (int signo __unused) {kill_process_tree (ravenexec[36]);}
-static void handler_037 (int signo __unused) {kill_process_tree (ravenexec[37]);}
-static void handler_038 (int signo __unused) {kill_process_tree (ravenexec[38]);}
-static void handler_039 (int signo __unused) {kill_process_tree (ravenexec[39]);}
+static void handler_030 (int signo __unused) {abort_execution (ravenexec[30]);}
+static void handler_031 (int signo __unused) {abort_execution (ravenexec[31]);}
+static void handler_032 (int signo __unused) {abort_execution (ravenexec[32]);}
+static void handler_033 (int signo __unused) {abort_execution (ravenexec[33]);}
+static void handler_034 (int signo __unused) {abort_execution (ravenexec[34]);}
+static void handler_035 (int signo __unused) {abort_execution (ravenexec[35]);}
+static void handler_036 (int signo __unused) {abort_execution (ravenexec[36]);}
+static void handler_037 (int signo __unused) {abort_execution (ravenexec[37]);}
+static void handler_038 (int signo __unused) {abort_execution (ravenexec[38]);}
+static void handler_039 (int signo __unused) {abort_execution (ravenexec[39]);}
 
-static void handler_040 (int signo __unused) {kill_process_tree (ravenexec[40]);}
-static void handler_041 (int signo __unused) {kill_process_tree (ravenexec[41]);}
-static void handler_042 (int signo __unused) {kill_process_tree (ravenexec[42]);}
-static void handler_043 (int signo __unused) {kill_process_tree (ravenexec[43]);}
-static void handler_044 (int signo __unused) {kill_process_tree (ravenexec[44]);}
-static void handler_045 (int signo __unused) {kill_process_tree (ravenexec[45]);}
-static void handler_046 (int signo __unused) {kill_process_tree (ravenexec[46]);}
-static void handler_047 (int signo __unused) {kill_process_tree (ravenexec[47]);}
-static void handler_048 (int signo __unused) {kill_process_tree (ravenexec[48]);}
-static void handler_049 (int signo __unused) {kill_process_tree (ravenexec[49]);}
+static void handler_040 (int signo __unused) {abort_execution (ravenexec[40]);}
+static void handler_041 (int signo __unused) {abort_execution (ravenexec[41]);}
+static void handler_042 (int signo __unused) {abort_execution (ravenexec[42]);}
+static void handler_043 (int signo __unused) {abort_execution (ravenexec[43]);}
+static void handler_044 (int signo __unused) {abort_execution (ravenexec[44]);}
+static void handler_045 (int signo __unused) {abort_execution (ravenexec[45]);}
+static void handler_046 (int signo __unused) {abort_execution (ravenexec[46]);}
+static void handler_047 (int signo __unused) {abort_execution (ravenexec[47]);}
+static void handler_048 (int signo __unused) {abort_execution (ravenexec[48]);}
+static void handler_049 (int signo __unused) {abort_execution (ravenexec[49]);}
 
-static void handler_050 (int signo __unused) {kill_process_tree (ravenexec[50]);}
-static void handler_051 (int signo __unused) {kill_process_tree (ravenexec[51]);}
-static void handler_052 (int signo __unused) {kill_process_tree (ravenexec[52]);}
-static void handler_053 (int signo __unused) {kill_process_tree (ravenexec[53]);}
-static void handler_054 (int signo __unused) {kill_process_tree (ravenexec[54]);}
-static void handler_055 (int signo __unused) {kill_process_tree (ravenexec[55]);}
-static void handler_056 (int signo __unused) {kill_process_tree (ravenexec[56]);}
-static void handler_057 (int signo __unused) {kill_process_tree (ravenexec[57]);}
-static void handler_058 (int signo __unused) {kill_process_tree (ravenexec[58]);}
-static void handler_059 (int signo __unused) {kill_process_tree (ravenexec[59]);}
+static void handler_050 (int signo __unused) {abort_execution (ravenexec[50]);}
+static void handler_051 (int signo __unused) {abort_execution (ravenexec[51]);}
+static void handler_052 (int signo __unused) {abort_execution (ravenexec[52]);}
+static void handler_053 (int signo __unused) {abort_execution (ravenexec[53]);}
+static void handler_054 (int signo __unused) {abort_execution (ravenexec[54]);}
+static void handler_055 (int signo __unused) {abort_execution (ravenexec[55]);}
+static void handler_056 (int signo __unused) {abort_execution (ravenexec[56]);}
+static void handler_057 (int signo __unused) {abort_execution (ravenexec[57]);}
+static void handler_058 (int signo __unused) {abort_execution (ravenexec[58]);}
+static void handler_059 (int signo __unused) {abort_execution (ravenexec[59]);}
 
-static void handler_060 (int signo __unused) {kill_process_tree (ravenexec[60]);}
-static void handler_061 (int signo __unused) {kill_process_tree (ravenexec[61]);}
-static void handler_062 (int signo __unused) {kill_process_tree (ravenexec[62]);}
-static void handler_063 (int signo __unused) {kill_process_tree (ravenexec[63]);}
-static void handler_064 (int signo __unused) {kill_process_tree (ravenexec[64]);}
-static void handler_065 (int signo __unused) {kill_process_tree (ravenexec[65]);}
-static void handler_066 (int signo __unused) {kill_process_tree (ravenexec[66]);}
-static void handler_067 (int signo __unused) {kill_process_tree (ravenexec[67]);}
-static void handler_068 (int signo __unused) {kill_process_tree (ravenexec[68]);}
-static void handler_069 (int signo __unused) {kill_process_tree (ravenexec[69]);}
+static void handler_060 (int signo __unused) {abort_execution (ravenexec[60]);}
+static void handler_061 (int signo __unused) {abort_execution (ravenexec[61]);}
+static void handler_062 (int signo __unused) {abort_execution (ravenexec[62]);}
+static void handler_063 (int signo __unused) {abort_execution (ravenexec[63]);}
+static void handler_064 (int signo __unused) {abort_execution (ravenexec[64]);}
+static void handler_065 (int signo __unused) {abort_execution (ravenexec[65]);}
+static void handler_066 (int signo __unused) {abort_execution (ravenexec[66]);}
+static void handler_067 (int signo __unused) {abort_execution (ravenexec[67]);}
+static void handler_068 (int signo __unused) {abort_execution (ravenexec[68]);}
+static void handler_069 (int signo __unused) {abort_execution (ravenexec[69]);}
 
-static void handler_070 (int signo __unused) {kill_process_tree (ravenexec[70]);}
-static void handler_071 (int signo __unused) {kill_process_tree (ravenexec[71]);}
-static void handler_072 (int signo __unused) {kill_process_tree (ravenexec[72]);}
-static void handler_073 (int signo __unused) {kill_process_tree (ravenexec[73]);}
-static void handler_074 (int signo __unused) {kill_process_tree (ravenexec[74]);}
-static void handler_075 (int signo __unused) {kill_process_tree (ravenexec[75]);}
-static void handler_076 (int signo __unused) {kill_process_tree (ravenexec[76]);}
-static void handler_077 (int signo __unused) {kill_process_tree (ravenexec[77]);}
-static void handler_078 (int signo __unused) {kill_process_tree (ravenexec[78]);}
-static void handler_079 (int signo __unused) {kill_process_tree (ravenexec[79]);}
+static void handler_070 (int signo __unused) {abort_execution (ravenexec[70]);}
+static void handler_071 (int signo __unused) {abort_execution (ravenexec[71]);}
+static void handler_072 (int signo __unused) {abort_execution (ravenexec[72]);}
+static void handler_073 (int signo __unused) {abort_execution (ravenexec[73]);}
+static void handler_074 (int signo __unused) {abort_execution (ravenexec[74]);}
+static void handler_075 (int signo __unused) {abort_execution (ravenexec[75]);}
+static void handler_076 (int signo __unused) {abort_execution (ravenexec[76]);}
+static void handler_077 (int signo __unused) {abort_execution (ravenexec[77]);}
+static void handler_078 (int signo __unused) {abort_execution (ravenexec[78]);}
+static void handler_079 (int signo __unused) {abort_execution (ravenexec[79]);}
 
-static void handler_080 (int signo __unused) {kill_process_tree (ravenexec[80]);}
-static void handler_081 (int signo __unused) {kill_process_tree (ravenexec[81]);}
-static void handler_082 (int signo __unused) {kill_process_tree (ravenexec[82]);}
-static void handler_083 (int signo __unused) {kill_process_tree (ravenexec[83]);}
-static void handler_084 (int signo __unused) {kill_process_tree (ravenexec[84]);}
-static void handler_085 (int signo __unused) {kill_process_tree (ravenexec[85]);}
-static void handler_086 (int signo __unused) {kill_process_tree (ravenexec[86]);}
-static void handler_087 (int signo __unused) {kill_process_tree (ravenexec[87]);}
-static void handler_088 (int signo __unused) {kill_process_tree (ravenexec[88]);}
-static void handler_089 (int signo __unused) {kill_process_tree (ravenexec[89]);}
+static void handler_080 (int signo __unused) {abort_execution (ravenexec[80]);}
+static void handler_081 (int signo __unused) {abort_execution (ravenexec[81]);}
+static void handler_082 (int signo __unused) {abort_execution (ravenexec[82]);}
+static void handler_083 (int signo __unused) {abort_execution (ravenexec[83]);}
+static void handler_084 (int signo __unused) {abort_execution (ravenexec[84]);}
+static void handler_085 (int signo __unused) {abort_execution (ravenexec[85]);}
+static void handler_086 (int signo __unused) {abort_execution (ravenexec[86]);}
+static void handler_087 (int signo __unused) {abort_execution (ravenexec[87]);}
+static void handler_088 (int signo __unused) {abort_execution (ravenexec[88]);}
+static void handler_089 (int signo __unused) {abort_execution (ravenexec[89]);}
 
-static void handler_090 (int signo __unused) {kill_process_tree (ravenexec[90]);}
-static void handler_091 (int signo __unused) {kill_process_tree (ravenexec[91]);}
-static void handler_092 (int signo __unused) {kill_process_tree (ravenexec[92]);}
-static void handler_093 (int signo __unused) {kill_process_tree (ravenexec[93]);}
-static void handler_094 (int signo __unused) {kill_process_tree (ravenexec[94]);}
-static void handler_095 (int signo __unused) {kill_process_tree (ravenexec[95]);}
-static void handler_096 (int signo __unused) {kill_process_tree (ravenexec[96]);}
-static void handler_097 (int signo __unused) {kill_process_tree (ravenexec[97]);}
-static void handler_098 (int signo __unused) {kill_process_tree (ravenexec[98]);}
-static void handler_099 (int signo __unused) {kill_process_tree (ravenexec[99]);}
+static void handler_090 (int signo __unused) {abort_execution (ravenexec[90]);}
+static void handler_091 (int signo __unused) {abort_execution (ravenexec[91]);}
+static void handler_092 (int signo __unused) {abort_execution (ravenexec[92]);}
+static void handler_093 (int signo __unused) {abort_execution (ravenexec[93]);}
+static void handler_094 (int signo __unused) {abort_execution (ravenexec[94]);}
+static void handler_095 (int signo __unused) {abort_execution (ravenexec[95]);}
+static void handler_096 (int signo __unused) {abort_execution (ravenexec[96]);}
+static void handler_097 (int signo __unused) {abort_execution (ravenexec[97]);}
+static void handler_098 (int signo __unused) {abort_execution (ravenexec[98]);}
+static void handler_099 (int signo __unused) {abort_execution (ravenexec[99]);}
 
-static void handler_100 (int signo __unused) {kill_process_tree (ravenexec[100]);}
-static void handler_101 (int signo __unused) {kill_process_tree (ravenexec[101]);}
-static void handler_102 (int signo __unused) {kill_process_tree (ravenexec[102]);}
-static void handler_103 (int signo __unused) {kill_process_tree (ravenexec[103]);}
-static void handler_104 (int signo __unused) {kill_process_tree (ravenexec[104]);}
-static void handler_105 (int signo __unused) {kill_process_tree (ravenexec[105]);}
-static void handler_106 (int signo __unused) {kill_process_tree (ravenexec[106]);}
-static void handler_107 (int signo __unused) {kill_process_tree (ravenexec[107]);}
-static void handler_108 (int signo __unused) {kill_process_tree (ravenexec[108]);}
-static void handler_109 (int signo __unused) {kill_process_tree (ravenexec[109]);}
+static void handler_100 (int signo __unused) {abort_execution (ravenexec[100]);}
+static void handler_101 (int signo __unused) {abort_execution (ravenexec[101]);}
+static void handler_102 (int signo __unused) {abort_execution (ravenexec[102]);}
+static void handler_103 (int signo __unused) {abort_execution (ravenexec[103]);}
+static void handler_104 (int signo __unused) {abort_execution (ravenexec[104]);}
+static void handler_105 (int signo __unused) {abort_execution (ravenexec[105]);}
+static void handler_106 (int signo __unused) {abort_execution (ravenexec[106]);}
+static void handler_107 (int signo __unused) {abort_execution (ravenexec[107]);}
+static void handler_108 (int signo __unused) {abort_execution (ravenexec[108]);}
+static void handler_109 (int signo __unused) {abort_execution (ravenexec[109]);}
 
-static void handler_110 (int signo __unused) {kill_process_tree (ravenexec[110]);}
-static void handler_111 (int signo __unused) {kill_process_tree (ravenexec[111]);}
-static void handler_112 (int signo __unused) {kill_process_tree (ravenexec[112]);}
-static void handler_113 (int signo __unused) {kill_process_tree (ravenexec[113]);}
-static void handler_114 (int signo __unused) {kill_process_tree (ravenexec[114]);}
-static void handler_115 (int signo __unused) {kill_process_tree (ravenexec[115]);}
-static void handler_116 (int signo __unused) {kill_process_tree (ravenexec[116]);}
-static void handler_117 (int signo __unused) {kill_process_tree (ravenexec[117]);}
-static void handler_118 (int signo __unused) {kill_process_tree (ravenexec[118]);}
-static void handler_119 (int signo __unused) {kill_process_tree (ravenexec[119]);}
+static void handler_110 (int signo __unused) {abort_execution (ravenexec[110]);}
+static void handler_111 (int signo __unused) {abort_execution (ravenexec[111]);}
+static void handler_112 (int signo __unused) {abort_execution (ravenexec[112]);}
+static void handler_113 (int signo __unused) {abort_execution (ravenexec[113]);}
+static void handler_114 (int signo __unused) {abort_execution (ravenexec[114]);}
+static void handler_115 (int signo __unused) {abort_execution (ravenexec[115]);}
+static void handler_116 (int signo __unused) {abort_execution (ravenexec[116]);}
+static void handler_117 (int signo __unused) {abort_execution (ravenexec[117]);}
+static void handler_118 (int signo __unused) {abort_execution (ravenexec[118]);}
+static void handler_119 (int signo __unused) {abort_execution (ravenexec[119]);}
 
-static void handler_120 (int signo __unused) {kill_process_tree (ravenexec[120]);}
-static void handler_121 (int signo __unused) {kill_process_tree (ravenexec[121]);}
-static void handler_122 (int signo __unused) {kill_process_tree (ravenexec[122]);}
-static void handler_123 (int signo __unused) {kill_process_tree (ravenexec[123]);}
-static void handler_124 (int signo __unused) {kill_process_tree (ravenexec[124]);}
-static void handler_125 (int signo __unused) {kill_process_tree (ravenexec[125]);}
-static void handler_126 (int signo __unused) {kill_process_tree (ravenexec[126]);}
-static void handler_127 (int signo __unused) {kill_process_tree (ravenexec[127]);}
+static void handler_120 (int signo __unused) {abort_execution (ravenexec[120]);}
+static void handler_121 (int signo __unused) {abort_execution (ravenexec[121]);}
+static void handler_122 (int signo __unused) {abort_execution (ravenexec[122]);}
+static void handler_123 (int signo __unused) {abort_execution (ravenexec[123]);}
+static void handler_124 (int signo __unused) {abort_execution (ravenexec[124]);}
+static void handler_125 (int signo __unused) {abort_execution (ravenexec[125]);}
+static void handler_126 (int signo __unused) {abort_execution (ravenexec[126]);}
+static void handler_127 (int signo __unused) {abort_execution (ravenexec[127]);}
 
 
 
@@ -543,6 +556,7 @@ start_new_log_file (const char *path)
  *               -4 : failed to set up reaper
  *               -5 : illegal builder number
  *               -6 : second fork failed
+ *               -7 : setsid failed
  */
 int
 phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
@@ -572,10 +586,22 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
    {
       return (-3);
    }
-   else if (root_pid == 0)
+
+
+
+   /***************************
+    *  First fork successful  *
+    ***************************/
+   if (root_pid == 0)
    {
-      /* child */
+      /* child of fork #1 */
       ravenexec[zbuilder] = getpid();
+      if (setsid() < 0)
+      {
+         _exit (-7);
+      }
+      set_handler(zbuilder);
+      signal(SIGINT, SIG_IGN);
 
 #ifdef PROC_REAP_ACQUIRE
       /*
@@ -584,7 +610,7 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
        */
       if (procctl(P_PID, ravenexec[zbuilder], PROC_REAP_ACQUIRE, NULL) < 0)
       {
-         return (-4);
+         _exit (-4);
       }
 #endif
 #ifdef PR_SET_CHILD_SUBREAPER
@@ -593,18 +619,22 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
        */
       if (prctl(PR_SET_CHILD_SUBREAPER, 1) < 0)
       {
-         return (-4);
+         _exit (-4);
       }
 #endif
 
       inner_pid = fork();
       if (inner_pid < 0)
       {
-         return (-6);
+         _exit (-6);
       }
-      else if (inner_pid == 0)
+
+      /****************************
+       *  Second fork successful  *
+       ****************************/
+      if (inner_pid == 0)
       {
-         /* inner child */
+         /* grandchild */
 
          dup2 (fd, STDOUT_FILENO);
          dup2 (fd, STDERR_FILENO);
@@ -616,10 +646,7 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
          _exit (1);
       }
 
-      /* inner parent */
-      set_handler(zbuilder);
-      signal(SIGINT, SIG_IGN);
-
+      /* parent of grandchild (a.k.a child, a.k.a rootpid) */
       inner_wpid = waitpid (inner_pid, &inner_status, 0);
       if (inner_wpid < 0)
       {
@@ -630,7 +657,7 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
       _exit (WEXITSTATUS (inner_status));
    }
 
-   /* Parent */
+   /* Parent of fork #1 */
    return root_pid;
 }
 
