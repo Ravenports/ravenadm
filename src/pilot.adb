@@ -1280,7 +1280,9 @@ package body Pilot is
       buildres : Boolean;
       ptid     : PortScan.port_id := OPS.unlist_first_port;
       pvname   : constant String  := PortScan.get_port_variant (ptid);
-      use_proc : constant Boolean := PortScan.requires_procfs (ptid);
+
+      --  Linux always requires /proc to support process reaping (see embedded_exec.c)
+      use_proc : constant Boolean := PortScan.requires_procfs (ptid) or else platform_type = linux;
    begin
       if not PortScan.valid_port_id (ptid) then
          TIO.Put_Line ("Failed to remove first port from list." & bailing);
