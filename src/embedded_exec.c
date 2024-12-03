@@ -66,22 +66,22 @@ kill_process_tree (pid_t reaper_pid)
         return (-1);
    }
 #if defined(__FreeBSD__) && defined(PROC_REAP_ACQUIRE)
+   int    reap_rc;
    struct procctl_reaper_status info;
    struct procctl_reaper_kill killemall;
 
-   if (procctl(P_PID, reaper_pid, PROC_REAP_STATUS, &info) == 0)
+   reap_rc = procctl(P_PID, reaper_pid, PROC_REAP_STATUS, &info);
+   if (reap_rc == 0)
    {
       if (info.rs_children != 0)
       {
          killemall.rk_sig = SIGKILL;
          killemall.rk_flags = 0;
-         if (procctl(P_PID, reaper_pid, PROC_REAP_KILL, &killemall) != 0)
-         {
-             return (-1);
-         }
+         reap_rc = procctl(P_PID, reaper_pid, PROC_REAP_KILL, &killemall);
       }
    }
-   return (0);
+   procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
+   return (reap_rc);
 #elif defined(__DragonFly__) && defined(PROC_REAP_ACQUIRE)
    union reaper_info info;
    int keep_going = 1;
