@@ -231,6 +231,12 @@ int
 kill_stalled_process (int builder)
 {
    int zbuilder;
+
+   if ((builder < 1) || builder > 128)
+   {
+      return (-1);
+   }
+
    zbuilder = builder - 1;
    if (ravenexec[zbuilder] > 0) {
       return (kill(ravenexec[zbuilder], SIGKILL));
