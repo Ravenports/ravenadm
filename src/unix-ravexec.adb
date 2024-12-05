@@ -207,8 +207,25 @@ package body Unix.Ravexec is
    begin
       writeln (fd, "Dump of stack:");
       TRC.Call_Chain (trace, trlen);
-       writeln (fd, TRC.Symbolic.Symbolic_Traceback (trace (1 .. trlen)));
+      writeln (fd, TRC.Symbolic.Symbolic_Traceback (trace (1 .. trlen)));
    end dump_stack;
+
+
+   -------------------------
+   --  kill_process_tree  --
+   -------------------------
+   procedure kill_process_tree (builder : builders; log_fd : File_Descriptor)
+   is
+      result : IC.int;
+      cbuilder : constant IC.int := IC.int (builder);
+   begin
+      result := kill_runaway (cbuilder);
+      case result is
+         when 0 => null;
+         when others =>
+            writeln (log_fd, "Warning: failed to kill process of builder" & builder'Img);
+      end case;
+   end kill_process_tree;
 
 
 end Unix.Ravexec;

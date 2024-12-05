@@ -28,6 +28,10 @@ package Unix.Ravexec is
    --  Write stack out to log
    procedure dump_stack (fd : File_Descriptor);
 
+   --  Send kill signal to the grandchild of the given builder's command process
+   --  This signal will cascade to all children spawned by grandchild (if supported by the OS)
+   procedure kill_process_tree (builder : builders; log_fd : File_Descriptor);
+
 private
 
    MAX_ARGS : constant IC.int := 255;
@@ -61,5 +65,8 @@ private
      (Arg_String : String;
       argvector  : in out struct_argv;
       num_args   : out IC.int);
+
+   function kill_runaway (builder : IC.int) return IC.int;
+   pragma Import (C, kill_runaway, "kill_stalled_process");
 
 end Unix.Ravexec;

@@ -81,20 +81,6 @@ package body Unix is
 
 
    --------------------------------------------------------------------------------------------
-   --  kill_process_tree
-   --------------------------------------------------------------------------------------------
-   procedure kill_process_tree (process_group : pid_t)
-   is
-      use type IC.int;
-      result : constant IC.int := signal_runaway (process_group);
-   begin
-      if result /= 0 then
-         TIO.Put_Line ("Notice: failed to signal pid " & process_group'Img);
-      end if;
-   end kill_process_tree;
-
-
-   --------------------------------------------------------------------------------------------
    --  external_command
    --------------------------------------------------------------------------------------------
    function external_command (command : String) return Boolean

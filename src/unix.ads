@@ -24,9 +24,6 @@ package Unix is
    --  check if process identified by pid has exited or keeps going
    function process_status (pid : pid_t) return process_exit;
 
-   --  Kill everything with the identified process group
-   procedure kill_process_tree (process_group : pid_t);
-
    --  Allows other packages to call external commands (e.g. Pilot)
    --  Returns "True" on success
    function external_command (command : String) return Boolean;
@@ -119,9 +116,6 @@ private
 
    function chatty_control return uInt8;
    pragma Import (C, chatty_control, "__chatty_control");
-
-   function signal_runaway (pid : pid_t) return IC.int;
-   pragma Import (C, signal_runaway, "__shut_it_down");
 
    function ignore_tty_write return uInt8;
    pragma Import (C, ignore_tty_write, "__ignore_background_tty_writes");

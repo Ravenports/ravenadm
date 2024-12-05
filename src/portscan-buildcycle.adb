@@ -1624,7 +1624,7 @@ package body PortScan.Buildcycle is
                   if watchdog (squirrel) = lock_lines then
                      --  Log hasn't advanced in a full cycle so bail out
                      dogbite := True;
-                     Unix.kill_process_tree (process_group => pid);
+                     RAX.kill_process_tree (id, trackers (id).log_fd);
                      delay 5.0;  --  Give some time for error to write to log
                      return False;
                   end if;
