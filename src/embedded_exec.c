@@ -104,6 +104,7 @@ kill_process_tree (pid_t reaper_pid)
          }
       }
    }
+   procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
    return (0);
 #elif defined(__linux__)
    /*
