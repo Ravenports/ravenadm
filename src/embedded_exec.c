@@ -85,6 +85,7 @@ kill_process_tree (pid_t reaper_pid)
 #elif defined(__DragonFly__) && defined(PROC_REAP_ACQUIRE)
    union reaper_info info;
    int keep_going = 1;
+   int reap_rc = 0;
 
    while (keep_going)
    {
@@ -93,19 +94,15 @@ kill_process_tree (pid_t reaper_pid)
       {
          if (info.status.pid_head > 0)
          {
-            if (reap_process (info.status.pid_head) == 0)
-            {
-               keep_going = 1;
-            }
-            else
-            {
-               return (-1);
+            keep_going = 1;
+            if (reap_process (info.status.pid_head) != 0) {
+               reap_rc = -1;
             }
          }
       }
    }
    procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
-   return (0);
+   return (reap_rc);
 #elif defined(__linux__)
    /*
     * Iterate /proc pseudo-filesystem repeatedly until no
