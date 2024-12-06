@@ -116,7 +116,7 @@ kill_process_tree (pid_t reaper_pid)
       struct dirent* ent;
       char *endptr;
       char buffer[512];
-      int found_ppid = 0;
+      int found_ppid;
 
       dir = opendir("/proc");
       if (dir == NULL)
@@ -133,6 +133,7 @@ kill_process_tree (pid_t reaper_pid)
           * if endptr is not a null character, the directory is not
           * numeric so ignore it
           */
+         found_ppid = 0;
          lpid = strtol(ent->d_name, &endptr, 10);
          if (*endptr != '\0')
          {
@@ -155,11 +156,7 @@ kill_process_tree (pid_t reaper_pid)
                if (parent_id == reaper_pid)
                {
                   found_ppid = 1;
-                  if (reap_process ((pid_t) lpid) == -1)
-                  {
-                     closedir (dir);
-                     return (-1);
-                  }
+                  reap_process ((pid_t) lpid);
                }
             }
          }
