@@ -2015,12 +2015,12 @@ package body Port_Specification.Transform is
       end if;
 
       if not no_arguments_present (specs, module) then
-         if argument_present (specs, module, "83") then
-            flavor := "php83";
-         elsif argument_present (specs, module, "82") then
+         if argument_present (specs, module, "82") then
             flavor := "php82";
-         elsif argument_present (specs, module, "81") then
-            flavor := "php81";
+         elsif argument_present (specs, module, "83") then
+            flavor := "php83";
+         elsif argument_present (specs, module, "84") then
+            flavor := "php84";
          end if;
          hit_build   := argument_present (specs, module, BUILD);
          hit_phpize  := argument_present (specs, module, "phpize");
@@ -3367,12 +3367,12 @@ package body Port_Specification.Transform is
       end import;
    begin
       if not no_arguments_present (specs, php_module) then
-         if argument_present (specs, php_module, "83") then
+         if argument_present (specs, php_module, "84") then
+            flavor := "php84";
+         elsif argument_present (specs, php_module, "83") then
             flavor := "php83";
          elsif argument_present (specs, php_module, "82") then
             flavor := "php82";
-         elsif argument_present (specs, php_module, "81") then
-            flavor := "php81";
          end if;
       end if;
       hit_build := argument_present (specs, php_module, BUILD);

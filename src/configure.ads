@@ -77,7 +77,7 @@ private
    version_B : constant String := default_mysql & ":oracle-8.4:innovation:" &
                                   "mariadb-10.5:mariadb-10.6:mariadb-10.11:mariadb-11";
    version_C : constant String := default_perl & ":5.40";
-   version_D : constant String := "8.1:" & default_php & ":8.3";
+   version_D : constant String := "8.2:" & default_php & ":8.4";
    version_E : constant String := "13:14:15:" & default_pgsql & ":17";
    version_F : constant String := default_python3 & ":3.13";
    version_G : constant String := "3.1:" & default_ruby & ":3.3";
