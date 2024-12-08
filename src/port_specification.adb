@@ -3605,7 +3605,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 76;
+      total_modules : constant Positive := 77;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3675,6 +3675,7 @@ package body Port_Specification is
          "qt5            ",
          "qt6            ",
          "readline       ",
+         "rootca         ",
          "ruby           ",
          "schemas        ",
          "scons          ",
