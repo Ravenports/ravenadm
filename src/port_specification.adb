@@ -5414,6 +5414,7 @@ package body Port_Specification is
          when 2 => return "mime-info";
          when 3 => return "gnome-icons";
          when 4 => return "desktop-utils";
+         when 5 => return "rootca";
       end case;
    end base_module;
 
