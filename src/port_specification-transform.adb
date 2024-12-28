@@ -1983,8 +1983,8 @@ package body Port_Specification.Transform is
    begin
       if specs.uses_base.Contains (HT.SUS (module)) then
          if not no_arguments_present (specs, module) then
-            if argument_present (specs, module, "v31") then
-               flavor := "v31";
+            if argument_present (specs, module, "v34") then
+               flavor := "v34";
             elsif argument_present (specs, module, "v32") then
                flavor := "v32";
             elsif argument_present (specs, module, "v33") then
