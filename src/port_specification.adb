@@ -1443,6 +1443,9 @@ package body Port_Specification is
             if not specs.subpackage_exists (key) then
                raise wrong_type with "subpackage key '" & key & "' has not been defined.";
             end if;
+            if key = value then
+               raise wrong_value with "EXRUN package '" & key & "' cannot depend on itself.";
+            end if;
             --  Valid EX_RUN values:
             --  1) string matching a defined subpackage (e.g. EXRUN[tools]= primary)
             --  2a) "ssl", pulls in primary package of selected ssl
