@@ -2788,6 +2788,14 @@ package body Port_Specification.Transform is
       procedure convert2 (Key : HT.Text; Element : in out group_list);
       procedure convert3 (Element : in out HT.Text);
 
+      function XY (xdoty : String) return String is
+      begin
+         if xdoty'Length < 3 then
+            return "X";
+         end if;
+         return xdoty (xdoty'First) & xdoty (xdoty'First + 2);
+      end XY;
+
       procedure convert3 (Element : in out HT.Text)
       is
          exrundep : String := HT.USS (Element);
@@ -2828,6 +2836,16 @@ package body Port_Specification.Transform is
                   Element := HT.SUS (primary_triplet ("perl-" & setting));
                end if;
             end;
+         elsif exrundep = "ruby" then
+            declare
+               setting : String := HT.USS (Parameters.configuration.def_ruby);
+            begin
+               if setting = ports_default then
+                  Element := HT.SUS (primary_triplet ("ruby" & XY (default_ruby)));
+               else
+                  Element := HT.SUS (primary_triplet ("ruby" & XY (setting)));
+               end if;
+            end;
          elsif exrundep = "mysql" then
             --  only mysql:client is supported by EXRUN
             Element := HT.SUS (generic_triplet (determine_mysql_namebase, "client"));
@@ -2849,6 +2867,7 @@ package body Port_Specification.Transform is
               exrun_value = "python" or else
               exrun_value = "perl" or else
               exrun_value = "tcl" or else
+              exrun_value = "ruby" or else
               exrun_value = "mysql" or else
               exrun_value = "pgsql"
             then

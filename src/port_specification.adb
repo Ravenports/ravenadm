@@ -1461,6 +1461,7 @@ package body Port_Specification is
                     value /= "python" and then
                     value /= "tcl" and then
                     value /= "perl" and then
+                    value /= "ruby" and then
                     value /= "mysql" and then
                     value /= "pgsql"
                   then
