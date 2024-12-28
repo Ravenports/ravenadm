@@ -60,9 +60,9 @@ private
    GETTEXT  : constant String := "gettext";
    TCL86    : constant String := generic_triplet ("tcl86", "tools");
    TCL90    : constant String := generic_triplet ("tcl90", "tools");
-   RUBY31   : constant String := primary_triplet ("ruby31");
    RUBY32   : constant String := primary_triplet ("ruby32");
    RUBY33   : constant String := primary_triplet ("ruby33");
+   RUBY34   : constant String := primary_triplet ("ruby34");
    NINJA    : constant String := single_triplet ("ninja");
    GNOMELIB : constant String := primary_triplet ("glib");
    GLIBDEV  : constant String := dev_triplet ("glib");

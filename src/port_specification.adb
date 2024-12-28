@@ -4491,9 +4491,9 @@ package body Port_Specification is
          ("PY312         ", PY312),
          ("PY313         ", PY313),
          ("READLINE      ", READLINE),
-         ("RUBY31        ", RUBY31),
          ("RUBY32        ", RUBY32),
          ("RUBY33        ", RUBY33),
+         ("RUBY34        ", RUBY34),
          ("SNDIO         ", SNDIO),
          ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
@@ -4573,9 +4573,9 @@ package body Port_Specification is
          when PY312        => return "Build using Python 3.12";
          when PY313        => return "Build using Python 3.13";
          when READLINE     => return "Command line editing via libreadline";
-         when RUBY31       => return "Build using Ruby version 3.1";
          when RUBY32       => return "Build using Ruby version 3.2";
          when RUBY33       => return "Build using Ruby version 3.3";
+         when RUBY34       => return "Build using Ruby version 3.4";
          when SNDIO        => return "Sndio audio support";
          when SOUND        => return "Sound (audio) support";
          when SQLITE       => return "SQLite database support";
