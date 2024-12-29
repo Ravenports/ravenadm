@@ -1795,7 +1795,7 @@ package body PortScan.Buildcycle is
       premake  : constant String := PM.chroot_program & " " & root & environ &
                                     chroot_make_program & " -C /port ";
       cextract : constant String := premake & "extract";
-      cpatch   : constant String := premake & "do-patch";
+      cpatch   : constant String := premake & "repatch";
       patch_wc : constant String := "patch-*";
 
       function get_wrksrc return String
