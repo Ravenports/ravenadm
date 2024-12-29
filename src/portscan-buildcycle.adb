@@ -1775,6 +1775,8 @@ package body PortScan.Buildcycle is
          TIO.Put_Line ("####### MAKESUM COMMAND FAILED #######");
          TIO.Put_Line ("hint 1: Check SITES array contents are valid and accessible");
          TIO.Put_Line ("hint 2: Check that all distfile names are correct.");
+         TIO.Put_Line ("======= FAILED COMMAND OUTPUT =======");
+         TIO.Put_Line (HT.USS (content));
       end if;
    end run_makesum;
 
