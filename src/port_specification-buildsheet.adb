@@ -10,6 +10,7 @@ with Ada.Exceptions;
 with Package_Manifests;
 with File_Operations;
 with Utilities;
+with Parameters;
 
 package body Port_Specification.Buildsheet is
 
@@ -911,7 +912,7 @@ package body Port_Specification.Buildsheet is
         "VARIANTS=" & tab & tab & "std" & CR &
         "SDESC[std]=" & tab & tab & "..." & CR &
         "HOMEPAGE=" & tab & tab & "none" & CR &
-        "CONTACT=" & tab & tab & "Jay_Leno[jay@aarp.org]" & CR & CR &
+        "CONTACT=" & tab & tab & HT.USS (Parameters.configuration.maintainer) & CR & CR &
         "DOWNLOAD_GROUPS=" & tab & "main" & CR &
         "SITES[main]=" & tab & tab & "http://www.example.com/" & CR &
         "DISTFILE[1]=" & tab & tab & "x-${PORTVERSION}.tar.gz:main" & CR & CR &

@@ -448,6 +448,7 @@ package body Parameters is
       result.dir_ccache     := HT.SUS (no_ccache);
       result.dir_buildbase  := HT.SUS (pri_buildbase);
       result.dir_profile    := HT.replace_substring (HT.SUS (pri_profile), "[X]", new_profile);
+      result.maintainer     := HT.SUS (std_maintainer);
       result.num_builders   := builders (def_builders);
       result.jobs_limit     := builders (def_jlimit);
 
@@ -529,6 +530,7 @@ package body Parameters is
       IFM.insert_or_update (profile_name, Field_14, set_boolean (confrec.avec_ncurses));
       IFM.insert_or_update (profile_name, Field_15, set_boolean (confrec.record_options));
       IFM.insert_or_update (profile_name, Field_27, set_boolean (confrec.batch_mode));
+      IFM.insert_or_update (profile_name, Field_28, HT.USS (confrec.maintainer));
 
       IFM.insert_or_update (profile_name, Field_17, HT.USS (confrec.def_lua));
       IFM.insert_or_update (profile_name, Field_18, HT.USS (confrec.def_mysql_group));
@@ -665,6 +667,7 @@ package body Parameters is
       configuration.dir_packages   := default_string (Field_07, def_packages);
       configuration.dir_ccache     := default_string (Field_08, no_ccache);
       configuration.dir_buildbase  := default_string (Field_09, pri_buildbase);
+      configuration.maintainer     := default_string (Field_28, std_maintainer);
       configuration.num_builders   := default_builder (Field_10, def_builders);
       configuration.jobs_limit     := default_builder (Field_11, def_jlimit);
       configuration.avoid_tmpfs    := tmpfs_transfer;

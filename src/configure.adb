@@ -59,6 +59,12 @@ package body Configure is
                when 'm' .. 'q' =>
                   change_boolean_option (option (ascii - 96), pristine);
                   exit;
+               when 'R' =>
+                  change_string_option (option (ascii - 64), pristine);
+                  exit;
+               when 'r' =>
+                  change_string_option (option (ascii - 96), pristine);
+                  exit;
                when 'v' | 'V' =>
                   move_to_defaults_menu (pristine_def);
                   exit;
@@ -185,9 +191,10 @@ package body Configure is
          when 15 => nextb := dupe.avec_ncurses;    origb := PM.configuration.avec_ncurses;
          when 16 => nextb := dupe.record_options;  origb := PM.configuration.record_options;
          when 17 => nextb := dupe.batch_mode;      origb := PM.configuration.batch_mode;
+         when 18 => nextt := dupe.maintainer;      origt := PM.configuration.maintainer;
       end case;
       case opt is
-         when  1 .. 10 =>
+         when  1 .. 10 | 18 =>
             equivalent := HT.equivalent (origt, nextt);
             show := nextt;
          when 11 .. 12 =>
@@ -363,6 +370,37 @@ package body Configure is
          exit when continue;
       end loop;
    end change_positive_option;
+
+
+   --------------------------------------------------------------------------------------------
+   --  change_string_option
+   --------------------------------------------------------------------------------------------
+   procedure change_string_option (opt : option; pristine : in out Boolean)
+   is
+      continue : Boolean := False;
+   begin
+      loop
+         clear_screen;
+         print_header;
+         print_opt (opt, pristine);
+         TIO.Put (LAT.LF & "Set new value");
+         declare
+            testvalue : constant String := TIO.Get_Line;
+         begin
+            case opt is
+               when 18 =>
+                  dupe.maintainer := HT.SUS (testvalue);
+                  continue := True;
+               when others =>
+                  raise menu_error with "Illegal value : " & opt'Img;
+            end case;
+         exception
+            when others =>
+               continue := True;
+         end;
+         exit when continue;
+      end loop;
+   end change_string_option;
 
 
    --------------------------------------------------------------------------------------------

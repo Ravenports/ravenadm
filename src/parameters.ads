@@ -30,6 +30,7 @@ package Parameters is
          dir_profile     : HT.Text;
          dir_logs        : HT.Text;
          dir_options     : HT.Text;
+         maintainer      : HT.Text;
          num_builders    : builders;
          jobs_limit      : builders;
          avoid_tmpfs     : Boolean;
@@ -145,6 +146,7 @@ private
    Field_14 : constant String := "display_with_ncurses";
    Field_15 : constant String := "record_default_options";
    Field_27 : constant String := "assume_default_options";
+   Field_28 : constant String := "maintainer_contact";
 
    Field_17 : constant String := "default_lua";
    Field_18 : constant String := "default_mysql_group";
@@ -166,6 +168,7 @@ private
    pri_buildbase  : constant String := raven_var & "/builders";
    ravenadm_ini   : constant String := "ravenadm.ini";
    conf_location  : constant String := raven_confdir & "/" & ravenadm_ini;
+   std_maintainer : constant String := "Jay_Leno[jay@aarp.org]";
    std_localbase  : constant String := "/raven";
    std_distfiles  : constant String := raven_var & "/distfiles";
    std_conspiracy : constant String := raven_var & "/conspiracy";

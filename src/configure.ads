@@ -23,7 +23,7 @@ private
 
    indent : constant String (1 ..  3) := (others => LAT.Space);
 
-   type option is range 1 .. 17;
+   type option is range 1 .. 18;
    type default is range 1 .. 9;
    subtype ofield is String (1 .. 30);
    type desc_type is array (option) of ofield;
@@ -47,7 +47,8 @@ private
       "[N] Fetch prebuilt packages   ",
       "[O] Display using ncurses     ",
       "[P] Always record options     ",
-      "[Q] Assume default options    "
+      "[Q] Assume default options    ",
+      "[R] Template maintainer       "
      );
 
    version_desc : constant default_type :=
@@ -90,6 +91,7 @@ private
    procedure change_directory_option (opt : option; pristine : in out Boolean);
    procedure change_boolean_option   (opt : option; pristine : in out Boolean);
    procedure change_positive_option  (opt : option; pristine : in out Boolean);
+   procedure change_string_option    (opt : option; pristine : in out Boolean);
    procedure delete_profile;
    procedure switch_profile;
    procedure move_to_defaults_menu (pristine_def : in out Boolean);
