@@ -378,21 +378,41 @@ package body Configure is
    procedure change_string_option (opt : option; pristine : in out Boolean)
    is
       continue : Boolean := False;
+
+      function valid_contact (value : String) return Boolean is
+      begin
+         if value = contact_nobody or else value = contact_automaton then
+            return True;
+         end if;
+         return (HT.contains (value, "_") and then
+                 HT.contains (value, "[") and then
+                 HT.contains (value, "@") and then
+                 value (value'Last) = LAT.Right_Square_Bracket);
+      end valid_contact;
    begin
       loop
          clear_screen;
          print_header;
          print_opt (opt, pristine);
-         TIO.Put (LAT.LF & "Set new value");
+         case opt is
+            when 18 =>
+               TIO.Put (LAT.LF & "Set contact (e.g Name_Surname[email_address]): ");
+            when others =>
+               raise menu_error with "Illegal value : " & opt'Img;
+         end case;
          declare
             testvalue : constant String := TIO.Get_Line;
          begin
             case opt is
                when 18 =>
-                  dupe.maintainer := HT.SUS (testvalue);
-                  continue := True;
+                  if testvalue = "" then
+                     continue := True;
+                  elsif valid_contact (testvalue) then
+                     dupe.maintainer := HT.SUS (testvalue);
+                     continue := True;
+                  end if;
                when others =>
-                  raise menu_error with "Illegal value : " & opt'Img;
+                  null;
             end case;
          exception
             when others =>

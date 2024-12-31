@@ -482,7 +482,6 @@ package body Port_Specification is
               not (HT.contains (value, "_") and then
                    HT.contains (value, "[") and then
                    HT.contains (value, "@") and then
-                   HT.contains (value, "]") and then
                   value (value'Last) = LAT.Right_Square_Bracket)
             then
                raise wrong_value with "incorrect contact format of '" & value & "'";
