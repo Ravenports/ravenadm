@@ -100,7 +100,7 @@ package body Port_Specification.Web is
    is
       bing : constant String := LAT.Greater_Than_Sign & LAT.LF;
       content : constant String := "Ravenports individual port description";
-      csslink : constant String := "../../../style/ravenports.css";
+      csslink : constant String := "../../../style/ravenports.css?v=2";
       cctrl   : constant String := "public, max-age=21600";  --  valid 6 hours
    begin
       return
