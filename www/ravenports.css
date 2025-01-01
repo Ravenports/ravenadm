@@ -5,8 +5,15 @@ body {
   font-stretch: normal;
   font-variant: normal;
   font-size: 14px;
-  padding: 10px 20px 0px;
-  background: #D6DBDF;
+  padding: 0;
+  margin: 0;
+  background: #808098;
+}
+
+#canvas {
+  margin: 10px;
+  padding: 0 20px;
+  background-color: #D8E0F0;
 }
 
 #sbt1,
@@ -15,7 +22,7 @@ body {
 #dlt4,
 #ust5 {
     table-layout: fixed;
-    width: 800px;
+    width: 100%;
 }
 
 #sbt1 td,
@@ -34,7 +41,9 @@ body {
 #dlt4 td:nth-child(1) {
     width: 150px;
 }
-#ust5 td { width: 50% }
+#ust5 td:nth-child(1) {
+    width: 380px;
+}
 
 #distblock,
 #optionblock,
@@ -56,7 +65,6 @@ table a {
 
 #optionblock {
     border: 1px solid black;
-    width: 782px;
     padding: 8px;
     background: #FEFEFE;
 }
@@ -93,8 +101,8 @@ table a {
 }
 
 #upstream_inner {
-   width: 820px;
-   height: 300px;
+   width: 100%;
+   padding-bottom: 80px;
    overflow: auto;
 }
 
@@ -102,13 +110,14 @@ table a {
   font-family: Georgia, Helvetica, sans-serif;
   font-weight: bold;
   text-align: center;
-  width: 1000px;
-  padding: 0 0 0 100px;
+  width: 100%;
+  padding: 0;
 }
 #namebase1 {
    background-image: url(ravenports-200.png);
    background-repeat: no-repeat;
-   height: 170px;
+   background-position-y: 10px;
+   height: 180px;
    font-size: 200%;
    color: #148F77;
    line-height: 140px;
@@ -124,14 +133,14 @@ table a {
 #namebase {
    background-image: url(raven-project.png);
    background-repeat: no-repeat;
-   height: 90px;
+   height: 50px;
    font-size: 200%;
    font-weight: bold;
    color: #148F77;
-   width: 800px;
-   padding: 0;
-   text-align: center;
-   line-height: 70px;
+   width: 100%;
+   padding: 20px 0 0;
+   text-align: left;
+   line-height: 50px;
 }
 
 .footlink {
@@ -145,8 +154,8 @@ table a {
 
 #catalog {
 	width: 1000px;
-	margin: 0 0 12px;
-	padding: 0 0 120px;
+	margin: 0 auto 12px;
+	padding: 0 0 80px;
 	font-size: 13px;
 }
 
@@ -210,10 +219,9 @@ table a {
 	background-color: #F6F6F8;
 }
 #catfooter {
-	margin: 20px 12px 0;
+	margin-top: 20px;
 	border-top: 1px solid black;
 	line-height: 30px;
-	width: 1000px;
 }
 
 /* https://github.com/Ravenports/ravensource/issues/289 */

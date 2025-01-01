@@ -53,6 +53,7 @@ $(document).ready(function() {
  </script>
 </head>
   <body>
+   <div id="canvas">
     <div id="namebase1">Ravenports Universal Package System</div>
     <div id="subtitle">Searchable Catalog</div>
     <div id="catalog">
@@ -72,5 +73,6 @@ $(document).ready(function() {
     <div id="catfooter">
       <a href="http://www.ravenports.com/" class="footlink">Ravenports official site</a>
     </div>
+   </div>
   </body>
 </html>

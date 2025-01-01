@@ -113,7 +113,8 @@ package body Port_Specification.Web is
         " <meta" & nvpair ("http-equiv", "Cache-Control") & nvpair ("content", cctrl) & bing &
         " <link" & nvpair ("rel", "stylesheet") & nvpair ("href", csslink) & bing &
         "</head" & bing &
-        "<body>";
+        "<body" & bing &
+        "<div id=" & LAT.Quotation & "canvas" & LAT.Quotation & ">";
    end page_header;
 
 
@@ -130,9 +131,9 @@ package body Port_Specification.Web is
         " <div" & nvpair ("id", "footer") & bing &
         "  <div" & nvpair ("id", "catlink") & ">" &
         link ("../../../index.html", "footlink", link1val) & " | " &
-        link ("http://www.ravenports.com/", "footlink", link2val) &
-        "</div" & bing &
+        link ("http://www.ravenports.com/", "footlink", link2val) & "</div" & bing &
         " </div" & bing &
+        "</div" & bind &
         "</body>" & LAT.LF & "</html>";
    end page_footer;
 
