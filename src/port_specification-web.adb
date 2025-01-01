@@ -133,7 +133,7 @@ package body Port_Specification.Web is
         link ("../../../index.html", "footlink", link1val) & " | " &
         link ("http://www.ravenports.com/", "footlink", link2val) & "</div" & bing &
         " </div" & bing &
-        "</div" & bind &
+        "</div" & bing &
         "</body>" & LAT.LF & "</html>";
    end page_footer;
 
