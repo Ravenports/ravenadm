@@ -100,7 +100,7 @@ package body Port_Specification.Web is
    is
       bing : constant String := LAT.Greater_Than_Sign & LAT.LF;
       content : constant String := "Ravenports individual port description";
-      csslink : constant String := "../../../style/ravenports.css?v=2";
+      csslink : constant String := "../../../style/ravenports.css?v=3";
       cctrl   : constant String := "public, max-age=21600";  --  valid 6 hours
    begin
       return
@@ -718,10 +718,10 @@ package body Port_Specification.Web is
          end if;
       end dump_messages;
    begin
-      if specs.broken.Is_Empty then
+      specs.broken.Iterate (group_scan'Access);
+      if HT.IsBlank (content) then
          return "";
       end if;
-      specs.broken.Iterate (group_scan'Access);
       row1 := HT.replace_substring (row1, "@CELL1@", "BROKEN");
       row1 := HT.replace_substring (row1, "@CELL2@", HT.USS (content));
       return HT.USS (row1);
