@@ -3443,6 +3443,7 @@ package body Port_Specification is
       procedure format (position : string_crate.Cursor);
       function obtain_description (optname : String; optname_text : HT.Text) return String;
 
+      no_build_options : constant String := "This port has no build options.";
       tempstore : string_crate.Vector;
       block : HT.Text;
 
@@ -3497,8 +3498,12 @@ package body Port_Specification is
          HT.SU.Append (block, part1 & part2 & desc & LAT.LF);
       end format;
    begin
-      if specs.ops_avail.Contains (HT.SUS (options_none)) then
-         return "This port has no build options.";
+      if variant = variant_standard then
+         if specs.ops_standard.Contains (HT.SUS (options_none)) then
+            return no_build_options;
+         end if;
+      elsif specs.ops_avail.Contains (HT.SUS (options_none)) then
+         return no_build_options;
       end if;
       specs.ops_helpers.Iterate (scan'Access);
       sorter.Sort (Container => tempstore);
