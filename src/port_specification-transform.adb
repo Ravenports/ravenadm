@@ -3417,6 +3417,8 @@ package body Port_Specification.Transform is
          return "mariadb106";
       elsif setting = "mariadb-10.11" then
          return "mariadb1011";
+      elsif setting = "mariadb-11.4" then
+         return "mariadb114";
       elsif setting = "mariadb-11" then
          return "mariadb11";
       else
