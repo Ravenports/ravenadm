@@ -1671,14 +1671,14 @@ package body Port_Specification.Transform is
             end if;
             add_build_depends (specs, GTBTOOLS);
             add_build_depends (specs, GTTOOLS);
+            if argument_present (specs, GETTEXT, ASPRINT) then
+               add_build_depends (specs, generic_triplet (GETTEXT, ASPRINT & "dev"));
+               add_buildrun_depends (specs, generic_triplet (GETTEXT, ASPRINT));
+            end if;
             if not argument_present (specs, GETTEXT, BUILD) then
+               add_build_depends (specs, GTSOLINX);
                if not glibc then
-                  add_build_depends (specs, GTSOLINX);
-               end if;
-               add_buildrun_depends (specs, GTLIB);
-               if argument_present (specs, GETTEXT, ASPRINT) then
-                  add_build_depends (specs, generic_triplet (GETTEXT, ASPRINT & "dev"));
-                  add_buildrun_depends (specs, generic_triplet (GETTEXT, ASPRINT));
+                  add_buildrun_depends (specs, GTLIB);
                end if;
             end if;
          end;
