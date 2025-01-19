@@ -1663,16 +1663,25 @@ package body Port_Specification.Transform is
       ASPRINT : constant String := "asprintf";
    begin
       if specs.uses_base.Contains (HT.SUS (GETTEXT)) then
-         add_build_depends (specs, GTDEV);
-         add_build_depends (specs, GTBTOOLS);
-         add_build_depends (specs, GTTOOLS);
-         if not argument_present (specs, GETTEXT, BUILD) then
-            add_build_depends (specs, GTSOLINX);
-            add_buildrun_depends (specs, GTLIB);
-            if argument_present (specs, GETTEXT, ASPRINT) then
-               add_buildrun_depends (specs, generic_triplet (GETTEXT, ASPRINT));
+         declare
+            glibc : constant Boolean := DIR.Exists ("/usr/include/libintl.h");
+         begin
+            if not glibc then
+               add_build_depends (specs, GTDEV);
             end if;
-         end if;
+            add_build_depends (specs, GTBTOOLS);
+            add_build_depends (specs, GTTOOLS);
+            if not argument_present (specs, GETTEXT, BUILD) then
+               if not glibc then
+                  add_build_depends (specs, GTSOLINX);
+               end if;
+               add_buildrun_depends (specs, GTLIB);
+               if argument_present (specs, GETTEXT, ASPRINT) then
+                  add_build_depends (specs, generic_triplet (GETTEXT, ASPRINT & "dev"));
+                  add_buildrun_depends (specs, generic_triplet (GETTEXT, ASPRINT));
+               end if;
+            end if;
+         end;
       end if;
    end apply_gettext_module;
 
