@@ -1375,8 +1375,11 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "iconv";
       dep_prefix : constant String := "libiconv";
+      glibc      : constant Boolean := DIR.Exists ("/usr/include/iconv.h");
    begin
-      generic_devlib_module (specs, module, dep_prefix);
+      if not glibc or else argument_present (specs, module, "standalone") then
+         generic_devlib_module (specs, module, dep_prefix);
+      end if;
    end apply_libiconv_module;
 
 
