@@ -1664,12 +1664,15 @@ package body Port_Specification.Transform is
    procedure apply_gettext_module (specs : in out Portspecs)
    is
       ASPRINT : constant String := "asprintf";
+      ACLOCAL : constant String := "aclocal";
    begin
       if specs.uses_base.Contains (HT.SUS (GETTEXT)) then
          declare
             glibc : constant Boolean := DIR.Exists ("/usr/include/libintl.h");
          begin
-            if not glibc then
+            if glibc then
+               add_build_depends (specs, generic_triplet (GETTEXT, ACLOCAL));
+            else
                add_build_depends (specs, GTDEV);
             end if;
             add_build_depends (specs, GTBTOOLS);
