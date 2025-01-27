@@ -26,8 +26,11 @@ package Utilities is
    --  Return True if candidate matches any supported cpu arch
    function valid_cpu_arch (candidate : String) return Boolean;
 
-   --  Converted validated string to supported arch
+   --  Convert validated string to supported arch
    function convert_cpu_arch (archstr : String) return supported_arch;
+
+   --  Convert validated lower cased string to supported operating system
+   function convert_opsys (opsysstr : String) return supported_opsys;
 
    --  Returns first two hexidecimal digits (uppercase) from sha1 digest
    function bucket (palabra : String) return String;

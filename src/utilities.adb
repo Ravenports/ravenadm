@@ -93,16 +93,27 @@ package body Utilities is
    --------------------------------------------------------------------------------------------
    function convert_cpu_arch (archstr : String) return supported_arch is
    begin
-      if archstr = "x86_64" then
-         return x86_64;
-      elsif archstr = "i386" then
-         return i386;
-      elsif archstr = "aarch64" then
-         return aarch64;
-      else
-         raise bad_input;
-      end if;
+      for arch in supported_arch'Range loop
+         if archstr = cpu_arch (arch) then
+            return arch;
+         end if;
+      end loop;
+      raise bad_input;
    end convert_cpu_arch;
+
+
+   --------------------------------------------------------------------------------------------
+   --  convert_opsys
+   --------------------------------------------------------------------------------------------
+   function convert_opsys (opsysstr : String) return supported_opsys is
+   begin
+      for opsys in supported_opsys'Range loop
+         if opsysstr = lower_opsys (opsys) then
+            return opsys;
+         end if;
+      end loop;
+      raise bad_input;
+   end convert_opsys;
 
 
    --------------------------------------------------------------------------------------------

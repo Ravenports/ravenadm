@@ -2,6 +2,7 @@
 --  Reference: ../License.txt
 
 with admtypes; use admtypes;
+with Definitions; use Definitions;
 
 private with HelperText;
 private with Ada.Containers.Vectors;
@@ -659,6 +660,22 @@ private
          optgroups      : list_crate.Map;
       end record;
 
+   type Exrun_Components is
+      record
+         spkg_shorthand  : Boolean := False;
+         limited_variant : Boolean := False;
+         limited_opsys   : Boolean := False;
+         self_reference  : Boolean := False;
+         invalid         : Boolean := False;
+         invalid_format  : Boolean := False;
+         invalid_single  : Boolean := False;
+         invalid_opsys   : Boolean := False;
+         invalid_variant : Boolean := False;
+         run_dependency  : HT.Text := HT.blank;
+         run_variant     : HT.Text := HT.blank;
+         run_opsys       : supported_opsys := macos;
+      end record;
+
    --  Ordinal type representing numbers that have subpackage arguments
    type smodules is range 1 .. 5;
 
@@ -780,6 +797,10 @@ private
    --  If module is defined, return argument list, comma delimited
    --  if module is not defined, return empty string
    function retrieve_module_arguments (specs : Portspecs; module : String) return String;
+
+   --  Given the subpackage and the dependency, parse the dependency with validity checks
+   --  and return the components
+   function parse_exrun (specs : Portspecs; spkg : String; value : String) return Exrun_Components;
 
    --  returns "<namebase>:dev:<variant_standard>"
    function dev_triplet (namebase : String) return String;

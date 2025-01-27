@@ -1,7 +1,6 @@
 --  This file is covered by the Internet Software Consortium (ISC) License
 --  Reference: ../License.txt
 
-with Definitions; use Definitions;
 with Utilities;
 with Unix;
 with Ada.Text_IO;
@@ -1442,32 +1441,29 @@ package body Port_Specification is
             if not specs.subpackage_exists (key) then
                raise wrong_type with "subpackage key '" & key & "' has not been defined.";
             end if;
-            if key = value then
-               raise wrong_value with "EXRUN package '" & key & "' cannot depend on itself.";
-            end if;
-            --  Valid EX_RUN values:
-            --  1) string matching a defined subpackage (e.g. EXRUN[tools]= primary)
-            --  2a) "ssl", pulls in primary package of selected ssl
-            --  2b) "python", pulls in single package of selected python version
-            --  2c) "tcl", pulls in complete package of selected tcl version
-            --  2d) "perl", pulls in primary package of selected perl version
-            --  2e) "mysql", pulls in client package of selected mysql version
-            --  2f) "pgsql", pulls in client package of the selected postgresql version
-            --  3) any string matching the dependency format
-            if not specs.subpackage_exists (value) then
-               if not valid_dependency_format (value) then
-                  if value /= "ssl" and then
-                    value /= "python" and then
-                    value /= "tcl" and then
-                    value /= "perl" and then
-                    value /= "ruby" and then
-                    value /= "mysql" and then
-                    value /= "pgsql"
-                  then
-                     raise wrong_value with "invalid dependency format '" & value & "'";
+            declare
+               excomp : constant Exrun_Components := specs.parse_exrun (key, value);
+               errkey : constant String := "EXRUN package '" & key & "'";
+            begin
+               if excomp.invalid then
+                  if excomp.self_reference then
+                     raise wrong_value with errkey & " cannot depend on itself.";
+                  end if;
+                  if excomp.invalid_single then
+                     raise wrong_value with errkey & " singleton '" & value & "' unrecognized.";
+                  end if;
+                  if excomp.invalid_format then
+                     raise wrong_value with errkey & " invalid dependency format: " & value;
+                  end if;
+                  if excomp.invalid_variant then
+                     raise wrong_value with errkey & " invalid variant filter: " & value;
+                  end if;
+                  if excomp.invalid_opsys then
+                     raise wrong_value with errkey & " invalid opsys filter: " & value;
                   end if;
                end if;
-            end if;
+            end;
+
             if specs.extra_rundeps.Contains (text_key) and then
               specs.extra_rundeps.Element (text_key).list.Contains (text_value)
             then
@@ -5525,6 +5521,118 @@ package body Port_Specification is
       specs.uses.Iterate (scan'Access);
       return HT.USS (result);
    end get_ssl_variant;
+
+
+   --------------------------------------------------------------------------------------------
+   --  parse_exrun
+   --------------------------------------------------------------------------------------------
+   function parse_exrun (specs : Portspecs; spkg : String; value : String) return Exrun_Components
+   is
+      result : Exrun_Components;
+      numslash : Natural := 0;
+      delim    : constant Character := '/';
+      delimstr : constant String (1 .. 1) := (1 => delim);
+   begin
+      --  Valid formats:
+      --    namebase:subpackage:variant
+      --    namebase:subpackage:variant/variant
+      --    namebase:subpackage:variant/variant/opsys
+      --    namebase:subpackage:variant//opsys
+      --    subpackage
+      --    subpackage/variant
+      --    subpackage/variant/opsys
+      --    subpackage//opsys
+      numslash := HT.count_char (value, delim);
+      if numslash > 2 then
+         result.invalid_format := True;
+         result.invalid := True;
+         return result;
+      end if;
+
+      if numslash = 2 then
+         declare
+            candidate : constant String := HT.specific_field (value, 3, delimstr);
+         begin
+            if UTL.valid_lower_opsys (candidate) then
+               result.run_opsys := UTL.convert_opsys (candidate);
+               result.limited_opsys := True;
+            else
+               result.invalid := True;
+               result.invalid_opsys := True;
+            end if;
+         end;
+      end if;
+
+      if numslash > 0 then
+         declare
+            candidate : constant String := HT.specific_field (value, 2, delimstr);
+         begin
+            if HT.IsBlank (candidate) then
+               if numslash = 1 then
+                  result.invalid := True;
+                  result.invalid_variant := True;
+               end if;
+            else
+               if specs.variant_exists (candidate) then
+                  result.run_variant := HT.SUS (candidate);
+                  result.limited_variant := True;
+               else
+                  result.invalid := True;
+                  result.invalid_variant := True;
+               end if;
+            end if;
+         end;
+      end if;
+
+      declare
+         candidate : constant String := HT.specific_field (value, 1, delimstr);
+         numcolons : constant Natural := HT.count_char (candidate, ':');
+      begin
+         if numcolons = 0 then
+            --  1) string matching a defined subpackage (e.g. EXRUN[tools]= primary)
+            --  2a) "ssl", pulls in primary package of selected ssl
+            --  2b) "python", pulls in single package of selected python version
+            --  2c) "tcl", pulls in complete package of selected tcl version
+            --  2d) "perl", pulls in primary package of selected perl version
+            --  2e) "ruby", pulls in primary package of selected ruby version
+            --  2f) "mysql", pulls in client package of selected mysql version
+            --  2g) "pgsql", pulls in client package of the selected postgresql version
+
+            if candidate = spkg then
+               result.invalid := True;
+               result.self_reference := True;
+            elsif specs.subpackage_exists (candidate) or else
+              candidate = "ssl" or else
+              candidate = "python" or else
+              candidate = "tcl" or else
+              candidate = "perl" or else
+              candidate = "ruby" or else
+              candidate = "mysql" or else
+              candidate = "pgsql"
+            then
+               result.spkg_shorthand := True;
+            else
+               result.invalid := True;
+               result.invalid_single := True;
+            end if;
+         elsif valid_dependency_format (candidate) then
+            if specs.get_namebase = HT.specific_field (candidate, 1, ":") and then
+              spkg = HT.specific_field (candidate, 2, ":")
+            then
+               --  variant irrelevant.  If namebase and spkg match, it's circular
+               result.invalid := True;
+               result.self_reference := True;
+            else
+               result.run_dependency := HT.SUS (candidate);
+            end if;
+         else
+            result.invalid := True;
+            result.invalid_format := True;
+         end if;
+      end;
+
+      return result;
+   end parse_exrun;
 
 
    --------------------------------------------------------------------------------------------
