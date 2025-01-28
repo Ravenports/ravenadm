@@ -2903,7 +2903,7 @@ package body Port_Specification.Transform is
                initial_rec.group := xspkg;
                newmap.Insert (xspkg, initial_rec);
             end;
-            virgin := True;
+            virgin := False;
          end if;
          if excomp.spkg_shorthand then
             newmap.Update_Element (newmap.Find (xspkg), grow_singleton'Access);
