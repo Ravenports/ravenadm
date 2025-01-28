@@ -2799,106 +2799,128 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure convert_exrun_versions (specs : in out Portspecs; variant : String)
    is
-      procedure convert1 (position1 : list_crate.Cursor);
-      procedure convert2 (Key : HT.Text; Element : in out group_list);
-      procedure convert3 (Element : in out HT.Text);
 
-      function XY (xdoty : String) return String is
-      begin
-         if xdoty'Length < 3 then
-            return "X";
-         end if;
-         return xdoty (xdoty'First) & xdoty (xdoty'First + 2);
-      end XY;
+      newmap : list_crate.Map;
+      xspkg  : HT.Text;
+      virgin : Boolean;
 
-      procedure convert3 (Element : in out HT.Text)
+      procedure convert_run_depends (position : string_crate.Cursor)
       is
-         exrundep : String := HT.USS (Element);
-      begin
-         if specs.subpackage_exists (exrundep) then
-            --  ex. EXRUN[tools]= primary
-            --  The namebase and the variant must be added dynamically.
-            Element := HT.SUS (specs.get_namebase & ":" & exrundep & ":" & variant);
-         elsif exrundep = "ssl" then
-            declare
-               setting : String := HT.USS (Parameters.configuration.def_ssl);
-            begin
-               if setting = ports_default then
-                  Element := HT.SUS (primary_triplet ("libressl"));
-               else
-                  Element := HT.SUS (primary_triplet (setting));
-               end if;
-            end;
-         elsif exrundep = "python" then
-            if specs.buildrun_deps.Contains (HT.SUS (primary_triplet (PYTHONALT))) then
-               Element := HT.SUS (primary_triplet (PYTHONALT));
-            else
-               Element := HT.SUS (primary_triplet (PYTHONPRI));
-            end if;
-         elsif exrundep = "tcl" then
-            if specs.buildrun_deps.Contains (HT.SUS (TCL90)) then
-               Element := HT.SUS (TCL90);
-            else
-               Element := HT.SUS (TCL86);
-            end if;
-         elsif exrundep = "perl" then
-            declare
-               setting : String := HT.USS (Parameters.configuration.def_perl);
-            begin
-               if setting = ports_default then
-                  Element := HT.SUS (primary_triplet ("perl-" & default_perl));
-               else
-                  Element := HT.SUS (primary_triplet ("perl-" & setting));
-               end if;
-            end;
-         elsif exrundep = "ruby" then
-            declare
-               setting : String := HT.USS (Parameters.configuration.def_ruby);
-            begin
-               if setting = ports_default then
-                  Element := HT.SUS (primary_triplet ("ruby" & XY (default_ruby)));
-               else
-                  Element := HT.SUS (primary_triplet ("ruby" & XY (setting)));
-               end if;
-            end;
-         elsif exrundep = "mysql" then
-            --  only mysql:client is supported by EXRUN
-            Element := HT.SUS (generic_triplet (determine_mysql_namebase, "client"));
-         elsif exrundep = "pgsql" then
-            --  only pgsql:client is supported by EXRUN
-            Element := HT.SUS (generic_triplet (determine_pgsql_namebase, "client"));
-         end if;
-      end convert3;
+         exrun_value : constant String := HT.USS (string_crate.Element (position));
+         subpkg      : constant String := HT.USS (xspkg);
+         excomp      : constant Exrun_Components := specs.parse_exrun (subpkg, exrun_value);
 
-      procedure convert2 (Key : HT.Text; Element : in out group_list)
-      is
-         procedure check_payload (position2 : string_crate.Cursor);
-         procedure check_payload (position2 : string_crate.Cursor)
-         is
-            exrun_value : constant String := HT.USS (string_crate.Element (position2));
+         function XY (xdoty : String) return String is
          begin
-            if specs.subpackage_exists (exrun_value) or else
-              exrun_value = "ssl" or else
-              exrun_value = "python" or else
-              exrun_value = "perl" or else
-              exrun_value = "tcl" or else
-              exrun_value = "ruby" or else
-              exrun_value = "mysql" or else
-              exrun_value = "pgsql"
-            then
-               Element.list.Update_Element (position2, convert3'Access);
+            if xdoty'Length < 3 then
+               return "X";
             end if;
-         end check_payload;
-      begin
-         Element.list.Iterate (check_payload'Access);
-      end convert2;
+            return xdoty (xdoty'First) & xdoty (xdoty'First + 2);
+         end XY;
 
-      procedure convert1 (position1 : list_crate.Cursor) is
+         procedure grow_triplet (Key : HT.Text; Element : in out group_list) is
+         begin
+            Element.list.Append (excomp.run_dependency);
+         end grow_triplet;
+
+         procedure grow_singleton (Key : HT.Text; Element : in out group_list)
+         is
+            exrundep : constant String := HT.USS (excomp.run_dependency);
+            triplet : HT.Text := HT.SUS ("error:grow:singleton");
+         begin
+            if specs.subpackage_exists (exrundep) then
+               --  ex. EXRUN[tools]= primary
+               --  The namebase and the variant must be added dynamically.
+               triplet := HT.SUS (specs.get_namebase & ":" & exrundep & ":" & variant);
+            elsif exrundep = "ssl" then
+               declare
+                  setting : String := HT.USS (Parameters.configuration.def_ssl);
+               begin
+                  if setting = ports_default then
+                     triplet := HT.SUS (primary_triplet ("libressl"));
+                  else
+                     triplet := HT.SUS (primary_triplet (setting));
+                  end if;
+               end;
+            elsif exrundep = "python" then
+               if specs.buildrun_deps.Contains (HT.SUS (primary_triplet (PYTHONALT))) then
+                  triplet := HT.SUS (primary_triplet (PYTHONALT));
+               else
+                  triplet := HT.SUS (primary_triplet (PYTHONPRI));
+               end if;
+            elsif exrundep = "tcl" then
+               if specs.buildrun_deps.Contains (HT.SUS (TCL90)) then
+                  triplet := HT.SUS (TCL90);
+               else
+                  triplet := HT.SUS (TCL86);
+               end if;
+            elsif exrundep = "perl" then
+               declare
+                  setting : String := HT.USS (Parameters.configuration.def_perl);
+               begin
+                  if setting = ports_default then
+                     triplet := HT.SUS (primary_triplet ("perl-" & default_perl));
+                  else
+                     triplet := HT.SUS (primary_triplet ("perl-" & setting));
+                  end if;
+               end;
+            elsif exrundep = "ruby" then
+               declare
+                  setting : String := HT.USS (Parameters.configuration.def_ruby);
+               begin
+                  if setting = ports_default then
+                     triplet := HT.SUS (primary_triplet ("ruby" & XY (default_ruby)));
+                  else
+                     triplet := HT.SUS (primary_triplet ("ruby" & XY (setting)));
+                  end if;
+               end;
+            elsif exrundep = "mysql" then
+               --  only mysql:client is supported by EXRUN
+               triplet := HT.SUS (generic_triplet (determine_mysql_namebase, "client"));
+            elsif exrundep = "pgsql" then
+               --  only pgsql:client is supported by EXRUN
+               triplet := HT.SUS (generic_triplet (determine_pgsql_namebase, "client"));
+            end if;
+            Element.list.Append (triplet);
+         end grow_singleton;
+
       begin
-         specs.extra_rundeps.Update_Element (position1, convert2'Access);
-      end convert1;
+         if excomp.limited_opsys then
+            case excomp.run_opsys is
+               when platform_type => null;
+               when others => return;
+            end case;
+         end if;
+         if excomp.limited_variant then
+            if not HT.equivalent (excomp.run_variant, variant) then
+               return;
+            end if;
+         end if;
+         if virgin then
+            declare
+               initial_rec : group_list;
+            begin
+               initial_rec.group := xspkg;
+               newmap.Insert (xspkg, initial_rec);
+            end;
+            virgin := True;
+         end if;
+         if excomp.spkg_shorthand then
+            newmap.Update_Element (newmap.Find (xspkg), grow_singleton'Access);
+         else
+            newmap.Update_Element (newmap.Find (xspkg), grow_triplet'Access);
+         end if;
+      end convert_run_depends;
+
+      procedure scan_subpackage (spkg_position : list_crate.Cursor) is
+      begin
+         virgin := True;
+         xspkg := list_crate.Element (spkg_position).group;
+         list_crate.Element (spkg_position).list.Iterate (convert_run_depends'Access);
+      end scan_subpackage;
    begin
-      specs.extra_rundeps.Iterate (convert1'Access);
+      specs.extra_rundeps.Iterate (scan_subpackage'Access);
+      specs.extra_rundeps := newmap;
    end convert_exrun_versions;
 
 
