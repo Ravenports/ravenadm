@@ -5611,6 +5611,7 @@ package body Port_Specification is
               candidate = "pgsql"
             then
                result.spkg_shorthand := True;
+               result.run_dependency := HT.SUS (candidate);
             else
                result.invalid := True;
                result.invalid_single := True;

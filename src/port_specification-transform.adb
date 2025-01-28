@@ -2826,7 +2826,7 @@ package body Port_Specification.Transform is
          procedure grow_singleton (Key : HT.Text; Element : in out group_list)
          is
             exrundep : constant String := HT.USS (excomp.run_dependency);
-            triplet : HT.Text := HT.SUS ("error:grow:singleton");
+            triplet : HT.Text := HT.SUS ("error:" & exrundep & ":singleton");
          begin
             if specs.subpackage_exists (exrundep) then
                --  ex. EXRUN[tools]= primary
