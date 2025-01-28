@@ -2920,6 +2920,7 @@ package body Port_Specification.Transform is
       end scan_subpackage;
    begin
       specs.extra_rundeps.Iterate (scan_subpackage'Access);
+      specs.extra_rundeps.Clear;
       specs.extra_rundeps := newmap;
    end convert_exrun_versions;
 
