@@ -87,7 +87,7 @@ package body Port_Specification.Transform is
                         special := HT.SUS ("-D" & itemstr & ":BOOL=false");
                         specs.cmake_args.Append (special);
                      when cmake_bool_t_both =>
-                        special := HT.SUS ("-D" & itemstr & ":BOOL-true");
+                        special := HT.SUS ("-D" & itemstr & ":BOOL=true");
                         specs.cmake_args.Append (special);
                      when configure_enable_both =>
                         special := HT.SUS ("--enable-"  & itemstr);
@@ -130,7 +130,7 @@ package body Port_Specification.Transform is
                      when test_target_off      => specs.test_tgt.Append (item);
                      when xorg_comp_off        => specs.xorg_comps.Append (item);
                      when cmake_bool_f_both =>
-                        special := HT.SUS ("-D" & itemstr & ":BOOL-true");
+                        special := HT.SUS ("-D" & itemstr & ":BOOL=true");
                         specs.cmake_args.Append (special);
                      when cmake_bool_t_both =>
                         special := HT.SUS ("-D" & itemstr & ":BOOL=false");
