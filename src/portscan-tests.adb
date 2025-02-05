@@ -184,23 +184,15 @@ package body PortScan.Tests is
                new_rec : entry_record := (subpackage, False);
             begin
                if HT.leads (line, "@comment ") or else
-                 HT.leads (line, "@desktop-file-utils") or else
-                 HT.leads (line, "@fontsdir") or else
-                 HT.leads (line, "@fc") or else
+                 HT.leads (line, "@fontsdir ") or else
+                 HT.leads (line, "@info ") or else
                  HT.leads (line, "@rmtry ") or else
-                 HT.leads (line, "@glib-schemas") or else
-                 HT.leads (line, "@shared-mime-info") or else
-                 HT.leads (line, "@group") or else
-                 HT.leads (line, "@owner") or else
-                 HT.leads (line, "@exec ") or else
-                 HT.leads (line, "@unexec ") or else
-                 HT.leads (line, "@postunexec ") or else
-                 HT.leads (line, "@postexec ") or else
-                 HT.leads (line, "@preexec ") or else
-                 HT.leads (line, "@preunexec ")
+                 HT.leads (line, "@sample ") or else
+                 HT.leads (line, "@shell ") or else
+                 HT.leads (line, "@xmlcatmgr ")
                then
                   null;
-               elsif HT.leads (line, "@dir") then
+               elsif HT.leads (line, "@dir ") or else HT.leads (line, "@dir(") then
                   --  handle @dir and @dir(x,y,z)
                   declare
                      nokey     : constant String := HT.part_2 (line, " ");
