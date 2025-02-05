@@ -183,7 +183,9 @@ package body PortScan.Tests is
                line    : constant String := TIO.Get_Line (handle);
                new_rec : entry_record := (subpackage, False);
             begin
-               if HT.leads (line, "@comment ") then
+               if HT.leads (line, "@comment ") or else
+                 HT.leads (line, "@fontsdir ")  --  argument is directory already on manifest
+               then
                   null;
                elsif HT.leads (line, "@dir ") or else HT.leads (line, "@dir(") then
                   --  handle @dir and @dir(x,y,z)
@@ -544,8 +546,6 @@ package body PortScan.Tests is
          return convert_to_absolute_path (port_prefix, HT.substring (original, 7, 0));
       elsif HT.leads (original, "@xmlcatmgr ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 11, 0));
-      elsif HT.leads (original, "@fontsdir ") then
-         return convert_to_absolute_path (port_prefix, HT.substring (original, 10, 0));
       elsif HT.leads (original, "@(") then
          return convert_to_absolute_path (port_prefix, HT.part_2 (original, ") "));
       else
