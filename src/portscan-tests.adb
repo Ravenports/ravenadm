@@ -184,6 +184,7 @@ package body PortScan.Tests is
                new_rec : entry_record := (subpackage, False);
             begin
                if HT.leads (line, "@comment ") or else
+                 HT.leads (line, "@rmtry ") or else  -- file is known not to be on manifest
                  HT.leads (line, "@fontsdir ")  --  argument is directory already on manifest
                then
                   null;
@@ -543,8 +544,6 @@ package body PortScan.Tests is
             return convert_to_absolute_path (port_prefix, HT.part_1 (no_sample, " "));
          end;
       elsif HT.leads (original, "@shell ") then
-         return convert_to_absolute_path (port_prefix, HT.substring (original, 7, 0));
-      elsif HT.leads (original, "@rmtry ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 7, 0));
       elsif HT.leads (original, "@xmlcatmgr ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 11, 0));
