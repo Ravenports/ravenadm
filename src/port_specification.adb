@@ -3609,7 +3609,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 77;
+      total_modules : constant Positive := 78;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3620,6 +3620,7 @@ package body Port_Specification is
          "autoreconf     ",
          "bdb            ",
          "bison          ",
+         "bsd            ",
          "bz2            ",
          "c++            ",
          "cargo          ",
@@ -4886,6 +4887,7 @@ package body Port_Specification is
    function post_module_argument_check (specs : Portspecs) return Boolean
    is
       fonts_module : constant String := "fonts";
+      bsd_module   : constant String := "bsd";
    begin
       if specs.uses_base.Contains (HT.SUS (fonts_module)) then
          --  Rules for fonts module:
@@ -4906,6 +4908,46 @@ package body Port_Specification is
             then
                TIO.Put_Line
                  (fonts_module & " module has unrecognized argument '" & fonts_args & "'");
+               return False;
+            end if;
+         end;
+      end if;
+      if specs.uses_base.Contains (HT.SUS (bsd_module)) then
+         --  Rules for BSD module
+         --  1) must have at least one argument
+         --  2) valid arguments are epoll, inotify, udev, gudev (fail on others)
+         --  3) udev and gudev can't both be defined
+         declare
+            bsd_args    : constant String := retrieve_module_arguments (specs, bsd_module);
+            num_fields  : Natural;
+            found_udev  : Boolean := False;
+            found_gudev : Boolean := False;
+         begin
+            if HT.IsBlank (bsd_args) then
+               TIO.Put_Line (bsd_module & " module must have at least one argument.");
+               return False;
+            end if;
+            num_fields := HT.count_char (bsd_args, LAT.Comma) + 1;
+            for x in 1 .. num_fields loop
+               declare
+                  fvalue : constant String := HT.specific_field (bsd_args, x, ",");
+               begin
+                  if fvalue = "epoll" then
+                     null;
+                  elsif fvalue = "inotify" then
+                     null;
+                  elsif fvalue = "udev" then
+                     found_udev := True;
+                  elsif fvalue = "gudev" then
+                     found_gudev := True;
+                  else
+                     TIO.Put_Line (bsd_module & " module argument '" & fvalue & "' is invalid");
+                     return False;
+                  end if;
+               end;
+            end loop;
+            if found_udev and then found_gudev then
+               TIO.Put_Line (bsd_module & " module cannot have both udev and gudev arguments set");
                return False;
             end if;
          end;
