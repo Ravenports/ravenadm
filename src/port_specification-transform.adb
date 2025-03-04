@@ -333,6 +333,7 @@ package body Port_Specification.Transform is
       apply_lz4_module (specs);
       apply_lzo_module (specs);
       apply_bz2_module (specs);
+      apply_bsd_module (specs);
       apply_xz_module  (specs);
       apply_expat_module (specs);
       apply_cargo_module (specs);
@@ -1481,6 +1482,39 @@ package body Port_Specification.Transform is
    begin
       generic_devlib_module (specs, freetype, freetype);
    end apply_freetype_module;
+
+
+   --------------------------------------------------------------------------------------------
+   --  apply_bsd_module
+   --------------------------------------------------------------------------------------------
+   procedure apply_bsd_module (specs : in out Portspecs)
+   is
+      bsd_module : constant String := "bsd";
+   begin
+      if not specs.uses_base.Contains (HT.SUS (bsd_module)) then
+         return;
+      end if;
+
+      case platform_type is
+         when dragonfly | freebsd | openbsd | netbsd | midnightbsd =>
+            if argument_present (specs, bsd_module, "epoll") then
+               generic_devlib_module (specs, bsd_module, "libepoll-shim");
+            end if;
+            if argument_present (specs, bsd_module, "inotify") then
+               generic_devlib_module (specs, bsd_module, "libinotify");
+            end if;
+            if argument_present (specs, bsd_module, "udev") then
+               generic_devlib_module (specs, bsd_module, "libudev-devd");
+            end if;
+            if argument_present (specs, bsd_module, "gudev") then
+               generic_devlib_module (specs, bsd_module, "libgudev-devd");
+            end if;
+         when others =>
+            if argument_present (specs, bsd_module, "gudev") then
+               generic_devlib_module (specs, bsd_module, "libgudev");
+            end if;
+      end case;
+   end apply_bsd_module;
 
 
    --------------------------------------------------------------------------------------------
