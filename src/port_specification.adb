@@ -1125,6 +1125,13 @@ package body Port_Specification is
          when sp_cgo_feat =>
             verify_entry_is_post_options;
             specs.cgo_features.Append (text_value);
+         when sp_cve =>
+            verify_entry_is_post_options;
+            if valid_cve_id (value) then
+               specs.fixed_cve.Append (text_value);
+            else
+               raise wrong_value with "invalid CVE identification string '" & value & "'";
+            end if;
          when others =>
             raise wrong_type with field'Img;
       end case;
@@ -3789,6 +3796,31 @@ package body Port_Specification is
         value = "14" or else
         value = "13";
    end valid_broken_pgsql_value;
+
+
+   --------------------------------------------------------------------------------------------
+   --  valid_cve_id
+   --------------------------------------------------------------------------------------------
+   function valid_cve_id (str_value : String) return Boolean
+   is
+      year : Integer;
+      id   : Integer;
+   begin
+      if not HT.leads (str_value, "CVE-2") or else
+        HT.count_char (str_value, '-') /= 2
+      then
+         return False;
+      end if;
+      year := Integer'Value (HT.specific_field (str_value, 2, "-"));
+      id   := Integer'Value (HT.specific_field (str_value, 3, "-"));
+      return year >= 2000 and then
+        year <= 2050 and then
+        id >= 1 and then
+        id < 100_000;
+   exception
+      when Constraint_Error =>
+         return False;
+   end valid_cve_id;
 
 
    --------------------------------------------------------------------------------------------

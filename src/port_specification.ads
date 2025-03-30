@@ -729,6 +729,9 @@ private
    --  Returns true if value is a known postgresql setting
    function valid_broken_pgsql_value (value : String) return Boolean;
 
+   --  Returns true if value matches "CVE-2\d\d\d-\d{1,5}" pattern
+   function valid_cve_id (str_value : String) return Boolean;
+
    --  Return true if INFO appendum is valid (compared against existing entries)
    --  Specifically it's checking the subdirectory (if it exists) to make sure it matches
    --  previous entries.  It will define INFO_SUBDIR in catchall (once)
