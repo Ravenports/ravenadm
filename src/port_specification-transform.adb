@@ -839,6 +839,11 @@ package body Port_Specification.Transform is
             return LAT.Colon & HT.int2str (specs.revision);
          end if;
       end other_default;
+
+      procedure add_cve_note (position : string_crate.Cursor) is
+      begin
+         specs.pkg_notes.Insert (string_crate.Element (position), HT.SUS ("vulnerability_patched"));
+      end add_cve_note;
    begin
       if not specs.uses.Contains (text_cpe) then
          return;
@@ -864,6 +869,7 @@ package body Port_Specification.Transform is
       begin
          specs.pkg_notes.Insert (text_cpe, HT.SUS (retrieve ("CPE_STR", default_note)));
       end;
+      specs.fixed_cve.Iterate (add_cve_note'Access);
    end apply_cpe_module;
 
 
