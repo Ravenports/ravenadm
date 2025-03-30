@@ -74,7 +74,6 @@ package body Port_Specification.Json is
    exception
       when others =>
          TIO.Put_Line ("Failed json description declaration, " & bucket & specs.get_namebase);
-         return;
 
    end describe_port;
 
@@ -245,7 +244,7 @@ package body Port_Specification.Json is
          return "{" & HT.USS (guts) & " }";
       end form_object;
    begin
-      if not specs.uses.Contains (HT.SUS ("cpe")) then
+      if not specs.uses_base.Contains (HT.SUS ("cpe")) then
          return "";
       end if;
 
@@ -283,8 +282,9 @@ package body Port_Specification.Json is
    ----------------------------------------
    function describe_patched_vulnerabilities (specs : Portspecs) return String is
    begin
-      if not specs.uses.Contains (HT.SUS ("cpe")) or else
-        specs.fixed_cve.Is_Empty
+      --  Should not be possible to have fixed_cve without cpe module, but check anyway
+      if specs.fixed_cve.Is_Empty or else
+        not specs.uses_base.Contains (HT.SUS ("cpe"))
       then
          return "";
       end if;

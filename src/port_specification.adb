@@ -3137,6 +3137,7 @@ package body Port_Specification is
          when sp_opts_avail    => return retrieve (specs.ops_avail);
          when sp_variants      => return retrieve (specs.variants);
          when sp_extra_patches => return retrieve (specs.extra_patches);
+         when sp_cve           => return retrieve (specs.fixed_cve);
          when sp_notes         => specs.pkg_notes.Iterate (scan_note'Access);
          when sp_distfiles     => return specs.translate_distfile (retrieve (specs.distfiles));
          when others =>
