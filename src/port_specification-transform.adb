@@ -845,7 +845,7 @@ package body Port_Specification.Transform is
          specs.pkg_notes.Insert (string_crate.Element (position), HT.SUS ("vulnerability_patched"));
       end add_cve_note;
    begin
-      if not specs.uses.Contains (text_cpe) then
+      if not specs.uses_base.Contains (text_cpe) then
          return;
       end if;
       declare

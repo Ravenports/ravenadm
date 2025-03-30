@@ -5483,6 +5483,15 @@ package body Port_Specification is
    end requires_procfs;
 
 
+   ------------------------------------
+   --  cve_lists_without_cpe_module  --
+   ------------------------------------
+   function cve_lists_without_cpe_module (specs : Portspecs) return Boolean is
+   begin
+      return not specs.fixed_cve.Is_Empty and then not specs.uses_base.Contains (HT.SUS ("cpe"));
+   end cve_lists_without_cpe_module;
+
+
    --------------------------------------------------------------------------------------------
    --  base_module
    --------------------------------------------------------------------------------------------

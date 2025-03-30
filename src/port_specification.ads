@@ -340,6 +340,9 @@ package Port_Specification is
    --  Returns true if MOUNT_PROCFS was present on the spec sheet
    function requires_procfs (specs : Portspecs) return Boolean;
 
+   --  Returns true if CVE_FIXED defined but USES=cpe is not
+   function cve_lists_without_cpe_module (specs : Portspecs) return Boolean;
+
 private
 
    package HT  renames HelperText;
