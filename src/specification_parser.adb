@@ -521,6 +521,7 @@ package body Specification_Parser is
                      when cgo_bargs        => build_list (spec, PSP.sp_cgo_bargs, line);
                      when cgo_iargs        => build_list (spec, PSP.sp_cgo_iargs, line);
                      when cgo_feat         => build_list (spec, PSP.sp_cgo_feat, line);
+                     when fixed_cve        => build_list (spec, PSP.sp_cve, line);
                      when catchall         => build_nvpair (spec, line);
                      when extra_patches    =>
                         build_list (spec, PSP.sp_extra_patches, line);
@@ -1076,7 +1077,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 191;
+      total_singlets : constant Positive := 192;
 
       type singlet_pair is
          record
@@ -1135,6 +1136,7 @@ package body Specification_Parser is
          ("CPE_VERSION           ", 11, catchall),
          ("CPP                   ",  3, catchall),
          ("CPPFLAGS              ",  8, cppflags),
+         ("CVE_FIXED             ",  9, fixed_cve),
          ("CXX                   ",  3, catchall),
          ("CXXFLAGS              ",  8, cxxflags),
          ("DEBUG_FLAGS           ", 11, catchall),

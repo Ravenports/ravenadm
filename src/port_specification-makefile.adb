@@ -22,11 +22,15 @@ package body Port_Specification.Makefile is
       output_file   : String
      )
    is
+      type list_flavor is (generic_list, extraction, variants);
+      type string_list_flavor is (generic_items, distfiles, ext_zip, ext_7z, ext_lha, ext_deb,
+                                  dirty_extract, makesum, use_mods);
+
       procedure send (data : String; use_put : Boolean := False);
       procedure send (varname, value : String);
       procedure send (varname : String; value : HT.Text);
-      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive);
-      procedure send (varname : String; crate : list_crate.Map; flavor : Positive);
+      procedure send (varname : String; crate : string_crate.Vector; flavor : string_list_flavor);
+      procedure send (varname : String; crate : list_crate.Map; flavor : list_flavor);
       procedure send (varname : String; value : Boolean; dummy : Boolean);
       procedure send (varname : String; value, default : Integer);
       procedure print_item             (position : string_crate.Cursor);
@@ -110,51 +114,47 @@ package body Port_Specification.Makefile is
          end if;
       end send;
 
-      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive) is
+      procedure send (varname : String; crate : string_crate.Vector; flavor : string_list_flavor) is
       begin
          if crate.Is_Empty then
             return;
          end if;
          case flavor is
-            when 1 =>
+            when generic_items =>
                send (varname & "=", True);
                crate.Iterate (Process => print_item'Access);
                send ("");
-            when 2 =>
+            when distfiles =>
                varname_prefix := HT.SUS (varname);
                crate.Iterate (Process => dump_distfiles'Access);
-            when 3 =>
+            when ext_zip =>
                crate.Iterate (Process => dump_ext_zip'Access);
-            when 4 =>
+            when ext_7z =>
                crate.Iterate (Process => dump_ext_7z'Access);
-            when 5 =>
+            when ext_lha =>
                crate.Iterate (Process => dump_ext_lha'Access);
-            when 7 =>
+            when dirty_extract =>
                crate.Iterate (Process => dump_dirty_extract'Access);
-            when 9 =>
+            when makesum =>
                send (varname & "=", True);
                crate.Iterate (Process => dump_makesum'Access);
                send ("");
-            when 10 =>
+            when use_mods =>
                send (varname & "=", True);
                crate.Iterate (Process => print_module'Access);
                send ("");
-            when 11 =>
+            when ext_deb =>
                crate.Iterate (Process => dump_ext_deb'Access);
-            when others =>
-               raise dev_error;
          end case;
       end send;
 
-      procedure send (varname : String; crate : list_crate.Map; flavor : Positive) is
+      procedure send (varname : String; crate : list_crate.Map; flavor : list_flavor) is
       begin
          varname_prefix := HT.SUS (varname);
          case flavor is
-            when 1 => crate.Iterate (Process => dump_list'Access);
-            when 6 => crate.Iterate (Process => dump_extract_head_tail'Access);
-            when 8 => crate.Iterate (Process => dump_variant_index'Access);
-            when others =>
-               raise dev_error;
+            when generic_list => crate.Iterate (Process => dump_list'Access);
+            when extraction => crate.Iterate (Process => dump_extract_head_tail'Access);
+            when variants => crate.Iterate (Process => dump_variant_index'Access);
          end case;
       end send;
 
@@ -743,34 +743,34 @@ package body Port_Specification.Makefile is
       send ("REVISION",         specs.revision, 0);
       send ("EPOCH",            specs.epoch, 0);
       send ("VARIANT",          variant);
-      send ("DL_SITES",         specs.dl_sites, 1);
-      send ("DISTFILE",         specs.distfiles, 2);
+      send ("DL_SITES",         specs.dl_sites, generic_list);
+      send ("DISTFILE",         specs.distfiles, distfiles);
       send ("DIST_SUBDIR",      specs.dist_subdir);
       dump_distname;
-      send ("MAKESUM_INDEX",    specs.distfiles, 9);
-      send ("PF_INDEX",         specs.patchfiles, 1);
-      send ("DF_INDEX",         specs.df_index, 1);
-      send ("SUBPACKAGES",      specs.subpackages, 8);
-      send ("EXTRACT_ONLY",     specs.extract_only, 1);
-      send ("DIRTY_EXTRACT",    specs.extract_dirty, 7);
-      send ("ZIP-EXTRACT",      specs.extract_zip, 3);
-      send ("7Z-EXTRACT",       specs.extract_7z, 4);
-      send ("LHA-EXTRACT",      specs.extract_lha, 5);
-      send ("DEB-EXTRACT",      specs.extract_deb, 11);
-      send ("EXTRACT_HEAD",     specs.extract_head, 6);
-      send ("EXTRACT_TAIL",     specs.extract_tail, 6);
+      send ("MAKESUM_INDEX",    specs.distfiles, makesum);
+      send ("PF_INDEX",         specs.patchfiles, generic_items);
+      send ("DF_INDEX",         specs.df_index, generic_items);
+      send ("SUBPACKAGES",      specs.subpackages, variants);
+      send ("EXTRACT_ONLY",     specs.extract_only, generic_items);
+      send ("DIRTY_EXTRACT",    specs.extract_dirty, dirty_extract);
+      send ("ZIP-EXTRACT",      specs.extract_zip, ext_zip);
+      send ("7Z-EXTRACT",       specs.extract_7z, ext_7z);
+      send ("LHA-EXTRACT",      specs.extract_lha, ext_lha);
+      send ("DEB-EXTRACT",      specs.extract_deb, ext_deb);
+      send ("EXTRACT_HEAD",     specs.extract_head, extraction);
+      send ("EXTRACT_TAIL",     specs.extract_tail, extraction);
       dump_broken;
-      send ("USERS",            specs.users, 1);
-      send ("GROUPS",           specs.groups, 1);
-      send ("USES",             specs.uses, 10);
+      send ("USERS",            specs.users, generic_items);
+      send ("GROUPS",           specs.groups, generic_items);
+      send ("USES",             specs.uses, use_mods);
       dump_license;
       print_if_defined ("PREFIX", HT.USS (specs.prefix));
       dump_info;
       dump_catchall;
       send ("NO_CCACHE",        specs.skip_ccache, True);
       send ("PATCH_WRKSRC",     specs.patch_wrksrc);
-      send ("PATCH_STRIP",      specs.patch_strip, 1);
-      send ("PATCH_DIST_STRIP", specs.pfiles_strip, 1);
+      send ("PATCH_STRIP",      specs.patch_strip, generic_items);
+      send ("PATCH_DIST_STRIP", specs.pfiles_strip, generic_items);
 
       dump_has_configure (specs.config_must);
       send ("GNU_CONFIGURE_PREFIX", specs.config_prefix);
@@ -778,49 +778,50 @@ package body Port_Specification.Makefile is
       send ("CONFIGURE_WRKSRC",     specs.config_wrksrc);
       send ("CONFIGURE_SCRIPT",     specs.config_script);
       send ("CONFIGURE_TARGET",     specs.config_target);
-      send ("CONFIGURE_ARGS",       specs.config_args, 1);
-      send ("CONFIGURE_ENV",        specs.config_env, 1);
+      send ("CONFIGURE_ARGS",       specs.config_args, generic_items);
+      send ("CONFIGURE_ENV",        specs.config_env, generic_items);
 
       send ("NO_BUILD",         specs.skip_build, True);
       send ("BUILD_WRKSRC",     specs.build_wrksrc);
-      send ("BUILD_TARGET",     specs.build_target, 1);
+      send ("BUILD_TARGET",     specs.build_target, generic_items);
       send ("NO_INSTALL",       specs.skip_install, True);
       send ("INSTALL_REQ_TOOLCHAIN", specs.shift_install, True);
       send ("INSTALL_WRKSRC",   specs.install_wrksrc);
-      send ("INSTALL_TARGET",   specs.install_tgt, 1);
+      send ("INSTALL_TARGET",   specs.install_tgt, generic_items);
       send ("SOVERSION",        specs.soversion);
-      send ("PLIST_SUB",        specs.plist_sub, 1);
-      send ("SUB_FILES",        specs.sub_files, 1);
-      send ("SUB_LIST",         specs.sub_list, 1);
-      send ("MANDIRS",          specs.mandirs, 1);
+      send ("PLIST_SUB",        specs.plist_sub, generic_items);
+      send ("SUB_FILES",        specs.sub_files, generic_items);
+      send ("SUB_LIST",         specs.sub_list, generic_items);
+      send ("MANDIRS",          specs.mandirs, generic_items);
       send ("MAKEFILE",         specs.makefile);
-      send ("MAKE_ENV",         specs.make_env, 1);
-      send ("MAKE_ARGS",        specs.make_args, 1);
+      send ("MAKE_ENV",         specs.make_env, generic_items);
+      send ("MAKE_ARGS",        specs.make_args, generic_items);
       send ("OPTIMIZER_LEVEL",  specs.optimizer_lvl, 2);
       send ("WITH_DEBUG",       specs.debugging_on, True);
-      send ("CFLAGS",           specs.cflags, 1);
-      send ("CXXFLAGS",         specs.cxxflags, 1);
-      send ("CPPFLAGS",         specs.cppflags, 1);
-      send ("LDFLAGS",          specs.ldflags, 1);
-      send ("CMAKE_ARGS",       specs.cmake_args, 1);
-      send ("QMAKE_ARGS",       specs.qmake_args, 1);
+      send ("CFLAGS",           specs.cflags, generic_items);
+      send ("CXXFLAGS",         specs.cxxflags, generic_items);
+      send ("CPPFLAGS",         specs.cppflags, generic_items);
+      send ("LDFLAGS",          specs.ldflags, generic_items);
+      send ("CMAKE_ARGS",       specs.cmake_args, generic_items);
+      send ("QMAKE_ARGS",       specs.qmake_args, generic_items);
       dump_conditional_vars;
       send ("SINGLE_JOB",       specs.single_job, True);
       send ("DESTDIR_VIA_ENV",  specs.destdir_env, True);
       send ("DESTDIRNAME",      specs.destdirname);
-      send ("TEST_TARGET",      specs.test_tgt, 1);
-      send ("TEST_ARGS",        specs.test_args, 1);
-      send ("TEST_ENV",         specs.test_env, 1);
+      send ("TEST_TARGET",      specs.test_tgt, generic_items);
+      send ("TEST_ARGS",        specs.test_args, generic_items);
+      send ("TEST_ENV",         specs.test_env, generic_items);
       send ("GENERATED",        specs.generated, True);
-      send ("PHP_EXTENSIONS",   specs.php_extensions, 1);
+      send ("PHP_EXTENSIONS",   specs.php_extensions, generic_items);
+      send ("CVE_FIXED",        specs.fixed_cve, generic_items);
 
       send ("CARGO_SKIP_CONFIGURE", specs.cgo_skip_conf, True);
       send ("CARGO_SKIP_BUILD",     specs.cgo_skip_build, True);
       send ("CARGO_SKIP_INSTALL",   specs.cgo_skip_inst, True);
-      send ("CARGO_CONFIG_ARGS",    specs.cgo_conf_args, 1);
-      send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, 1);
-      send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, 1);
-      send ("CARGO_FEATURES",       specs.cgo_features, 1);
+      send ("CARGO_CONFIG_ARGS",    specs.cgo_conf_args, generic_items);
+      send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, generic_items);
+      send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, generic_items);
+      send ("CARGO_FEATURES",       specs.cgo_features, generic_items);
       send ("CARGO_CARGOLOCK",      specs.cgo_cargolock);
       send ("CARGO_CARGOTOML",      specs.cgo_cargotoml);
       send ("CARGO_CARGO_BIN",      specs.cgo_cargo_bin);

@@ -824,6 +824,7 @@ package body Port_Specification.Buildsheet is
       send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, 2);
       send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, 2);
       send ("CARGO_FEATURES",       specs.cgo_features, 2);
+      send ("CVE_FIXED",            specs.fixed_cve, 2);
 
       send_options;
       send_targets;

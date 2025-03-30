@@ -5945,6 +5945,7 @@ package body Port_Specification is
             when sp_sdl           => specs.sdl_comps.Iterate (print_item'Access);
             when sp_phpext        => specs.php_extensions.Iterate (print_item'Access);
             when sp_rcscript      => specs.subr_scripts.Iterate (print_item'Access);
+            when sp_cve           => specs.fixed_cve.Iterate (print_item'Access);
             when sp_og_radio      => specs.opt_radio.Iterate (print_item'Access);
             when sp_og_restrict   => specs.opt_restrict.Iterate (print_item'Access);
             when sp_og_unlimited  => specs.opt_unlimited.Iterate (print_item'Access);
@@ -6187,6 +6188,7 @@ package body Port_Specification is
       print_vector_list ("TEST_ARGS", sp_test_args);
       print_vector_list ("TEST_ENV", sp_test_env);
       print_vector_list ("RC_SUBR", sp_rcscript);
+      print_vector_list ("CVE_FIXED", sp_cve);
       print_boolean     ("GENERATED", sp_generated);
       print_boolean     ("MOUNT_PROCFS", sp_procfs);
       print_single      ("MAKE_JOBS_NUMBER_LIMIT", sp_job_limit);
