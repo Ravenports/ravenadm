@@ -37,6 +37,7 @@ package body Port_Specification.Json is
               UTL.json_nvpair_complex ("distfile", describe_distfiles (specs), 3, pad) &
               specs.get_json_contacts &
               describe_Common_Platform_Enumeration (specs) &
+              describe_patched_vulnerabilities (specs) &
               UTL.json_name_complex   ("variants", 4, pad) &
               UTL.json_array (True, pad + 1)
            );
@@ -123,6 +124,26 @@ package body Port_Specification.Json is
       end loop;
       return HT.USS (result) & " ]";
    end describe_distfiles;
+
+
+   --------------------
+   --  describe_cve  --
+   --------------------
+   function describe_cve (specs : Portspecs) return String
+   is
+      numitems : constant Natural := specs.get_list_length (Port_Specification.sp_cve);
+      result   : HT.Text := HT.SUS ("[ ");
+   begin
+      for x in 1 .. numitems loop
+         if x > 1 then
+            HT.SU.Append (result, ", ");
+         end if;
+         HT.SU.Append (result,
+                       LAT.Quotation & specs.get_list_item (Port_Specification.sp_cve, x) &
+                         LAT.Quotation);
+      end loop;
+      return HT.USS (result) & " ]";
+   end describe_cve;
 
 
    --------------------------------------------------------------------------------------------
@@ -255,5 +276,19 @@ package body Port_Specification.Json is
          TIO.Put_Line ("Failed json CPE enum, " & HT.DQ (specs.get_namebase));
          return "";
    end describe_Common_Platform_Enumeration;
+
+
+   ----------------------------------------
+   --  describe_patched_vulnerabilities  --
+   ----------------------------------------
+   function describe_patched_vulnerabilities (specs : Portspecs) return String is
+   begin
+      if not specs.uses.Contains (HT.SUS ("cpe")) or else
+        specs.fixed_cve.Is_Empty
+      then
+         return "";
+      end if;
+      return UTL.json_nvpair_complex ("vulnaddressed", describe_cve (specs), 3, pad);
+   end describe_patched_vulnerabilities;
 
 end Port_Specification.Json;

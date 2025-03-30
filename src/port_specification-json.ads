@@ -32,10 +32,16 @@ private
    --  return array of subpackages
    function describe_subpackages (specs : Portspecs; variant : String) return String;
 
+   --  return array of patched vulnerabilities
+   function describe_cve (specs : Portspecs) return String;
+
    --  When the homepage is set to "none", return an empty string, otherwise return a json string
    function homepage_line (specs : Portspecs) return String;
 
-   --  If USES=cpe set, push CPE_VENDOR and CPE_PRODUCT values
+   --  If USES=cpe is set, push CPE_VENDOR and CPE_PRODUCT values
    function describe_Common_Platform_Enumeration (specs : Portspecs) return String;
+
+   --  If USES=cpe is set and CVE_FIXED list is not empty
+   function describe_patched_vulnerabilities (specs : Portspecs) return String;
 
 end Port_Specification.Json;
