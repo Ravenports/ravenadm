@@ -3089,6 +3089,7 @@ package body Port_Specification is
          when sp_notes         => return Natural (specs.pkg_notes.Length);
          when sp_extra_patches => return Natural (specs.extra_patches.Length);
          when sp_distfiles     => return Natural (specs.distfiles.Length);
+         when sp_cve           => return Natural (specs.fixed_cve.Length);
          when others =>
             raise wrong_type with field'Img;
       end case;
