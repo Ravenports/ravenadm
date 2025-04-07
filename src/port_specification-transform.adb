@@ -1705,10 +1705,12 @@ package body Port_Specification.Transform is
    is
       ASPRINT : constant String := "asprintf";
       ACLOCAL : constant String := "aclocal";
+      intl_h  : constant String := HT.USS (Parameters.configuration.dir_sysroot) &
+                                   "/usr/include/libintl.h";
    begin
       if specs.uses_base.Contains (HT.SUS (GETTEXT)) then
          declare
-            glibc : constant Boolean := DIR.Exists ("/usr/include/libintl.h");
+            glibc : constant Boolean := DIR.Exists (intl_h);
          begin
             if glibc then
                add_build_depends (specs, generic_triplet (GETTEXT, ACLOCAL));
