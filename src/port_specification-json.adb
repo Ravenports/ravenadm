@@ -260,8 +260,8 @@ package body Port_Specification.Json is
          always_push ("vendor", cpe_vendor);
       end;
 
-      --  maybe_push ("version", "CPE_VERSION", HT.USS (specs.version));
-      --  maybe_push ("update", "CPE_UPDATE", "");
+      maybe_push ("version", "CPE_VERSION", "might-not-match-portversion");
+      maybe_push ("update", "CPE_UPDATE", "");
       maybe_push ("edition", "CPE_EDITION", "");
       maybe_push ("lang", "CPE_LANG", "");
       maybe_push ("sw_edition", "CPE_SW_EDITION", "");
