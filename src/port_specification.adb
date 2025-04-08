@@ -3818,7 +3818,7 @@ package body Port_Specification is
       return year >= 2000 and then
         year <= 2050 and then
         id >= 1 and then
-        id < 100_000;
+        id < 250_000;
    exception
       when Constraint_Error =>
          return False;
