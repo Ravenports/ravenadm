@@ -254,10 +254,8 @@ package body Port_Specification.Json is
          cpe_product : String := retrieve ("CPE_PRODUCT", HT.lowercase (specs.get_namebase));
          cpe_vendor  : String := retrieve ("CPE_VENDOR", cpe_product);
       begin
-         --  probably should be vendor then product, but this was the original order
-         --  of repology json.  Maintain order to avoid massive diff.
-         always_push ("product", cpe_product);
          always_push ("vendor", cpe_vendor);
+         always_push ("product", cpe_product);
       end;
 
       maybe_push ("version", "CPE_VERSION", "might-not-match-portversion");
