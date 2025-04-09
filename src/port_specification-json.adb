@@ -258,7 +258,7 @@ package body Port_Specification.Json is
          always_push ("product", cpe_product);
       end;
 
-      maybe_push ("version", "CPE_VERSION", "might-not-match-portversion");
+      maybe_push ("version", "CPE_VERSION", HT.USS (specs.version));
       maybe_push ("update", "CPE_UPDATE", "");
       maybe_push ("edition", "CPE_EDITION", "");
       maybe_push ("lang", "CPE_LANG", "");
