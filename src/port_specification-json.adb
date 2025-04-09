@@ -253,12 +253,13 @@ package body Port_Specification.Json is
       declare
          cpe_product : String := retrieve ("CPE_PRODUCT", HT.lowercase (specs.get_namebase));
          cpe_vendor  : String := retrieve ("CPE_VENDOR", cpe_product);
+         cpe_version : String := retrieve ("CPE_VERSION", HT.USS (specs.version));
       begin
          always_push ("vendor", cpe_vendor);
          always_push ("product", cpe_product);
+         always_push ("version", cpe_version);
       end;
 
-      maybe_push ("version", "CPE_VERSION", HT.USS (specs.version));
       maybe_push ("update", "CPE_UPDATE", "");
       maybe_push ("edition", "CPE_EDITION", "");
       maybe_push ("lang", "CPE_LANG", "");
