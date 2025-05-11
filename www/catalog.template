@@ -71,7 +71,7 @@ $(document).ready(function() {
       </table>
     </div>
     <div id="catfooter">
-      <a href="http://www.ravenports.com/" class="footlink">Ravenports official site</a>
+      <a href="https://www.ravenports.com/" class="footlink">Ravenports official site</a>
     </div>
    </div>
   </body>
