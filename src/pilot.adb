@@ -1240,6 +1240,7 @@ package body Pilot is
          TIO.Put_Line ("No specification file found in current directory.");
          return;
       end if;
+      FOP.reset_distfiles_working_area (HT.USS (PM.configuration.dir_distfiles));
       REP.initialize (testmode  => False);
       REP.launch_slave (scan_slave);
       PAR.parse_specification_file (dossier         => specfile,
