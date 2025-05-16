@@ -196,10 +196,19 @@ package body Ravenports is
       consdir : constant String := HT.USS (PM.configuration.dir_conspiracy);
       consdir_old : constant String := consdir & ".old";
    begin
-      DIR.Rename (Old_Name => consdir, New_Name => consdir_old);
+      if DIR.Exists (consdir) then
+         case DIR.Kind (consdir) is
+            when DIR.Directory =>
+               DIR.Rename (Old_Name => consdir, New_Name => consdir_old);
+            when others =>
+               TIO.Put_Line ("Strange. " & consdir & " exists but is not a directory.");
+               return False;
+         end case;
+      end if;
       return True;
    exception
       when others =>
+         TIO.Put_Line ("Failed to rename existing " & consdir & " during update operation");
          return False;
    end relocate_existing_ravenports;
 
@@ -220,10 +229,14 @@ package body Ravenports is
       command2      : constant String := mv_program & extract_dir & " " & consdir;
    begin
       if Unix.piped_mute_command (command, cmd_output) then
-         return Unix.piped_mute_command (command2, cmd_output);
+         if Unix.piped_mute_command (command2, cmd_output) then
+            return True;
+         end if;
+         TIO.Put_Line ("Fatal: Failed to execute: " & command2);
       else
-         return False;
+         TIO.Put_Line ("Fatal: Failed to execute: " & command);
       end if;
+      return False;
    end explode_tarball_into_conspiracy;
 
 
