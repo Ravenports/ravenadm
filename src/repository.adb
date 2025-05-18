@@ -5,12 +5,14 @@ with Unix;
 with File_Operations;
 with PortScan.Scan;
 with PortScan.Operations;
+with Ada.Characters.Latin_1;
 with Ada.Directories;
 with Ada.Text_IO;
 
 package body Repository is
 
    package FOP renames File_Operations;
+   package LAT renames Ada.Characters.Latin_1;
    package DIR renames Ada.Directories;
    package TIO renames Ada.Text_IO;
 
@@ -21,6 +23,7 @@ package body Repository is
    function valid_signing_command return Boolean
    is
       found_command : constant Boolean := DIR.Exists (cfg_sign_command);
+      DQ : constant String (1 .. 1) := (1 => LAT.Quotation);
    begin
       if found_command then
          --  The signing command must contain "{}" which is a replacement token for the digest
@@ -33,8 +36,8 @@ package body Repository is
                TIO.Put_Line ("Invalid signing command found: missing {} token.");
                return False;
             end if;
-            if HT.contains (sc, "'") then
-               TIO.Put_Line ("Invalid signing command found: contains apostrophe.");
+            if HT.contains (sc, DQ) then
+               TIO.Put_Line ("Invalid signing command found: contains a quotation mark.");
                return False;
             end if;
             return True;
@@ -127,8 +130,8 @@ package body Repository is
    is
       sc       : constant String := FOP.head_n1 (cfg_sign_command);
       repopath : constant String := HT.USS (PM.configuration.dir_packages);
-      command  : constant String := host_rvn & " genrepo --external '" & sc &
-        "' --fingerprint " & cfg_fingerprint & " " & repopath;
+      command  : constant String := host_rvn & " genrepo --external " &
+        LAT.Quotation & sc & LAT.Quotation & " --fingerprint " & cfg_fingerprint & " " & repopath;
    begin
       TIO.Put_Line ("Assembling externally-signed repository ...");
       return Unix.external_command (command);
