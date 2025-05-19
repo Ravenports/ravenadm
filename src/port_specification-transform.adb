@@ -1382,7 +1382,9 @@ package body Port_Specification.Transform is
    is
       module     : constant String := "iconv";
       dep_prefix : constant String := "libiconv";
-      glibc      : constant Boolean := DIR.Exists ("/usr/include/libintl.h");
+      intl_h     : constant String := HT.USS (Parameters.configuration.dir_sysroot) &
+                                      "/usr/include/libintl.h";
+      glibc      : constant Boolean := DIR.Exists (intl_h);
    begin
       if not glibc or else argument_present (specs, module, "standalone") then
          generic_devlib_module (specs, module, dep_prefix);
