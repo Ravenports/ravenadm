@@ -1816,6 +1816,11 @@ package body PortScan.Operations is
          arc_operation.close_rvn_archive;
          UCL_Operations.extract_ADO (metastring, metadata);
       end;
+   exception
+      when others =>
+         --  No exceptions expected, but potentially possible from UCL_operations or even
+         --  arc_operation.* functions
+         null;
    end acquire_archive_metadata;
 
 
