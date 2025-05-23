@@ -1817,10 +1817,11 @@ package body PortScan.Operations is
          UCL_Operations.extract_ADO (metastring, metadata);
       end;
    exception
-      when others =>
+      when badfile : others =>
          --  No exceptions expected, but potentially possible from UCL_operations or even
          --  arc_operation.* functions
-         null;
+         TIO.Put_Line ("Metadata exception:" & LAT.LF & "file: " & fullpath & LAT.LF &
+                     EX.Exception_Information (badfile));
    end acquire_archive_metadata;
 
 
@@ -2183,6 +2184,10 @@ package body PortScan.Operations is
                      initial_package_scan (repository, target_port, subpackage);
                   end if;
                end if;
+            exception
+               when quepaso : others =>
+                  TIO.Put_Line ("CHECK_SUBPACKAGE UNHANDLED TASK" & lot'Img & " EXCEPTION: " &
+                                  EX.Exception_Information (quepaso));
             end check_subpackage;
 
          begin
