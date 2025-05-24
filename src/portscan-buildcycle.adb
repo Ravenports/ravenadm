@@ -180,7 +180,7 @@ package body PortScan.Buildcycle is
    begin
       case phase is
          when blr_depends      => base := 15;   --  octave forge extraction is driver
-         when fetch            => return 122;   --  2+ hours, see disable watchdog via buildsheet
+         when fetch            => return 80;    --  disable watchdog via buildsheet on huge files
          when extract          => base := 20;
          when patch            => base := 3;
          when configure        => base := 15;
