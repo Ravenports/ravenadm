@@ -78,7 +78,8 @@ package body Hierarchy is
       skip_dirs : admtypes.string_crate.Vector;
       extras    : in out admtypes.string_crate.Vector;
       modified  : in out admtypes.string_crate.Vector;
-      builder   : Positive)
+      builder   : Positive;
+      log_fd    : RAX.File_Descriptor)
    is
       procedure set_second (Key : HT.Text; Element : in out direntrec);
       procedure dive (this_directory : String);
@@ -137,6 +138,12 @@ package body Hierarchy is
 
                if not (M and then U and then G and then D and then T) then
                   modified.Append (entkey);
+                  if not (M and then U and then G) then
+                     RAX.writeln (log_fd, "debug: " & entname & " MUG (" & myrec.perms'Img & " |" &
+                                    myrec.uid'Img & " |" & myrec.gid'Img & " )   current (" &
+                                    features.perms'Img & " |" & features.uid'Img & " |" &
+                                    features.gid'Img & " )");
+                  end if;
                end if;
                DC.Update_Element (DC.Find (entkey), set_second'Access);
             else
@@ -380,7 +387,8 @@ package body Hierarchy is
                    skip_dirs => skip_dirs,
                    extras    => extras,
                    modified  => modified,
-                   builder   => builder);
+                   builder   => builder,
+                   log_fd    => log_fd);
       leftover.Clear;
       changed.Clear;
       extras.Iterate (filter_extras'Access);

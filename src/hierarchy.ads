@@ -69,7 +69,8 @@ private
       skip_dirs : admtypes.string_crate.Vector;
       extras    : in out admtypes.string_crate.Vector;
       modified  : in out admtypes.string_crate.Vector;
-      builder   : Positive);
+      builder   : Positive;
+      log_fd    : RAX.File_Descriptor);
 
    procedure set_missing_files
      (DC        : Dirent_Collection.Map;
