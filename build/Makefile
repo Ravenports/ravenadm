@@ -24,6 +24,7 @@ stat_opsc.o: ../rvn-format/src/unix/stat_opsc.c
 embedded_exec.o: ../src/embedded_exec.c
 	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
 
+PROCESSORS ?= 0
 ADAFLAGS= -gnatA -gnatyaAbBcdehfiklM100nOprsStx -fstack-check
 COBJS= unix_core.o walkdir.o open.o stat_opsc.o embedded_exec.o
 BASELIBS= -lucl_pic -lblake3_pic -lzstd_pic -lm
@@ -33,9 +34,11 @@ BASEINCS= -I../rvn-format/src -I../rvn-format/src/ucl -I../rvn-format/src/blake3
 ravenadm: ${COBJS}
 .if empty(WITH_DISPLAY)
 	gnatmake -I../src ${BASEINCS} ../ravenadm.adb -o ${.TARGET}\
+		-j${PROCESSORS} \
 		${CFLAGS} ${ADAFLAGS} -largs ${COBJS} ${BASELIBS}
 .else
 	gnatmake -I../src ${BASEINCS} ../ravenadm.adb -o ${.TARGET}\
+		-j${PROCESSORS} \
 		-aI${LOCALBASE}/include/adacurses\
 		-aO${LOCALBASE}/lib/adacurses\
 		${CFLAGS} ${ADAFLAGS}\
