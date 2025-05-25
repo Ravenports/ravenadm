@@ -1357,9 +1357,20 @@ package body Replicant is
                            Target_Name => path_to_etc & filename);
          end if;
       end install;
+
+      procedure root_rw (filename : String)
+      is
+         new_mode : constant Archive.permissions := 8#600#;
+      begin
+         if DIR.Exists (path_to_etc & filename) then
+            if not NIX.change_mode (path_to_etc & filename, new_mode) then
+               append_abnormal_log ("failed mode change: " & path_to_etc & filename);
+            end if;
+         end if;
+      end root_rw;
    begin
       install (passwd);
-      install (maspwd);
+      install (maspwd);  root_rw (maspwd);
       install (spwd);
       install (pwd);
       install (group);
