@@ -379,6 +379,7 @@ package body Hierarchy is
       end prune_leftovers;
 
    begin
+      RAX.writeln (log_fd, LAT.LF & "=> Checking for system changes " & description);
       load_custom_single_exceptions (rootdir, singles);
       set_single_file_filter (singles);
       set_directory_filter (skip_dirs);
@@ -401,7 +402,6 @@ package body Hierarchy is
       admtypes.sorter.Sort (Container => missing);
       admtypes.sorter.Sort (Container => leftover);
 
-      RAX.writeln (log_fd, LAT.LF & "=> Checking for system changes " & description);
       if not leftover.Is_Empty then
          passed := False;
          RAX.writeln (log_fd, LAT.LF & "   Left over files/directories:");
