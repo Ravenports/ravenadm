@@ -1371,7 +1371,7 @@ package body Replicant is
    begin
       install (passwd);
       install (maspwd);  root_rw (maspwd);
-      install (spwd);
+      install (spwd);    root_rw (spwd);
       install (pwd);
       install (group);
       install (mtree1);
