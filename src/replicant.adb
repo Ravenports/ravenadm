@@ -10,6 +10,7 @@ with File_Operations;
 with Parameters;
 with Signals;
 with Unix;
+with Archive.Unix;
 
 package body Replicant is
 
@@ -20,6 +21,7 @@ package body Replicant is
    package LAT renames Ada.Characters.Latin_1;
    package CFM renames Ada.Calendar.Formatting;
    package FOP renames File_Operations;
+   package NIX renames Archive.Unix;
 
    --------------------------------------------------------------------------------------------
    --  initialize
@@ -184,11 +186,11 @@ package body Replicant is
       when others =>
          --  Only can occur when tmpfs is avoided
          if DIR.Exists (tree & "/home") then
-            folder_access (tree & "/home", unlock);
+            set_folder_mode (tree & "/home", unlock);
             retry := True;
          end if;
          if DIR.Exists (tree & "/root") then
-            folder_access (tree & "/root", unlock);
+            set_folder_mode (tree & "/root", unlock);
             retry := True;
          end if;
          if retry then
@@ -792,47 +794,31 @@ package body Replicant is
 
 
    --------------------------------------------------------------------------------------------
-   --  folder_access
+   --  set_folder_mode
    --------------------------------------------------------------------------------------------
-   procedure folder_access (path : String; operation : folder_operation)
+   procedure set_folder_mode (path : String; operation : folder_operation)
    is
-      --  chattr does not work on tmpfs partitions
-      --  It appears immutable locking can't be supported on Linux
+      --  immutable locking not supported on all platforms (e.g. linux)
       --  Don't use chflags schg on *BSD as securitylevel > 0 (BSD) will block it
-      cmd_fallback  : constant String := "/bin/chmod";
-      fback_lock    : constant String := " 555 ";
-      fback_unlock  : constant String := " 755 ";
-
-      command       : HT.Text  := HT.SUS (cmd_fallback);
+      --  chattr does not work on tmpfs partitions
+      --  folder access function removed, used this one instead.
+      oplock    : constant Archive.permissions := 8#555#;
+      opunlock  : constant Archive.permissions := 8#755#;
+      new_mode  : Archive.permissions;
    begin
       if not DIR.Exists (path) then
+         append_abnormal_log ("set_folder_mode, folder DNE: " & path);
          return;
       end if;
 
       case operation is
-         when lock   => HT.SU.Append (command, fback_lock & path);
-         when unlock => HT.SU.Append (command, fback_unlock & path);
+         when lock   => new_mode := oplock;
+         when unlock => new_mode := opunlock;
       end case;
 
-      execute (HT.USS (command));
-   end folder_access;
-
-
-   --------------------------------------------------------------------------------------------
-   --  folder_access
-   --------------------------------------------------------------------------------------------
-   procedure set_folder_mode (path : String; operation : folder_operation)
-   is
-      cmd      : constant String := "/bin/chmod";
-      oplock   : constant String := " 555 ";
-      opunlock : constant String := " 755 ";
-      command  : HT.Text;
-   begin
-      case operation is
-         when lock   => command := HT.SUS (cmd & oplock & path);
-         when unlock => command := HT.SUS (cmd & opunlock & path);
-      end case;
-      execute (HT.USS (command));
+      if not NIX.change_mode (path, new_mode) then
+         append_abnormal_log ("Failed folder mode change of " & path & ": " & new_mode'Img);
+      end if;
    end set_folder_mode;
 
 
@@ -961,8 +947,8 @@ package body Replicant is
             mount_nullfs (location (dir_system, frameworks), location (slave_base, frameworks));
       end case;
 
-      folder_access (location (slave_base, home), lock);
-      folder_access (location (slave_base, root), lock);
+      set_folder_mode (location (slave_base, home), lock);
+      set_folder_mode (location (slave_base, root), lock);
 
       mount_nullfs (mount_target (distfiles), location (slave_base, distfiles), mode => readwrite);
 
