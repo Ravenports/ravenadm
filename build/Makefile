@@ -7,7 +7,7 @@
 #
 # Expected to be executed at ${WRKSRC}/some-obj-directory
 
-all: ravenadm
+all: ravenadm ravenexec
 
 unix_core.o: ../src/unix_core.c
 	${CC} -c ${CFLAGS} ${.ALLSRC} -o ${.TARGET}
@@ -44,3 +44,6 @@ ravenadm: ${COBJS}
 		${CFLAGS} ${ADAFLAGS}\
 		-largs ${COBJS} ${BASELIBS} ${LDFLAGS} -lncurses -ltinfo -lAdaCurses
 .endif
+
+ravenexec: ../ravenexec/ravenexec.c
+	${CC} ${CFLAGS} ${.ALLSRC} -o ${.TARGET}

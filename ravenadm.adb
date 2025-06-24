@@ -230,6 +230,9 @@ begin
          return;
       end if;
 
+      if Pilot.ravenexec_missing then
+         return;
+      end if;
    end if;
 
    case mandate is

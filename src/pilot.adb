@@ -1822,4 +1822,21 @@ package body Pilot is
       SCN.generate_all_buildsheets (ravensrcdir);
    end generate_conspiracy;
 
+
+   --------------------------------------------------------------------------------------------
+   --  ravenexec_missing
+   --------------------------------------------------------------------------------------------
+   function ravenexec_missing return Boolean is
+   begin
+      case platform_type is
+         when freebsd =>
+            if not DIR.Exists (ravenexec) then
+               TIO.Put_Line (ravenexec & " missing!" & bailing);
+               return True;
+            end if;
+         when others => null;
+      end case;
+      return False;
+   end ravenexec_missing;
+
 end Pilot;

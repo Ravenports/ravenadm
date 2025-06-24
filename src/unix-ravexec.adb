@@ -4,11 +4,13 @@
 with Ada.Text_IO;
 with Ada.Characters.Latin_1;
 with GNAT.Traceback.Symbolic;
+with GNAT.OS_Lib;
 
 package body Unix.Ravexec is
 
    package LAT renames Ada.Characters.Latin_1;
    package TRC renames GNAT.Traceback;
+   package OSL renames GNAT.OS_Lib;
 
 
    ---------------------
@@ -172,28 +174,46 @@ package body Unix.Ravexec is
       program   : String;
       arguments : String) return pid_t
    is
-      cbuilder  : constant IC.int := IC.int (builder);
-      cfd       : constant IC.int := IC.int (log_fd);
-      argvector : aliased struct_argv;
-      cprogram  : ICS.chars_ptr;
-      num_args  : IC.int;
-      pid_res   : IC.int;
-
-      use type IC.int;
    begin
-      cprogram := ICS.New_String (program);
-      set_argument_vector (program & " " & arguments, argvector, num_args);
+      case platform_type is
+         when freebsd =>
+            declare
+               procid  : OSL.Process_Id;
+               Args    : OSL.Argument_List_Access;
+               command : constant String := ravenexec & " " & HT.int2str (Integer (log_fd)) & " "
+                         & program & " " & arguments;
+            begin
+               Args   := OSL.Argument_String_To_List (command);
+               procid := OSL.Non_Blocking_Spawn
+                 (Program_Name => Args (Args'First).all,
+                  Args => Args (Args'First + 1 .. Args'Last));
+               OSL.Free (Args);
+               return pid_t (OSL.Pid_To_Integer (procid));
+            end;
+         when others =>
+            declare
+               cbuilder  : constant IC.int := IC.int (builder);
+               cfd       : constant IC.int := IC.int (log_fd);
+               argvector : aliased struct_argv;
+               cprogram  : ICS.chars_ptr;
+               num_args  : IC.int;
+               pid_res   : IC.int;
+               use type IC.int;
+            begin
+               cprogram := ICS.New_String (program);
+               set_argument_vector (program & " " & arguments, argvector, num_args);
+               pid_res := C_Phase_Execution (cbuilder, cfd, cprogram, num_args,
+                                             argvector'Unchecked_Access);
+               ICS.Free (cprogram);
+               if num_args > 0 then
+                  for x in 0 .. num_args - 1 loop
+                     ICS.Free (argvector.args (x));
+                  end loop;
+               end if;
+               return pid_t (pid_res);
+            end;
+      end case;
 
-      pid_res := C_Phase_Execution (cbuilder, cfd, cprogram, num_args, argvector'Unchecked_Access);
-
-      ICS.Free (cprogram);
-      if num_args > 0 then
-         for x in 0 .. num_args - 1 loop
-            ICS.Free (argvector.args (x));
-         end loop;
-      end if;
-
-      return pid_t (pid_res);
    end launch_separate_process;
 
 
