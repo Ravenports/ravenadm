@@ -35,12 +35,12 @@ ravenadm: ${COBJS}
 .if empty(WITH_DISPLAY)
 	gnatmake -I../src ${BASEINCS} ../ravenadm.adb -o ${.TARGET}\
 		-j${PROCESSORS} \
-		${CFLAGS} ${ADAFLAGS} -largs ${COBJS} ${BASELIBS}
+		${CFLAGS} ${ADAFLAGS} -largs ${COBJS} ${BASELIBS} ${LDFLAGS}
 .else
 	gnatmake -I../src ${BASEINCS} ../ravenadm.adb -o ${.TARGET}\
 		-j${PROCESSORS} \
 		-aI${LOCALBASE}/include/adacurses\
 		-aO${LOCALBASE}/lib/adacurses\
 		${CFLAGS} ${ADAFLAGS}\
-		-largs ${COBJS} ${BASELIBS} -lncurses -ltinfo -lAdaCurses
+		-largs ${COBJS} ${BASELIBS} ${LDFLAGS} -lncurses -ltinfo -lAdaCurses
 .endif
