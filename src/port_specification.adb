@@ -735,15 +735,9 @@ package body Port_Specification is
             specs.plist_sub.Append (text_value);
          when sp_users =>
             verify_entry_is_post_options;
-            if value'Length > 8 then
-               raise wrong_value with value & " exceeds 8 character maximum";
-            end if;
             specs.users.Append (text_value);
          when sp_groups =>
             verify_entry_is_post_options;
-            if value'Length > 8 then
-               raise wrong_value with value & " exceeds 8 character maximum";
-            end if;
             specs.groups.Append (text_value);
          when sp_sub_list =>
             verify_entry_is_post_options;
