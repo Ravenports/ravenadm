@@ -1347,6 +1347,7 @@ package body Pilot is
       function dupe_archive (origin, destino : String) return Boolean;
 
       binutils : constant String := "binutils";
+      genesis  : constant String := HT.USS (PM.configuration.dir_sysroot) & "/usr/share/GENESIS";
 
       function get_package_name (subpackage : String; use_prev : Boolean) return String
       is
@@ -1432,6 +1433,12 @@ package body Pilot is
             return False;
       end package_copy;
    begin
+      if DIR.Exists (genesis) then
+         --  This is a first generation system root manually constructed for the
+         --  purpose of bootstrapping on a new platform.  In this case, there are no
+         --  existing binutils or gcc subpackages to copy over yet.  Do nothing.
+         return True;
+      end if;
       return
         package_copy (binutils) and then
         package_copy ("ada_run") and then

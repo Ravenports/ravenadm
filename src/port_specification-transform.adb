@@ -278,7 +278,10 @@ package body Port_Specification.Transform is
 
       end copy_option_over;
 
-      skip_compiler_packages : constant Boolean := Unix.env_variable_defined ("SKIPCCRUN");
+      skip_compiler_packages : constant Boolean :=
+        Unix.env_variable_defined ("SKIPCCRUN") or else
+        DIR.Exists (HT.USS (Parameters.configuration.dir_sysroot) & "/usr/share/GENESIS");
+
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_extraction_deps (specs);

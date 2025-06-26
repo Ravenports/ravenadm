@@ -174,7 +174,7 @@ package Port_Specification is
    function deprecation_valid (specs : Portspecs) return Boolean;
 
    --  Perform any post-parsing adjustments necessary
-   procedure adjust_defaults_port_parse (specs : in out Portspecs);
+   procedure adjust_defaults_port_parse (specs : in out Portspecs; skip_cc_run : Boolean);
 
    --  Returns true if indicated option helper is empty
    function option_helper_unset
