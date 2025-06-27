@@ -119,6 +119,13 @@ package body Hierarchy is
                return;
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
+            case features.ftype is
+               when Archive.unsupported =>
+                  RAX.writeln (log_fd, "debug: " & entname & ": stat() failed or DNE.  Retrying.");
+                  delay (0.05);
+                  features := Archive.Unix.get_charactistics (rootdir & relpath);
+               when others => null;
+            end case;
             if DC.Contains (entkey) then
                myrec := DC.Element (entkey);
                case features.ftype is
@@ -126,6 +133,7 @@ package body Hierarchy is
                      digest := (others => '0');
                   when Archive.unsupported =>
                      digest := (others => '0');
+                     RAX.writeln (log_fd, "debug: " & entname & ": stat() failed again.");
                   when Archive.regular | Archive.hardlink =>
                      digest := Blake_3.file_digest (rootdir & relpath);
                end case;
