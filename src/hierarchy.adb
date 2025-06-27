@@ -19,7 +19,8 @@ package body Hierarchy is
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
       rootdir   : String;
-      builder   : Positive)
+      builder   : Positive;
+      log_fd    : RAX.File_Descriptor)
    is
       skip_dirs : admtypes.string_crate.Vector;
 
@@ -33,6 +34,7 @@ package body Hierarchy is
          is
             entname  : constant String := SCN.dscan_crate.Element (Position).simple_name;
             relpath  : constant String := this_directory & entname;
+            debugmsg : constant String := "debug snapshot: " & entname & ": stat() failed";
             features : Archive.Unix.File_Characteristics;
             myrec    : direntrec;
          begin
@@ -40,6 +42,13 @@ package body Hierarchy is
                return;
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
+            case features.ftype is
+               when Archive.unsupported =>
+                  RAX.writeln (log_fd, debugmsg & " or DNE.  Retrying.");
+                  delay (0.05);
+                  features := Archive.Unix.get_charactistics (rootdir & relpath);
+               when others => null;
+            end case;
             myrec.gid    := features.gid;
             myrec.uid    := features.uid;
             myrec.perms  := features.perms;
@@ -49,6 +58,7 @@ package body Hierarchy is
                   myrec.digest := (others => '0');
                when Archive.unsupported =>
                   myrec.digest := (others => '0');  --  should be impossible.
+                  RAX.writeln (log_fd, debugmsg & " again.");
                when Archive.regular | Archive.hardlink =>
                   myrec.digest := Blake_3.file_digest (rootdir & relpath);
             end case;
@@ -106,6 +116,7 @@ package body Hierarchy is
          is
             entname  : constant String := SCN.dscan_crate.Element (Position).simple_name;
             relpath  : constant String := this_directory & entname;
+            debugmsg : constant String := "debug: " & entname & ": stat() failed";
             entkey   : constant HT.Text := HT.SUS (relpath);
             features : Archive.Unix.File_Characteristics;
             myrec    : direntrec;
@@ -121,7 +132,7 @@ package body Hierarchy is
             features := Archive.Unix.get_charactistics (rootdir & relpath);
             case features.ftype is
                when Archive.unsupported =>
-                  RAX.writeln (log_fd, "debug: " & entname & ": stat() failed or DNE.  Retrying.");
+                  RAX.writeln (log_fd, debugmsg &  " or DNE.  Retrying.");
                   delay (0.05);
                   features := Archive.Unix.get_charactistics (rootdir & relpath);
                when others => null;
@@ -133,7 +144,7 @@ package body Hierarchy is
                      digest := (others => '0');
                   when Archive.unsupported =>
                      digest := (others => '0');
-                     RAX.writeln (log_fd, "debug: " & entname & ": stat() failed again.");
+                     RAX.writeln (log_fd, debugmsg & " again.");
                   when Archive.regular | Archive.hardlink =>
                      digest := Blake_3.file_digest (rootdir & relpath);
                end case;
