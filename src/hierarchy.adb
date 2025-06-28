@@ -34,7 +34,7 @@ package body Hierarchy is
          is
             entname  : constant String := SCN.dscan_crate.Element (Position).simple_name;
             relpath  : constant String := this_directory & entname;
-            debugmsg : constant String := "debug snapshot: " & entname & ": stat() failed";
+            debugmsg : constant String := "debug snapshot: " & entname & ": lstat() failed twice.";
             features : Archive.Unix.File_Characteristics;
             myrec    : direntrec;
          begin
@@ -43,7 +43,6 @@ package body Hierarchy is
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
             if features.error then
-               RAX.writeln (log_fd, debugmsg & ".  Retrying.");
                delay (0.05);
                features := Archive.Unix.get_charactistics (rootdir & relpath);
             end if;
@@ -56,10 +55,12 @@ package body Hierarchy is
                   myrec.digest := (others => '0');
                when Archive.unsupported =>
                   myrec.digest := (others => '0');  --  should be impossible.
-                  RAX.writeln (log_fd, debugmsg & " again.");
                when Archive.regular | Archive.hardlink =>
                   myrec.digest := Blake_3.file_digest (rootdir & relpath);
             end case;
+            if features.error then
+               RAX.writeln (log_fd, debugmsg);
+            end if;
             DC.Insert (HT.SUS (relpath), myrec);
             case features.ftype is
                when Archive.directory =>
@@ -114,7 +115,7 @@ package body Hierarchy is
          is
             entname  : constant String := SCN.dscan_crate.Element (Position).simple_name;
             relpath  : constant String := this_directory & entname;
-            debugmsg : constant String := "debug: " & entname & ": stat() failed";
+            debugmsg : constant String := "debug: " & entname & ": lstat() failed twice.";
             entkey   : constant HT.Text := HT.SUS (relpath);
             features : Archive.Unix.File_Characteristics;
             myrec    : direntrec;
@@ -129,7 +130,6 @@ package body Hierarchy is
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
             if features.error then
-               RAX.writeln (log_fd, debugmsg &  ".  Retrying.");
                delay (0.05);
                features := Archive.Unix.get_charactistics (rootdir & relpath);
             end if;
@@ -140,10 +140,12 @@ package body Hierarchy is
                      digest := (others => '0');
                   when Archive.unsupported =>
                      digest := (others => '0');
-                     RAX.writeln (log_fd, debugmsg & " again.");
                   when Archive.regular | Archive.hardlink =>
                      digest := Blake_3.file_digest (rootdir & relpath);
                end case;
+               if features.error then
+                  RAX.writeln (log_fd, debugmsg);
+               end if;
 
                M := myrec.perms = features.perms;
                U := myrec.uid = features.uid;
