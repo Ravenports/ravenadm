@@ -19,7 +19,8 @@ package body Hierarchy is
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
       rootdir   : String;
-      builder   : Positive)
+      builder   : Positive;
+      log_fd    : RAX.File_Descriptor)
    is
       skip_dirs : admtypes.string_crate.Vector;
 
@@ -33,6 +34,7 @@ package body Hierarchy is
          is
             entname  : constant String := SCN.dscan_crate.Element (Position).simple_name;
             relpath  : constant String := this_directory & entname;
+            debugmsg : constant String := "debug snapshot: " & entname & ": lstat() failed twice.";
             features : Archive.Unix.File_Characteristics;
             myrec    : direntrec;
          begin
@@ -40,6 +42,10 @@ package body Hierarchy is
                return;
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
+            if features.error then
+               delay (0.05);
+               features := Archive.Unix.get_charactistics (rootdir & relpath);
+            end if;
             myrec.gid    := features.gid;
             myrec.uid    := features.uid;
             myrec.perms  := features.perms;
@@ -52,6 +58,9 @@ package body Hierarchy is
                when Archive.regular | Archive.hardlink =>
                   myrec.digest := Blake_3.file_digest (rootdir & relpath);
             end case;
+            if features.error then
+               RAX.writeln (log_fd, debugmsg);
+            end if;
             DC.Insert (HT.SUS (relpath), myrec);
             case features.ftype is
                when Archive.directory =>
@@ -106,6 +115,7 @@ package body Hierarchy is
          is
             entname  : constant String := SCN.dscan_crate.Element (Position).simple_name;
             relpath  : constant String := this_directory & entname;
+            debugmsg : constant String := "debug: " & entname & ": lstat() failed twice.";
             entkey   : constant HT.Text := HT.SUS (relpath);
             features : Archive.Unix.File_Characteristics;
             myrec    : direntrec;
@@ -119,9 +129,13 @@ package body Hierarchy is
                return;
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
+            if features.error then
+               delay (0.05);
+               features := Archive.Unix.get_charactistics (rootdir & relpath);
+            end if;
             if DC.Contains (entkey) then
                myrec := DC.Element (entkey);
-               case features.ftype is
+               case myrec.ftype is
                   when Archive.directory | Archive.symlink | Archive.fifo =>
                      digest := (others => '0');
                   when Archive.unsupported =>
@@ -129,6 +143,9 @@ package body Hierarchy is
                   when Archive.regular | Archive.hardlink =>
                      digest := Blake_3.file_digest (rootdir & relpath);
                end case;
+               if features.error then
+                  RAX.writeln (log_fd, debugmsg);
+               end if;
 
                M := myrec.perms = features.perms;
                U := myrec.uid = features.uid;
@@ -139,10 +156,17 @@ package body Hierarchy is
                if not (M and then U and then G and then D and then T) then
                   modified.Append (entkey);
                   if not (M and then U and then G) then
-                     RAX.writeln (log_fd, "debug: " & entname & " MUG (" & myrec.perms'Img & " |" &
-                                    myrec.uid'Img & " |" & myrec.gid'Img & " )   current (" &
-                                    features.perms'Img & " |" & features.uid'Img & " |" &
-                                    features.gid'Img & " )");
+                     RAX.writeln (log_fd, "debug: " & entname & " MUGT (" &
+                                    myrec.perms'Img & " |" &
+                                    myrec.uid'Img & " |" &
+                                    myrec.gid'Img & " | " &
+                                    myrec.ftype'Img &
+                                    ")   current (" &
+                                    features.perms'Img & " |" &
+                                    features.uid'Img & " |" &
+                                    features.gid'Img & " | " &
+                                    features.ftype'Img &
+                                    ")");
                   end if;
                end if;
                DC.Update_Element (DC.Find (entkey), set_second'Access);

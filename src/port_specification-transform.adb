@@ -278,7 +278,10 @@ package body Port_Specification.Transform is
 
       end copy_option_over;
 
-      skip_compiler_packages : constant Boolean := Unix.env_variable_defined ("SKIPCCRUN");
+      skip_compiler_packages : constant Boolean :=
+        Unix.env_variable_defined ("SKIPCCRUN") or else
+        DIR.Exists (HT.USS (Parameters.configuration.dir_sysroot) & "/usr/share/GENESIS");
+
    begin
       specs.ops_helpers.Iterate (Process => copy_option_over'Access);
       apply_extraction_deps (specs);
@@ -351,12 +354,13 @@ package body Port_Specification.Transform is
          apply_gcc_run_module (specs, variant, "c++", "cxx_run");
          apply_gcc_run_module (specs, variant, "fortran", "fortran_run");
          apply_gcc_run_module (specs, variant, "cclibs", "libs");
-         if platform_type = sunos or else platform_type = macos
+         if platform_type = macos
          then
             --  Solaris 10 doesn't use dl_iterate_phdr, so many packages have executables that
             --  requires libgcc_s.so.  Rather than specify potentially hundreds of C_USES
             --  keywords, just make ravensys-gcc:libs:std a run depends of every package (including
             --  gcc6, gcc7, gcc8 and later).
+            --  However, Solaris 11 / OmniOS does use dl_iterate_phdr so drop sunos condition
             add_exrun_cclibs (specs, variant);
          end if;
          apply_gcc_full_set (specs, variant);

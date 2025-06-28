@@ -731,7 +731,12 @@ package body Specification_Parser is
       if spec.get_parse_error = "" then
          spec.set_parse_error (late_validity_check_error (spec));
          if spec.get_parse_error = "" then
-            spec.adjust_defaults_port_parse;
+            declare
+               skip_cc_run : constant Boolean := Unix.env_variable_defined ("SKIPCCRUN") or else
+                 DIR.Exists (HT.USS (Parameters.configuration.dir_sysroot) & "/usr/share/GENESIS");
+            begin
+               spec.adjust_defaults_port_parse (skip_cc_run);
+            end;
             success := True;
          end if;
       end if;

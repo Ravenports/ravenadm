@@ -41,7 +41,8 @@ package Hierarchy is
    procedure take_snapshot
      (DC        : in out Dirent_Collection.Map;
       rootdir   : String;
-      builder   : Positive);
+      builder   : Positive;
+      log_fd    : RAX.File_Descriptor);
 
    --  Given the results of the snapshot, this function displays any missing, extra or
    --  modified files and returns False if any of those occur.  (True means check passed)

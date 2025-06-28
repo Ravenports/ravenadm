@@ -69,7 +69,10 @@ package body PortScan.Buildcycle is
          return False;
       end if;
       if testing then
-         Hierarchy.take_snapshot (trackers (id).genesis, get_root (id), Positive (id));
+         Hierarchy.take_snapshot (DC      => trackers (id).genesis,
+                                  rootdir => get_root (id),
+                                  builder => Positive (id),
+                                  log_fd  => trackers (id).log_fd);
       end if;
       begin
          for phase in phases'Range loop
@@ -90,7 +93,10 @@ package body PortScan.Buildcycle is
 
             when configure =>
                if testing then
-                  Hierarchy.take_snapshot (trackers (id).preconfig, get_root (id), Positive (id));
+                  Hierarchy.take_snapshot (DC      => trackers (id).preconfig,
+                                           rootdir => get_root (id),
+                                           builder => Positive (id),
+                                           log_fd  => trackers (id).log_fd);
                end if;
                R := exec_phase_generic (id, phase, environ);
 

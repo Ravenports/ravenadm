@@ -2304,7 +2304,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    --  adjust_defaults_port_parse
    --------------------------------------------------------------------------------------------
-   procedure adjust_defaults_port_parse (specs : in out Portspecs)
+   procedure adjust_defaults_port_parse (specs : in out Portspecs; skip_cc_run : Boolean)
    is
       procedure grow (Key : HT.Text; Element : in out group_list);
 
@@ -2341,7 +2341,7 @@ package body Port_Specification is
       then
          specs.df_index.Append (HT.SUS ("1"));
       end if;
-      if Unix.env_variable_defined ("SKIPCCRUN") then
+      if skip_cc_run then
          specs.fatal_rpath := False;
       end if;
       if specs.debugging_on then
