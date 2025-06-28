@@ -139,7 +139,7 @@ package body Hierarchy is
             end case;
             if DC.Contains (entkey) then
                myrec := DC.Element (entkey);
-               case features.ftype is
+               case myrec.ftype is
                   when Archive.directory | Archive.symlink | Archive.fifo =>
                      digest := (others => '0');
                   when Archive.unsupported =>
@@ -158,10 +158,17 @@ package body Hierarchy is
                if not (M and then U and then G and then D and then T) then
                   modified.Append (entkey);
                   if not (M and then U and then G) then
-                     RAX.writeln (log_fd, "debug: " & entname & " MUG (" & myrec.perms'Img & " |" &
-                                    myrec.uid'Img & " |" & myrec.gid'Img & " )   current (" &
-                                    features.perms'Img & " |" & features.uid'Img & " |" &
-                                    features.gid'Img & " )");
+                     RAX.writeln (log_fd, "debug: " & entname & " MUGT (" &
+                                    myrec.perms'Img & " |" &
+                                    myrec.uid'Img & " |" &
+                                    myrec.gid'Img & " | " &
+                                    myrec.ftype'Img &
+                                    ")   current (" &
+                                    features.perms'Img & " |" &
+                                    features.uid'Img & " |" &
+                                    features.gid'Img & " | " &
+                                    features.ftype'Img &
+                                    ")");
                   end if;
                end if;
                DC.Update_Element (DC.Find (entkey), set_second'Access);
