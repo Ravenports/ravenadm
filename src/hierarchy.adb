@@ -42,13 +42,11 @@ package body Hierarchy is
                return;
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
-            case features.ftype is
-               when Archive.unsupported =>
-                  RAX.writeln (log_fd, debugmsg & " or DNE.  Retrying.");
-                  delay (0.05);
-                  features := Archive.Unix.get_charactistics (rootdir & relpath);
-               when others => null;
-            end case;
+            if features.error then
+               RAX.writeln (log_fd, debugmsg & ".  Retrying.");
+               delay (0.05);
+               features := Archive.Unix.get_charactistics (rootdir & relpath);
+            end if;
             myrec.gid    := features.gid;
             myrec.uid    := features.uid;
             myrec.perms  := features.perms;
@@ -130,13 +128,11 @@ package body Hierarchy is
                return;
             end if;
             features := Archive.Unix.get_charactistics (rootdir & relpath);
-            case features.ftype is
-               when Archive.unsupported =>
-                  RAX.writeln (log_fd, debugmsg &  " or DNE.  Retrying.");
-                  delay (0.05);
-                  features := Archive.Unix.get_charactistics (rootdir & relpath);
-               when others => null;
-            end case;
+            if features.error then
+               RAX.writeln (log_fd, debugmsg &  ".  Retrying.");
+               delay (0.05);
+               features := Archive.Unix.get_charactistics (rootdir & relpath);
+            end if;
             if DC.Contains (entkey) then
                myrec := DC.Element (entkey);
                case myrec.ftype is
