@@ -134,25 +134,19 @@ package body PortScan.Scan is
    is
       conspindex_path : constant String := conspiracy & conspindex;
       custom_avail    : constant Boolean := unkindness /= PM.no_unkindness;
-      --  Disable parallel scanning (not reliable; make one scanner do everything
-      --  max_lots    : constant scanners := get_max_lots;
-      max_lots        : constant scanners := 1;
+      linenum         : Natural := 0;
+      handle          : TIO.File_Type;
    begin
       if not DIR.Exists (conspindex_path) then
          raise missing_index with conspindex;
       end if;
 
-      declare
-         fulldata  : String := FOP.get_file_contents (conspindex_path);
-         markers   : HT.Line_Markers;
-         linenum   : Natural := 0;
       begin
-         HT.initialize_markers (fulldata, markers);
-         loop
-            exit when not HT.next_line_present (fulldata, markers);
+         TIO.Open (File => handle, Mode => TIO.In_File, Name => conspindex_path);
+         while not TIO.End_Of_File (handle) loop
             linenum := linenum + 1;
             declare
-               line     : constant String := HT.extract_line (fulldata, markers);
+               line     : constant String := TIO.Get_Line (handle);
                bucket   : constant String := HT.specific_field (line, 1);
                namebase : constant String := HT.specific_field (line, 2);
                numvar   : constant String := HT.specific_field (line, 3);
@@ -201,18 +195,20 @@ package body PortScan.Scan is
                         all_ports (lot_counter).bucket        := bucket_code (bucket);
                         all_ports (lot_counter).unkind_custom := False;
 
-                        make_queue (lot_number).Append (lot_counter);
+                        --  use single scanner (not parallel) for extended scanning
+                        make_queue (1).Append (lot_counter);
                         lot_counter := lot_counter + 1;
-                        if lot_number = max_lots then
-                           lot_number := 1;
-                        else
-                           lot_number := lot_number + 1;
-                        end if;
                      end;
                   end loop;
                end if;
             end;
          end loop;
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
       end;
 
       prescanned := True;
@@ -225,9 +221,8 @@ package body PortScan.Scan is
    procedure prescan_unkindness (unkindness : String; compiled_BS : String)
    is
       unkinindex_path : constant String := compiled_BS & unkinindex;
-      --  Disable parallel scanning (not reliable; make one scanner do everything
-      --  max_lots : constant scanners := get_max_lots;
-      max_lots : constant scanners := 1;
+      linenum         : Natural := 0;
+      handle          : TIO.File_Type;
    begin
       if unkindness = PM.no_unkindness or else
         not DIR.Exists (unkinindex_path)
@@ -235,17 +230,12 @@ package body PortScan.Scan is
          return;
       end if;
 
-      declare
-         fulldata  : String := FOP.get_file_contents (unkinindex_path);
-         markers   : HT.Line_Markers;
-         linenum   : Natural := 0;
       begin
-         HT.initialize_markers (fulldata, markers);
-         loop
-            exit when not HT.next_line_present (fulldata, markers);
+         TIO.Open (File => handle, Mode => TIO.In_File, Name => unkinindex_path);
+         while not TIO.End_Of_File (handle) loop
             linenum := linenum + 1;
             declare
-               line     : constant String := HT.extract_line (fulldata, markers);
+               line     : constant String := TIO.Get_Line (handle);
                bucket   : constant String := HT.specific_field (line, 1);
                namebase : constant String := HT.specific_field (line, 2);
                numvar   : constant String := HT.specific_field (line, 3);
@@ -302,18 +292,20 @@ package body PortScan.Scan is
                         all_ports (lot_counter).bucket        := bucket_code (bucket);
                         all_ports (lot_counter).unkind_custom := True;
 
-                        make_queue (lot_number).Append (lot_counter);
+                        --  use single scanner (not parallel) for extended scanning
+                        make_queue (1).Append (lot_counter);
                         lot_counter := lot_counter + 1;
-                        if lot_number = max_lots then
-                           lot_number := 1;
-                        else
-                           lot_number := lot_number + 1;
-                        end if;
                      end if;
                   end;
                end loop;
             end;
          end loop;
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
       end;
    end prescan_unkindness;
 
