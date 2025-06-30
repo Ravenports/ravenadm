@@ -614,6 +614,7 @@ package body Replicant is
             HT.SU.Append (command, " -o -s" & HT.trim (max_size_M'Img) & "M");
          when macos     => null;
          when openbsd   => null;
+         when sunos     => null;
          when others =>
             HT.SU.Append (command, " -o size=" & HT.trim (max_size_M'Img) & "M");
       end case;
