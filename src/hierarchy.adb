@@ -257,6 +257,7 @@ package body Hierarchy is
       push ("/etc/shadow");         --  Solaris
       push ("/etc/opasswd");        --  Solaris
       push ("/etc/oshadow");        --  Solaris
+      push ("/etc/ouser_attr");     --  Solaris
 
    end set_single_file_filter;
 
