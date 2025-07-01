@@ -1578,6 +1578,8 @@ package body Replicant is
       sun_file : TIO.File_Type;
       security : constant String := path_to_etc & "/security";
       skel     : constant String := path_to_etc & "/skel";
+      shadow   : constant String := path_to_etc & "/shadow";
+      m400     : constant Archive.permissions := 8#400#;
    begin
       if platform_type /= sunos then
          return;
@@ -1641,13 +1643,16 @@ package body Replicant is
       TIO.Close (sun_file);
 
       --  etc/shadow (couple of entries)
-      TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/shadow");
+      TIO.Create (sun_file, TIO.Out_File, shadow);
       TIO.Put_Line (sun_file, "root:kF/MO3YejnKKE:6445::::::");
       TIO.Put_Line (sun_file, "adm:NP:6445::::::");
       TIO.Put_Line (sun_file, "lp:NP:6445::::::");
       TIO.Put_Line (sun_file, "nobody:*LK*:6445::::::");
       TIO.Put_Line (sun_file, "nobody4:*LK*:6445::::::");
       TIO.Close (sun_file);
+      if not NIX.change_mode (shadow, m400) then
+         append_abnormal_log ("failed mode change to 400: " & shadow);
+      end if;
 
       --  etc/project
       TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/project");
