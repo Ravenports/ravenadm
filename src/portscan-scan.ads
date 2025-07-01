@@ -55,7 +55,7 @@ package PortScan.Scan is
    --  Scan distfiles directory, then purge all obsolete distfiles.
    procedure purge_obsolete_distfiles;
 
-   --  Scan directory that contains the packages (*.tzst) and stores the
+   --  Scan directory that contains the packages (*.rvn) and stores the
    --  file names in the container.  Returns False if no packages are found.
    function scan_repository (repository : String) return Boolean;
 
