@@ -1259,20 +1259,26 @@ package body PortScan.Buildcycle is
 
          function get_system_lib_level_1 return String is
          begin
-            if platform_type = linux then
-               return "/lib/x86_64-linux-gnu";
-            else
-               return "/lib";
-            end if;
+            case platform_type is
+               when linux =>
+                  return "/lib/x86_64-linux-gnu";
+               when sunos =>
+                  return "/lib/64";
+               when others =>
+                  return "/lib";
+            end case;
          end get_system_lib_level_1;
 
          function get_system_lib_level_2 return String is
          begin
-            if platform_type = linux then
-               return "/usr/lib/x86_64-linux-gnu";
-            else
-               return "/usr/lib";
-            end if;
+            case platform_type is
+               when linux =>
+                  return "/usr/lib/x86_64-linux-gnu";
+               when sunos =>
+                  return "/usr/lib/64";
+               when others =>
+                  return "/usr/lib";
+            end case;
          end get_system_lib_level_2;
 
          systemdir_1 : constant String := get_system_lib_level_1;
@@ -1287,7 +1293,7 @@ package body PortScan.Buildcycle is
          procedure squawk is
          begin
             RAX.writeln (trackers (id).log_fd,
-                          errmsg_prefix & library & " is not in located in " & systemdir_1 &
+                          errmsg_prefix & library & " is not located at " & systemdir_1 &
                             ", " & systemdir_2 & " or within the RPATH/RUNPATH (" & paths & ")");
          end squawk;
 
