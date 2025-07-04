@@ -648,7 +648,9 @@ package body Replicant is
          when linux     => execute (lin_command);
          when netbsd    |
               openbsd   |
-              sunos     => mount_nullfs (target => "/dev", mount_point => path_to_dev);
+              sunos     => mount_nullfs (target      => "/dev",
+                                         mount_point => path_to_dev,
+                                         mode        => readwrite);
       end case;
    end mount_devices;
 
@@ -1595,6 +1597,7 @@ package body Replicant is
       --
       --  1       crypt_bsdmd5.so.1
       --  2a      crypt_bsdbf.so.1
+      --  2b      crypt_bsdbf.so.1
       --  md5     crypt_sunmd5.so.1
       --  5       crypt_sha256.so.1
       --  6       crypt_sha512.so.1
@@ -1603,6 +1606,7 @@ package body Replicant is
       TIO.Create (sun_file, TIO.Out_File, security & "/crypt.conf");
       TIO.Put_Line (sun_file, "1   crypt_bsdmd5.so.1");
       TIO.Put_Line (sun_file, "2a  crypt_bsdbf.so.1");
+      TIO.Put_Line (sun_file, "2b  crypt_bsdbf.so.1");
       TIO.Put_Line (sun_file, "md5 crypt_sunmd5.so.1");
       TIO.Put_Line (sun_file, "5   crypt_sha256.so.1");
       TIO.Put_Line (sun_file, "6   crypt_sha512.so.1");
@@ -1611,6 +1615,7 @@ package body Replicant is
       --  Dummy /etc/user_attr to allow useradd to succeed
       TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/user_attr");
       TIO.Put_Line (sun_file, "adm::::profiles=Log Management");
+      TIO.Put_Line (sun_file, "dladm::::auths=solaris.smf.manage.wpa,solaris.smf.modify");
       TIO.Put_Line (sun_file, "lp::::profiles=Printer Management");
       TIO.Close (sun_file);
 
@@ -1636,7 +1641,7 @@ package body Replicant is
       TIO.Put_Line (sun_file, "export PATH");
       TIO.Close (sun_file);
 
-      --  etc/datemsk (extremely pared done)
+      --  etc/datemsk (extremely pared down)
       TIO.Create (sun_file, TIO.Out_File, path_to_etc & "/datemsk");
       TIO.Put_Line (sun_file, "%m/%d/%y %H:%M");
       TIO.Put_Line (sun_file, "%m%d%H%M%y");
