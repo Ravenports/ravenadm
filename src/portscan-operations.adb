@@ -1239,8 +1239,13 @@ package body PortScan.Operations is
          when netbsd      => calculated_abi := HT.SUS ("netbsd" & arch_component & release);
          when openbsd     => calculated_abi := HT.SUS ("openbsd" & arch_component & release);
          when midnightbsd => calculated_abi := HT.SUS ("midnightbsd" & arch_component & release);
-         when sunos       => calculated_abi := HT.SUS ("solaris" & arch_component & release);
          when macos       => calculated_abi := HT.SUS ("darwin:x86:" & release);
+         when sunos =>
+            if release = "10" then
+               calculated_abi := HT.SUS ("solaris" & arch_component & release);  --  Solaris 10
+            else
+               calculated_abi := HT.SUS ("sunos" & arch_component & release);    --- OmniOS/Illumos
+            end if;
          when linux =>
             declare
                sysroot : constant String := HT.USS (PM.configuration.dir_sysroot);
