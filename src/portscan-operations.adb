@@ -1239,7 +1239,7 @@ package body PortScan.Operations is
          when netbsd      => calculated_abi := HT.SUS ("netbsd" & arch_component & release);
          when openbsd     => calculated_abi := HT.SUS ("openbsd" & arch_component & release);
          when midnightbsd => calculated_abi := HT.SUS ("midnightbsd" & arch_component & release);
-         when sunos       => calculated_abi := HT.SUS ("solaris" & arch_component & "10");
+         when sunos       => calculated_abi := HT.SUS ("solaris" & arch_component & release);
          when macos       => calculated_abi := HT.SUS ("darwin:x86:" & release);
          when linux =>
             declare
