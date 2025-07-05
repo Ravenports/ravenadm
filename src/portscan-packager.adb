@@ -457,7 +457,7 @@ package body PortScan.Packager is
    function create_package_directory_if_necessary (log_fd : RAX.File_Descriptor) return Boolean
    is
       packagedir : constant String := HT.USS (PM.configuration.dir_repository);
-      packagedir_files : constant String := packagedir & "/files";
+      packagedir_files : constant String := packagedir;
    begin
       if DIR.Exists (packagedir_files) then
          return True;
