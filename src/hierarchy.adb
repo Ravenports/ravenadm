@@ -304,14 +304,6 @@ package body Hierarchy is
          end if;
       end if;
 
-      --  */__pycache__/*
-      --  # we need to stop packaging python cache files.  until then, ignore
-      if HT.leads (line, localbase & "/lib/python") and then
-           HT.contains (line, "/__pycache__/")
-      then
-         return True;
-      end if;
-
       return False;
 
    end ignore_this_file;
