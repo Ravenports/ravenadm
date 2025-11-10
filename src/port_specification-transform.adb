@@ -1825,6 +1825,7 @@ package body Port_Specification.Transform is
 
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) then
+         specs.used_python := HT.SUS (PYVARIANT);
          return;
       end if;
 
