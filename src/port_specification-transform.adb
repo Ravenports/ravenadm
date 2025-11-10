@@ -313,8 +313,6 @@ package body Port_Specification.Transform is
       apply_bison_module (specs);
       apply_mysql_module (specs);
       apply_pgsql_module (specs);
-      apply_meson_module (specs);
-      apply_ninja_module (specs);
       apply_fonts_module (specs);
       apply_pcre2_module (specs);
       apply_mold_module (specs);
@@ -349,6 +347,8 @@ package body Port_Specification.Transform is
       apply_xorg_components_dependencies (specs);
       apply_php_extension_dependencies (specs);
       apply_python_module (specs);
+      apply_meson_module (specs);  --  requires python_used, so must follow apply_python_module()
+      apply_ninja_module (specs);  --  requires python_used, so much follow apply_python_module()
       if not skip_compiler_packages then
          apply_gcc_run_module (specs, variant, "ada", "ada_run");
          apply_gcc_run_module (specs, variant, "c++", "cxx_run");
@@ -1008,10 +1008,11 @@ package body Port_Specification.Transform is
    --------------------------------------------------------------------------------------------
    procedure apply_ninja_module (specs : in out Portspecs)
    is
-      module     : constant String := "ninja";
-      dependency : String renames NINJA;
+      module    : constant String := "ninja";
+      pyx       : constant String := HT.USS (specs.used_python);
+      ninja_pkg : constant String := "python-ninja:single:" & pyx;
    begin
-      generic_build_module (specs, module, dependency);
+      generic_build_module (specs, module, ninja_pkg);
    end apply_ninja_module;
 
 
@@ -1021,10 +1022,12 @@ package body Port_Specification.Transform is
    procedure apply_meson_module (specs : in out Portspecs)
    is
       module     : constant String := "meson";
-      dependency : constant String := single_triplet (module);
+      pyx        : constant String := HT.USS (specs.used_python);
+      meson_pkg  : constant String := "meson:single:" & pyx;
+      ninja_pkg  : constant String := "python-ninja:single:" & pyx;
    begin
-      generic_build_module (specs, module, dependency);
-      generic_build_module (specs, module, NINJA);
+      generic_build_module (specs, module, meson_pkg);
+      generic_library_module (specs, module, ninja_pkg);
    end apply_meson_module;
 
 

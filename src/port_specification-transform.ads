@@ -63,7 +63,6 @@ private
    RUBY32   : constant String := primary_triplet ("ruby32");
    RUBY33   : constant String := primary_triplet ("ruby33");
    RUBY34   : constant String := primary_triplet ("ruby34");
-   NINJA    : constant String := single_triplet ("ninja");
    GNOMELIB : constant String := primary_triplet ("glib");
    GLIBDEV  : constant String := dev_triplet ("glib");
    GTDEV    : constant String := dev_triplet (GETTEXT);
