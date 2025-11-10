@@ -2379,8 +2379,8 @@ package body Port_Specification.Transform is
       module        : constant String := "perl";
       pmodbuild     : constant String := "perl-Module-Build:single:";
       pmodbuildtiny : constant String := "perl-Module-Build-Tiny:single:";
-      perl_538      : constant String := "538";
       perl_540      : constant String := "540";
+      perl_542      : constant String := "542";
       dep_suffix    : String := "   ";
       hit_run       : Boolean;
       hit_build     : Boolean;
@@ -2398,9 +2398,9 @@ package body Port_Specification.Transform is
          if argument_present (specs, module, perl_540) then
             dep_suffix := perl_540;
             return primary_triplet ("perl-5.40");
-         elsif argument_present (specs, module, perl_538) then
-            dep_suffix := perl_538;
-            return primary_triplet ("perl-5.38");
+         elsif argument_present (specs, module, perl_542) then
+            dep_suffix := perl_542;
+            return primary_triplet ("perl-5.42");
          else
             if def_setting = ports_default then
                dep_suffix := HT.replace_char (default_perl, LAT.Full_Stop, "");
@@ -3017,9 +3017,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_perl);
          begin
             if setting = ports_default or else setting = default_perl then
-               return name_subpackage & "538";
-            else
                return name_subpackage & "540";
+            else
+               return name_subpackage & "542";
             end if;
          end;
       elsif trailer = "lua_default" then

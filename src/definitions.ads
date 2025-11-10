@@ -31,7 +31,7 @@ package Definitions is
    default_ssl       : constant String := "libressl";
    default_mysql     : constant String := "oracle-8.0";
    default_lua       : constant String := "5.4";
-   default_perl      : constant String := "5.38";
+   default_perl      : constant String := "5.40";
    default_pgsql     : constant String := "16";
    default_php       : constant String := "8.3";
    default_python3   : constant String := "3.12";
