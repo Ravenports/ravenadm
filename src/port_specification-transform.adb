@@ -1839,8 +1839,8 @@ package body Port_Specification.Transform is
          use_sqlite := True;
       end if;
 
-      if argument_present (specs, module, PY313) then
-         PYVARIANT  := PY313;
+      if argument_present (specs, module, PY314) then
+         PYVARIANT  := PY314;
          default_py := False;
       end if;
 
