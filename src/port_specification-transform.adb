@@ -1750,7 +1750,7 @@ package body Port_Specification.Transform is
       module        : constant String := "python";
       autopython    : constant String := single_triplet ("autoselect-python");
       sqlite_module : constant String := "sqlite";
-      PYVARIANT     : String := PY312;  -- DEFAULT
+      PYVARIANT     : String := PY313;  -- DEFAULT
 
       use_pip    : Boolean := False;
       use_setup  : Boolean := False;
@@ -3007,9 +3007,9 @@ package body Port_Specification.Transform is
             setting : String := HT.USS (Parameters.configuration.def_python3);
          begin
             if setting = ports_default or else setting = default_python3 then
-               return name_subpackage & PY312;
-            else
                return name_subpackage & PY313;
+            else
+               return name_subpackage & PY314;
             end if;
          end;
       elsif trailer = "perl_default" then
