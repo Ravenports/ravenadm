@@ -1024,10 +1024,8 @@ package body Port_Specification.Transform is
       module     : constant String := "meson";
       pyx        : constant String := HT.USS (specs.used_python);
       meson_pkg  : constant String := "meson:single:" & pyx;
-      ninja_pkg  : constant String := "python-ninja:single:" & pyx;
    begin
       generic_build_module (specs, module, meson_pkg);
-      generic_library_module (specs, module, ninja_pkg);
    end apply_meson_module;
 
 
