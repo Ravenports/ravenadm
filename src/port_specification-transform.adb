@@ -3509,8 +3509,8 @@ package body Port_Specification.Transform is
          return "mariadb114";
       elsif setting = "mariadb-11.8" then
          return "mariadb118";
-      elsif setting = "mariadb-12" then
-         return "mariadb12";
+      elsif setting = "mariadb-latest" then
+         return "mariadb";
       else
          --  case: setting = ports_default
          --  case: setting = default_mysql
