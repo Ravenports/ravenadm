@@ -3777,12 +3777,12 @@ package body Port_Specification is
         value = "innovation" or else
         value = "oracle-8.0" or else
         value = "oracle-8.4" or else
-        (HT.leads (value, "mariadb-") and then
-             (value = "mariadb-10.5" or else
-              value = "mariadb-10.6" or else
+        (HT.leads (value, "mariadb") and then
+             (value = "mariadb-10.6" or else
               value = "mariadb-10.11" or else
               value = "mariadb-11.4" or else
-              value = "mariadb-11"));
+              value = "mariadb-11.8" or else
+              value = "mariadb-latest"));
    end valid_broken_mysql_value;
 
 
@@ -3792,11 +3792,11 @@ package body Port_Specification is
    function valid_broken_pgsql_value (value : String) return Boolean is
    begin
       return
+        value = "18" or else
         value = "17" or else
         value = "16" or else
         value = "15" or else
-        value = "14" or else
-        value = "13";
+        value = "14";
    end valid_broken_pgsql_value;
 
 
