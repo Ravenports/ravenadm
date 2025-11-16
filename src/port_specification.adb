@@ -1318,7 +1318,7 @@ package body Port_Specification is
             then
                raise wrong_value with "The '" & value & "' subpackage must be set first";
             end if;
-            if key'Length > 15 then
+            if value'Length > 15 then
                raise wrong_value with "'" & value & "' value is too long (15-char limit)";
             end if;
             if HT.contains (value, "-") then
