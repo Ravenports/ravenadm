@@ -77,4 +77,9 @@ package Utilities is
    --  Convert a string of digits representing unix epoch into Ada Time type
    function convert_unixtime (unix_string : String) return CAL.Time;
 
+   --  Return true if name length is less than 9 characters.
+   --  if name string contains "{{" or "${", the length can't be accurately evaluates so
+   --  true is returned in that case as well.
+   function valid_user_group (name : String) return Boolean;
+
 end Utilities;

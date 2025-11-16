@@ -314,4 +314,16 @@ package body Utilities is
    end convert_unixtime;
 
 
+   --------------------------------------------------------------------------------------------
+   --  valid_user_group
+   --------------------------------------------------------------------------------------------
+   function valid_user_group (name : String) return Boolean is
+   begin
+      if HT.contains (name, "{{") or else HT.contains (name, "${") then
+         return True;
+      end if;
+      return name'Length < 9;
+   end valid_user_group;
+
+
 end Utilities;
