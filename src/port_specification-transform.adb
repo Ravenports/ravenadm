@@ -2125,6 +2125,7 @@ package body Port_Specification.Transform is
          LUA52 : constant String := "lua52";
          LUA53 : constant String := "lua53";
          LUA54 : constant String := "lua54";
+         LUA55 : constant String := "lua55";
          def_setting : constant String := HT.USS (Parameters.configuration.def_lua);
       begin
          if argument_present (specs, module, "5.2") then
@@ -2133,6 +2134,8 @@ package body Port_Specification.Transform is
             return LUA53;
          elsif argument_present (specs, module, "5.4") then
             return LUA54;
+         elsif argument_present (specs, module, "5.5") then
+            return LUA55;
          end if;
 
          --  No valid argument present, use configured setting
@@ -2141,6 +2144,8 @@ package body Port_Specification.Transform is
             return LUA52;
          elsif def_setting = "5.3" then
             return LUA53;
+         elsif def_setting = "5.5" then
+            return LUA55;
          else
             --  current default: lua54
             return LUA54;
