@@ -1862,9 +1862,9 @@ package body Port_Specification.Transform is
    procedure apply_ruby_module (specs : in out Portspecs)
    is
       module     : constant String := "ruby";
-      v32        : constant String := "v32";
       v33        : constant String := "v33";
       v34        : constant String := "v34";
+      v40        : constant String := "v40";
    begin
       if not specs.uses_base.Contains (HT.SUS (module)) or else
         argument_present (specs, module, "interp")
@@ -1873,9 +1873,9 @@ package body Port_Specification.Transform is
       end if;
 
       if argument_present (specs, module, "build") then
-         if argument_present (specs, module, v32) then
-            add_build_depends (specs, RUBY32);
-            specs.used_ruby := HT.SUS (v32);
+         if argument_present (specs, module, v40) then
+            add_build_depends (specs, RUBY40);
+            specs.used_ruby := HT.SUS (v40);
          elsif argument_present (specs, module, v34) then
             add_build_depends (specs, RUBY34);
             specs.used_ruby := HT.SUS (v34);
@@ -1884,9 +1884,9 @@ package body Port_Specification.Transform is
             specs.used_ruby := HT.SUS (v33);
          end if;
       else
-         if argument_present (specs, module, v32) then
-            add_buildrun_depends (specs, RUBY32);
-            specs.used_ruby := HT.SUS (v32);
+         if argument_present (specs, module, v40) then
+            add_buildrun_depends (specs, RUBY40);
+            specs.used_ruby := HT.SUS (v40);
          elsif argument_present (specs, module, v34) then
             add_buildrun_depends (specs, RUBY34);
             specs.used_ruby := HT.SUS (v34);
@@ -3043,11 +3043,11 @@ package body Port_Specification.Transform is
          begin
             if setting = "3.4" then
                return name_subpackage & "v34";
-            elsif setting = "3.2" then
-               return name_subpackage & "v32";
+            elsif setting = "4.0" then
+               return name_subpackage & "v40";
             else
-               --  ports_default or default_ruby ("3.3")
-               return name_subpackage & "v33";
+               --  ports_default or default_ruby ("3.4")
+               return name_subpackage & "v34";
             end if;
          end;
       elsif trailer = "python_used" then
