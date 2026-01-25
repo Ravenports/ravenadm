@@ -1486,13 +1486,19 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure create_etc_localtime (path_to_etc : String)
    is
+      mm     : constant String := get_master_mount;
+      ltzone : constant String := "/localtime";
       result : Boolean;
    begin
       case platform_type is
          when netbsd =>
             result := Unix.create_symlink (actual_file    => "/usr/share/zoneinfo/UTC",
                                            link_to_create => path_to_etc & "/localtime");
-         when others => null;
+         when others =>
+            if DIR.Exists (mm & ltzone) then
+               DIR.Copy_File (Source_Name => mm & ltzone,
+                              Target_Name => path_to_etc & ltzone);
+            end if;
       end case;
    end create_etc_localtime;
 
