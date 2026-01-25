@@ -42,6 +42,7 @@ package body Replicant is
       ldcnf1 : constant String := "/x86_64-linux-gnu.conf";
       ldcnf2 : constant String := "/ld.so.conf";
       ldcnf3 : constant String := "/ld.so.cache";
+      ltzone : constant String := "/localtime";
    begin
       developer_mode := testmode;
       ravenbase      := PM.configuration.dir_localbase;
@@ -106,6 +107,10 @@ package body Replicant is
               macos     |
               sunos     => null;
       end case;
+      --  Support /etc/localtime
+      if DIR.Exists (sretc & ltzone) then
+         DIR.Copy_File (sretc & ltzone, mm & ltzone);
+      end if;
 
    end initialize;
 
