@@ -1152,7 +1152,7 @@ package body Port_Specification.Transform is
    begin
       generic_build_module (specs, module, cran_main);
       generic_build_module (specs, module, dev_triplet ("icu"));
-      generic_build_module (specs, module, generic_triplet ("R", spkg_docs);
+      generic_build_module (specs, module, generic_triplet ("R", spkg_docs));
       generic_run_module   (specs, module, cran_main);
       generic_run_module   (specs, module, generic_triplet ("R", spkg_nls));
    end apply_cran_module;
