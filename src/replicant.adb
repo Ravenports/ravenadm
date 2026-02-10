@@ -1606,6 +1606,8 @@ package body Replicant is
       --  5       crypt_sha256.so.1
       --  6       crypt_sha512.so.1
 
+      pragma Warnings (Off, "unreachable code");
+
       DIR.Create_Path (security);
       TIO.Create (sun_file, TIO.Out_File, security & "/crypt.conf");
       TIO.Put_Line (sun_file, "1   crypt_bsdmd5.so.1");
@@ -1671,6 +1673,8 @@ package body Replicant is
       TIO.Put_Line (sun_file, "default:3::::");
       TIO.Put_Line (sun_file, "group.staff:10::::");
       TIO.Close (sun_file);
+
+      pragma Warnings (On, "unreachable code");
 
    end create_sun_files;
 
