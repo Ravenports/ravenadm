@@ -1720,7 +1720,7 @@ package body Port_Specification.Transform is
    begin
       if specs.uses_base.Contains (HT.SUS (GETTEXT)) then
          declare
-            glibc : constant Boolean := DIR.Exists (intl_h);
+            glibc : constant Boolean := platform_type = linux;
          begin
             if glibc then
                add_build_depends (specs, generic_triplet (GETTEXT, ACLOCAL));
