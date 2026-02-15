@@ -1392,7 +1392,7 @@ package body Port_Specification.Transform is
       dep_prefix : constant String := "libiconv";
       intl_h     : constant String := HT.USS (Parameters.configuration.dir_sysroot) &
                                       "/usr/include/libintl.h";
-      glibc      : constant Boolean := DIR.Exists (intl_h);
+      glibc      : constant Boolean := platform_type = linux;
    begin
       if not glibc or else argument_present (specs, module, "standalone") then
          generic_devlib_module (specs, module, dep_prefix);
