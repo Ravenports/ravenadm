@@ -595,7 +595,12 @@ package body PortScan.Scan is
       rec.scanned       := True;
 
       --  Linux always requires /proc to support process reaping (see embedded_exec.c)
-      rec.use_procfs    := thespec.requires_procfs or else platform_type = linux;
+      --  Solaris/Omnios essentially requires it always as well.
+      case platform_type is
+         when linux | sunos => rec.use_procfs := True;
+         when freebsd | netbsd | dragonfly | openbsd | midnightbsd | macos =>
+            rec.use_procfs    := thespec.requires_procfs;
+      end case;
       for item in Positive range 1 .. thespec.get_list_length (PSP.sp_build_deps) loop
          populate_set_depends (target,
                                thespec.get_list_item (PSP.sp_build_deps, item),
