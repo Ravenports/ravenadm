@@ -212,8 +212,11 @@ private
    --  create /etc/make.conf in slave
    procedure create_make_conf (path_to_etc : String);
 
-   --  create /etc/localtime in slave (NetBSD only for now)
+   --  create /etc/localtime in slave
    procedure create_etc_localtime (path_to_etc : String);
+
+   --  create /etc/svc/repository.db in solaris
+   procedure create_smf_database (path_to_lib : String; path_to_etc : String);
 
    --  Concatentation used for per-profile make.conf fragments (if they exist)
    procedure concatenate_makeconf (makeconf_handle : TIO.File_Type; target_name : String);

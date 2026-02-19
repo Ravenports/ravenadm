@@ -985,6 +985,7 @@ package body Replicant is
       create_etc_localtime     (etc_path);
       create_repo_conf         (etc_path);
       install_linux_ldsoconf   (location (slave_base, etc_ldsocnf));
+      create_smf_database      (location (slave_base, lib), etc_path);
 
    exception
       when hiccup : others =>
@@ -1494,6 +1495,23 @@ package body Replicant is
                         Target_Name => path_to_etc & ltzone);
       end if;
    end create_etc_localtime;
+
+
+   --------------------------------------------------------------------------------------------
+   --  create_smf_database
+   --------------------------------------------------------------------------------------------
+   procedure create_smf_database (path_to_lib : String; path_to_etc : String)
+   is
+      seed_dir : constant String := path_to_lib & "/svc/seed";
+      pristine : constant String := seed_dir & "/global.db";
+      activedb : constant String := path_to_etc & "/svc/repository.db";
+   begin
+      if DIR.Exists (pristine) then
+         forge_directory (seed_dir);
+         DIR.Copy_File (Source_Name => pristine,
+                        Target_Name => activedb);
+      end if;
+   end create_smf_database;
 
 
    --------------------------------------------------------------------------------------------
