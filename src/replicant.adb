@@ -1502,12 +1502,12 @@ package body Replicant is
    --------------------------------------------------------------------------------------------
    procedure create_smf_database (path_to_lib : String; path_to_etc : String)
    is
-      seed_dir : constant String := path_to_lib & "/svc/seed";
-      pristine : constant String := seed_dir & "/global.db";
-      activedb : constant String := path_to_etc & "/svc/repository.db";
+      svc_dir  : constant String := path_to_etc & "/svc";
+      pristine : constant String := path_to_lib & "/svc/seed/global.db";
+      activedb : constant String := svc_dir & "/repository.db";
    begin
       if DIR.Exists (pristine) then
-         forge_directory (seed_dir);
+         forge_directory (svc_dir);
          DIR.Copy_File (Source_Name => pristine,
                         Target_Name => activedb);
       end if;
