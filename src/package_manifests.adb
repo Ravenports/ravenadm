@@ -504,7 +504,8 @@ is
             if kword = "@comment" or else
               kword = "@info" or else
               kword = "@sample" or else
-              kword = "@shell"
+              kword = "@shell" or else
+              kword = "@smf"
             then
                if top then
                   TIO.Put_Line (new_manifest, line);
@@ -674,7 +675,7 @@ is
       keyword_sorter.Sort (store_order);
 
       --  manifest order:
-      --  some keywords (@comment, @info, @sample, @shell)
+      --  some keywords (@comment, @info, @sample, @shell, @smf)
       --  root files (rare, most plists don't have these, probably variables)
       --  folders (all files in one folder listed before folder changes)
       --  remaining keywords commands (@dir first)
