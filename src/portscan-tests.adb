@@ -547,6 +547,8 @@ package body PortScan.Tests is
          return convert_to_absolute_path (port_prefix, HT.substring (original, 7, 0));
       elsif HT.leads (original, "@xmlcatmgr ") then
          return convert_to_absolute_path (port_prefix, HT.substring (original, 11, 0));
+      elsif HT.leads (original, "@smf ") then
+         return convert_to_absolute_path (port_prefix, HT.substring (original, 5, 0));
       elsif HT.leads (original, "@(") then
          return convert_to_absolute_path (port_prefix, HT.part_2 (original, ") "));
       else
