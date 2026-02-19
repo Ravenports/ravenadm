@@ -253,11 +253,12 @@ package body Hierarchy is
       push ("/etc/group-");      --  Linux
       push ("/etc/passwd-");     --  Linux
       push ("/etc/ld.so.cache"); --  Linux
-      push ("/etc/usermgmt.conf");  --  NetBSD
-      push ("/etc/shadow");         --  Solaris
-      push ("/etc/opasswd");        --  Solaris
-      push ("/etc/oshadow");        --  Solaris
-      push ("/etc/ouser_attr");     --  Solaris
+      push ("/etc/usermgmt.conf");      --  NetBSD
+      push ("/etc/shadow");             --  Solaris
+      push ("/etc/opasswd");            --  Solaris
+      push ("/etc/oshadow");            --  Solaris
+      push ("/etc/ouser_attr");         --  Solaris
+      push ("/etc/svc/repository.db");  --  Solaris
 
    end set_single_file_filter;
 
