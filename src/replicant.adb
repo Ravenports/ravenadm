@@ -949,7 +949,7 @@ package body Replicant is
          when sunos =>
             forge_directory (location (slave_base, devices));
             mount_nullfs (location (dir_system, lib),   location (slave_base, lib));
-            mount_nullfs (root_devices,                 location (slave_base, devices));
+            mount_nullfs (root_devices,                 location (slave_base, devices), readwrite);
          when macos =>
             forge_directory (location (slave_base, frameworks));
             mount_nullfs (location (dir_system, frameworks), location (slave_base, frameworks));
