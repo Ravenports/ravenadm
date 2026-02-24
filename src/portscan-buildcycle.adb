@@ -889,13 +889,11 @@ package body PortScan.Buildcycle is
                                 "KEYWORDS_DIR=/xports/Mk/Keywords " &
                                 "SKIP_DEV_SUBPKG=false " &
                                 "SKIP_INFO_SUBPKG=false ";
-      CXML : constant String := "XML_CATALOG_FILES=" & localbase & "/share/xml/catalog ";
-      SGML : constant String := "SGML_CATALOG_FILES=" & localbase & "/share/sgml/docbook/catalog ";
       CENV : constant String := HT.USS (customenv);
       DYLD : constant String := dyld_fallback;
    begin
       return " /usr/bin/env -i " &
-        CENV & LANG & TERM & SHLL & USER & HOME & SGML & CXML & RAVN & SSLV & RVN8 & DYLD & PATH;
+        CENV & LANG & TERM & SHLL & USER & HOME & RAVN & SSLV & RVN8 & DYLD & PATH;
    end environment_override;
 
 
