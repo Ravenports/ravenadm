@@ -5512,6 +5512,7 @@ package body Port_Specification is
          when 3 => return "gnome-icons";
          when 4 => return "desktop-utils";
          when 5 => return "rootca";
+         when 6 => return "smf";
       end case;
    end base_module;
 
