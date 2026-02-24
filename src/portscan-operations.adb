@@ -976,7 +976,7 @@ package body PortScan.Operations is
       if id = port_match_failed then
          return False;
       end if;
-      return not all_ports (id).unlist_failed;
+      return not all_ports (id).unlist_failed and then not all_ports (id).mark_skipped;
    end skip_verified;
 
 
@@ -1093,6 +1093,7 @@ package body PortScan.Operations is
          purged := skip_next_reverse_dependency (id);
          exit when purged = port_match_failed;
          if skip_verified (purged) then
+            all_ports (purged).mark_skipped := True;
             numskipped := numskipped + 1;
             LOG.scribe (PortScan.total, "           Skipped: " & get_port_variant (purged), False);
             LOG.scribe (PortScan.skipped, get_port_variant (purged) & " by " & culprit, False);

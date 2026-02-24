@@ -147,6 +147,7 @@ package body PortScan is
             rec.scanned       := False;
             rec.rev_scanned   := False;
             rec.unlist_failed := False;
+            rec.mark_skipped  := False;
             rec.work_locked   := False;
             rec.scan_locked   := False;
             rec.use_procfs    := False;

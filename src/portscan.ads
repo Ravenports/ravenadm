@@ -197,6 +197,7 @@ private
          scanned       : Boolean              := False;
          rev_scanned   : Boolean              := False;
          unlist_failed : Boolean              := False;
+         mark_skipped  : Boolean              := False;
          work_locked   : Boolean              := False;
          scan_locked   : Boolean              := False;
          work_started  : Unix.int64           := 0;
