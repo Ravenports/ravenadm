@@ -205,6 +205,7 @@ package body Hierarchy is
       push ("/ccache");
       push ("/construction");
       push ("/dev");
+      push ("/devices");          -- Only on SunOS
       push ("/distfiles");
       push ("/tmp");
       push ("/repo");
