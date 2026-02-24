@@ -828,6 +828,8 @@ package body Port_Specification.Makefile is
       send ("CARGO_TARGET_DIR",     specs.cgo_target_dir);
       send ("CARGO_VENDOR_DIR",     specs.cgo_vendor_dir);
 
+      send ("SMF_METHODS",          specs.smf_methods, generic_items);
+
       if specs.job_limit > 0 and then
          specs.job_limit < Natural (PM.configuration.jobs_limit)
       then

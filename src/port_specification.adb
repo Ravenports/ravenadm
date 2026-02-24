@@ -194,6 +194,7 @@ package body Port_Specification is
       specs.xorg_comps.Clear;
       specs.sdl_comps.Clear;
       specs.php_extensions.Clear;
+      specs.smf_methods.Clear;
       specs.subr_scripts.Clear;
       specs.broken_mysql.Clear;
       specs.broken_pgsql.Clear;
@@ -6253,6 +6254,7 @@ package body Port_Specification is
       print_vector_list ("CARGO_BUILD_ARGS", sp_cgo_bargs);
       print_vector_list ("CARGO_INSTALL_ARGS", sp_cgo_iargs);
       print_vector_list ("CARGO_FEATURES", sp_cgo_feat);
+      print_vector_list ("SMF_METHODS", sp_smf_methods);
 
       TIO.Put_Line ("SYSROOT_ARCH" & LAT.Equals_Sign & LAT.HT & LAT.HT & arch);
       TIO.Put_Line ("SYSROOT_MAJOR" & LAT.Equals_Sign & LAT.HT & LAT.HT & major);

@@ -517,6 +517,7 @@ package body Specification_Parser is
                      when og_radio         => build_list (spec, PSP.sp_og_radio, line);
                      when og_restrict      => build_list (spec, PSP.sp_og_restrict, line);
                      when og_unlimited     => build_list (spec, PSP.sp_og_unlimited, line);
+                     when smf_methods      => build_list (spec, PSP.sp_smf_methods, line);
                      when cgo_cargs        => build_list (spec, PSP.sp_cgo_cargs, line);
                      when cgo_bargs        => build_list (spec, PSP.sp_cgo_bargs, line);
                      when cgo_iargs        => build_list (spec, PSP.sp_cgo_iargs, line);
@@ -1082,7 +1083,7 @@ package body Specification_Parser is
       function nailed    (index : Natural) return Boolean;
       function less_than (index : Natural) return Boolean;
 
-      total_singlets : constant Positive := 193;
+      total_singlets : constant Positive := 194;
 
       type singlet_pair is
          record
@@ -1273,6 +1274,7 @@ package body Specification_Parser is
          ("SKIP_BUILD            ", 10, skip_build),
          ("SKIP_CCACHE           ", 11, skip_ccache),
          ("SKIP_INSTALL          ", 12, skip_install),
+         ("SMF_METHODS           ", 11, smf_methods),
          ("SMF_NAME              ",  8, catchall),
          ("SOL_FUNCTIONS         ", 13, catchall),
          ("SOVERSION             ",  9, so_version),
