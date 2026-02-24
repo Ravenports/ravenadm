@@ -1139,6 +1139,9 @@ package body Port_Specification is
             else
                raise wrong_value with "invalid CVE identification string '" & value & "'";
             end if;
+         when sp_smf_methods =>
+            verify_entry_is_post_options;
+            specs.smf_methods.Append (text_value);
          when others =>
             raise wrong_type with field'Img;
       end case;
