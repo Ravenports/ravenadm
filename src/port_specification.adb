@@ -6008,6 +6008,7 @@ package body Port_Specification is
             when sp_cgo_bargs     => specs.cgo_build_args.Iterate (print_item'Access);
             when sp_cgo_iargs     => specs.cgo_inst_args.Iterate (print_item'Access);
             when sp_cgo_feat      => specs.cgo_features.Iterate (print_item'Access);
+            when sp_smf_methods   => specs.smf_methods.Iterate (print_item'Access);
             when others => null;
          end case;
          TIO.Put (LAT.LF);
