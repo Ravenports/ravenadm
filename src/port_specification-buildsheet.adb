@@ -31,7 +31,7 @@ package body Port_Specification.Buildsheet is
       output_file : String)
    is
       type flavors_type1 is (vertical_list, adjacent_wrapped, adjacent_one_line, distfiles_list);
-      type flavors_type2 is (subpackage_list, option_list);
+      type flavors_type2 is (named_array_vertical, named_array_wrapped);
       package crate is new CON.Vectors (Index_Type   => Positive,
                                         Element_Type => HT.Text,
                                         "="          => HT.SU."=");
@@ -43,7 +43,7 @@ package body Port_Specification.Buildsheet is
       procedure send (varname : String; value : HT.Text);
       procedure send (varname : String; crate : string_crate.Vector; flavor : flavors_type1);
       procedure send (varname : String; crate : def_crate.Map);
-      procedure send (varname : String; crate : list_crate.Map; flavor : Positive);
+      procedure send (varname : String; crate : list_crate.Map; flavor : flavors_type2);
       procedure send (varname : String; value : Boolean; show_when : Boolean);
       procedure send_options;
       procedure send_targets;
@@ -156,13 +156,13 @@ package body Port_Specification.Buildsheet is
          crate.Iterate (Process => dump_sdesc'Access);
       end send;
 
-      procedure send (varname : String; crate : list_crate.Map; flavor : Positive) is
+      procedure send (varname : String; crate : list_crate.Map; flavor : flavors_type2) is
       begin
          varname_prefix := HT.SUS (varname);
          case flavor is
-            when 4 =>
+            when named_array_vertical =>
                crate.Iterate (Process => dump_subpkgs'Access);
-            when 5 =>
+            when named_array_wrapped =>
                crate.Iterate (Process => dump_optgroup'Access);
             when others =>
                null;
@@ -696,7 +696,7 @@ package body Port_Specification.Buildsheet is
       send ("DISTFILE",             specs.distfiles, distfiles_list);
       send ("DIST_SUBDIR",          specs.dist_subdir);
       send ("DF_INDEX",             specs.df_index, adjacent_wrapped);
-      send ("SPKGS",                specs.subpackages, 4);
+      send ("SPKGS",                specs.subpackages, named_array_vertical);
 
       blank_line;
       send ("OPTIONS_AVAILABLE",    specs.ops_avail, adjacent_wrapped);
@@ -704,12 +704,12 @@ package body Port_Specification.Buildsheet is
       send ("OPTGROUP_RADIO",       specs.opt_radio, adjacent_wrapped);
       send ("OPTGROUP_RESTRICTED",  specs.opt_restrict, adjacent_wrapped);
       send ("OPTGROUP_UNLIMITED",   specs.opt_unlimited, adjacent_wrapped);
-      send ("OPTDESCR",             specs.optgroup_desc, 4);
-      send ("OPTGROUP",             specs.optgroups, 5);
-      send ("VOPTS",                specs.variantopts, 5);
-      send ("OPT_ON",               specs.options_on, 5);
+      send ("OPTDESCR",             specs.optgroup_desc, named_array_vertical);
+      send ("OPTGROUP",             specs.optgroups, named_array_wrapped);
+      send ("VOPTS",                specs.variantopts, named_array_wrapped);
+      send ("OPT_ON",               specs.options_on, named_array_wrapped);
       blank_line;
-      send ("BROKEN",               specs.broken, 4);
+      send ("BROKEN",               specs.broken, named_array_vertical);
       send ("BROKEN_SSL",           specs.broken_ssl, adjacent_wrapped);
       send ("BROKEN_MYSQL",         specs.broken_mysql, adjacent_wrapped);
       send ("BROKEN_PGSQL",         specs.broken_pgsql, adjacent_wrapped);
@@ -722,17 +722,17 @@ package body Port_Specification.Buildsheet is
       send ("BUILD_DEPENDS",        specs.build_deps, vertical_list);
       send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, vertical_list);
       send ("RUN_DEPENDS",          specs.run_deps, vertical_list);
-      send ("B_DEPS",               specs.opsys_b_deps, 5);
-      send ("BR_DEPS",              specs.opsys_br_deps, 5);
-      send ("R_DEPS",               specs.opsys_r_deps, 5);
-      send ("EXRUN",                specs.extra_rundeps, 4);
+      send ("B_DEPS",               specs.opsys_b_deps, named_array_wrapped);
+      send ("BR_DEPS",              specs.opsys_br_deps, named_array_wrapped);
+      send ("R_DEPS",               specs.opsys_r_deps, named_array_wrapped);
+      send ("EXRUN",                specs.extra_rundeps, named_array_vertical);
       blank_line;
       send ("USERS",                specs.users, adjacent_wrapped);
       send ("GROUPS",               specs.groups, adjacent_wrapped);
       send ("USERGROUP_SPKG",       specs.usergroup_pkg);
       blank_line;
       send ("USES",                 specs.uses, adjacent_wrapped);
-      send ("C_USES",               specs.opsys_c_uses, 5);
+      send ("C_USES",               specs.opsys_c_uses, named_array_wrapped);
       send ("GNOME_COMPONENTS",     specs.gnome_comps, adjacent_wrapped);
       send ("SDL_COMPONENTS",       specs.sdl_comps, adjacent_wrapped);
       send ("XORG_COMPONENTS",      specs.xorg_comps, adjacent_wrapped);
@@ -745,8 +745,8 @@ package body Port_Specification.Buildsheet is
       send ("EXTRACT_WITH_7Z",      specs.extract_7z, adjacent_wrapped);
       send ("EXTRACT_WITH_LHA",     specs.extract_lha, adjacent_wrapped);
       send ("EXTRACT_DEB_PACKAGE",  specs.extract_deb, adjacent_wrapped);
-      send ("EXTRACT_HEAD",         specs.extract_head, 4);
-      send ("EXTRACT_TAIL",         specs.extract_tail, 4);
+      send ("EXTRACT_HEAD",         specs.extract_head, named_array_vertical);
+      send ("EXTRACT_TAIL",         specs.extract_tail, named_array_vertical);
       blank_line;
       send ("LICENSE",              specs.licenses, adjacent_wrapped);
       send ("LICENSE_TERMS",        specs.lic_terms, vertical_list);
@@ -815,8 +815,8 @@ package body Port_Specification.Buildsheet is
       send ("TEST_TARGET",          specs.test_tgt, adjacent_wrapped);
       send ("TEST_ARGS",            specs.test_args, vertical_list);
       send ("TEST_ENV",             specs.test_env, vertical_list);
-      send ("VAR_OPSYS",            specs.var_opsys, 4);
-      send ("VAR_ARCH",             specs.var_arch, 4);
+      send ("VAR_OPSYS",            specs.var_opsys, named_array_vertical);
+      send ("VAR_ARCH",             specs.var_arch, named_array_vertical);
       send ("CARGO_SKIP_CONFIGURE", specs.cgo_skip_conf, True);
       send ("CARGO_SKIP_BUILD",     specs.cgo_skip_build, True);
       send ("CARGO_SKIP_INSTALL",   specs.cgo_skip_inst, True);
