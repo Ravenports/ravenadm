@@ -30,6 +30,8 @@ package body Port_Specification.Buildsheet is
       ravensrcdir : String;
       output_file : String)
    is
+      type flavors_type1 is (vertical_list, adjacent_wrapped, adjacent_one_line, distfiles_list);
+      type flavors_type2 is (subpackage_list, option_list);
       package crate is new CON.Vectors (Index_Type   => Positive,
                                         Element_Type => HT.Text,
                                         "="          => HT.SU."=");
@@ -39,7 +41,7 @@ package body Port_Specification.Buildsheet is
       procedure send (varname : String; value, default : Integer);
       procedure send (varname, value : String);
       procedure send (varname : String; value : HT.Text);
-      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive);
+      procedure send (varname : String; crate : string_crate.Vector; flavor : flavors_type1);
       procedure send (varname : String; crate : def_crate.Map);
       procedure send (varname : String; crate : list_crate.Map; flavor : Positive);
       procedure send (varname : String; value : Boolean; show_when : Boolean);
@@ -123,30 +125,28 @@ package body Port_Specification.Buildsheet is
          end if;
       end send;
 
-      procedure send (varname : String; crate : string_crate.Vector; flavor : Positive) is
+      procedure send (varname : String; crate : string_crate.Vector; flavor : flavors_type1) is
       begin
          if crate.Is_Empty then
             return;
          end if;
          case flavor is
-            when 1 =>
+            when vertical_list =>
                send (align24 (varname & "="), True);
                crate.Iterate (Process => print_item'Access);
-            when 2 =>
+            when adjacent_wrapped =>
                current_len := 0;
                send (align24 (varname & "="), True);
                crate.Iterate (Process => print_adjacent'Access);
                send ("");
-            when 3 =>
+            when distfiles_list =>
                varname_prefix := HT.SUS (varname);
                crate.Iterate (Process => dump_distfiles'Access);
-            when 4 =>
+            when adjacent_one_line =>
                current_len := 0;
                send (align24 (varname & "="), True);
                crate.Iterate (Process => print_adjacent_nowrap'Access);
                send ("");
-            when others =>
-               null;
          end case;
       end send;
 
@@ -685,88 +685,88 @@ package body Port_Specification.Buildsheet is
       send ("VERSION",              specs.version);
       send ("REVISION",             specs.revision, 0);
       send ("EPOCH",                specs.epoch, 0);
-      send ("KEYWORDS",             specs.keywords, 2);
-      send ("VARIANTS",             specs.variants, 4);
+      send ("KEYWORDS",             specs.keywords, adjacent_wrapped);
+      send ("VARIANTS",             specs.variants, adjacent_one_line);
       send ("SDESC",                specs.taglines);
       send ("HOMEPAGE",             specs.homepage);
-      send ("CONTACT",              specs.contacts, 1);
+      send ("CONTACT",              specs.contacts, vertical_list);
       blank_line;
 
       send_download_groups;
-      send ("DISTFILE",             specs.distfiles, 3);
+      send ("DISTFILE",             specs.distfiles, distfiles_list);
       send ("DIST_SUBDIR",          specs.dist_subdir);
-      send ("DF_INDEX",             specs.df_index, 2);
+      send ("DF_INDEX",             specs.df_index, adjacent_wrapped);
       send ("SPKGS",                specs.subpackages, 4);
 
       blank_line;
-      send ("OPTIONS_AVAILABLE",    specs.ops_avail, 2);
-      send ("OPTIONS_STANDARD",     specs.ops_standard, 2);
-      send ("OPTGROUP_RADIO",       specs.opt_radio, 2);
-      send ("OPTGROUP_RESTRICTED",  specs.opt_restrict, 2);
-      send ("OPTGROUP_UNLIMITED",   specs.opt_unlimited, 2);
+      send ("OPTIONS_AVAILABLE",    specs.ops_avail, adjacent_wrapped);
+      send ("OPTIONS_STANDARD",     specs.ops_standard, adjacent_wrapped);
+      send ("OPTGROUP_RADIO",       specs.opt_radio, adjacent_wrapped);
+      send ("OPTGROUP_RESTRICTED",  specs.opt_restrict, adjacent_wrapped);
+      send ("OPTGROUP_UNLIMITED",   specs.opt_unlimited, adjacent_wrapped);
       send ("OPTDESCR",             specs.optgroup_desc, 4);
       send ("OPTGROUP",             specs.optgroups, 5);
       send ("VOPTS",                specs.variantopts, 5);
       send ("OPT_ON",               specs.options_on, 5);
       blank_line;
       send ("BROKEN",               specs.broken, 4);
-      send ("BROKEN_SSL",           specs.broken_ssl, 2);
-      send ("BROKEN_MYSQL",         specs.broken_mysql, 2);
-      send ("BROKEN_PGSQL",         specs.broken_pgsql, 2);
-      send ("NOT_FOR_OPSYS",        specs.exc_opsys, 2);
-      send ("ONLY_FOR_OPSYS",       specs.inc_opsys, 2);
-      send ("NOT_FOR_ARCH",         specs.exc_arch, 2);
+      send ("BROKEN_SSL",           specs.broken_ssl, adjacent_wrapped);
+      send ("BROKEN_MYSQL",         specs.broken_mysql, adjacent_wrapped);
+      send ("BROKEN_PGSQL",         specs.broken_pgsql, adjacent_wrapped);
+      send ("NOT_FOR_OPSYS",        specs.exc_opsys, adjacent_wrapped);
+      send ("ONLY_FOR_OPSYS",       specs.inc_opsys, adjacent_wrapped);
+      send ("NOT_FOR_ARCH",         specs.exc_arch, adjacent_wrapped);
       send ("DEPRECATED",           specs.deprecated);
       send ("EXPIRATION_DATE",      specs.expire_date);
       blank_line;
-      send ("BUILD_DEPENDS",        specs.build_deps, 1);
-      send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, 1);
-      send ("RUN_DEPENDS",          specs.run_deps, 1);
+      send ("BUILD_DEPENDS",        specs.build_deps, vertical_list);
+      send ("BUILDRUN_DEPENDS",     specs.buildrun_deps, vertical_list);
+      send ("RUN_DEPENDS",          specs.run_deps, vertical_list);
       send ("B_DEPS",               specs.opsys_b_deps, 5);
       send ("BR_DEPS",              specs.opsys_br_deps, 5);
       send ("R_DEPS",               specs.opsys_r_deps, 5);
       send ("EXRUN",                specs.extra_rundeps, 4);
       blank_line;
-      send ("USERS",                specs.users, 2);
-      send ("GROUPS",               specs.groups, 2);
+      send ("USERS",                specs.users, adjacent_wrapped);
+      send ("GROUPS",               specs.groups, adjacent_wrapped);
       send ("USERGROUP_SPKG",       specs.usergroup_pkg);
       blank_line;
-      send ("USES",                 specs.uses, 2);
+      send ("USES",                 specs.uses, adjacent_wrapped);
       send ("C_USES",               specs.opsys_c_uses, 5);
-      send ("GNOME_COMPONENTS",     specs.gnome_comps, 2);
-      send ("SDL_COMPONENTS",       specs.sdl_comps, 2);
-      send ("XORG_COMPONENTS",      specs.xorg_comps, 2);
-      send ("PHP_EXTENSIONS",       specs.php_extensions, 2);
+      send ("GNOME_COMPONENTS",     specs.gnome_comps, adjacent_wrapped);
+      send ("SDL_COMPONENTS",       specs.sdl_comps, adjacent_wrapped);
+      send ("XORG_COMPONENTS",      specs.xorg_comps, adjacent_wrapped);
+      send ("PHP_EXTENSIONS",       specs.php_extensions, adjacent_wrapped);
       blank_line;
       send ("DISTNAME",             specs.distname);
-      send ("EXTRACT_DIRTY",        specs.extract_dirty, 2);
-      send ("EXTRACT_ONLY",         specs.extract_only, 2);
-      send ("EXTRACT_WITH_UNZIP",   specs.extract_zip, 2);
-      send ("EXTRACT_WITH_7Z",      specs.extract_7z, 2);
-      send ("EXTRACT_WITH_LHA",     specs.extract_lha, 2);
-      send ("EXTRACT_DEB_PACKAGE",  specs.extract_deb, 2);
+      send ("EXTRACT_DIRTY",        specs.extract_dirty, adjacent_wrapped);
+      send ("EXTRACT_ONLY",         specs.extract_only, adjacent_wrapped);
+      send ("EXTRACT_WITH_UNZIP",   specs.extract_zip, adjacent_wrapped);
+      send ("EXTRACT_WITH_7Z",      specs.extract_7z, adjacent_wrapped);
+      send ("EXTRACT_WITH_LHA",     specs.extract_lha, adjacent_wrapped);
+      send ("EXTRACT_DEB_PACKAGE",  specs.extract_deb, adjacent_wrapped);
       send ("EXTRACT_HEAD",         specs.extract_head, 4);
       send ("EXTRACT_TAIL",         specs.extract_tail, 4);
       blank_line;
-      send ("LICENSE",              specs.licenses, 2);
-      send ("LICENSE_TERMS",        specs.lic_terms, 1);
-      send ("LICENSE_NAME",         specs.lic_names, 1);
-      send ("LICENSE_FILE",         specs.lic_files, 1);
-      send ("LICENSE_AWK",          specs.lic_awk, 1);
-      send ("LICENSE_SOURCE",       specs.lic_source, 1);
+      send ("LICENSE",              specs.licenses, adjacent_wrapped);
+      send ("LICENSE_TERMS",        specs.lic_terms, vertical_list);
+      send ("LICENSE_NAME",         specs.lic_names, vertical_list);
+      send ("LICENSE_FILE",         specs.lic_files, vertical_list);
+      send ("LICENSE_AWK",          specs.lic_awk, vertical_list);
+      send ("LICENSE_SOURCE",       specs.lic_source, vertical_list);
       send ("LICENSE_SCHEME",       specs.lic_scheme);
       blank_line;
       send ("PREFIX",               specs.prefix);
-      send ("INFO",                 specs.info, 1);
+      send ("INFO",                 specs.info, vertical_list);
       send_catchall;
       send ("GENERATED",            specs.generated, True);
       send ("SKIP_CCACHE",          specs.skip_ccache, True);
       blank_line;
       send ("PATCH_WRKSRC",         specs.patch_wrksrc);
-      send ("PATCHFILES",           specs.patchfiles, 2);
-      send ("EXTRA_PATCHES",        specs.extra_patches, 1);
-      send ("PATCH_STRIP",          specs.patch_strip, 2);
-      send ("PATCHFILES_STRIP",     specs.pfiles_strip, 2);
+      send ("PATCHFILES",           specs.patchfiles, adjacent_wrapped);
+      send ("EXTRA_PATCHES",        specs.extra_patches, vertical_list);
+      send ("PATCH_STRIP",          specs.patch_strip, adjacent_wrapped);
+      send ("PATCHFILES_STRIP",     specs.pfiles_strip, adjacent_wrapped);
       blank_line;
       send ("INVALID_RPATH",        specs.fatal_rpath, False);
       send ("MUST_CONFIGURE",       specs.config_must);
@@ -775,15 +775,15 @@ package body Port_Specification.Buildsheet is
       send ("CONFIGURE_WRKSRC",     specs.config_wrksrc);
       send ("CONFIGURE_SCRIPT",     specs.config_script);
       send ("CONFIGURE_TARGET",     specs.config_target);
-      send ("CONFIGURE_ARGS",       specs.config_args, 1);
-      send ("CONFIGURE_ENV",        specs.config_env, 1);
+      send ("CONFIGURE_ARGS",       specs.config_args, vertical_list);
+      send ("CONFIGURE_ENV",        specs.config_env, vertical_list);
       blank_line;
       send ("SKIP_BUILD",             specs.skip_build, True);
       send ("BUILD_WRKSRC",           specs.build_wrksrc);
-      send ("BUILD_TARGET",           specs.build_target, 2);
+      send ("BUILD_TARGET",           specs.build_target, adjacent_wrapped);
       send ("MAKEFILE",               specs.makefile);
-      send ("MAKE_ARGS",              specs.make_args, 1);
-      send ("MAKE_ENV",               specs.make_env, 1);
+      send ("MAKE_ARGS",              specs.make_args, vertical_list);
+      send ("MAKE_ENV",               specs.make_env, vertical_list);
       send ("DESTDIRNAME",            specs.destdirname);
       send ("DESTDIR_VIA_ENV",        specs.destdir_env, True);
       send ("MAKE_JOBS_NUMBER_LIMIT", specs.job_limit, 0);
@@ -791,41 +791,41 @@ package body Port_Specification.Buildsheet is
       blank_line;
       send ("SKIP_INSTALL",           specs.skip_install, True);
       send ("INSTALL_WRKSRC",         specs.install_wrksrc);
-      send ("INSTALL_TARGET",         specs.install_tgt, 2);
+      send ("INSTALL_TARGET",         specs.install_tgt, adjacent_wrapped);
       send ("INSTALL_REQ_TOOLCHAIN",  specs.shift_install, True);
-      send ("MANDIRS",                specs.mandirs, 1);
+      send ("MANDIRS",                specs.mandirs, vertical_list);
       send ("SOVERSION",              specs.soversion);
-      send ("PLIST_SUB",              specs.plist_sub, 1);
-      send ("RC_SUBR",                specs.subr_scripts, 1);
-      send ("SUB_FILES",              specs.sub_files, 1);
-      send ("SUB_LIST",               specs.sub_list, 1);
+      send ("PLIST_SUB",              specs.plist_sub, vertical_list);
+      send ("RC_SUBR",                specs.subr_scripts, vertical_list);
+      send ("SUB_FILES",              specs.sub_files, vertical_list);
+      send ("SUB_LIST",               specs.sub_list, vertical_list);
       blank_line;
       send ("INFRASTRUCTURE",       specs.infrastructure, True);
       send ("BLOCK_WATCHDOG",       specs.kill_watchdog, True);
       send ("SET_DEBUGGING_ON",     specs.debugging_on, True);
       send ("KAIJU",                specs.kaiju, True);
       send ("MOUNT_PROCFS",         specs.procfs_mount, True);
-      send ("CFLAGS",               specs.cflags, 1);
-      send ("CXXFLAGS",             specs.cxxflags, 1);
-      send ("CPPFLAGS",             specs.cppflags, 1);
-      send ("LDFLAGS",              specs.ldflags, 1);
+      send ("CFLAGS",               specs.cflags, vertical_list);
+      send ("CXXFLAGS",             specs.cxxflags, vertical_list);
+      send ("CPPFLAGS",             specs.cppflags, vertical_list);
+      send ("LDFLAGS",              specs.ldflags, vertical_list);
       send ("OPTIMIZER_LEVEL",      specs.optimizer_lvl, 2);
-      send ("CMAKE_ARGS",           specs.cmake_args, 1);
-      send ("QMAKE_ARGS",           specs.qmake_args, 1);
-      send ("TEST_TARGET",          specs.test_tgt, 2);
-      send ("TEST_ARGS",            specs.test_args, 1);
-      send ("TEST_ENV",             specs.test_env, 1);
+      send ("CMAKE_ARGS",           specs.cmake_args, vertical_list);
+      send ("QMAKE_ARGS",           specs.qmake_args, vertical_list);
+      send ("TEST_TARGET",          specs.test_tgt, adjacent_wrapped);
+      send ("TEST_ARGS",            specs.test_args, vertical_list);
+      send ("TEST_ENV",             specs.test_env, vertical_list);
       send ("VAR_OPSYS",            specs.var_opsys, 4);
       send ("VAR_ARCH",             specs.var_arch, 4);
       send ("CARGO_SKIP_CONFIGURE", specs.cgo_skip_conf, True);
       send ("CARGO_SKIP_BUILD",     specs.cgo_skip_build, True);
       send ("CARGO_SKIP_INSTALL",   specs.cgo_skip_inst, True);
-      send ("CARGO_CONFIG_ARGS",    specs.cgo_conf_args, 2);
-      send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, 2);
-      send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, 2);
-      send ("CARGO_FEATURES",       specs.cgo_features, 2);
-      send ("SMF_METHODS",          specs.smf_methods, 2);
-      send ("CVE_FIXED",            specs.fixed_cve, 2);
+      send ("CARGO_CONFIG_ARGS",    specs.cgo_conf_args, adjacent_wrapped);
+      send ("CARGO_BUILD_ARGS",     specs.cgo_build_args, adjacent_wrapped);
+      send ("CARGO_INSTALL_ARGS",   specs.cgo_inst_args, adjacent_wrapped);
+      send ("CARGO_FEATURES",       specs.cgo_features, adjacent_wrapped);
+      send ("SMF_METHODS",          specs.smf_methods, vertical_list);
+      send ("CVE_FIXED",            specs.fixed_cve, adjacent_wrapped);
 
       send_options;
       send_targets;
