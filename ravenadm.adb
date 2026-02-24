@@ -20,6 +20,7 @@ procedure Ravenadm is
                          repatch, sort_plist, confinfo, genconspiracy, jump);
 
    procedure scan_first_command_word;
+   procedure mark_dirty_return;
    function scan_dev_command_word return dev_mandate;
    function get_arg (arg_number : Positive) return String;
 
@@ -118,6 +119,11 @@ procedure Ravenadm is
       end if;
    end get_arg;
 
+   procedure mark_dirty_return is
+   begin
+      CLI.Set_Exit_Status (CLI.Failure);
+   end mark_dirty_return;
+
 begin
 
    if CLI.Argument_Count = 0 then
@@ -129,6 +135,7 @@ begin
 
    if mandate = unset then
       Pilot.react_to_unknown_first_level_command (CLI.Argument (1));
+      mark_dirty_return;
       return;
    end if;
 
@@ -141,6 +148,7 @@ begin
          low_rights := True;
       when others =>
          if Pilot.already_running then
+            mark_dirty_return;
             return;
          end if;
    end case;
@@ -150,10 +158,12 @@ begin
    if not Parameters.configuration_exists and then reg_user then
       TIO.Put_Line ("No configuration file found.");
       TIO.Put_Line ("Please switch to root permissions and retry the command.");
+      mark_dirty_return;
       return;
    end if;
 
    if not Parameters.load_configuration then
+      mark_dirty_return;
       return;
    end if;
 
@@ -162,6 +172,7 @@ begin
          test_everything | test_incremental =>
          --  All commands involving replicant slaves
          if Pilot.launch_clash_detected then
+            mark_dirty_return;
             return;
          end if;
       when others => null;
@@ -172,6 +183,7 @@ begin
          if Parameters.configuration.avec_ncurses and then
            not Pilot.TERM_defined_in_environment
          then
+            mark_dirty_return;
             return;
          end if;
       when others => null;
@@ -181,10 +193,12 @@ begin
       when configure | help => null;
       when portsnap =>
          if not Parameters.all_paths_valid (skip_mk_check => True) then
+            mark_dirty_return;
             return;
          end if;
       when others =>
          if not Parameters.all_paths_valid (skip_mk_check => False) then
+            mark_dirty_return;
             return;
          end if;
    end case;
@@ -206,6 +220,7 @@ begin
                   genindex | genconspiracy =>
                   if reg_user then
                      TIO.Put_Line (reg_error);
+                     mark_dirty_return;
                      return;
                   end if;
             end case;
@@ -213,6 +228,7 @@ begin
       when others =>
          if reg_user then
             TIO.Put_Line (reg_error);
+            mark_dirty_return;
             return;
          end if;
    end case;
@@ -221,16 +237,19 @@ begin
       if Pilot.previous_run_mounts_detected and then
         not Pilot.old_mounts_successfully_removed
       then
+         mark_dirty_return;
          return;
       end if;
 
       if Pilot.previous_realfs_work_detected and then
         not Pilot.old_realfs_work_successfully_removed
       then
+         mark_dirty_return;
          return;
       end if;
 
       if Pilot.ravenexec_missing then
+         mark_dirty_return;
          return;
       end if;
    end if;
@@ -238,11 +257,13 @@ begin
    case mandate is
       when build | force | test | changeopts | list_subpackages =>
          if not Pilot.store_origins (start_from => 2) then
+            mark_dirty_return;
             return;
          end if;
       when status =>
          if CLI.Argument_Count > 1 then
             if not Pilot.store_origins (start_from => 2) then
+               mark_dirty_return;
                return;
             end if;
          end if;
@@ -255,6 +276,7 @@ begin
            status | status_everything | repository =>
          Pilot.check_that_ravenadm_is_modern_enough;
          if not Pilot.slave_platform_determined then
+            mark_dirty_return;
             return;
          end if;
       when others => null;
@@ -285,6 +307,8 @@ begin
               Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
             then
                Pilot.display_results_of_dry_run;
+            else
+               mark_dirty_return;
             end if;
          else
             null;  -- reserved for upgrade_system_everything maybe
@@ -299,6 +323,8 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => True)
          then
             Pilot.display_results_of_dry_run;
+         else
+            mark_dirty_return;
          end if;
 
       when build =>
@@ -310,6 +336,8 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
+         else
+            mark_dirty_return;
          end if;
 
       when build_everything =>
@@ -321,6 +349,8 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
+         else
+            mark_dirty_return;
          end if;
 
       when test_incremental =>
@@ -332,6 +362,8 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => False, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => True);
+         else
+            mark_dirty_return;
          end if;
 
       when test_everything =>
@@ -343,6 +375,8 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => True);
+         else
+            mark_dirty_return;
          end if;
 
       when website =>
@@ -360,6 +394,8 @@ begin
            Pilot.sanity_check_then_prefail (delete_first => True, dry_run => False)
          then
             Pilot.perform_bulk_run (testmode => False);
+         else
+            mark_dirty_return;
          end if;
 
 
@@ -431,6 +467,8 @@ begin
             else
                Pilot.perform_bulk_run (testmode => True);
             end if;
+         else
+            mark_dirty_return;
          end if;
 
       when configure =>
