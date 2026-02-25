@@ -163,7 +163,7 @@ private
 
    --  Returns new filename if it matches dynamic pkg-message filename or an extra
    --  patch, otherwise return blank
-   function tranform_filename
+   function transform_filename
      (filename    : String;
       match_opsys : String;
       match_arch  : String) return String;

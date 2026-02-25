@@ -646,7 +646,7 @@ package body Specification_Parser is
                      elsif subdir = "files" then
                         declare
                            newname : constant String :=
-                             tranform_filename (filename    => filename,
+                             transform_filename (filename    => filename,
                                                 match_opsys => match_opsys,
                                                 match_arch  => match_arch);
                         begin
@@ -2158,7 +2158,7 @@ package body Specification_Parser is
    --------------------------------------------------------------------------------------------
    --  tranform_filenames
    --------------------------------------------------------------------------------------------
-   function tranform_filename
+   function transform_filename
      (filename    : String;
       match_opsys : String;
       match_arch  : String) return String
@@ -2181,7 +2181,7 @@ package body Specification_Parser is
                       old_string => match_arch,
                       new_string => arc));
 
-   end tranform_filename;
+   end transform_filename;
 
 
    --------------------------------------------------------------------------------------------
