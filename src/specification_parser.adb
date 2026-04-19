@@ -1785,6 +1785,9 @@ package body Specification_Parser is
       if not spec.post_module_argument_check then
          return "The arguments of a USES modules are not valid.";
       end if;
+      if not spec.post_module_conflict_check then
+         return "Check for conflicting modules (e.g. gold, mold, bfd together)";
+      end if;
       if spec.cve_lists_without_cpe_module then
          return "The CVE_FIXED definition must be accompanied by USES cpe module";
       end if;

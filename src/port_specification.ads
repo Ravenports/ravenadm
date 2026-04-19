@@ -280,6 +280,9 @@ package Port_Specification is
    --  Checks module arguments for fatal errors
    function post_module_argument_check (specs : Portspecs) return Boolean;
 
+   --  Checks if selected modules aren't allowed to be used together
+   function post_module_conflict_check (specs : Portspecs) return Boolean;
+
    --  Return "joined" table of group + options
    function option_block_for_dialog (specs : Portspecs) return String;
 

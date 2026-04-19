@@ -5003,6 +5003,29 @@ package body Port_Specification is
 
 
    --------------------------------------------------------------------------------------------
+   --  post_module_conflict_check
+   --------------------------------------------------------------------------------------------
+   function post_module_conflict_check (specs : Portspecs) return Boolean
+   is
+      gld_found : constant Boolean := specs.uses_base.Contains (HT.SUS ("gold"));
+      mld_found : constant Boolean := specs.uses_base.Contains (HT.SUS ("mold"));
+      bfd_found : constant Boolean := specs.uses_base.Contains (HT.SUS ("bfd"));
+      total_linkers : Natural := 0;
+   begin
+      if gld_found then
+         total_linkers := total_linkers + 1;
+      end if;
+      if mld_found then
+         total_linkers := total_linkers + 1;
+      end if;
+      if bfd_found then
+         total_linkers := total_linkers + 1;
+      end if;
+      return (total_linkers <= 1);
+   end post_module_conflict_check;
+
+
+   --------------------------------------------------------------------------------------------
    --  post_transform_option_group_defaults_passes
    --------------------------------------------------------------------------------------------
    function post_transform_option_group_defaults_passes (specs : Portspecs) return Boolean
