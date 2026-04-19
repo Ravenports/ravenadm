@@ -975,7 +975,10 @@ package body Port_Specification.Transform is
       module     : constant String := "mold";
       dependency : constant String := primary_triplet (module);
    begin
-      generic_build_module (specs, module, dependency);
+
+      if platform_type = linux then
+         generic_build_module (specs, module, dependency);
+      end if;
    end apply_mold_module;
 
 
