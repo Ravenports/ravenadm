@@ -3628,7 +3628,7 @@ package body Port_Specification is
    --------------------------------------------------------------------------------------------
    function valid_uses_module (value : String) return Boolean
    is
-      total_modules : constant Positive := 79;
+      total_modules : constant Positive := 80;
 
       subtype uses_string is String (1 .. 15);
 
@@ -3638,6 +3638,7 @@ package body Port_Specification is
          "ada            ",
          "autoreconf     ",
          "bdb            ",
+         "bfd            ",
          "bison          ",
          "bsd            ",
          "bz2            ",
