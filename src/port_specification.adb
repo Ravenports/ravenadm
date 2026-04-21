@@ -4550,6 +4550,7 @@ package body Port_Specification is
          ("SOUND         ", SOUND),
          ("SQLITE        ", SQLITE),
          ("STATIC        ", STATIC),
+         ("SUNOS         ", SOLARIS),
          ("SYSLOG        ", SYSLOG),
          ("TCL           ", TCL),
          ("TCLTK         ", TCLTK),
@@ -4629,6 +4630,7 @@ package body Port_Specification is
          when RUBY34       => return "Build using Ruby version 3.4";
          when RUBY40       => return "Build using Ruby version 4.0";
          when SNDIO        => return "Sndio audio support";
+         when SOLARIS      => return "Build/link modifications based on SunOS";
          when SOUND        => return "Sound (audio) support";
          when SQLITE       => return "SQLite database support";
          when STATIC       => return "Build static executables and/or libraries";
