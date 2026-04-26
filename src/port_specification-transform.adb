@@ -1514,6 +1514,7 @@ package body Port_Specification.Transform is
          return;
       end if;
 
+
       case platform_type is
          when dragonfly | freebsd | openbsd | netbsd | midnightbsd =>
             if argument_present (specs, bsd_module, "epoll") then
@@ -1522,6 +1523,12 @@ package body Port_Specification.Transform is
             if argument_present (specs, bsd_module, "inotify") then
                generic_devlib_module (specs, bsd_module, "libinotify");
             end if;
+         when others =>
+            null;
+      end case;
+      case platform_type is
+         when dragonfly | freebsd | openbsd | netbsd | midnightbsd | sunos =>
+
             if argument_present (specs, bsd_module, "udev") then
                generic_devlib_module (specs, bsd_module, "libudev-devd");
             end if;
