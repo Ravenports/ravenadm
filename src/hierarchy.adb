@@ -225,13 +225,6 @@ package body Hierarchy is
       push ("/port");
       push ("/xports");
       push (localbase & "/toolchain");  --  prevents clean unhooking if it's being scanned
-      push (localbase & "/var/cache");
-      push (localbase & "/var/db");
-      push (localbase & "/var/log");
-      push (localbase & "/var/mail");
-      push (localbase & "/var/run");
-      push (localbase & "/var/spool");
-      push (localbase & "/var");
 
    end set_directory_filter;
 
