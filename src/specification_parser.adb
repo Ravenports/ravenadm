@@ -1928,7 +1928,7 @@ package body Specification_Parser is
                  line = prefix & configure & lowsys or else
                  line = prefix & build & lowsys or else
                  line = prefix & install & lowsys or else
-                 line = prefix & install & lowsys or else
+                 line = prefix & stage & lowsys or else
                  line = prefix & test & lowsys
                then
                   return target_title;
