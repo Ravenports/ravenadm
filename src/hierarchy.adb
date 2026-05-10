@@ -200,6 +200,8 @@ package body Hierarchy is
       begin
          skip_dirs.Append (HT.SUS (file_or_directory));
       end push;
+
+       localbase  : constant String := HT.USS (PM.configuration.dir_localbase);
    begin
       push ("/bin");
       push ("/ccache");
@@ -222,7 +224,13 @@ package body Hierarchy is
       push ("/var/tmp");
       push ("/port");
       push ("/xports");
-      push ("/raven/toolchain");  --  prevents clean unhooking if it's being scanned
+      push (localbase & "/toolchain");  --  prevents clean unhooking if it's being scanned
+      push (localbase & "/var/cache");
+      push (localbase & "/var/db");
+      push (localbase & "/var/log");
+      push (localbase & "/var/mail");
+      push (localbase & "/var/run");
+      push (localbase & "/var/spool");
 
    end set_directory_filter;
 
