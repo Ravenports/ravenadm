@@ -231,6 +231,7 @@ package body Hierarchy is
       push (localbase & "/var/mail");
       push (localbase & "/var/run");
       push (localbase & "/var/spool");
+      push (localbase & "/var");
 
    end set_directory_filter;
 
