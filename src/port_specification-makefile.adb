@@ -912,12 +912,20 @@ package body Port_Specification.Makefile is
          vers : constant String := HT.replace_all (S      => HT.specific_field (gh_args, 3, ":"),
                                                    reject => LAT.Plus_Sign,
                                                    shiny  => LAT.Hyphen);
+         ndex : Natural := 0;
       begin
          if vers (vers'First) = 'v' then
-            return proj & LAT.Hyphen & vers (vers'First + 1 .. vers'Last);
-         else
-            return proj & LAT.Hyphen & vers;
+            if vers'Length > 1 then
+               case vers (vers'First + 1) is
+                  when '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' =>
+                     ndex := 1;  -- looks like a version, strip leading 'v'
+                  when others =>
+                     --  probably a word like "vulkan", github won't strip the v
+                     null;
+               end case;
+            end if;
          end if;
+         return proj & LAT.Hyphen & vers (vers'First + ndex .. vers'Last);
       end;
    end generate_github_distname;
 
