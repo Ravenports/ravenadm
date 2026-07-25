@@ -3398,26 +3398,38 @@ package body Port_Specification.Transform is
             when invalid_component => null;  --  should be impossible
             when sdl1 => null;
             when sdl2 => null;
-            when sound1 => add_primdev_submodule (specs, "sdl1_sound");
-            when sound2 => add_primdev_submodule (specs, "sdl2_sound");
+            when sdl3 => null;
+            when gfx1   => add_primdev_submodule (specs, "sdl1_gfx");
+            when gfx2   => add_primdev_submodule (specs, "sdl2_gfx");
+            when gfx3   => add_primdev_submodule (specs, "sdl3_gfx");
             when image1 => add_primdev_submodule (specs, "sdl1_image");
             when image2 => add_primdev_submodule (specs, "sdl2_image");
+            when image3 => add_primdev_submodule (specs, "sdl3_image");
             when mixer1 => add_primdev_submodule (specs, "sdl1_mixer");
             when mixer2 => add_primdev_submodule (specs, "sdl2_mixer");
+            when mixer3 => add_primdev_submodule (specs, "sdl3_mixer");
             when net1   => add_primdev_submodule (specs, "sdl1_net");
             when net2   => add_primdev_submodule (specs, "sdl2_net");
+            when net3   => add_primdev_submodule (specs, "sdl3_net");
+            when pango2 => add_primdev_submodule (specs, "sdl2_pango");
+            when sound1 => add_primdev_submodule (specs, "sdl1_sound");
+            when sound2 => add_primdev_submodule (specs, "sdl2_sound");
+            when sound3 => add_primdev_submodule (specs, "sdl3_sound");
             when ttf1   => add_primdev_submodule (specs, "sdl1_ttf");
             when ttf2   => add_primdev_submodule (specs, "sdl2_ttf");
+            when ttf3   => add_primdev_submodule (specs, "sdl3_ttf");
          end case;
          case comp is
-            when sdl1 | sound1 | image1 | mixer1 | net1 | ttf1 =>
+            when sdl1 | gfx1 | image1 | mixer1 | net1 | sound1 | ttf1 =>
                add_primdev_submodule (specs, "sdl1");
                specs.make_env.Append (menv1);
                specs.config_env.Append (menv1);
-            when sdl2 | sound2 | image2 | mixer2 | net2 | ttf2 =>
+            when sdl2 | gfx2 | image2 | mixer2 | net2 | pango2 | sound2 | ttf2 =>
                add_primdev_submodule (specs, "sdl2");
                specs.make_env.Append (menv2);
                specs.config_env.Append (menv2);
+            when sdl3 | gfx3 | image3 | mixer3 | net3 | sound3 | ttf3 =>
+               add_primdev_submodule (specs, "sdl3");
             when invalid_component => null;
          end case;
       end import;
