@@ -4105,18 +4105,28 @@ package body Port_Specification is
       all_keywords : constant array (1 .. total_keywords) of keyword_pair :=
         (
          ("INVALID ", invalid_component),
+         ("gfx1    ", gfx1),
+         ("gfx2    ", gfx2),
+         ("gfx3    ", gfx3),
          ("image1  ", image1),
          ("image2  ", image2),
+         ("image3  ", image3),
          ("mixer1  ", mixer1),
          ("mixer2  ", mixer2),
+         ("mixer3  ", mixer3),
          ("net1    ", net1),
          ("net2    ", net2),
+         ("net3    ", net3),
+         ("pango2  ", pango2),
          ("sdl1    ", sdl1),
          ("sdl2    ", sdl2),
+         ("sdl3    ", sdl3),
          ("sound1  ", sound1),
          ("sound2  ", sound2),
+         ("sound3  ", sound3),
          ("ttf1    ", ttf1),
-         ("ttf2    ", ttf2)
+         ("ttf2    ", ttf2),
+         ("ttf3    ", ttf3)
         );
 
       bandolier    : keyword_string := (others => LAT.Space);
