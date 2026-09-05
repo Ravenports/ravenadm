@@ -39,12 +39,12 @@ package Definitions is
    default_tcltk     : constant String := "8.6";
 
    default_binutils  : constant String := "ravensys-binutils:" & variant_standard;
-   binutils_version  : constant String := "2.43.1";
-   previous_binutils : constant String := "2.41";
+   binutils_version  : constant String := "2.46.1";
+   previous_binutils : constant String := "2.43.1";
 
    ports_compiler    : constant String := "ravensys-gcc";
-   compiler_version  : constant String := "14.2.0";
-   previous_compiler : constant String := "13.2.0";
+   compiler_version  : constant String := "15.3.0";
+   previous_compiler : constant String := "14.2.0";
 
    arc_ext           : constant String := ".rvn";
    jobs_per_cpu      : constant := 2;
