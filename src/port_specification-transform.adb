@@ -3527,8 +3527,8 @@ package body Port_Specification.Transform is
    begin
       if setting = "innovation" then
          return "mysql";
-      elsif setting = "oracle-8.4" then
-         return "mysql84";
+      elsif setting = "oracle-9.7" then
+         return "mysql97";
       elsif setting = "mariadb-10.6" then
          return "mariadb106";
       elsif setting = "mariadb-10.11" then
@@ -3543,7 +3543,7 @@ package body Port_Specification.Transform is
          --  case: setting = ports_default
          --  case: setting = default_mysql
          --  case: setting = invalid value
-         return "mysql80";
+         return "mysql84";
       end if;
    end determine_mysql_namebase;
 

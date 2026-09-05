@@ -29,7 +29,7 @@ package Definitions is
    spkg_info         : constant String := "info";
    ports_default     : constant String := "floating";
    default_ssl       : constant String := "libressl";
-   default_mysql     : constant String := "oracle-8.0";
+   default_mysql     : constant String := "oracle-8.4";
    default_lua       : constant String := "5.4";
    default_perl      : constant String := "5.40";
    default_pgsql     : constant String := "17";
