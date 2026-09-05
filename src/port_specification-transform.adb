@@ -3529,14 +3529,14 @@ package body Port_Specification.Transform is
          return "mysql";
       elsif setting = "oracle-9.7" then
          return "mysql97";
-      elsif setting = "mariadb-10.6" then
-         return "mariadb106";
       elsif setting = "mariadb-10.11" then
          return "mariadb1011";
       elsif setting = "mariadb-11.4" then
          return "mariadb114";
       elsif setting = "mariadb-11.8" then
          return "mariadb118";
+      elsif setting = "mariadb-12.3" then
+         return "mariadb123";
       elsif setting = "mariadb-latest" then
          return "mariadb";
       else
