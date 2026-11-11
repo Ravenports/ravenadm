@@ -1724,6 +1724,7 @@ package body PortScan.Scan is
       unkindness   : constant String := HT.USS (PM.configuration.dir_unkindness);
       compiled_BS  : constant String := HT.USS (PM.configuration.dir_profile) & "/unkindness";
    begin
+      distfile_set.Clear;
       prescan_conspiracy_index_for_distfiles (conspiracy, unkindness, sysrootver);
       LOG.set_scan_start_time (CAL.Clock);
       parallel_distfile_scan (conspiracy    => conspiracy,
@@ -1818,7 +1819,7 @@ package body PortScan.Scan is
    is
       procedure insert_distfile (dist_subdir : String; distfile_group : String);
 
-      dindex : port_index := 0;
+      dindex : tarball_id := 0;
 
       procedure insert_distfile (dist_subdir : String; distfile_group : String)
       is
@@ -1920,15 +1921,24 @@ package body PortScan.Scan is
       task_storage  : array (scanners) of portkey_crate.Map;
       combined_wait : Boolean := True;
       aborted       : Boolean := False;
-      dindex        : port_index := port_index (distfile_set.Length);
+      maxxed_out    : Boolean := False;
+      dindex        : tarball_id := tarball_id (distfile_set.Length);
 
       procedure combine (position : portkey_crate.Cursor)
       is
          distfile : HT.Text := portkey_crate.Key (position);
       begin
          if not distfile_set.Contains (distfile) then
-            dindex := dindex + 1;
-            distfile_set.Insert (distfile, dindex);
+            if dindex = tarball_id'Last then
+               if not maxxed_out then
+                  maxxed_out := True;
+                  TIO.Put_Line ("Warning: total distfiles exceeded" & tarball_id'Last'Img &
+                                  ", remaining files ignored.");
+               end if;
+            else
+               dindex := dindex + 1;
+               distfile_set.Insert (distfile, dindex);
+            end if;
          end if;
       end combine;
 

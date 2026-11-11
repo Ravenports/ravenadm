@@ -97,6 +97,7 @@ private
 
    max_ports    : constant := 8000;
    max_packages : constant := 24000;
+   max_tarballs : constant := 20000;
 
    type port_id is range -1 .. max_ports - 1;
    subtype port_index is port_id range 0 .. port_id'Last;
@@ -106,6 +107,7 @@ private
    subtype bucket_code is String (1 .. 2);
 
    type built_package_id is range 0 .. max_packages;
+   type tarball_id is range 0 .. max_tarballs;
 
    pkgng_execution  : exception;
    circular_logic   : exception;
@@ -143,6 +145,12 @@ private
    package portkey_crate is new CON.Hashed_Maps
      (Key_Type        => HT.Text,
       Element_Type    => port_index,
+      Hash            => port_hash,
+      Equivalent_Keys => HT.equivalent);
+
+   package tarball_crate is new CON.Hashed_Maps
+     (Key_Type        => HT.Text,
+      Element_Type    => tarball_id,
       Hash            => port_hash,
       Equivalent_Keys => HT.equivalent);
 
@@ -229,7 +237,7 @@ private
    portlist     : string_crate.Vector;
    dupelist     : string_crate.Vector;
    package_list : built_package_crate.Vector;
-   distfile_set : portkey_crate.Map;
+   distfile_set : tarball_crate.Map;
 
    original_queue_len : CON.Count_Type;
 

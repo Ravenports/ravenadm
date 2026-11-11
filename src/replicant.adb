@@ -1529,7 +1529,7 @@ package body Replicant is
 
       procedure override_defaults (label : String; value : HT.Text) is
       begin
-         if not (HT.equivalent (value, ports_default)) then
+         if not HT.equivalent (value, ports_default) then
             TIO.Put_Line (makeconf, "DEFAULT_VERSIONS+=" & label & "=" & HT.USS (value));
          end if;
       end override_defaults;
