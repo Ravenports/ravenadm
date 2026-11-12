@@ -52,10 +52,11 @@ private
    BUILDRUN : constant String := "buildrun";
    RUN      : constant String := "run";
 
-   PYTHONPRI : constant String := "python313";
-   PYTHONALT : constant String := "python314";
-   PY313     : constant String := "v13";
+   PYTHONPRI : constant String := "python314";
+   PYTHONALT : constant String := "python315";
    PY314     : constant String := "v14";
+   PY315     : constant String := "v15";
+
 
    GETTEXT  : constant String := "gettext";
    TCL90    : constant String := generic_triplet ("tcl90", "tools");
