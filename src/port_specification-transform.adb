@@ -2917,10 +2917,12 @@ package body Port_Specification.Transform is
                   triplet := HT.SUS (primary_triplet (PYTHONPRI));
                end if;
             elsif exrundep = "tcl" then
-               if specs.buildrun_deps.Contains (HT.SUS (TCL90)) then
-                  triplet := HT.SUS (TCL90);
+               if specs.buildrun_deps.Contains (HT.SUS (TCL90)) or else
+                 specs.build_deps.Contains (HT.SUS (TCL90))
+               then
+                  triplet := HT.SUS (primary_triplet ("tcl90"));
                else
-                  triplet := HT.SUS (TCL86);
+                  triplet := HT.SUS (primary_triplet ("tcl86"));
                end if;
             elsif exrundep = "perl" then
                declare
