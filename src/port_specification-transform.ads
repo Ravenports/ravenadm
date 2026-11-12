@@ -58,8 +58,8 @@ private
    PY314     : constant String := "v14";
 
    GETTEXT  : constant String := "gettext";
-   TCL86    : constant String := generic_triplet ("tcl86", "tools");
    TCL90    : constant String := generic_triplet ("tcl90", "tools");
+   TCL91    : constant String := generic_triplet ("tcl91", "tools");
    RUBY33   : constant String := primary_triplet ("ruby33");
    RUBY34   : constant String := primary_triplet ("ruby34");
    RUBY40   : constant String := primary_triplet ("ruby40");

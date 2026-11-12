@@ -36,7 +36,7 @@ package Definitions is
    default_php       : constant String := "8.4";
    default_python3   : constant String := "3.13";
    default_ruby      : constant String := "3.4";
-   default_tcltk     : constant String := "8.6";
+   default_tcltk     : constant String := "9.0";
 
    default_binutils  : constant String := "ravensys-binutils:" & variant_standard;
    binutils_version  : constant String := "2.46.1";
