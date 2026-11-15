@@ -27,7 +27,7 @@ package body Ravenports is
       version_loc : constant String := consdir & conspiracy_version;
    begin
       if DIR.Exists (version_loc) then
-         return FOP.head_n1 (temporary_ver_loc);
+         return FOP.head_n1 (version_loc);
       end if;
       return "DNE";
    end latest_release;
