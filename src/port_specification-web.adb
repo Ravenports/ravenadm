@@ -929,14 +929,16 @@ package body Port_Specification.Web is
    --------------------------------------------------------------------------------------------
    function generate_catalog_index
      (dossier : TIO.File_Type;
-      row_assembly_block : String) return Boolean is
+      release : String) return Boolean is
    begin
       declare
          template_file : String := host_localbase & "/share/ravenadm/catalog.template";
          template      : constant String := FOP.get_file_contents (template_file);
          fullpage      : HT.Text := HT.SUS (template);
       begin
-         fullpage := HT.replace_substring (fullpage, "@ROW_ASSY@", row_assembly_block);
+         for x in 1 .. 3 loop
+            fullpage := HT.replace_substring (fullpage, "@RELEASE@", release);
+         end loop;
          TIO.Put_Line (dossier, HT.USS (fullpage));
          return True;
       end;
@@ -945,5 +947,28 @@ package body Port_Specification.Web is
          TIO.Put_Line ("Failed to create the web site index");
          return False;
    end generate_catalog_index;
+
+
+   --------------------------------------------------------------------------------------------
+   --  generate_catalog_data
+   --------------------------------------------------------------------------------------------
+   function generate_catalog_data
+     (dossier : TIO.File_Type;
+      row_assembly_block : String) return Boolean is
+   begin
+      declare
+         template_file : String := host_localbase & "/share/ravenadm/cat_script.template";
+         template      : constant String := FOP.get_file_contents (template_file);
+         jscript       : HT.Text := HT.SUS (template);
+      begin
+         jscript := HT.replace_substring (jscript, "@ROW_ASSY@", row_assembly_block);
+         TIO.Put_Line (dossier, HT.USS (jscript));
+         return True;
+      end;
+   exception
+      when others =>
+         TIO.Put_Line ("Failed to create web site index data file");
+         return False;
+   end generate_catalog_data;
 
 end Port_Specification.Web;

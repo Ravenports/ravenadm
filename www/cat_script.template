@@ -1,0 +1,41 @@
+var catalog_dt;
+
+function originlink (bucket, origin) {
+	var parts = origin.split(':');
+	var ravenlink = '<a title="Description of the ' + parts[1] +
+	' variant of the ' + parts[0] + ' port." href="bucket_' +
+	bucket + '/' + parts[0] + '/' + parts[1] + '">' + origin + '</a>';
+	return ravenlink;
+}
+
+function row_assy(entry, bucket, origin, pkgversion, tagline, timestamp) {
+	catalog_dt.row.add([
+		entry,
+		originlink(bucket, origin),
+		pkgversion,
+		tagline,
+		timestamp
+	]);
+}
+
+function populate_catalog() {
+@ROW_ASSY@
+	catalog_dt.draw();
+}
+
+$(document).ready(function() {
+	catalog_dt = $('#catalog_table').DataTable({
+		pageLength: 20,
+		lengthMenu: [10, 20, 50, 100, 200],
+		columns: [
+			{ orderable: true,  searchable: false },
+			{ orderable: true,  searchable: true },
+			{ orderable: false, searchable: true },
+			{ orderable: false, searchable: true },
+			{ orderable: false, searchable: false }
+		],
+		order: [[0, 'asc']],
+		autoWidth: false
+	});
+	populate_catalog();
+});

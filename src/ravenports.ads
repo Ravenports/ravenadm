@@ -3,6 +3,9 @@
 
 package Ravenports is
 
+   --  Provides the contents of the latest_release.txt file
+   function latest_release return String;
+
    --  Provides information to user via standard out to determine if newer version of Ravenports
    --  (as compared to what is installed) is available.
    procedure check_version_available;

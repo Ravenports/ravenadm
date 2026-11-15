@@ -4,58 +4,17 @@
  <title>Ravenports Catalog</title>
  <meta charset="utf-8">
  <meta name="description" content="Searchable index of Ravenports">
- <meta http-equiv="Cache-Control" content="no-cache">
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
- <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" type="text/javascript" charset="utf-8"></script>
- <link href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
- <link href="style/ravenports.css?v=3`" rel="stylesheet">
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+ <script src="https://cdn.datatables.net/1.13.11/js/jquery.dataTables.min.js"></script>
+ <script src="catalog.js?v=@RELEASE@"></script>
+ <link href="https://cdn.datatables.net/1.13.11/css/jquery.dataTables.min.css" rel="stylesheet" type="text/css">
+ <link href="style/ravenports.css?v=@RELEASE@" rel="stylesheet">
  <link href="favicon.png" rel="icon" type="image/png">
- <script type="text/javascript">
-function originlink (bucket, origin) {
-	var parts = origin.split(':');
-	var ravenlink = '<a title="Description of the ' + parts[1] +
-	' variant of the ' + parts[0] + ' port." href="bucket_' +
-	bucket + '/' + parts[0] + '/' + parts[1] + '">' + origin + '</a>';
-	return ravenlink;
-}
-
-function row_assy(entry, bucket, origin, pkgversion, tagline, timestamp) {
-	var trow = [];
-	trow.push(entry);
-	trow.push(originlink (bucket, origin));
-	trow.push(pkgversion);
-	trow.push(tagline);
-	trow.push(timestamp);
-	$('#catalog_table').DataTable().row.add(trow);
-}
-
-function populate_catalog() {
-@ROW_ASSY@
-	$('#catalog_table').DataTable().draw(false);
-}
-
-$(document).ready(function() {
-	$('#catalog_table').DataTable({
-		pageLength: 20,
-		lengthMenu: [10, 20, 50, 100, 200],
-		columns: [
-			{ orderable: true,  searchable: false, order: 'asc' },
-			{ orderable: true,  searchable: true },
-			{ orderable: false, searchable: true },
-			{ orderable: false, searchable: true },
-			{ orderable: false, searchable: false },
-		],
-		order: [[0, 'asc']],
-		autoWidth: false
-		});
-	populate_catalog();
-})
- </script>
 </head>
   <body>
    <div id="canvas">
     <div id="namebase1">Ravenports Universal Package System</div>
-    <div id="subtitle">Searchable Catalog</div>
+    <div id="subtitle">Searchable Catalog, Release @RELEASE@</div>
     <div id="catalog">
       <table id="catalog_table">
         <thead>

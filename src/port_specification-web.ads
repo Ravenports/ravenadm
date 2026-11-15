@@ -24,6 +24,11 @@ package Port_Specification.Web is
    --  Create the searchable catalog index
    function generate_catalog_index
      (dossier : TIO.File_Type;
+      release : String) return Boolean;
+
+   --  Create catalog data
+   function generate_catalog_data
+     (dossier : TIO.File_Type;
       row_assembly_block : String) return Boolean;
 
 private

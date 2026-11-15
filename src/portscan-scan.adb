@@ -83,6 +83,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    function generate_entire_website
      (www_site   : String;
+      release    : String;
       sysrootver : sysroot_characteristics) return Boolean
    is
       good_operation : Boolean;
@@ -108,6 +109,7 @@ package body PortScan.Scan is
 
       --  subcontract web site generation
       serially_generate_web_pages (www_site   => www_site,
+                                   release    => release,
                                    sysrootver => sysrootver,
                                    success    => good_operation);
       return good_operation;
@@ -2582,25 +2584,47 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    function generate_catalog_index
      (www_site : String;
+      release  : String;
       crate    : dates_crate.Map;
       catcrate : catalog_crate.Set) return Boolean
    is
-      page       : constant String := www_site & "/index.html";
-      successful : Boolean;
-      html_page  : TIO.File_Type;
+      done       : Boolean := False;
+      successful : Boolean := False;
    begin
-      TIO.Create (File => html_page,
-                  Mode => TIO.Out_File,
-                  Name => page);
-      successful := WEB.generate_catalog_index (html_page, catalog_row_block (crate, catcrate));
-      TIO.Close (html_page);
-      return successful;
-   exception
-      when issue : others =>
-         if TIO.Is_Open (html_page) then
-            TIO.Close (html_page);
-         end if;
+      declare
+         jscript : constant String := www_site & "/catalog.js";
+         handle  : TIO.File_Type;
+      begin
+         TIO.Create (File => handle,
+                     Mode => TIO.Out_File,
+                     Name => jscript);
+         done := WEB.generate_catalog_data (handle, catalog_row_block (crate, catcrate));
+         TIO.Close (handle);
+      exception
+         when others =>
+            if TIO.Is_Open (handle) then
+               TIO.Close (handle);
+            end if;
+      end;
+      if not done then
          return False;
+      end if;
+      declare
+         page       : constant String := www_site & "/index.html";
+         html_page  : TIO.File_Type;
+      begin
+         TIO.Create (File => html_page,
+                     Mode => TIO.Out_File,
+                     Name => page);
+         successful := WEB.generate_catalog_index (html_page, release);
+         TIO.Close (html_page);
+      exception
+         when issue : others =>
+            if TIO.Is_Open (html_page) then
+               TIO.Close (html_page);
+            end if;
+      end;
+      return successful;
    end generate_catalog_index;
 
 
@@ -2609,6 +2633,7 @@ package body PortScan.Scan is
    --------------------------------------------------------------------------------------------
    procedure serially_generate_web_pages
      (www_site   : String;
+      release    : String;
       sysrootver : sysroot_characteristics;
       success    : out Boolean)
    is
@@ -2661,7 +2686,7 @@ package body PortScan.Scan is
       end loop;
       REP.destroy_workzone;
       if all_good then
-         if generate_catalog_index (www_site, crate, catcrate) then
+         if generate_catalog_index (www_site, release, crate, catcrate) then
             success := True;
             return;
          end if;

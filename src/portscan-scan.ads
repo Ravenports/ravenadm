@@ -64,6 +64,7 @@ package PortScan.Scan is
    --  Obsolete web pages are not removed, but no links will reference them
    function generate_entire_website
      (www_site   : String;
+      release    : String;
       sysrootver : sysroot_characteristics) return Boolean;
 
    --  Regenerate buildsheets for unkindness as necessary, and return True if index needs
@@ -212,6 +213,7 @@ private
    --  Loop to generate all webpages (includes custom ports)
    procedure serially_generate_web_pages
      (www_site   : String;
+      release    : String;
       sysrootver : sysroot_characteristics;
       success    : out Boolean);
 
@@ -232,6 +234,7 @@ private
    --  Returns true if web page generation was successful
    function generate_catalog_index
      (www_site : String;
+      release  : String;
       crate    : dates_crate.Map;
       catcrate : catalog_crate.Set) return Boolean;
 

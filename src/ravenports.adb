@@ -19,17 +19,32 @@ package body Ravenports is
    package REG renames GNAT.Regpat;
 
    --------------------------------------------------------------------------------------------
+   --  latest_release
+   --------------------------------------------------------------------------------------------
+   function latest_release return String
+   is
+      consdir     : constant String := HT.USS (PM.configuration.dir_conspiracy);
+      version_loc : constant String := consdir & conspiracy_version;
+   begin
+      if DIR.Exists (version_loc) then
+         return FOP.head_n1 (temporary_ver_loc);
+      end if;
+      return "DNE";
+   end latest_release;
+
+
+   --------------------------------------------------------------------------------------------
    --  check_version_available
    --------------------------------------------------------------------------------------------
    procedure check_version_available
    is
-      consdir       : constant String := HT.USS (PM.configuration.dir_conspiracy);
-      version_loc   : constant String := consdir & conspiracy_version;
+      currentver : constant String := latest_release;
    begin
-      if DIR.Exists (version_loc) then
+      if currentver = "DNE" then
+         TIO.Put_Line ("It appears that Ravenports has never been installed.");
+      else
          if fetch_latest_version_info (temporary_ver_loc) then
             declare
-               currentver : constant String := FOP.head_n1 (version_loc);
                latestver  : constant String := FOP.head_n1 (temporary_ver_loc);
             begin
                if latestver = currentver then
@@ -42,8 +57,6 @@ package body Ravenports is
             end;
             DIR.Delete_File (temporary_ver_loc);
          end if;
-      else
-         TIO.Put_Line ("It appears that Ravenports has not been installed at " & consdir);
       end if;
    exception
       when others => null;

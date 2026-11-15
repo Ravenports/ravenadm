@@ -1620,7 +1620,7 @@ package body Pilot is
       if not DIR.Exists (www_site) then
          DIR.Create_Path (www_site);
       end if;
-      if SCN.generate_entire_website (www_site, sysrootver) then
+      if SCN.generate_entire_website (www_site, Ravenports.latest_release, sysrootver) then
          TIO.Put_Line ("The web site generation is complete.");
       else
          TIO.Put_Line ("The web site generation was not entirely successful.");
