@@ -15,6 +15,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/wait.h>
+#include <sys/mman.h>
 #if defined __DragonFly__ || defined __FreeBSD__
 #include <sys/procctl.h>
 #endif
@@ -30,8 +31,32 @@
 #define W_EXITCODE(ret, sig)	((ret) << 8 | (sig))
 #endif
 
-volatile pid_t ravenexec[128] = {0};
+volatile pid_t *ravenexec = NULL;
 
+
+/*
+ * ----------------------------
+ * --  initialize_ravenexec  --
+ * ----------------------------
+ * Created shared memory that allows the children to pass process IDs
+ * to the global scope to all the kill_stalled_process process to
+ * function correctly.
+ * returns 0 on success, -1 on failure
+ */
+int
+initialize_ravenexec(void)
+{
+   void *mapping;
+
+   mapping = mmap(NULL, 128 * sizeof(*ravenexec),
+                  PROT_READ | PROT_WRITE,
+                  MAP_SHARED | MAP_ANON, -1, 0);
+   if (mapping == MAP_FAILED)
+      return (-1);
+
+   ravenexec = mapping;
+   return (0);
+}
 
 /*
  * --------------------
@@ -44,11 +69,14 @@ static
 int reap_process (pid_t dead_pid_walking)
 {
    int status = 0;
+   pid_t result;
 
    if (kill(dead_pid_walking, SIGKILL) == 0)
    {
-      waitpid (dead_pid_walking, &status, 0);
-      return (0);
+	  do {
+         result = waitpid(dead_pid_walking, &status, 0);
+      } while (result < 0 && errno == EINTR);
+      return result == dead_pid_walking ? 0 : -1;
    }
    return (-1);
 }
@@ -67,6 +95,7 @@ kill_process_tree (pid_t reaper_pid)
    }
 #if defined(__FreeBSD__) && defined(PROC_REAP_ACQUIRE)
    int    reap_rc;
+   pid_t  waitres;
    struct procctl_reaper_status info;
    struct procctl_reaper_kill killemall;
 
@@ -80,12 +109,46 @@ kill_process_tree (pid_t reaper_pid)
          reap_rc = procctl(P_PID, reaper_pid, PROC_REAP_KILL, &killemall);
       }
    }
+   if (reap_rc == 0)
+   {
+      do {
+         waitres = waitpid(-1, NULL, 0);
+      } while (waitres > 0 || (waitres < 0 && errno == EINTR));
+
+      if (waitres < 0 && errno != ECHILD)
+         reap_rc = -1;
+   }
    procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
    return (reap_rc);
 #elif defined(__DragonFly__) && defined(PROC_REAP_ACQUIRE)
-   union reaper_info info;
    int keep_going = 1;
    int reap_rc = 0;
+   int status;
+   pid_t waitres;
+#  if defined(PROC_REAP_KILL) // New ability with DragonFly 6.5
+   struct reaper_kill rk;
+
+   memset(&rk, 0, sizeof(rk));
+   rk.signal = SIGKILL;
+
+   while (keep_going)
+   {
+      keep_going = 0;
+	  if (procctl(P_PID, reaper_pid, PROC_REAP_KILL, &rk) == 0)
+	  {
+		  if (rk.killed > 0)
+		  {
+			  keep_going = 1;
+			  do {
+				  waitres = wait3(&status, 0, NULL);
+			  } while (waitres > 0 || (waitres < 0 && errno == EINTR));
+		  }
+	  } else {
+		  reap_rc = -1;
+	  }
+   }
+#  else // BEGIN ORIGINAL DRAGONFLY PROC_REAP
+   union reaper_info info;
 
    while (keep_going)
    {
@@ -94,78 +157,118 @@ kill_process_tree (pid_t reaper_pid)
       {
          if (info.status.pid_head > 0)
          {
-            keep_going = 1;
-            if (reap_process (info.status.pid_head) != 0) {
+            if (reap_process (info.status.pid_head) == 0) {
+		       keep_going = 1;		
+			} else {
                reap_rc = -1;
             }
          }
-      }
+      } else {
+		  reap_rc = -1;
+	  }
    }
+#  endif // END ORIGINAL DRAGONFLY PROC_REAP
+   do {
+	   waitres = wait3(&status, 0, NULL);
+   } while (waitres > 0 || (waitres < 0 && errno == EINTR));
    procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
    return (reap_rc);
 #elif defined(__linux__)
    /*
-    * Iterate /proc pseudo-filesystem repeatedly until no
-    * process ID has the ravenexec process as its parent.
+    * Scan /proc repeatedly until waitpid confirms that this
+    * supervisor has no children left.  Retry cleanup failures.
     */
    for (;;)
    {
       DIR *dir;
-      struct dirent* ent;
+      struct dirent *ent;
       char *endptr;
       char buffer[512];
-      int found_ppid;
+      char *stat_data = NULL;
+      size_t capacity = 0;
+      int reaped_child = 0;
+      pid_t wait_result;
+
+      do {
+         wait_result = waitpid(-1, NULL, WNOHANG);
+      } while (wait_result > 0 ||
+               (wait_result < 0 && errno == EINTR));
+
+      if (wait_result < 0)
+      {
+         if (errno == ECHILD)
+            return (0);
+         sleep(1);
+         continue;
+      }
 
       dir = opendir("/proc");
       if (dir == NULL)
       {
-         return (-1);
+         sleep(1);
+         continue;
       }
 
-      while ((ent = readdir(dir)) != NULL)
+      for (;;)
       {
          long lpid;
-         char *s_ppid;
-         pid_t parent_id;
-         /*
-          * if endptr is not a null character, the directory is not
-          * numeric so ignore it
-          */
-         found_ppid = 0;
+         long parent_id;
+         char state;
+         char *comm_end;
+         FILE *fp;
+         ssize_t size;
+         int read_error;
+
+         ent = readdir(dir);
+         if (ent == NULL)
+            break;
+
+         errno = 0;
          lpid = strtol(ent->d_name, &endptr, 10);
-         if (*endptr != '\0')
+         if (errno != 0 || endptr == ent->d_name ||
+             *endptr != '\0' || lpid <= 0 ||
+             (long)(pid_t)lpid != lpid)
          {
             continue;
          }
-         snprintf(buffer, sizeof(buffer), "/proc/%ld/stat", lpid);
-         FILE *fp = fopen(buffer, "r");
-         if (fp)
-         {
-            size_t size = fread(buffer, sizeof(char), sizeof(buffer), fp);
-            fclose (fp);
-            if (size > 0)
-            {
-               strtok(buffer, " ");             // (1) pid   %d
-               strtok(NULL, " ");               // (2) comm  %s
-               strtok(NULL, " ");               // (3) state %c
-               s_ppid = strtok(NULL, " ");      // (4) ppid  %d
 
-               parent_id = (pid_t) atoi(s_ppid);
-               if (parent_id == reaper_pid)
-               {
-                  found_ppid = 1;
-                  reap_process ((pid_t) lpid);
-               }
-            }
+         snprintf(buffer, sizeof(buffer), "/proc/%ld/stat", lpid);
+         fp = fopen(buffer, "r");
+         if (fp == NULL)
+            continue;
+
+         /* Read through EOF, including any newlines in comm. */
+         errno = 0;
+         size = getdelim(&stat_data, &capacity, '\0', fp);
+         read_error = 0;
+         if (size <= 0 || ferror(fp))
+            read_error = errno ? errno : EIO;
+         fclose(fp);
+         if (read_error != 0)
+            continue;
+
+         /* comm may contain spaces and ')'; later fields contain no ')'. */
+         comm_end = strrchr(stat_data, ')');
+         if (comm_end == NULL ||
+             sscanf(comm_end + 1, " %c %ld", &state, &parent_id) != 2 ||
+             parent_id < 0)
+         {
+            continue;
+         }
+
+         if (parent_id == (long)reaper_pid)
+         {
+            if (reap_process((pid_t)lpid) == 0)
+               reaped_child = 1;
          }
       }
+
+      free(stat_data);
       closedir(dir);
 
-      if (!found_ppid) {
-         break;
-      }
+      if (!reaped_child)
+         sleep(1);
    }
-   return (0);
 #else
    /* process reaping is not supported on this system */
    return (0);
@@ -226,15 +329,22 @@ int
 kill_stalled_process (int builder)
 {
    int zbuilder;
+   int result;
+   pid_t stalled_process;
 
-   if ((builder < 1) || builder > 128)
+   if (builder < 1 || builder > 128 || ravenexec == NULL)
    {
       return (-1);
    }
 
    zbuilder = builder - 1;
-   if (ravenexec[zbuilder] > 0) {
-      return (kill(ravenexec[zbuilder], SIGKILL));
+   stalled_process = ravenexec[zbuilder];
+   if (stalled_process > 0) {
+       result = kill(stalled_process, SIGKILL);
+       if (result == 0) {
+          ravenexec[zbuilder] = 0;
+       }
+       return (result);
    }
    return (-1);
 }
@@ -254,10 +364,18 @@ kill_stalled_process (int builder)
  *               -1 : negative file descriptor
  *               -2 : file descriptor below standard error
  *               -3 : first fork failed
- *               -4 : failed to set up reaper
- *               -5 : illegal builder number
- *               -6 : second fork failed
- *               -7 : setsid failed
+ *               -5 : illegal builder number or initialize_ravenexec() was never run
+ *
+ * Child exit codes (obtained with WEXITSTATUS when WIFEXITED):
+ *                0 : command succeeded and cleanup reported no failure
+ *                1 : command returned 1, exec failed, wait failed,
+ *                    or cleanup failed after command success
+ *              252 : failed to set up reaper (_exit(-4))
+ *              250 : second fork failed (_exit(-6))
+ *              249 : setsid failed (_exit(-7))
+ * Otherwise preserves the command's exit code, or uses
+ * 128 + signal number when the command was killed by a signal.
+ * These codes can overlap with command exit codes.
  */
 int
 phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
@@ -269,7 +387,7 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
    int zbuilder;
    int grand_status = 0;
 
-   if ((builder < 1) || builder > 128)
+   if (builder < 1 || builder > 128 || ravenexec == NULL)
    {
       return (-5);
    }
@@ -349,16 +467,30 @@ phase_execution (int builder, int fd, char *prog, int argc, char *argv[])
 
       /* parent of grandchild (a.k.a child) */
       ravenexec[zbuilder] = fork2_pid;
-      wait_result = waitpid (fork2_pid, &grand_status, 0);
+      do {
+         wait_result = waitpid(fork2_pid, &grand_status, 0);
+      } while (wait_result < 0 && errno == EINTR);
       if (wait_result < 0)
       {
          grand_status = W_EXITCODE(1, 0);
       };
 
-      kill_process_tree (child_pid);
+      /* clear ravenexec slot before killing process tree to avoid
+	   * possibility of a stale fork2_pid during a long cleanup.
+	   */
       ravenexec[zbuilder] = 0;
+      if (kill_process_tree(child_pid) < 0 &&
+          WIFEXITED(grand_status) &&
+          WEXITSTATUS(grand_status) == 0)
+      {
+         grand_status = W_EXITCODE(1, 0);
+      }
 
-      _exit (WEXITSTATUS (grand_status));
+      if (WIFEXITED(grand_status))
+         _exit(WEXITSTATUS(grand_status));
+      if (WIFSIGNALED(grand_status))
+         _exit(128 + WTERMSIG(grand_status));
+      _exit(1);
    }
 
    /* Parent of fork #1 */

@@ -248,4 +248,16 @@ package body Unix.Ravexec is
    end kill_process_tree;
 
 
+   ----------------------------
+   --  ravenexec_initialize  --
+   ----------------------------
+   function ravenexec_initialize return Boolean
+   is
+      result : IC.int;
+      use type IC.int;
+   begin
+      result := C_initialize_ravenexec;
+      return result = 0;
+   end ravenexec_initialize;
+
 end Unix.Ravexec;

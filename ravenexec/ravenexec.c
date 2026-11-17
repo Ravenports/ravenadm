@@ -32,8 +32,6 @@
 #define W_EXITCODE(ret, sig)	((ret) << 8 | (sig))
 #endif
 
-static pid_t ravenexec;
-
 /*
  * --------------------
  * --  reap_process  --
@@ -45,11 +43,14 @@ static
 int reap_process (pid_t dead_pid_walking)
 {
    int status = 0;
+   pid_t result;
 
    if (kill(dead_pid_walking, SIGKILL) == 0)
    {
-      waitpid (dead_pid_walking, &status, 0);
-      return (0);
+      do {
+         result = waitpid(dead_pid_walking, &status, 0);
+      } while (result < 0 && errno == EINTR);
+      return result == dead_pid_walking ? 0 : -1;
    }
    return (-1);
 }
@@ -68,6 +69,7 @@ kill_process_tree (pid_t reaper_pid)
    }
 #if defined(__FreeBSD__) && defined(PROC_REAP_ACQUIRE)
    int    reap_rc;
+   pid_t  waitres;
    struct procctl_reaper_status info;
    struct procctl_reaper_kill killemall;
 
@@ -81,12 +83,46 @@ kill_process_tree (pid_t reaper_pid)
          reap_rc = procctl(P_PID, reaper_pid, PROC_REAP_KILL, &killemall);
       }
    }
+   if (reap_rc == 0)
+   {
+      do {
+         waitres = waitpid(-1, NULL, 0);
+      } while (waitres > 0 || (waitres < 0 && errno == EINTR));
+
+      if (waitres < 0 && errno != ECHILD)
+         reap_rc = -1;
+   }
    procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
    return (reap_rc);
 #elif defined(__DragonFly__) && defined(PROC_REAP_ACQUIRE)
-   union reaper_info info;
    int keep_going = 1;
    int reap_rc = 0;
+   int status;
+   pid_t waitres;
+#  if defined(PROC_REAP_KILL) // New ability with DragonFly 6.5
+   struct reaper_kill rk;
+
+   memset(&rk, 0, sizeof(rk));
+   rk.signal = SIGKILL;
+
+   while (keep_going)
+   {
+      keep_going = 0;
+      if (procctl(P_PID, reaper_pid, PROC_REAP_KILL, &rk) == 0)
+      {
+         if (rk.killed > 0)
+         {
+            keep_going = 1;
+            do {
+               waitres = wait3(&status, 0, NULL);
+            } while (waitres > 0 || (waitres < 0 && errno == EINTR));
+         }
+      } else {
+         reap_rc = -1;
+      }
+   }
+#  else // BEGIN ORIGINAL DRAGONFLY PROC_REAP
+   union reaper_info info;
 
    while (keep_going)
    {
@@ -95,95 +131,122 @@ kill_process_tree (pid_t reaper_pid)
       {
          if (info.status.pid_head > 0)
          {
-            keep_going = 1;
-            if (reap_process (info.status.pid_head) != 0) {
+            if (reap_process (info.status.pid_head) == 0) {
+               keep_going = 1;
+            } else {
                reap_rc = -1;
             }
          }
+      } else {
+         reap_rc = -1;
       }
    }
+#  endif // END ORIGINAL DRAGONFLY PROC_REAP
+   do {
+      waitres = wait3(&status, 0, NULL);
+   } while (waitres > 0 || (waitres < 0 && errno == EINTR));
    procctl(P_PID, reaper_pid, PROC_REAP_RELEASE, NULL);
    return (reap_rc);
 #elif defined(__linux__)
    /*
-    * Iterate /proc pseudo-filesystem repeatedly until no
-    * process ID has the ravenexec process as its parent.
+    * Scan /proc repeatedly until waitpid confirms that this
+    * supervisor has no children left.  Retry cleanup failures.
     */
    for (;;)
    {
       DIR *dir;
-      struct dirent* ent;
+      struct dirent *ent;
       char *endptr;
       char buffer[512];
-      int found_ppid;
+      char *stat_data = NULL;
+      size_t capacity = 0;
+      int reaped_child = 0;
+      pid_t wait_result;
+
+      do {
+         wait_result = waitpid(-1, NULL, WNOHANG);
+      } while (wait_result > 0 ||
+               (wait_result < 0 && errno == EINTR));
+
+      if (wait_result < 0)
+      {
+         if (errno == ECHILD)
+            return (0);
+         sleep(1);
+         continue;
+      }
 
       dir = opendir("/proc");
       if (dir == NULL)
       {
-         return (-1);
+         sleep(1);
+         continue;
       }
 
-      while ((ent = readdir(dir)) != NULL)
+      for (;;)
       {
          long lpid;
-         char *s_ppid;
-         pid_t parent_id;
-         /*
-          * if endptr is not a null character, the directory is not
-          * numeric so ignore it
-          */
-         found_ppid = 0;
+         long parent_id;
+         char state;
+         char *comm_end;
+         FILE *fp;
+         ssize_t size;
+         int read_error;
+
+         ent = readdir(dir);
+         if (ent == NULL)
+            break;
+
+         errno = 0;
          lpid = strtol(ent->d_name, &endptr, 10);
-         if (*endptr != '\0')
+         if (errno != 0 || endptr == ent->d_name ||
+             *endptr != '\0' || lpid <= 0 ||
+             (long)(pid_t)lpid != lpid)
          {
             continue;
          }
-         snprintf(buffer, sizeof(buffer), "/proc/%ld/stat", lpid);
-         FILE *fp = fopen(buffer, "r");
-         if (fp)
-         {
-            size_t size = fread(buffer, sizeof(char), sizeof(buffer), fp);
-            fclose (fp);
-            if (size > 0)
-            {
-               strtok(buffer, " ");             // (1) pid   %d
-               strtok(NULL, " ");               // (2) comm  %s
-               strtok(NULL, " ");               // (3) state %c
-               s_ppid = strtok(NULL, " ");      // (4) ppid  %d
 
-               parent_id = (pid_t) atoi(s_ppid);
-               if (parent_id == reaper_pid)
-               {
-                  found_ppid = 1;
-                  reap_process ((pid_t) lpid);
-               }
-            }
+         snprintf(buffer, sizeof(buffer), "/proc/%ld/stat", lpid);
+         fp = fopen(buffer, "r");
+         if (fp == NULL)
+            continue;
+
+         /* Read through EOF, including any newlines in comm. */
+         errno = 0;
+         size = getdelim(&stat_data, &capacity, '\0', fp);
+         read_error = 0;
+         if (size <= 0 || ferror(fp))
+            read_error = errno ? errno : EIO;
+         fclose(fp);
+         if (read_error != 0)
+            continue;
+
+         /* comm may contain spaces and ')'; later fields contain no ')'. */
+         comm_end = strrchr(stat_data, ')');
+         if (comm_end == NULL ||
+             sscanf(comm_end + 1, " %c %ld", &state, &parent_id) != 2 ||
+             parent_id < 0)
+         {
+            continue;
+         }
+
+         if (parent_id == (long)reaper_pid)
+         {
+            if (reap_process((pid_t)lpid) == 0)
+               reaped_child = 1;
          }
       }
+
+      free(stat_data);
       closedir(dir);
 
-      if (!found_ppid) {
-         break;
-      }
+      if (!reaped_child)
+         sleep(1);
    }
-   return (0);
 #else
    /* process reaping is not supported on this system */
    return (0);
 #endif  /* __FreeBSD__ || __DragonFly__ || __linux__ */
-}
-
-
-/*
- * ---------------
- * --  handler  --
- * ---------------
- */
-void
-handler (int signo __unused)
-{
-   kill_process_tree (ravenexec);
-   exit(1);
 }
 
 
@@ -213,18 +276,25 @@ diagnostic_message (int fd, char *prog, int argc, char *argv[])
  * ------------
  * argument argc    : number of arguments to pass to program
  * argument argv    : vector of arguments to pass to program
- * arg 0    fd      : file description to open log file
- * arg 1    prog    : full path to program to execute
- * arg 2+   args    : program arguments
+ * argv[1]  fd      : file descriptor of open log file
+ * argv[2]  prog    : full path to program to execute
+ * argv[3+] args    : program arguments
  *
- * return code  pid : success   (positive number)
- *               -1 : negative file descriptor
- *               -2 : file descriptor below standard error
- *               -3 : fork failed
- *               -4 : failed to set up reaper
- *               -5 : Not enough arguments
- *               -6 : Not used
- *               -7 : setsid failed
+ * Exit codes as observed by the caller:
+ *                0 : command succeeded and cleanup reported no failure
+ *                1 : command returned 1, exec failed, wait failed,
+ *                    signal setup/wait failed, or cleanup failed
+ *                    after command success
+ *              255 : negative file descriptor (return -1)
+ *              254 : file descriptor at or below standard error (return -2)
+ *              253 : fork failed (return -3)
+ *              252 : failed to set up reaper (return -4)
+ *              251 : not enough arguments (return -5)
+ *              249 : setsid failed (_exit(-7))
+ * Otherwise preserves the command's exit code, or uses
+ * 128 + signal number when the command was killed by a signal.
+ * These codes can overlap with command exit codes.
+ * SIGUSR1 sent to this supervisor requests command termination.
  */
 int
 main (int argc, char *argv[])
@@ -232,16 +302,18 @@ main (int argc, char *argv[])
    int fd;
    char *prog;
    pid_t fork1_pid;
-   pid_t fork2_pid;
-   pid_t child_pid;
+   pid_t reaper_pid;
    pid_t wait_result;
    int grand_status = 0;
+   int signo;
+   sigset_t waitset;
+   sigset_t original_mask;
+   struct sigaction action;
 
    if (argc < 4)
    {
       return (-5);
    }
-   ravenexec = getpid();
    fd = atoi(argv[1]);
    prog = argv[2];
    if (fd < 0)
@@ -253,48 +325,44 @@ main (int argc, char *argv[])
       return (-2);
    }
 
-   fork1_pid = fork();
-   if (fork1_pid < 0)
+   /* Keep cancellation pending until the child PID is available. */
+   sigemptyset(&waitset);
+   sigaddset(&waitset, SIGUSR1);
+   sigaddset(&waitset, SIGCHLD);
+   if (sigprocmask(SIG_BLOCK, &waitset, &original_mask) < 0)
+      return (1);
+
+   memset(&action, 0, sizeof(action));
+   action.sa_handler = SIG_DFL;
+   sigemptyset(&action.sa_mask);
+   if (sigaction(SIGUSR1, &action, NULL) < 0 ||
+       sigaction(SIGCHLD, &action, NULL) < 0)
    {
-      return (-3);
+      return (1);
    }
 
-
-
-   /***************************
-    *  First fork successful  *
-    ***************************/
-   if (fork1_pid == 0)
-   {
-      /* child of fork #1 */
-      child_pid = getpid();
-      if (setsid() < 0)
-      {
-         _exit (-7);
-      }
-
+   /* The supervisor must retain reaper status across command execution. */
+   reaper_pid = getpid();
 #ifdef PROC_REAP_ACQUIRE
-      /*
-       * Set current process as the reaper for itself and future children
-       * Interface identical for FreeBSD and DragonFly
-       */
-      if (procctl(P_PID, child_pid, PROC_REAP_ACQUIRE, NULL) < 0)
-      {
-         _exit (-4);
-      }
+   if (procctl(P_PID, reaper_pid, PROC_REAP_ACQUIRE, NULL) < 0)
+      return (-4);
 #endif
 #ifdef PR_SET_CHILD_SUBREAPER
-      /*
-       * Linux: Set current process as reaper for future children
-       */
-      if (prctl(PR_SET_CHILD_SUBREAPER, 1) < 0)
-      {
-         _exit (-4);
-      }
+   if (prctl(PR_SET_CHILD_SUBREAPER, 1) < 0)
+      return (-4);
 #endif
 
-      signal(SIGUSR1, handler);
+   fork1_pid = fork();
+   if (fork1_pid < 0)
+      return (-3);
+
+   if (fork1_pid == 0)
+   {
+      if (setsid() < 0)
+         _exit (-7);
       signal(SIGINT, SIG_IGN);
+      if (sigprocmask(SIG_SETMASK, &original_mask, NULL) < 0)
+         _exit (1);
 
       dup2 (fd, STDOUT_FILENO);
       dup2 (fd, STDERR_FILENO);
@@ -309,15 +377,44 @@ main (int argc, char *argv[])
   /***********************
    *  Parent of fork #1  *
    ***********************/
-   wait_result = waitpid (fork1_pid, &grand_status, 0);
-   if (wait_result < 0)
+   /* Wait for command exit or cancellation without an asynchronous handler. */
+   for (;;)
+   {
+      wait_result = waitpid(fork1_pid, &grand_status, WNOHANG);
+      if (wait_result == fork1_pid)
+         break;
+      if (wait_result < 0)
+      {
+         if (errno == EINTR)
+            continue;
+         grand_status = W_EXITCODE(1, 0);
+         break;
+      }
+
+      do {
+         signo = sigwaitinfo(&waitset, NULL);
+      } while (signo < 0 && errno == EINTR);
+      if (signo < 0)
+      {
+         grand_status = W_EXITCODE(1, 0);
+         break;
+      }
+      if (signo == SIGUSR1)
+         kill(fork1_pid, SIGKILL);
+   }
+
+   if (kill_process_tree(reaper_pid) < 0 &&
+       WIFEXITED(grand_status) &&
+       WEXITSTATUS(grand_status) == 0)
    {
       grand_status = W_EXITCODE(1, 0);
-   };
+   }
 
-   kill_process_tree (fork1_pid);
-
-   return (WEXITSTATUS (grand_status));
+   if (WIFEXITED(grand_status))
+      return (WEXITSTATUS(grand_status));
+   if (WIFSIGNALED(grand_status))
+      return (128 + WTERMSIG(grand_status));
+   return (1);
 }
 
 #endif /* __WIN32 */

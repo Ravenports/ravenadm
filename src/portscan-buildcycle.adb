@@ -936,6 +936,9 @@ package body PortScan.Buildcycle is
    begin
       set_uname_mrv;
       testing   := test_mode;
+      if not RAX.ravenexec_initialize then
+         TIO.Put_Line ("DEV ISSUE: failed to initialize ravenexec!");
+      end if;
       declare
          logdir : constant String := HT.USS (PM.configuration.dir_logs);
       begin

@@ -18,6 +18,10 @@ package Unix.Ravexec is
    procedure write   (fd : File_Descriptor; line : String);
    procedure writeln (fd : File_Descriptor; line : String);
 
+   --  Initializes shared memory for the embedded ravenexec and returns
+   --  True if successful.
+   function ravenexec_initialize return Boolean;
+
    --  wrapper for spawning external process that logs everything to the given file descriptor
    function launch_separate_process
      (builder   : builders;
@@ -68,5 +72,8 @@ private
 
    function kill_runaway (builder : IC.int) return IC.int;
    pragma Import (C, kill_runaway, "kill_stalled_process");
+
+   function C_initialize_ravenexec return IC.int;
+   pragma Import (C, C_initialize_ravenexec, "initialize_ravenexec");
 
 end Unix.Ravexec;
